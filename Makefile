@@ -5,7 +5,7 @@ all: repl
 lua:
 	$(MAKE) -C ${LUADIR}
 
-repl: repl.c
+repl: lua repl.c
 	${CC} -o repl repl.c -I${LUADIR}/src -L${LUADIR}/src -lluajit -lm -ldl
 clean-lua:
 	make -C deps/LuaJIT-2.0.0-beta8 clean
