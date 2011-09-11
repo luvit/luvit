@@ -1,10 +1,13 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+#include "uv.h"
 
 int main()
 {
   int s=0;
+  
+  printf("\nUsing libuv version %d.%d\n", UV_VERSION_MAJOR, UV_VERSION_MINOR);
 
   lua_State *L = lua_open();
 
