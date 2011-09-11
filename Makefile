@@ -13,11 +13,13 @@ ${UVDIR}/uv.a:
 ${HTTPDIR}/http_parser.o:
 	make -C ${HTTPDIR} http_parser.o
 
-webserver: webserver.c ${UVDIR}/uv.a
-	$(CC) -o webserver webserver.c ${UVDIR}/uv.a -I${UVDIR}/include -lrt -lm
+webserver: webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+	$(CC) -o webserver webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o \
+	  -I${HTTPDIR} -I${UVDIR}/include -lrt -lm
 
-luanode: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a luanode.c
-	$(CC) -o luanode luanode.c ${UVDIR}/uv.a ${LUADIR}/src/libluajit.a -I${UVDIR}/include -I${LUADIR}/src -lm -ldl -lrt
+luanode: luanode.c ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+	$(CC) -o luanode luanode.c ${UVDIR}/uv.a ${LUADIR}/src/libluajit.a \
+	  -I${UVDIR}/include -I${LUADIR}/src -lm -ldl -lrt
 
 clean:
 	make -C ${LUADIR} clean
