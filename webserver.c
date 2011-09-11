@@ -36,17 +36,17 @@ uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
 
 void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
   client_t* client = stream->data;
-  
+
   size_t parsed;
 
   if (nread >= 0) {
     parsed = http_parser_execute(&client->parser, &settings, buf.base, nread);
-    
+
     if (parsed < nread) {
       uv_close((uv_handle_t*)stream, on_close);
       fprintf(stderr, "parse error\n");
     }
-    
+
   } else {
     uv_err_t err = uv_last_error(uv_default_loop());
     if (err.code == UV_EOF) {
@@ -77,7 +77,7 @@ void on_connection(uv_stream_t* server_handle, int status) {
   }
 
   http_parser_init(&client->parser, HTTP_REQUEST);
-  
+
   uv_read_start((uv_stream_t*)&client->handle, on_alloc, on_read);
 
 }
@@ -91,7 +91,7 @@ int on_headers_complete(http_parser* parser) {
   client_t* client = parser->data;
 
   // printf("http message!\n");
-  
+
   uv_write(&client->write_req, (uv_stream_t*)&client->handle, &refbuf, 1, after_write);
 
   return 1;
@@ -99,10 +99,10 @@ int on_headers_complete(http_parser* parser) {
 
 int main() {
   uv_init();
-  
+
   refbuf.base = RESPONSE;
   refbuf.len = sizeof(RESPONSE);
-  
+
   settings.on_headers_complete = on_headers_complete;
 
   uv_tcp_init(uv_default_loop(), (uv_tcp_t*)&server);
@@ -122,7 +122,7 @@ int main() {
     fprintf(stderr, "listen: %s\n", uv_strerror(err));
     return -1;
   }
-  
+
   // Block in the main loop
   uv_run(uv_default_loop());
 }
