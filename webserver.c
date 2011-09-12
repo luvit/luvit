@@ -98,7 +98,6 @@ int on_headers_complete(http_parser* parser) {
 }
 
 int main() {
-  uv_init();
 
   refbuf.base = RESPONSE;
   refbuf.len = sizeof(RESPONSE);
