@@ -143,7 +143,7 @@ XCFLAGS=
 #
 # Turn on assertions for the Lua/C API to debug problems with lua_* calls.
 # This is rather slow -- use only while developing C libraries/embeddings.
-#XCFLAGS+= -DLUA_USE_APICHECK
+XCFLAGS+= -DLUA_USE_APICHECK
 #
 # Turn on assertions for the whole LuaJIT VM. This significantly slows down
 # everything. Use only if you suspect a problem with LuaJIT itself.
