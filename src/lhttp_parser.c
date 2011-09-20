@@ -1,13 +1,21 @@
 #include "lhttp_parser.h"
 #include "http_parser.h"
 
-/*static int http_parser_sin (lua_State *L) {*/
-/*  lua_pushnumber(L, sin(luaL_checknumber(L, 1)));*/
-/*  return 1;*/
-/*}*/
+
+// Takes as arguments a string for type and a table for event callbacks
+static int http_parser_new (lua_State *L) {
+
+  const char *type = luaL_checkstring(L, 1);
+  luaL_argcheck(L, (0 == strcasecmp(type, "request")) || (0 == strcasecmp(type, "response")), 1, "type must be 'request' or 'response'");
+  luaL_checktype(L, 2, LUA_TTABLE);
+
+  // TODO: make userdata instance and return it instead of this string
+  lua_pushstring(L, type);
+  return 1;
+}
 
 static const luaL_reg http_parserlib[] = {
-/*  {"sin", http_parser_sin},*/
+  {"new", http_parser_new},
   {NULL, NULL}
 };
 
