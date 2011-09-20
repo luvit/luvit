@@ -124,4 +124,6 @@ int main() {
 
   // Block in the main loop
   uv_run(uv_default_loop());
+
+  return 0;
 }
