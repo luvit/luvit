@@ -1,11 +1,9 @@
-print("uv", uv, "version " .. uv.VERSION_MAJOR .. "." .. uv.VERSION_MINOR)
-print("http_parser", http_parser, "version " .. http_parser.VERSION_MAJOR .. "." .. http_parser.VERSION_MINOR)
 
 function dump(o)
   if type(o) == 'table' then
     local s = '{ '
     for k,v in pairs(o) do
-      s = s .. dump(k) ..' = ' .. dump(v) .. ', '
+      s = s .. '[' .. dump(k) ..'] = ' .. dump(v) .. ', '
     end
     return s .. '} '
   elseif type(o) == 'string' then
@@ -14,6 +12,9 @@ function dump(o)
     return tostring(o)
   end
 end
+
+print("uv", dump(uv))
+print("http_parser", dump(http_parser))
 
 
 local request = ([[
