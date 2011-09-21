@@ -54,23 +54,9 @@ local parser = http_parser.new("request", {
     print("on_message_complete")
   end
 })
-parser:reinitialize("request")
+--parser:reinitialize("request")
 local nparsed = parser:execute(request, 0, #request)
 print("executed " .. nparsed .. " bytes")
 parser:finish()
 
-
-
---local parser = http_parser.new("request", {})
---print(parser)
---print(parser:execute("Hello", 4, 1))
---parser.execute()
---print(http_parser.new())
---print(http_parser.new("Hello"))
---print(http_parser.new("request"))
---print(http_parser.new("REQUEST", {}))
---print(http_parser.new("request", {}))
-
-
---local HTTPParser = require('http_parser')
 
