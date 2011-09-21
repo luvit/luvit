@@ -25,6 +25,7 @@ local parser = http_parser.new("request", {
 --parser:reinitialize("request")
 local nparsed = parser:execute(request, 0, #request)
 print("executed " .. nparsed .. " bytes")
+
 --parser:finish()
 
 

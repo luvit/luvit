@@ -1,11 +1,10 @@
+#include <string.h>
+#include <stdlib.h>
+
 #include "lhttp_parser.h"
 #include "http_parser.h"
-#include <string.h>
 
-
-static struct http_parser_settings lhttp_parser_settings;
-
-static const char* method_to_str(unsigned short m) {
+static inline const char* method_to_str(unsigned short m) {
   switch (m) {
     case HTTP_DELETE:     return "DELETE";
     case HTTP_GET:        return "GET";
@@ -34,28 +33,36 @@ static const char* method_to_str(unsigned short m) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static struct http_parser_settings lhttp_parser_settings;
+
 static int lhttp_parser_on_message_begin(http_parser *p) {
+  lua_State *L = p->data;
   printf("on_message_begin\n");
   return 0;
 }
 
 static int lhttp_parser_on_url(http_parser *p, const char *at, size_t length) {
+  lua_State *L = p->data;
   printf("on_url %.*s\n", length, at);
   return 0;
 }
 
 static int lhttp_parser_on_header_field(http_parser *p, const char *at, size_t length) {
+  lua_State *L = p->data;
   printf("on_header_field %.*s\n", length, at);
   return 0;
 }
 
 static int lhttp_parser_on_header_value(http_parser *p, const char *at, size_t length) {
+  lua_State *L = p->data;
   printf("on_header_value %.*s\n", length, at);
   return 0;
 }
 
 static int lhttp_parser_on_headers_complete(http_parser *p) {
-
+  lua_State *L = p->data;
   printf("on_headers_complete\n");
 
   // METHOD
@@ -80,14 +87,19 @@ static int lhttp_parser_on_headers_complete(http_parser *p) {
 }
 
 static int lhttp_parser_on_body(http_parser *p, const char *at, size_t length) {
+  lua_State *L = p->data;
   printf("on_body %.*s\n", length, at);
   return 0;
 }
 
 static int lhttp_parser_on_message_complete(http_parser *p) {
+  lua_State *L = p->data;
   printf("on_message_complete\n");
   return 0;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Takes as arguments a string for type and a table for event callbacks
 static int lhttp_parser_new (lua_State *L) {
@@ -105,12 +117,18 @@ static int lhttp_parser_new (lua_State *L) {
     return luaL_argerror(L, 1, "type must be 'request' or 'response'");
   }
   
-  // TODO: find out what value would make sense for data since we're not in C++
-  // parser->data = this?
+  // Store the current lua state in the parser's data
+  parser->data = L;
+  
+  // Set the callback table as the userdata's environment
+  lua_pushvalue(L, 2);
+  lua_setfenv (L, -2);
 
+  // Set the type of the userdata as an lhttp_parser instance
   luaL_getmetatable(L, "lhttp_parser");
   lua_setmetatable(L, -2);
 
+  // return the userdata
   return 1;
 }
 
@@ -134,6 +152,20 @@ static int lhttp_parser_execute (lua_State *L) {
   return 1;
 }
 
+static int lhttp_parser_finish (lua_State *L) {
+  http_parser* parser = (http_parser *)luaL_checkudata(L, 1, "lhttp_parser");
+  // TODO: Implement
+  return 0;
+}
+
+static int lhttp_parser_reinitialize (lua_State *L) {
+  http_parser* parser = (http_parser *)luaL_checkudata(L, 1, "lhttp_parser");
+  // TODO: Implement
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 static const struct luaL_Reg lhttp_parser_f [] = {
   {"new", lhttp_parser_new},
   {NULL, NULL}
@@ -141,6 +173,8 @@ static const struct luaL_Reg lhttp_parser_f [] = {
 
 static const struct luaL_Reg lhttp_parser_m [] = {
   {"execute", lhttp_parser_execute},
+  {"finish", lhttp_parser_finish},
+  {"reinitialize", lhttp_parser_reinitialize},
   {NULL, NULL}
 };
 
@@ -160,6 +194,7 @@ LUALIB_API int luaopen_http_parser (lua_State *L) {
   /* metatable.__index = metatable */
   lua_pushvalue(L, -1); /* duplicates the metatable */
   lua_setfield(L, -2, "__index");
+  
   luaL_register(L, NULL, lhttp_parser_m);
   luaL_register(L, "http_parser", lhttp_parser_f);
 
