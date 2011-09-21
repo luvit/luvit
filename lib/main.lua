@@ -1,35 +1,11 @@
-
-function dump(o)
-  if type(o) == 'table' then
-    local s = '{ '
-    for k,v in pairs(o) do
-      s = s .. '[' .. dump(k) ..'] = ' .. dump(v) .. ', '
-    end
-    return s .. '} '
-  elseif type(o) == 'string' then
-    return ('"' .. o:gsub("\n","\\n"):gsub("\r","\\r") .. '"')
-  else
-    return tostring(o)
-  end
-end
+print(http_parser, uv, dump)
+local http_parser = require('http_parser')
+local uv = require('uv')
+local dump = require('lib/utils').dump
+local mock = require('lib/mock')
 
 print("uv", dump(uv))
 print("http_parser", dump(http_parser))
-
-
-local request = ([[
-POST /documentation/apache/ HTTP/1.0
-Connection: Keep-Alive
-User-Agent: Mozilla/4.01 [en] (Win95; I)
-Host: hal.etc.com.au
-Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, */*
-Accept-Language: en
-Accept-Charset: iso-8859-1,*,utf-8
-Content-Length: 13
-
-Hello World
-]]):gsub("\n","\r\n")
-
 
 local parser = http_parser.new("request", {
   on_message_begin = function ()
@@ -54,8 +30,12 @@ local parser = http_parser.new("request", {
     print("on_message_complete")
   end
 })
---parser:reinitialize("request")
-local nparsed = parser:execute(request, 0, #request)
+local nparsed = parser:execute(mock.request, 0, #mock.request)
+print("executed " .. nparsed .. " bytes")
+parser:finish()
+
+parser:reinitialize("response")
+local nparsed = parser:execute(mock.response, 0, #mock.response)
 print("executed " .. nparsed .. " bytes")
 parser:finish()
 
