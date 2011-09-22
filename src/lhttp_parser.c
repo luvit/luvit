@@ -322,17 +322,6 @@ static int lhttp_parser_reinitialize (lua_State *L) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static const struct luaL_Reg lhttp_parser_f [] = {
-  {"new", lhttp_parser_new},
-  {NULL, NULL}
-};
-
-static const struct luaL_Reg lhttp_parser_m [] = {
-  {"execute", lhttp_parser_execute},
-  {"finish", lhttp_parser_finish},
-  {"reinitialize", lhttp_parser_reinitialize},
-  {NULL, NULL}
-};
 
 LUALIB_API int luaopen_http_parser (lua_State *L) {
 
@@ -345,21 +334,26 @@ LUALIB_API int luaopen_http_parser (lua_State *L) {
   lhttp_parser_settings.on_body             = lhttp_parser_on_body;
   lhttp_parser_settings.on_message_complete = lhttp_parser_on_message_complete;
 
-  // Set up our Lua module
+  // Create a metatable for the lhttp_parser userdata type
   luaL_newmetatable(L, "lhttp_parser");
-  /* metatable.__index = metatable */
-  lua_pushvalue(L, -1); /* duplicates the metatable */
+  lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
+  // Stick some methods on the metatable
+  lua_register(L, "execute", lhttp_parser_execute);
+  lua_register(L, "finish", lhttp_parser_finish);
+  lua_register(L, "reinitialize", lhttp_parser_reinitialize);
 
-  luaL_register(L, NULL, lhttp_parser_m);
-  luaL_register(L, "http_parser", lhttp_parser_f);
-
+  // Create a new exports table
+  lua_newtable (L);
+  // Put our one function on it
+  lua_register(L, "new", lhttp_parser_new);
   // Stick version info on the http_parser table
   lua_pushnumber(L, HTTP_PARSER_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
   lua_pushnumber(L, HTTP_PARSER_VERSION_MINOR);
   lua_setfield(L, -2, "VERSION_MINOR");
 
+  // Return the new module
   return 1;
 }
 
