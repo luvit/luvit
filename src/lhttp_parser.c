@@ -339,14 +339,18 @@ LUALIB_API int luaopen_http_parser (lua_State *L) {
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
   // Stick some methods on the metatable
-  lua_register(L, "execute", lhttp_parser_execute);
-  lua_register(L, "finish", lhttp_parser_finish);
-  lua_register(L, "reinitialize", lhttp_parser_reinitialize);
+  lua_pushcfunction(L, lhttp_parser_execute);
+  lua_setfield(L, -2, "execute");
+  lua_pushcfunction(L, lhttp_parser_finish);
+  lua_setfield(L, -2, "finish");
+  lua_pushcfunction(L, lhttp_parser_reinitialize);
+  lua_setfield(L, -2, "reinitialize");
 
   // Create a new exports table
   lua_newtable (L);
   // Put our one function on it
-  lua_register(L, "new", lhttp_parser_new);
+  lua_pushcfunction(L, lhttp_parser_new);
+  lua_setfield(L, -2, "new");
   // Stick version info on the http_parser table
   lua_pushnumber(L, HTTP_PARSER_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
