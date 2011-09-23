@@ -2,6 +2,33 @@
 #include "uv.h"
 #include <stdlib.h>
 
+// Stores value at index in the environment of current userdata (index 1) at given name
+static void luv_register_event(lua_State* L, const char* name, int index) {
+  printf("Registering %s from index %d\n", name, index);
+  lua_getfenv(L, 1);
+  lua_pushvalue(L, index);
+  lua_setfield(L, -2, name);
+  lua_pop(L, 1);
+}
+
+// Emit an event of the current userdata consuming nargs
+static void luv_emit_event(lua_State* L, const char* name, int nargs) {
+  printf("Emitting event %s, %d\n", name, nargs);
+  // Load the connection callback
+  lua_getfenv(L, 1);
+  lua_getfield(L, -1, name);
+  lua_remove(L, -2);
+  if (lua_isfunction (L, -1) == 0) {
+    printf("missing event: on_%s\n", name);
+    lua_pop(L, 1 + nargs);
+    return;
+  }
+  lua_insert(L, -nargs - 1);
+  if (lua_pcall(L, nargs, 1, 0) != 0) {
+    error(L, "error running function 'on_%s': %s", name, lua_tostring(L, -1));
+  }
+}
+
 static int luv_run (lua_State* L) {
   uv_run(uv_default_loop());
   return 0;
@@ -45,10 +72,11 @@ static int luv_tcp_bind (lua_State* L) {
 
   struct sockaddr_in address = uv_ip4_addr(host, port);
   int r = uv_tcp_bind(handle, address);
-
-  // return r
-  lua_pushnumber(L, r);
-  return 1;
+  if (r) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "bind: %s", uv_strerror(err));
+  }
+  return 0;
 }
 
 void luv_on_connection(uv_stream_t* handle, int status) {
@@ -57,34 +85,17 @@ void luv_on_connection(uv_stream_t* handle, int status) {
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
-  // Load the connection callback
-  lua_getfenv(L, -1);
-  lua_getfield(L, -1, "connection");
-  lua_remove(L, -2);
-  
-  if (lua_isfunction (L, -1) == 0) {
-    printf("missing: on_connection\n");
-  } else {
-    lua_pushinteger(L, status);
-    if (lua_pcall(L, 1, 1, 0) != 0) {
-      error(L, "error running function 'on_connection': %s", lua_tostring(L, -1));
-    }
-  }
-  
-  // Clean up the callback
-  lua_pop(L, 1);
+  lua_pushinteger(L, status);
+  luv_emit_event(L, "connection", 1);
 }
+
 
 static int luv_tcp_on (lua_State* L) {
   luaL_checkudata(L, 1, "luv_tcp");
   const char* name = luaL_checkstring(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
-
-  // Store the callback in the environment as "on_connection"
-  lua_getfenv(L, 1);
-  lua_pushvalue(L, 3); // put callback on stack
-  lua_setfield(L, -2, name);
-  lua_pop(L, 1); // put env away
+  
+  luv_register_event(L, name, 3);
   
   return 0;
   
@@ -93,17 +104,27 @@ static int luv_tcp_on (lua_State* L) {
 
 static int luv_tcp_listen (lua_State* L) {
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+
+  luv_register_event(L, "connection", 2);
+
   int r = uv_listen((uv_stream_t*)handle, 128, luv_on_connection);
-  lua_pushinteger(L, r);
-  return 1;
+  if (r) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "listen: %s", uv_strerror(err));
+  }
+  return 0;
 }
 
 static int luv_tcp_accept (lua_State* L) {
   uv_tcp_t* server = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   uv_tcp_t* client = (uv_tcp_t*)luaL_checkudata(L, 2, "luv_tcp");
   int r = uv_accept((uv_stream_t*)server, (uv_stream_t*)client);
-  lua_pushinteger(L, r);
-  return 1;
+  if (r) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "accept: %s", uv_strerror(err));
+  }
+  return 0;
 }
 
 uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size) {
@@ -120,17 +141,7 @@ void luv_on_close(uv_handle_t* handle) {
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
-  lua_getfenv(L, -1);
-  lua_getfield(L, -1, "close");
-  lua_remove(L, -2);
-
-  if (lua_isfunction (L, -1) == 0) {
-    printf("missing: on_close\n");
-  } else {
-    if (lua_pcall(L, 0, 1, 0) != 0) {
-      error(L, "error running function 'on_close': %s", lua_tostring(L, -1));
-    }
-  }
+  luv_emit_event(L, "closed", 0);
 }
 
 
@@ -143,27 +154,13 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
   if (nread >= 0) {
 
-    // Load the read callback
-    lua_getfenv(L, -1);
-    lua_getfield(L, -1, "read");
-    lua_remove(L, -2);
-    
-    if (lua_isfunction (L, -1) == 0) {
-      printf("missing: on_read\n");
-    } else {
-      lua_pushlstring (L, buf.base, nread);
-      if (lua_pcall(L, 1, 1, 0) != 0) {
-        error(L, "error running function 'on_read': %s", lua_tostring(L, -1));
-      }
-    }
-    
-    // clean up the callback
-    lua_pop(L, 1);
+    lua_pushlstring (L, buf.base, nread);
+    luv_emit_event(L, "read", 1);
 
   } else {
     uv_err_t err = uv_last_error(uv_default_loop());
     if (err.code == UV_EOF) {
-      uv_close((uv_handle_t*)handle, luv_on_close);
+      luv_emit_event(L, "end", 0);
     } else {
       error(L, "read: %s", uv_strerror(err));
     }
@@ -173,9 +170,24 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
 }
 
+
+static int luv_tcp_close (lua_State* L) {
+  uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
+  uv_close((uv_handle_t*)handle, luv_on_close);
+  return 0;
+}
+
 static int luv_tcp_read_start (lua_State* L) {
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   uv_read_start((uv_stream_t*)handle, luv_on_alloc, luv_on_read);
+  return 0;
+}
+
+static int luv_tcp_write (lua_State* L) {
+  uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
+  const char* chunk = luaL_checkstring(L, 2);
+  printf("TODO: implement write\n");
+/*  uv_write(&client->write_req, (uv_stream_t*)&client->handle, &refbuf, 1, after_write);*/
   return 0;
 }
 
@@ -185,6 +197,8 @@ static const luaL_reg luv_tcp_m[] = {
   {"listen", luv_tcp_listen},
   {"accept", luv_tcp_accept},
   {"on", luv_tcp_on},
+  {"write", luv_tcp_write},
+  {"close", luv_tcp_close},
   {"read_start", luv_tcp_read_start},
   {NULL, NULL}
 };
