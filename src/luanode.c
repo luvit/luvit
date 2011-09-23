@@ -3,6 +3,8 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+
+#include "utils.h"
 #include "luv.h"
 #include "lhttp_parser.h"
 
@@ -25,9 +27,6 @@ int main()
   lua_call(L, 0, 0);
   lua_pushcfunction(L, luaopen_bit);
   lua_call(L, 0, 0);
-  
-
-
 
 
   // Pull up the preload table
