@@ -1,11 +1,19 @@
 #include "luv.h"
 #include "uv.h"
 
-static int luv_new_stream (lua_State *L) {
+static int luv_run (lua_State *L) {
+  uv_run(uv_default_loop());
+  return 0;
+}
 
-  uv_stream_t* stream = (uv_stream_t*)lua_newuserdata(L, sizeof(uv_stream_t));
-  stream->data = L;
-  luaL_getmetatable(L, "luv_stream");
+static int luv_new_tcp (lua_State *L) {
+
+  uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
+  uv_tcp_init(uv_default_loop(), handle);
+  handle->data = L;
+
+  // Set instance methods
+  luaL_getmetatable(L, "luv_tcp");
   lua_setmetatable(L, -2);
 
   // return the userdata
@@ -13,45 +21,49 @@ static int luv_new_stream (lua_State *L) {
 }
 
 static int luv_tcp_init (lua_State *L) {
-  //TODO: Implement
+  uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
+  uv_tcp_init(uv_default_loop(), handle);
   return 0;
 }
+
 static int luv_tcp_bind (lua_State *L) {
-  //TODO: Implement
-  return 0;
-}
-static int luv_listen (lua_State *L) {
-  //TODO: Implement
-  return 0;
-}
-static int luv_run (lua_State *L) {
-  //TODO: Implement
-  return 0;
+  uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
+  const char* host = luaL_checkstring(L, 2);
+  int port = luaL_checkint(L, 3);
+
+  struct sockaddr_in address = uv_ip4_addr(host, port);
+  int r = uv_tcp_bind(handle, address);
+
+  // return r
+  lua_pushnumber(L, r);
+  return 1;
 }
 
-
-static const luaL_reg luv_f[] = {
-  {"tcp_init", luv_tcp_init},
-  {"tcp_bind", luv_tcp_bind},
-  {"listen", luv_listen},
-  {"run", luv_run},
-  {"new_stream", luv_new_stream},
+static const luaL_reg luv_tcp_m[] = {
+  {"init", luv_tcp_init},
+  {"bind", luv_tcp_bind},
   {NULL, NULL}
 };
 
-/*
-** Open uv library
-*/
+static const luaL_reg luv_f[] = {
+  {"new_tcp", luv_new_tcp},
+  {"run", luv_run},
+  {NULL, NULL}
+};
+
+
 LUALIB_API int luaopen_uv (lua_State *L) {
 
-  // Define out userdata types
-  luaL_newmetatable(L, "luv_stream");
-  luaL_newmetatable(L, "luv_loop*");
+  // Define the luv_tcp userdata's methods
+  luaL_newmetatable(L, "luv_tcp");
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+  luaL_register(L, NULL, luv_tcp_m);
+  lua_pop(L, 1);
 
-  // Create a new exports table
+  // Create a new exports table with functions and constants
   lua_newtable (L);
   luaL_register(L, NULL, luv_f);
-
   lua_pushnumber(L, UV_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
   lua_pushnumber(L, UV_VERSION_MINOR);
@@ -59,27 +71,4 @@ LUALIB_API int luaopen_uv (lua_State *L) {
 
   return 1;
 }
-
-
-/*uv_tcp_init(uv_default_loop(), (uv_tcp_t*)&server);*/
-/*  struct sockaddr_in address = uv_ip4_addr("0.0.0.0", 8080);*/
-/*  int r = uv_tcp_bind((uv_tcp_t*)&server, address);*/
-
-/*  if (r) {*/
-/*    uv_err_t err = uv_last_error(uv_default_loop());*/
-/*    fprintf(stderr, "bind: %s\n", uv_strerror(err));*/
-/*    return -1;*/
-/*  }*/
-
-/*  r = uv_listen(&server, 128, on_connection);*/
-
-/*  if (r) {*/
-/*    uv_err_t err = uv_last_error(uv_default_loop());*/
-/*    fprintf(stderr, "listen: %s\n", uv_strerror(err));*/
-/*    return -1;*/
-/*  }*/
-
-/*  // Block in the main loop*/
-/*  uv_run(uv_default_loop());*/
-
 
