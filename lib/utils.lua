@@ -18,7 +18,7 @@ local Bwhite   = "1;37"
 function color(string, color, old)
   if (old) then
     return "\27[" .. color .. "m" .. string .. "\27[" .. old .. "m"
-  else 
+  else
     return "\27[" .. color .. "m" .. string .. "\27[0m"
   end
 end
@@ -44,11 +44,40 @@ function dump(o, depth)
     if (depth > 1) then
       return color(tostring(o), yellow)
     end
-    local s = '{\n'
+
+    -- Check to see if this is an array
+    local is_array = true
+    local i = 1
     for k,v in pairs(o) do
-      s = s .. indent .. color('  [', white) .. dump(k, 100) ..color(']', white) .. ' = ' .. dump(v, depth + 1) .. ',\n'
+      if not (k == i) then
+        is_array = false
+      end
+      i = i + 1
     end
-    return s .. indent .. '}'
+
+    local s = '{'
+    local first = true
+    for k,v in pairs(o) do
+      if first then
+        first = false
+      else
+        s = s .. ","
+      end
+      s = s .. "\255"
+      if not is_array then
+        if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
+          s = s .. k .. ' = '
+        else
+          s = s .. color('[', white) .. dump(k, 100) ..color(']', white) .. ' = '
+        end
+      end
+      s = s .. dump(v, depth + 1)
+    end
+    if (#s > 200) then
+      return s:gsub("\255", "\n" .. indent .. "  ") .. "\n" .. indent .. "}"
+    else
+      return s:gsub("\255", " ") .. " }"
+    end
   end
   if type(o) == 'userdata' then
     return color(tostring(o), red)
@@ -59,6 +88,7 @@ function dump(o, depth)
   -- This doesn't happen right?
   return tostring(o)
 end
+
 
 return {
   dump = dump,
@@ -77,8 +107,10 @@ return {
 
 --print("table", dump({
 --  ["nil"] = nil,
+--  ["8"] = 8,
 --  ["number"] = 42,
 --  ["boolean"] = true,
+--  ["table"] = {age = 29, name="Tim"},
 --  ["string"] = "Another String",
 --  ["function"] = dump,
 --  [print] = {{"deep"},{{"nesting"}},3,4,5},
