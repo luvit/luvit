@@ -241,6 +241,7 @@ void luv_after_write(uv_write_t* req, int status) {
   if (lua_pcall(L, 0, 0, 0) != 0) {
     error(L, "error running function 'on_write': %s", lua_tostring(L, -1));
   }
+  free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
 
 }

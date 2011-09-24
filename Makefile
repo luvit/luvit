@@ -28,7 +28,7 @@ ${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 
 ${BUILDDIR}/luanode: src/luanode.c src/utils.c src/luv.c src/lhttp_parser.c ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -o ${BUILDDIR}/luanode src/luanode.c src/utils.c src/luv.c src/lhttp_parser.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${LUADIR}/src/libluajit.a \
+	$(CC) -Wall -g -o ${BUILDDIR}/luanode src/luanode.c src/utils.c src/luv.c src/lhttp_parser.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${LUADIR}/src/libluajit.a \
 	  -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -lm -ldl -lrt
 
 clean:
