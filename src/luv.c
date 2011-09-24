@@ -19,7 +19,6 @@ typedef struct {
 // Registers a callback
 static void luv_register_event(lua_State* L, const char* name, int index) {
   int before = lua_gettop(L);
-  luaL_checkudata(L, 1, "luv_tcp");
   lua_getfenv(L, 1);
   lua_pushvalue(L, index);
   lua_setfield(L, -2, name);
@@ -51,9 +50,7 @@ static void luv_emit_event(lua_State* L, const char* name, int nargs) {
 }
 
 static int luv_run (lua_State* L) {
-  int before = lua_gettop(L);
   uv_run(uv_default_loop());
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -74,7 +71,7 @@ static int luv_new_tcp (lua_State* L) {
   // Set instance methods
   luaL_getmetatable(L, "luv_tcp");
   lua_setmetatable(L, -2);
-  
+
   // Create a local environment for storing stuff
   lua_newtable(L);
   lua_setfenv (L, -2);
@@ -127,9 +124,9 @@ static int luv_tcp_on (lua_State* L) {
   luaL_checkudata(L, 1, "luv_tcp");
   const char* name = luaL_checkstring(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
-  
+
   luv_register_event(L, name, 3);
-  
+
   assert(lua_gettop(L) == before);
   return 0;
 }
@@ -181,6 +178,11 @@ void luv_on_close(uv_handle_t* handle) {
 
   luv_emit_event(L, "closed", 0);
   lua_pop(L, 1); // remove userdata
+
+  // This handle is no longer valid, clean up memory
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+  free(ref);
+
   assert(lua_gettop(L) == before);
 }
 
