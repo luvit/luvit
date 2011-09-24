@@ -3,6 +3,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
+typedef struct {
+  lua_State* L;
+  int r;
+} luv_ref_t;
+
+typedef struct {
+  lua_State* L;
+  int r;
+  uv_write_t write_req;
+  uv_buf_t refbuf;
+} luv_write_ref_t;
+
 // Registers a callback
 static void luv_register_event(lua_State* L, const char* name, int index) {
   int before = lua_gettop(L);
@@ -50,7 +62,7 @@ static int luv_new_tcp (lua_State* L) {
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
 
   // Store a reference to the userdata in the handle
-  luv_ref* ref = (luv_ref*)malloc(sizeof(luv_ref));
+  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -92,7 +104,7 @@ static int luv_tcp_bind (lua_State* L) {
 
 void luv_on_connection(uv_stream_t* handle, int status) {
   // load the lua state and the userdata
-  luv_ref* ref = handle->data;
+  luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
@@ -148,7 +160,7 @@ uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size) {
 void luv_on_close(uv_handle_t* handle) {
 
   // load the lua state and the userdata
-  luv_ref* ref = handle->data;
+  luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
@@ -159,7 +171,7 @@ void luv_on_close(uv_handle_t* handle) {
 void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
   // load the lua state and the userdata
-  luv_ref* ref = handle->data;
+  luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
@@ -194,11 +206,41 @@ static int luv_tcp_read_start (lua_State* L) {
   return 0;
 }
 
+void luv_after_write(uv_write_t* req, int status) {
+
+  // load the lua state and the callback
+  luv_ref_t* ref = req->data;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+  if (lua_pcall(L, 0, 0, 0) != 0) {
+    error(L, "error running function 'on_write': %s", lua_tostring(L, -1));
+  }
+
+}
+
 static int luv_tcp_write (lua_State* L) {
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
-  const char* chunk = luaL_checkstring(L, 2);
-  printf("TODO: implement write\n");
-/*  uv_write(&client->write_req, (uv_stream_t*)&client->handle, &refbuf, 1, after_write);*/
+  size_t len;
+  const char* chunk = luaL_checklstring(L, 2, &len);
+  luaL_checktype(L, 3, LUA_TFUNCTION);
+
+  luv_write_ref_t* ref = (luv_write_ref_t*)malloc(sizeof(luv_write_ref_t));
+
+  // Store a reference to the callback
+  ref->L = L;
+  lua_pushvalue(L, 3);
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+
+  // Give the write_req access to this
+  ref->write_req.data = ref;
+
+  // Store the chunk
+  // TODO: this is probably unsafe, should investigate
+  ref->refbuf.base = (char*)chunk;
+  ref->refbuf.len = len;
+
+  uv_write(&ref->write_req, (uv_stream_t*)handle, &ref->refbuf, 1, luv_after_write);
   return 0;
 }
 

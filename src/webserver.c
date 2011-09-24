@@ -83,6 +83,7 @@ void on_connection(uv_stream_t* server_handle, int status) {
 }
 
 void after_write(uv_write_t* req, int status) {
+  printf("after_write\n");
   uv_close((uv_handle_t*)req->handle, on_close);
 }
 
