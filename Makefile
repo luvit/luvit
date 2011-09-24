@@ -3,11 +3,11 @@ UVDIR=deps/uv
 HTTPDIR=deps/http-parser
 BUILDDIR=build
 
-all: luanode
+all: luvit
 
 webserver: ${BUILDDIR}/webserver
 
-luanode: ${BUILDDIR}/luanode
+luvit: ${BUILDDIR}/luvit
 
 ${LUADIR}/src/libluajit.a:
 	$(MAKE) -C ${LUADIR}
@@ -26,9 +26,9 @@ ${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 	$(CC) -Wall -o ${BUILDDIR}/webserver src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o \
 	  -I${HTTPDIR} -I${UVDIR}/include -lrt -lm
 
-${BUILDDIR}/luanode: src/luanode.c src/utils.c src/luv.c src/lhttp_parser.c ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+${BUILDDIR}/luvit: src/luvit.c src/utils.c src/luv.c src/lhttp_parser.c ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -g -o ${BUILDDIR}/luanode src/luanode.c src/utils.c src/luv.c src/lhttp_parser.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${LUADIR}/src/libluajit.a \
+	$(CC) -Wall -g -o ${BUILDDIR}/luvit src/luvit.c src/utils.c src/luv.c src/lhttp_parser.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${LUADIR}/src/libluajit.a \
 	  -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -lm -ldl -lrt
 
 clean:
