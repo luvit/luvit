@@ -20,9 +20,6 @@ static void luv_register_event(lua_State* L, const char* name, int index) {
   int before = lua_gettop(L);
   luaL_checkudata(L, 1, "luv_tcp");
   lua_getfenv(L, 1);
-  if (lua_isfunction (L, index) == 0) {
-    printf("ERROR, missing function\n");
-  }
   lua_pushvalue(L, index);
   lua_setfield(L, -2, name);
   lua_pop(L, 1);
@@ -38,7 +35,7 @@ static void luv_emit_event(lua_State* L, const char* name, int nargs) {
   lua_getfield(L, -1, name);
   lua_remove(L, -2);
   if (lua_isfunction (L, -1) == 0) {
-    printf("missing event: on_%s\n", name);
+    //printf("missing event: on_%s\n", name);
     lua_pop(L, 1 + nargs);
     assert(lua_gettop(L) == before - nargs);
     return;
@@ -178,7 +175,8 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
   if (nread >= 0) {
 
     lua_pushlstring (L, buf.base, nread);
-    luv_emit_event(L, "read", 1);
+    lua_pushinteger (L, nread);
+    luv_emit_event(L, "read", 2);
 
   } else {
     uv_err_t err = uv_last_error(uv_default_loop());

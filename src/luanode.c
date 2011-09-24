@@ -56,7 +56,7 @@ int main()
     printf("%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
   }
-
+/*
   char buff[256];
   int error;
   
@@ -66,11 +66,13 @@ int main()
     error = luaL_loadbuffer(L, buff, strlen(buff), "line") || lua_pcall(L, 0, 0, 0);
     if (error) {
       fprintf(stderr, "%s\n", lua_tostring(L, -1));
-      lua_pop(L, 1); /* pop error message from the stack */
+      lua_pop(L, 1); // pop error message from the stack
     }
     printf("%s", prompt);
   }
   printf("\n");
+*/
+
   lua_close(L);
   return 0;
 }

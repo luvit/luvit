@@ -13,8 +13,8 @@ server:listen(function (status)
   local client = uv.new_tcp()
   
   print("Adding listener for data events")
-  client:on("read", function (chunk)
-    p("on_read", chunk)
+  client:on("read", function (chunk, len)
+    p("on_read", chunk, len)
     
     print("Sending chunk back to client")
     client:write(chunk, function ()
@@ -44,7 +44,4 @@ server:listen(function (status)
 
 end)
 
-print("Starting the event loop")
-uv.run()
 
-print("Done!")
