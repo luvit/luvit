@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+
 typedef struct {
   lua_State* L;
   int r;
@@ -50,11 +51,14 @@ static void luv_emit_event(lua_State* L, const char* name, int nargs) {
 }
 
 static int luv_run (lua_State* L) {
+  int before = lua_gettop(L);
   uv_run(uv_default_loop());
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_new_tcp (lua_State* L) {
+  int before = lua_gettop(L);
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
 
@@ -76,16 +80,20 @@ static int luv_new_tcp (lua_State* L) {
   lua_setfenv (L, -2);
 
   // return the userdata
+  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
 static int luv_tcp_init (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   uv_tcp_init(uv_default_loop(), handle);
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_tcp_bind (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   const char* host = luaL_checkstring(L, 2);
   int port = luaL_checkint(L, 3);
@@ -96,6 +104,7 @@ static int luv_tcp_bind (lua_State* L) {
     uv_err_t err = uv_last_error(uv_default_loop());
     error(L, "bind: %s", uv_strerror(err));
   }
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -103,26 +112,31 @@ void luv_on_connection(uv_stream_t* handle, int status) {
   // load the lua state and the userdata
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
+  int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
   lua_pushinteger(L, status);
   luv_emit_event(L, "connection", 1);
+  lua_pop(L, 1); // remove the userdata
+  assert(lua_gettop(L) == before);
 }
 
 
 static int luv_tcp_on (lua_State* L) {
+  int before = lua_gettop(L);
   luaL_checkudata(L, 1, "luv_tcp");
   const char* name = luaL_checkstring(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
   
   luv_register_event(L, name, 3);
   
+  assert(lua_gettop(L) == before);
   return 0;
-  
 }
 
 
 static int luv_tcp_listen (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
@@ -133,10 +147,12 @@ static int luv_tcp_listen (lua_State* L) {
     uv_err_t err = uv_last_error(uv_default_loop());
     error(L, "listen: %s", uv_strerror(err));
   }
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_tcp_accept (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* server = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   uv_tcp_t* client = (uv_tcp_t*)luaL_checkudata(L, 2, "luv_tcp");
   int r = uv_accept((uv_stream_t*)server, (uv_stream_t*)client);
@@ -144,6 +160,7 @@ static int luv_tcp_accept (lua_State* L) {
     uv_err_t err = uv_last_error(uv_default_loop());
     error(L, "accept: %s", uv_strerror(err));
   }
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -159,9 +176,12 @@ void luv_on_close(uv_handle_t* handle) {
   // load the lua state and the userdata
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
+  int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
   luv_emit_event(L, "closed", 0);
+  lua_pop(L, 1); // remove userdata
+  assert(lua_gettop(L) == before);
 }
 
 
@@ -170,6 +190,7 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
   // load the lua state and the userdata
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
+  int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
   if (nread >= 0) {
@@ -186,21 +207,26 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
       error(L, "read: %s", uv_strerror(err));
     }
   }
+  lua_pop(L, 1); // Remove the userdata
 
   free(buf.base);
-
+  assert(lua_gettop(L) == before);
 }
 
 
 static int luv_tcp_close (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   uv_close((uv_handle_t*)handle, luv_on_close);
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_tcp_read_start (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   uv_read_start((uv_stream_t*)handle, luv_on_alloc, luv_on_read);
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -209,15 +235,18 @@ void luv_after_write(uv_write_t* req, int status) {
   // load the lua state and the callback
   luv_ref_t* ref = req->data;
   lua_State *L = ref->L;
+  int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
   if (lua_pcall(L, 0, 0, 0) != 0) {
     error(L, "error running function 'on_write': %s", lua_tostring(L, -1));
   }
+  assert(lua_gettop(L) == before);
 
 }
 
 static int luv_tcp_write (lua_State* L) {
+  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, "luv_tcp");
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
@@ -239,6 +268,7 @@ static int luv_tcp_write (lua_State* L) {
   ref->refbuf.len = len;
 
   uv_write(&ref->write_req, (uv_stream_t*)handle, &ref->refbuf, 1, luv_after_write);
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -262,6 +292,7 @@ static const luaL_reg luv_f[] = {
 
 
 LUALIB_API int luaopen_uv (lua_State* L) {
+  int before = lua_gettop(L);
 
   // Define the luv_tcp userdata's methods
   luaL_newmetatable(L, "luv_tcp");
@@ -278,6 +309,7 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   lua_pushnumber(L, UV_VERSION_MINOR);
   lua_setfield(L, -2, "VERSION_MINOR");
 
+  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
