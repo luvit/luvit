@@ -315,6 +315,18 @@ static int lhttp_parser_reinitialize (lua_State *L) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
+static const luaL_reg lhttp_parser_m[] = {
+  {"execute", lhttp_parser_execute},
+  {"finish", lhttp_parser_finish},
+  {"reinitialize", lhttp_parser_reinitialize},
+  {NULL, NULL}
+};
+
+static const luaL_reg lhttp_parser_f[] = {
+  {"new", lhttp_parser_new},
+  {NULL, NULL}
+};
+
 LUALIB_API int luaopen_http_parser (lua_State *L) {
 
   // This needs to be done sometime?
@@ -330,19 +342,12 @@ LUALIB_API int luaopen_http_parser (lua_State *L) {
   luaL_newmetatable(L, "lhttp_parser");
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
-  // Stick some methods on the metatable
-  lua_pushcfunction(L, lhttp_parser_execute);
-  lua_setfield(L, -2, "execute");
-  lua_pushcfunction(L, lhttp_parser_finish);
-  lua_setfield(L, -2, "finish");
-  lua_pushcfunction(L, lhttp_parser_reinitialize);
-  lua_setfield(L, -2, "reinitialize");
+  luaL_register(L, NULL, lhttp_parser_m);
 
   // Create a new exports table
   lua_newtable (L);
   // Put our one function on it
-  lua_pushcfunction(L, lhttp_parser_new);
-  lua_setfield(L, -2, "new");
+  luaL_register(L, NULL, lhttp_parser_f);
   // Stick version info on the http_parser table
   lua_pushnumber(L, HTTP_PARSER_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
