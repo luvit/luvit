@@ -1,7 +1,7 @@
 local uv = require('uv')
 local http_parser = require('http_parser')
 local utils = require('lib/utils')
-
+p(uv)
 local status_codes_table = {
   [100] = 'Continue',
   [101] = 'Switching Protocols',
@@ -62,18 +62,18 @@ function create_server(on_connection)
   local socket = uv.new_tcp()
   local server = {}
   function server:listen(port, host)
-    socket:bind(host or "0.0.0.0", port)
-    socket:listen(function (status)
+    uv.tcp_bind(socket, host or "0.0.0.0", port)
+    uv.listen(socket, function (status)
       local client = uv.new_tcp()
-      socket:accept(client)
-      client:read_start()
+      uv.accept(socket, client)
+      uv.read_start(client)
       
       local headers = {}
       local request = {
         socket = client,
         headers = headers,
         on = function (name, callback)
-          client:on(name, callback)
+          uv.set_handler(client, name, callback)
         end
       }
       local response = {
@@ -85,18 +85,18 @@ function create_server(on_connection)
           head = head .. field .. ": " .. value .. "\r\n"
         end
         head = head .. "\r\n"
---        p(head)
-        self.socket:write(head, function ()
+
+        uv.write(self.socket, head, function ()
 --         print("HEAD written")
         end)
       end
       function response:write(chunk)
-        self.socket:write(chunk, function ()
+        uv.write(self.socket, chunk, function ()
 --          print("CHUNK written")
         end)
       end
       function response:finish()
-        self.socket:close()
+        uv.close(self.socket)
       end
       local current_field
       local parser
@@ -125,7 +125,7 @@ function create_server(on_connection)
         end
       })
       
-      client:on("read", function (chunk, len)
+      uv.set_handler(client, "read", function (chunk, len)
         if len == 0 then 
           return
         end
@@ -136,7 +136,7 @@ function create_server(on_connection)
         end
       end)
       
-      client:on("end", function ()
+      uv.set_handler(client, "end", function ()
         parser:finish()
       end)
 
