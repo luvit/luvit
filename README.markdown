@@ -1,4 +1,4 @@
-# LuaNode
+# Luvit (lua + uv + jit)
 
 LuaNode is an attempt to do something crazy by taking nodeJS's awesome
 architecture and dependencies and seeing how it fits in the Lua language.
