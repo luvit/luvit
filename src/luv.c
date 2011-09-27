@@ -196,6 +196,7 @@ static int luv_new_tcp (lua_State* L) {
   int before = lua_gettop(L);
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
+  uv_tcp_init(uv_default_loop(), handle);
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_tcp");
