@@ -174,19 +174,28 @@ void luv_after_write(uv_write_t* req, int status) {
 //                               Constructors                                 //
 ////////////////////////////////////////////////////////////////////////////////
 
+static int luv_new_udp (lua_State* L) {
+  int before = lua_gettop(L);
+
+  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
+
+  // Set metatable for type
+  luaL_getmetatable(L, "luv_udp");
+  lua_setmetatable(L, -2);
+
+  // Create a local environment for storing stuff
+  lua_newtable(L);
+  lua_setfenv (L, -2);
+
+  assert(lua_gettop(L) == before + 1);
+
+  return 1;
+}
+
 static int luv_new_tcp (lua_State* L) {
   int before = lua_gettop(L);
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
-
-  // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, -1); // duplicate so we can _ref it
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  handle->data = ref;
-
-  uv_tcp_init(uv_default_loop(), handle);
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_tcp");
@@ -196,10 +205,54 @@ static int luv_new_tcp (lua_State* L) {
   lua_newtable(L);
   lua_setfenv (L, -2);
 
+  // Store a reference to the userdata in the handle
+  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, -1); // duplicate so we can _ref it
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  handle->data = ref;
+
   assert(lua_gettop(L) == before + 1);
   // return the userdata
   return 1;
 }
+
+static int luv_new_pipe (lua_State* L) {
+  int before = lua_gettop(L);
+
+  uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
+
+  // Set metatable for type
+  luaL_getmetatable(L, "luv_pipe");
+  lua_setmetatable(L, -2);
+
+  // Create a local environment for storing stuff
+  lua_newtable(L);
+  lua_setfenv (L, -2);
+
+  assert(lua_gettop(L) == before + 1);
+
+  return 1;
+}
+
+static int luv_new_tty (lua_State* L) {
+  int before = lua_gettop(L);
+
+  uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
+
+  // Set metatable for type
+  luaL_getmetatable(L, "luv_pipe");
+  lua_setmetatable(L, -2);
+
+  // Create a local environment for storing stuff
+  lua_newtable(L);
+  lua_setfenv (L, -2);
+
+  assert(lua_gettop(L) == before + 1);
+
+  return 1;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                             Handle Functions                               //
@@ -229,6 +282,10 @@ static int luv_set_handler(lua_State* L) {
 //                              UDP Functions                                 //
 ////////////////////////////////////////////////////////////////////////////////
 
+static int luv_udp_init(lua_State* L) {
+  error(L, "TODO: Implement luv_udp_init");
+  return 0;
+}
 
 static int luv_udp_bind(lua_State* L) {
   error(L, "TODO: Implement luv_udp_bind");
@@ -256,12 +313,12 @@ static int luv_udp_send6(lua_State* L) {
 }
 
 static int luv_udp_recv_start(lua_State* L) {
-  error(L, "TODO: Implement luv_recv_start");
+  error(L, "TODO: Implement luv_udp_recv_start");
   return 0;
 }
 
 static int luv_udp_recv_stop(lua_State* L) {
-  error(L, "TODO: Implement luv_recv_stop");
+  error(L, "TODO: Implement luv_udp_recv_stop");
   return 0;
 }
 
@@ -401,6 +458,11 @@ static int luv_tcp_connect6(lua_State* L) {
 //                              Pipe Functions                                //
 ////////////////////////////////////////////////////////////////////////////////
 
+static int luv_pipe_init(lua_State* L) {
+  error(L, "TODO: Implement luv_pipe_init");
+  return 0;
+}
+
 static int luv_pipe_open(lua_State* L) {
   error(L, "TODO: Implement luv_pipe_open");
   return 0;
@@ -419,6 +481,11 @@ static int luv_pipe_connect(lua_State* L) {
 ////////////////////////////////////////////////////////////////////////////////
 //                              TTY Functions                                 //
 ////////////////////////////////////////////////////////////////////////////////
+
+static int luv_tty_init(lua_State* L) {
+  error(L, "TODO: Implement luv_tty_init");
+  return 0;
+}
 
 static int luv_tty_set_mode(lua_State* L) {
   error(L, "TODO: Implement luv_tty_set_mode");
@@ -443,13 +510,17 @@ static int luv_run (lua_State* L) {
 
 static const luaL_reg luv_f[] = {
   // Constructors
+  {"new_udp", luv_new_udp},
   {"new_tcp", luv_new_tcp},
+  {"new_pipe", luv_new_pipe},
+  {"new_tty", luv_new_tty},
 
   // Handle functions
   {"close", luv_close},
   {"set_handler", luv_set_handler},
 
   // UDP functions
+  {"udp_init", luv_udp_init},
   {"udp_bind", luv_udp_bind},
   {"udp_bind6", luv_udp_bind6},
   {"udp_getsockname", luv_udp_getsockname},
@@ -476,11 +547,13 @@ static const luaL_reg luv_f[] = {
   {"tcp_connect6", luv_tcp_connect6},
 
   // Pipe functions
+  {"pipe_init", luv_pipe_init},
   {"pipe_open", luv_pipe_open},
   {"pipe_bind", luv_pipe_bind},
   {"pipe_connect", luv_pipe_connect},
 
   // TTY functions
+  {"tty_init", luv_tty_init},
   {"tty_set_mode", luv_tty_set_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
 
