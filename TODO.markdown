@@ -157,9 +157,9 @@ bindings into logical submodules and mark the implementation progress.
 Indentation denotes inheritance
 
 - `luv_handle`: Generic handle
-  - `luv_udp`: a plain udp handle
-  - `luv_stream`: a fifo stream of data
-    - `luv_tcp`: a tcp network connection
-    - `luv_pipe`: a named socket or domain socket
-    - `luv_tty`: the terminal as a stream/socket
+    - `luv_udp`: a plain udp handle
+    - `luv_stream`: a fifo stream of data
+        - `luv_tcp`: a tcp network connection
+        - `luv_pipe`: a named socket or domain socket
+        - `luv_tty`: the terminal as a stream/socket
 
