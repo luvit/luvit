@@ -62,7 +62,6 @@ bindings into logical submodules and mark the implementation progress.
  - `uv_tty_init`: initialize a tty struct
  - `uv_tty_set_mode`: Set mode. 0 for normal, 1 for raw.
  - `uv_tty_get_winsize`: Gets the current Window size. On success zero is returned.
- - `uv_guess_handle`: Used to detect what type of stream should be used with a given file descriptor.  For isatty() functionality use this function and test for UV_TTY.
 
 ## Pipe
 
@@ -88,6 +87,7 @@ bindings into logical submodules and mark the implementation progress.
 ## Misc and Utility
 
  - `uv_buf_init`: construct a buf
+ - `uv_guess_handle`: Used to detect what type of stream should be used with a given file descriptor.  For isatty() functionality use this function and test for UV_TTY.
  - `uv_std_handle`: ??
  - `uv_queue_work`: generic work queue hook
  - `uv_exepath`: find the path of the executable

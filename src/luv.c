@@ -226,6 +226,46 @@ static int luv_set_handler(lua_State* L) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//                              UDP Functions                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+
+static int luv_udp_bind(lua_State* L) {
+  error(L, "TODO: Implement luv_udp_bind");
+  return 0;
+}
+
+static int luv_udp_bind6(lua_State* L) {
+  error(L, "TODO: Implement luv_udp_bind6");
+  return 0;
+}
+
+static int luv_udp_getsockname(lua_State* L) {
+  error(L, "TODO: Implement luv_udp_getsockname");
+  return 0;
+}
+
+static int luv_udp_send(lua_State* L) {
+  error(L, "TODO: Implement luv_udp_send");
+  return 0;
+}
+
+static int luv_udp_send6(lua_State* L) {
+  error(L, "TODO: Implement luv_udp_send6");
+  return 0;
+}
+
+static int luv_recv_start(lua_State* L) {
+  error(L, "TODO: Implement luv_recv_start");
+  return 0;
+}
+
+static int luv_recv_stop(lua_State* L) {
+  error(L, "TODO: Implement luv_recv_stop");
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //                             Stream Functions                               //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -358,6 +398,39 @@ static int luv_tcp_connect6(lua_State* L) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//                              Pipe Functions                                //
+////////////////////////////////////////////////////////////////////////////////
+
+static int luv_pipe_open(lua_State* L) {
+  error(L, "TODO: Implement luv_pipe_open");
+  return 0;
+}
+
+static int luv_pipe_bind(lua_State* L) {
+  error(L, "TODO: Implement luv_pipe_bind");
+  return 0;
+}
+
+static int luv_pipe_connect(lua_State* L) {
+  error(L, "TODO: Implement luv_pipe_connect");
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                              TTY Functions                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+static int luv_tty_set_mode(lua_State* L) {
+  error(L, "TODO: Implement luv_tty_set_mode");
+  return 0;
+}
+
+static int luv_tty_get_winsize(lua_State* L) {
+  error(L, "TODO: Implement luv_tty_get_winsize");
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //                              Loop Functions                                //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -377,7 +450,13 @@ static const luaL_reg luv_f[] = {
   {"set_handler", luv_set_handler},
 
   // UDP functions
-  // TODO: stub and implement
+  {"udp_bind", luv_udp_bind},
+  {"udp_bind6", luv_udp_bind6},
+  {"udp_getsockname", luv_udp_getsockname},
+  {"udp_send", luv_udp_send},
+  {"udp_send6", luv_udp_send6},
+  {"udp_recv_start", luv_recv_start},
+  {"udp_recv_stop", luv_recv_stop},
 
   // Stream functions
   {"shutdown", luv_shutdown},
@@ -397,10 +476,13 @@ static const luaL_reg luv_f[] = {
   {"tcp_connect6", luv_tcp_connect6},
 
   // Pipe functions
-  // TODO: stub and implement
+  {"pipe_open", luv_pipe_open},
+  {"pipe_bind", luv_pipe_bind},
+  {"pipe_connect", luv_pipe_connect},
 
   // TTY functions
-  // TODO: stub and implement
+  {"tty_set_mode", luv_tty_set_mode},
+  {"tty_get_winsize", luv_tty_get_winsize},
 
   // Loop functions
   {"run", luv_run},
@@ -414,7 +496,13 @@ static const luaL_reg luv_handle_m[] = {
 };
 
 static const luaL_reg luv_udp_m[] = {
-  // TODO: Stub out and then implement
+  {"bind", luv_udp_bind},
+  {"bind6", luv_udp_bind6},
+  {"getsockname", luv_udp_getsockname},
+  {"send", luv_udp_send},
+  {"send6", luv_udp_send6},
+  {"recv_start", luv_recv_start},
+  {"recv_stop", luv_recv_stop},
   {NULL, NULL}
 };
 
@@ -440,12 +528,15 @@ static const luaL_reg luv_tcp_m[] = {
 };
 
 static const luaL_reg luv_pipe_m[] = {
-  // TODO: Stub out and then implement
+  {"open", luv_pipe_open},
+  {"bind", luv_pipe_bind},
+  {"connect", luv_pipe_connect},
   {NULL, NULL}
 };
 
 static const luaL_reg luv_tty_m[] = {
-  // TODO: Stub out and then implement
+  {"tty_set_mode", luv_tty_set_mode},
+  {"tty_get_winsize", luv_tty_get_winsize},
   {NULL, NULL}
 };
 
