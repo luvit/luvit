@@ -255,12 +255,12 @@ static int luv_udp_send6(lua_State* L) {
   return 0;
 }
 
-static int luv_recv_start(lua_State* L) {
+static int luv_udp_recv_start(lua_State* L) {
   error(L, "TODO: Implement luv_recv_start");
   return 0;
 }
 
-static int luv_recv_stop(lua_State* L) {
+static int luv_udp_recv_stop(lua_State* L) {
   error(L, "TODO: Implement luv_recv_stop");
   return 0;
 }
@@ -455,8 +455,8 @@ static const luaL_reg luv_f[] = {
   {"udp_getsockname", luv_udp_getsockname},
   {"udp_send", luv_udp_send},
   {"udp_send6", luv_udp_send6},
-  {"udp_recv_start", luv_recv_start},
-  {"udp_recv_stop", luv_recv_stop},
+  {"udp_recv_start", luv_udp_recv_start},
+  {"udp_recv_stop", luv_udp_recv_stop},
 
   // Stream functions
   {"shutdown", luv_shutdown},
@@ -501,8 +501,8 @@ static const luaL_reg luv_udp_m[] = {
   {"getsockname", luv_udp_getsockname},
   {"send", luv_udp_send},
   {"send6", luv_udp_send6},
-  {"recv_start", luv_recv_start},
-  {"recv_stop", luv_recv_stop},
+  {"recv_start", luv_udp_recv_start},
+  {"recv_stop", luv_udp_recv_stop},
   {NULL, NULL}
 };
 
