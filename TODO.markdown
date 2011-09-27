@@ -5,8 +5,10 @@ bindings into logical submodules and mark the implementation progress.
 
 ## Handle
 
- - `uv_close`: close a request handle. This MUST be called on each handle before memory is released.
- - `luv_set_handler`: sets the event handler for a named event on the environment of this userdata
+ - `uv_close`: close a request handle. This MUST be called on each handle before
+    memory is released.
+ - `luv_set_handler`: sets the event handler for a named event on the
+    environment of this userdata
 
 ## UDP
 
@@ -49,7 +51,7 @@ bindings into logical submodules and mark the implementation progress.
 
  - `uv_tty_init`: initialize a tty struct
  - `uv_tty_set_mode`: Set mode. 0 for normal, 1 for raw.
- - `uv_tty_get_winsize`: Gets the current Window size. On success zero is returned.
+ - `uv_tty_get_winsize`: Gets the current Window size.
 
 ## FS
 
@@ -91,7 +93,8 @@ bindings into logical submodules and mark the implementation progress.
  - `uv_timer_init`: initialize a timer struct
  - `uv_timer_start`: start a timer
  - `uv_timer_stop`: stop the timer
- - `uv_timer_again`: Stop the timer, and if it is repeating restart it using the repeat value as the timeout
+ - `uv_timer_again`: Stop the timer, and if it is repeating restart it using the
+    repeat value as the timeout
  - `uv_timer_set_repeat`: Set the repeat value
 
 ## Timestamp Functions ?
@@ -112,13 +115,23 @@ bindings into logical submodules and mark the implementation progress.
  - `uv_loop_delete`: deletes a uv_loop_t
  - `uv_default_loop`: returns the default loop
  - `uv_run`: starts a loop and blocks till it's done
- - `uv_ref`, `uv_unref`: Manually modify the event loop's reference count. Useful if the user wants to have a handle or timeout that doesn't keep the loop alive.
- - `uv_prepare_init`, `uv_prepare_start`, `uv_prepare_stop`: Every active prepare handle gets its callback called exactly once per loop iteration, just before the system blocks to wait for completed i/o.
- - `uv_check_init`, `uv_check_start`, `uv_check_stop`: Every active check handle gets its callback called exactly once per loop iteration, just after the system returns from blocking.
- - `uv_idle_init`, `uv_idle_start`, `uv_idle_stop`:  Every active idle handle gets its callback called repeatedly until it is stopped. This happens after all other types of callbacks are processed.  When there are multiple "idle" handles active, their callbacks are called in turn.
- - `uv_is_active`: Returns 1 if the prepare/check/idle handle has been started, 0 otherwise. For other handle types this always returns 1.
- - `uv_async_init`: wakes up the event loop and calls the async handle's callback
- - `uv_async_send`: This can be called from other threads to wake up a libuv thread
+ - `uv_ref`, `uv_unref`: Manually modify the event loop's reference count.
+    Useful if the user wants to have a handle or timeout that doesn't keep the
+    loop alive.
+ - `uv_prepare_init`, `uv_prepare_start`, `uv_prepare_stop`: Every active
+    prepare handle gets its callback called exactly once per loop iteration,
+    just before the system blocks to wait for completed i/o.
+ - `uv_check_init`, `uv_check_start`, `uv_check_stop`: Every active check handle
+    gets its callback called exactly once per loop iteration, just after the
+    system returns from blocking.
+ - `uv_idle_init`, `uv_idle_start`, `uv_idle_stop`:  Every active idle handle
+    gets its callback called repeatedly until it is stopped. This happens after
+    all other types of callbacks are processed.  When there are multiple "idle"
+    handles active, their callbacks are called in turn.
+ - `uv_is_active`: Returns 1 if the prepare/check/idle handle has been started,
+    0 otherwise. For other handle types this always returns 1.
+ - `uv_async_init`: wake up the event loop and call the async handle's callback
+ - `uv_async_send`: This can be called to wake up a libuvthread
 
 ## Misc and Utility
 
@@ -126,7 +139,9 @@ bindings into logical submodules and mark the implementation progress.
  - `uv_strerror`: gets the message for an error
  - `uv_err_name`: gets the name for an error
  - `uv_buf_init`: construct a buf
- - `uv_guess_handle`: Used to detect what type of stream should be used with a given file descriptor.  For isatty() functionality use this function and test for UV_TTY.
+ - `uv_guess_handle`: Used to detect what type of stream should be used with a
+    given file descriptor.  For isatty() functionality use this function and
+    test for UV_TTY.
  - `uv_std_handle`: ??
  - `uv_queue_work`: generic work queue hook
  - `uv_exepath`: find the path of the executable
@@ -139,10 +154,12 @@ bindings into logical submodules and mark the implementation progress.
 
 # Userdata Types
 
-- `luv_handle`: has all the functions in the handle section as methods
-- `luv_stream`: has all the functions in the stream section as methods, also inherits from `luv_handle`
-- `luv_udp`: has all the functions in the udp section as methods, also inherits from `luv_handle`
-- `luv_tcp`: has all the functions in the tcp section as methods, also inherits from `luv_stream`
-- `luv_pipe`: has all the functions in the pipe section as methods, also inherits from `luv_stream`
-- `luv_tty`: has all the functions in the tty section as methods, also inherits from `luv_stream`
+Indentation denotes inheritance
+
+- `luv_handle`: Generic handle
+  - `luv_udp`: a plain udp handle
+  - `luv_stream`: a fifo stream of data
+    - `luv_tcp`: a tcp network connection
+    - `luv_pipe`: a named socket or domain socket
+    - `luv_tty`: the terminal as a stream/socket
 
