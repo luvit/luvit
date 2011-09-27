@@ -51,7 +51,7 @@ int main()
   lua_pop(L, 1);
 
   // Run the main lua script
-  if (luaL_dofile(L, "lib/main.lua"))
+  if (luaL_dofile(L, "src/luvit.lua"))
   {
     printf("%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);

@@ -1,7 +1,7 @@
 local utils = require('lib/utils')
 local http_parser = require('http_parser')
 local uv = require('uv')
-local mock = require('lib/mock')
+local mock = require('./mock')
 
 print("uv", utils.dump(uv))
 print("http_parser", utils.dump(http_parser))

@@ -8,8 +8,8 @@ function p(first, ...)
 end
 
 
-require('lib/http_server')
---require('lib/tcp_test')
+require('examples/http_server')
+--require('examples/tcp_test')
 
 require('uv').run()
 
