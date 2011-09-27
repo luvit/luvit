@@ -71,17 +71,21 @@ bindings into logical submodules and mark the implementation progress.
  - `uv_pipe_bind`: ?
  - `uv_pipe_connect`: ?
 
-## Generic Streams
+## Handle
+
+ - `uv_close`: close a request handle. This MUST be called on each handle before memory is released.
+ - `luv_set_handler`: sets the event handler for a named event on the environment of this userdata
+
+## Stream
 
  - `uv_shutdown`: Shutdown the outgoing (write) side of a duplex stream.
- - `uv_close`: close a request handle. This MUST be called on each handle before memory is released.
  - `uv_listen`: listen?
  - `uv_accept`: accept a connection after the callback has been called
  - `uv_read_start`: start reading data from an incoming stream
  - `uv_read_stop`: stop the stream?
  - `uv_write`: write data to a stream, handles ordering for you
 
-## Misc
+## Misc and Utility
 
  - `uv_buf_init`: construct a buf
  - `uv_std_handle`: ??
@@ -136,7 +140,10 @@ bindings into logical submodules and mark the implementation progress.
 
 # Userdata Types
 
-These are types that need to be wrapped in userdata for lua to handle and pass.
-
-... TBD
+- `luv_handle`: has all the functions in the handle section as methods
+- `luv_stream`: has all the functions in the stream section as methods, also inherits from `luv_handle`
+- `luv_udp`: has all the functions in the udp section as methods, also inherits from `luv_handle`
+- `luv_tcp`: has all the functions in the tcp section as methods, also inherits from `luv_stream`
+- `luv_pipe`: has all the functions in the pipe section as methods, also inherits from `luv_stream`
+- `luv_tty`: has all the functions in the tty section as methods, also inherits from `luv_stream`
 
