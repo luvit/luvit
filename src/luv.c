@@ -23,11 +23,11 @@ typedef struct {
 //                             utility functions                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Registers a callback
-static void luv_register_event(lua_State* L, const char* name, int index) {
+// Registers a callback, callback_index can't be negative
+static void luv_register_event(lua_State* L, int userdata_index, const char* name, int callback_index) {
   int before = lua_gettop(L);
-  lua_getfenv(L, 1);
-  lua_pushvalue(L, index);
+  lua_getfenv(L, userdata_index);
+  lua_pushvalue(L, callback_index);
   lua_setfield(L, -2, name);
   lua_pop(L, 1);
   assert(lua_gettop(L) == before);
@@ -169,7 +169,7 @@ static int luv_tcp_bind (lua_State* L) {
 
   if (uv_tcp_bind(handle, address)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "bind: %s", uv_strerror(err));
+    error(L, "tcp_bind: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -181,11 +181,11 @@ static int luv_listen (lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luaL_checkudata(L, 1, "luv_tcp");
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
-  luv_register_event(L, "connection", 2);
+  luv_register_event(L, 1, "connection", 2);
 
   if (uv_listen(handle, 128, luv_on_connection)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "bind: %s", uv_strerror(err));
+    error(L, "listen: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -198,7 +198,7 @@ static int luv_accept (lua_State* L) {
   uv_stream_t* client = (uv_stream_t*)luaL_checkudata(L, 2, "luv_tcp");
   if (uv_accept(server, client)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "bind: %s", uv_strerror(err));
+    error(L, "accept: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -266,7 +266,7 @@ static int luv_new_tcp (lua_State* L) {
 
   uv_tcp_init(uv_default_loop(), handle);
 
-  // Set instance methods
+  // Set metatable for type
   luaL_getmetatable(L, "luv_tcp");
   lua_setmetatable(L, -2);
 
@@ -290,7 +290,7 @@ static int luv_set_handler(lua_State* L) {
   const char* name = luaL_checkstring(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
-  luv_register_event(L, name, 3);
+  luv_register_event(L, 1, name, 3);
 
   assert(lua_gettop(L) == before);
   return 0;
