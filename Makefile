@@ -18,11 +18,10 @@ ${UVDIR}/uv.a:
 ${HTTPDIR}/http_parser.o:
 	make -C ${HTTPDIR} http_parser.o
 
-%.o: %.lua
+%.o: %.lua ${LUADIR}/src/libluajit.a
 	ln -sf ${LUADIR}/lib jit
 	${LUADIR}/src/luajit -b $< $@
 	${LUADIR}/src/luajit -b $< $@.c
-	rm jit
 
 ${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 	mkdir -p ${BUILDDIR}
@@ -39,7 +38,7 @@ clean:
 	make -C ${HTTPDIR} clean
 	make -C ${UVDIR} distclean
 	rm -rf build
-	rm lib/*.o
+	rm -f lib/*.o
 
 
 
