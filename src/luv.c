@@ -177,7 +177,8 @@ void luv_after_write(uv_write_t* req, int status) {
 static int luv_new_udp (lua_State* L) {
   int before = lua_gettop(L);
 
-  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
+  //uv_udp_t* handle = (uv_udp_t*)
+  lua_newuserdata(L, sizeof(uv_udp_t));
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_udp");
@@ -221,7 +222,8 @@ static int luv_new_tcp (lua_State* L) {
 static int luv_new_pipe (lua_State* L) {
   int before = lua_gettop(L);
 
-  uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
+  //uv_pipe_t* handle = (uv_pipe_t*)
+  lua_newuserdata(L, sizeof(uv_pipe_t));
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_pipe");
@@ -239,7 +241,8 @@ static int luv_new_pipe (lua_State* L) {
 static int luv_new_tty (lua_State* L) {
   int before = lua_gettop(L);
 
-  uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
+  //uv_tty_t* handle = (uv_tty_t*)
+  lua_newuserdata(L, sizeof(uv_tty_t));
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_pipe");
