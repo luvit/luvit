@@ -1,6 +1,6 @@
 local uv = require('uv')
 local http_parser = require('http_parser')
-local utils = require('lib/utils')
+local utils = require('utils')
 p(uv)
 local status_codes_table = {
   [100] = 'Continue',
