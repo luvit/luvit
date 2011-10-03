@@ -1,4 +1,4 @@
-local utils = require('lib/utils')
+local utils = require('utils')
 local http_parser = require('http_parser')
 local uv = require('uv')
 local mock = require('./mock')

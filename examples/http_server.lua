@@ -1,4 +1,4 @@
-local http = require("lib/http")
+local http = require("http")
 
 http.create_server(function (req, res)
 --  p("req", req)
