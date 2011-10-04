@@ -27,6 +27,12 @@ typedef struct {
   uv_buf_t refbuf;
 } luv_write_ref_t;
 
+typedef struct {
+  lua_State* L;
+  int r;
+  uv_shutdown_t shutdown_req;
+} luv_shutdown_ref_t;
+
 ////////////////////////////////////////////////////////////////////////////////
 //                             utility functions                              //
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +160,25 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
   assert(lua_gettop(L) == before);
 }
 
+
+
+void luv_after_shutdown(uv_shutdown_t* req, int status) {
+
+  // load the lua state and the callback
+  luv_ref_t* ref = req->data;
+  lua_State *L = ref->L;
+  int before = lua_gettop(L);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+
+  lua_pushnumber(L, status);
+  if (lua_pcall(L, 1, 0, 0) != 0) {
+    error(L, "error running function 'on_shutdown': %s", lua_tostring(L, -1));
+  }
+  free(ref);// We're done with the ref object, free it
+  assert(lua_gettop(L) == before);
+}
+
 void luv_after_write(uv_write_t* req, int status) {
 
   // load the lua state and the callback
@@ -162,7 +187,8 @@ void luv_after_write(uv_write_t* req, int status) {
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
-  if (lua_pcall(L, 0, 0, 0) != 0) {
+  lua_pushnumber(L, status);
+  if (lua_pcall(L, 1, 0, 0) != 0) {
     error(L, "error running function 'on_write': %s", lua_tostring(L, -1));
   }
   free(ref);// We're done with the ref object, free it
@@ -331,7 +357,22 @@ static int luv_udp_recv_stop(lua_State* L) {
 ////////////////////////////////////////////////////////////////////////////////
 
 static int luv_shutdown(lua_State* L) {
-  error(L, "TODO: Implement luv_shutdown");
+  int before = lua_gettop(L);
+  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+  luv_shutdown_ref_t* ref = (luv_shutdown_ref_t*)malloc(sizeof(luv_shutdown_ref_t));
+
+  // Store a reference to the callback
+  ref->L = L;
+  lua_pushvalue(L, 2);
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+
+  // Give the shutdown_req access to this
+  ref->shutdown_req.data = ref;
+
+  uv_shutdown(&ref->shutdown_req, handle, luv_after_shutdown);
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -366,20 +407,23 @@ static int luv_accept (lua_State* L) {
 
 static int luv_read_start (lua_State* L) {
   int before = lua_gettop(L);
-  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "tcp");
+  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   uv_read_start(handle, luv_on_alloc, luv_on_read);
   assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_read_stop(lua_State* L) {
-  error(L, "TODO: Implement luv_read_stop");
+  int before = lua_gettop(L);
+  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
+  uv_read_stop(handle);
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_write (lua_State* L) {
   int before = lua_gettop(L);
-  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "tcp");
+  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
   luaL_checktype(L, 3, LUA_TFUNCTION);
