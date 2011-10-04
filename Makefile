@@ -4,7 +4,10 @@ HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 
-all: luvit
+all: ${GENDIR} luvit
+
+${GENDIR}:
+	mkdir -p ${GENDIR}
 
 webserver: ${BUILDDIR}/webserver
 
@@ -20,14 +23,12 @@ ${HTTPDIR}/http_parser.o:
 	make -C ${HTTPDIR} http_parser.o
 
 ${GENDIR}/%.c: lib/%.lua ${LUADIR}/src/libluajit.a
-	mkdir -p ${GENDIR}
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -Wall -c $< -o $@
 
 ${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
-	mkdir -p ${BUILDDIR}
 	$(CC) -Wall -o ${BUILDDIR}/webserver src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o -I${HTTPDIR} -I${UVDIR}/include -lrt -lm
 
 ${BUILDDIR}/%.o: src/%.c
