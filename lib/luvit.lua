@@ -1,5 +1,5 @@
 function p(first, ...)
-  local dump = require('lib/utils').dump
+  local dump = require('utils').dump
   local l = dump(first)
   for i, v in ipairs{...} do
     l = l .. "\t" .. dump(v)
@@ -7,9 +7,12 @@ function p(first, ...)
   print(l)
 end
 
+if not process.argv[1] then
+  print("usage:\n\t" .. process.argv[0] .. " progname.lua\n")
+  return;
+end
 
-require('examples/http_server')
---require('examples/tcp_test')
+dofile(process.argv[1])
 
 require('uv').run()
 

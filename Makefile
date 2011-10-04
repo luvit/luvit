@@ -4,7 +4,7 @@ HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 
-all: ${GENDIR} luvit
+all: luvit
 
 ${GENDIR}:
 	mkdir -p ${GENDIR}
@@ -35,8 +35,8 @@ ${BUILDDIR}/%.o: src/%.c
 	mkdir -p ${BUILDDIR}
 	$(CC) -Wall -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src
 
-${BUILDDIR}/luvit:   ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o
-	$(CC) -Wall -Wl,-E ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o -o ${BUILDDIR}/luvit -lm -ldl -lrt
+${BUILDDIR}/luvit: ${GENDIR} ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o
+	$(CC) -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o -Wall -lm -ldl -lrt -Wl,-E
 
 clean:
 	make -C ${LUADIR} clean
@@ -44,6 +44,6 @@ clean:
 	make -C ${UVDIR} distclean
 	rm -rf build
 
-
-
+install: ${BUILDDIR}/luvit
+	install ${BUILDDIR}/luvit -s -v /usr/local/bin/luvit
 

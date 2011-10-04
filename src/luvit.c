@@ -8,7 +8,7 @@
 #include "luv.h"
 #include "lhttp_parser.h"
 
-int main()
+int main(int argc, char *argv[])
 {
   lua_State *L = lua_open();
 
@@ -29,12 +29,26 @@ int main()
   // We're done with preload, put it away
   lua_pop(L, 1);
 
+  // Populate a couple global things that lua can't do
+  lua_newtable(L); // Create the `process` table
+
+  lua_createtable (L, argc, 0); // Create the `process.argv` table
+  int index;
+  for (index = 0; index < argc; index++) {
+    lua_pushstring (L, argv[index]);
+    lua_rawseti(L, -2, index);
+  }
+  lua_setfield(L, -2, "argv");
+
+  lua_setglobal(L, "process");
+
+
   // Run the main lua script
   if (luaL_dostring(L, "assert(require('luvit'))")) {
     printf("%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
     return -1;
-  } 
+  }
 
   lua_close(L);
   return 0;
