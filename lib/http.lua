@@ -64,8 +64,9 @@ function create_server(on_connection)
     uv.listen(socket, function (status)
       local client = uv.new_tcp()
       uv.accept(socket, client)
+
       uv.read_start(client)
-      
+
       local headers = {}
       local request = {
         socket = client,
@@ -122,9 +123,9 @@ function create_server(on_connection)
           parser:finish()
         end
       })
-      
+
       uv.set_handler(client, "read", function (chunk, len)
-        if len == 0 then 
+        if len == 0 then
           return
         end
         local nparsed = parser:execute(chunk, 0, len)
@@ -133,7 +134,7 @@ function create_server(on_connection)
           print("UH OH!")
         end
       end)
-      
+
       uv.set_handler(client, "end", function ()
         parser:finish()
       end)
