@@ -922,7 +922,25 @@ static int luv_fs_read(lua_State* L) {
 }
 
 static int luv_fs_write(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_write");
+  int before = lua_gettop(L);
+  int fd = luaL_checkint(L, 1);
+  int offset = luaL_checkint(L, 2);
+  size_t length;
+  const char* chunk = luaL_checklstring(L, 3, &length);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 4); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+
+  if (uv_fs_write(uv_default_loop(), &ref->fs_req, (uv_file)fd, (void*)chunk, length, offset, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_write: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
