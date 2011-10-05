@@ -964,6 +964,48 @@ static int luv_fs_unlink(lua_State* L) {
   return 0;
 }
 
+static int luv_fs_mkdir(lua_State* L) {
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  int mode = luaL_checkint(L, 2);
+  luaL_checktype(L, 3, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 3); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+
+  if (uv_fs_mkdir(uv_default_loop(), &ref->fs_req, path, mode, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_mkdir: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
+  return 0;
+}
+
+static int luv_fs_rmdir(lua_State* L) {
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 2); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+
+  if (uv_fs_rmdir(uv_default_loop(), &ref->fs_req, path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_rmdir: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
+  return 0;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //                              Loop Functions                                //
 ////////////////////////////////////////////////////////////////////////////////
@@ -1030,6 +1072,8 @@ static const luaL_reg luv_f[] = {
   {"fs_read", luv_fs_read},
   {"fs_write", luv_fs_write},
   {"fs_unlink", luv_fs_unlink},
+  {"fs_mkdir", luv_fs_mkdir},
+  {"fs_rmdir", luv_fs_rmdir},
 
   // Loop functions
   {"run", luv_run},

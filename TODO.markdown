@@ -55,7 +55,6 @@ bindings into logical submodules and mark the implementation progress.
 
 ## FS
 
- - `uv_fs_req_cleanup`: cleanup an async fs request
  - `uv_fs_close`: close an FD
  - `uv_fs_open`: open a file
  - `uv_fs_read`: read a chunk from a file

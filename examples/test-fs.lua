@@ -2,6 +2,7 @@ local uv = require('uv');
 
 p("uv", uv)
 
+
 uv.fs_open("license.txt", 'r', 420, function (fd)
   p("on_open", {fd=fd})
   uv.fs_read(fd, 0, 4096, function (chunk, length)
@@ -9,6 +10,13 @@ uv.fs_open("license.txt", 'r', 420, function (fd)
     uv.fs_close(fd, function ()
       p("on_close")
     end)
+  end)
+end)
+
+uv.fs_mkdir("temp", 493, function ()
+  p("on_mkdir")
+  uv.fs_rmdir("temp", function ()
+    p("on_rmdir")
   end)
 end)
 
