@@ -80,16 +80,17 @@ function create_server(on_connection)
       }
       function response:write_head(code, headers)
         local head = "HTTP/1.1 " .. code .. " " .. status_codes_table[code] .. "\r\n"
-        for field, value in pairs(headers) do
+        for field, value in pairs(headers or {}) do
           head = head .. field .. ": " .. value .. "\r\n"
         end
         head = head .. "\r\n"
 
         uv.write(self.socket, head, function ()
---         print("HEAD written")
+--          print("HEAD written", head)
         end)
       end
       function response:write(chunk)
+        self.write_head = nil -- no headers allowed hereafter
         uv.write(self.socket, chunk, function ()
 --          print("CHUNK written")
         end)
