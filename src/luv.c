@@ -860,7 +860,7 @@ static int luv_fs_open(lua_State* L) {
   int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
-  int mode = luaL_checkint(L, 3);
+  int mode = strtoul(luaL_checkstring(L, 3), NULL, 8);
   luaL_checktype(L, 4, LUA_TFUNCTION);
 
   luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
