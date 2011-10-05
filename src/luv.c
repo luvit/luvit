@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <fcntl.h>
 
 // C doesn't have booleans on it's own
 #ifndef FALSE
@@ -54,6 +55,11 @@ typedef struct {
   uv_connect_t connect_req;
 } luv_connect_ref_t;
 
+typedef struct {
+  lua_State* L;
+  int r;
+  uv_fs_t fs_req;
+} luv_fs_ref_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 //                             utility functions                              //
@@ -111,6 +117,38 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
   }
   assert(lua_gettop(L) == before - nargs);
 }
+
+const char* errno_message(int errorno) {
+  uv_err_t err;
+  memset(&err, 0, sizeof err);
+  err.code = (uv_err_code)errorno;
+  return uv_strerror(err);
+}
+
+const char* errno_string(int errorno) {
+  uv_err_t err;
+  memset(&err, 0, sizeof err);
+  err.code = (uv_err_code)errorno;
+  return uv_err_name(err);
+}
+
+void luv_fs_error(lua_State* L,
+                  int errorno,
+                  const char *syscall,
+                  const char *msg,
+                  const char *path) {
+
+  if (!msg || !msg[0]) {
+    msg = errno_message(errorno);
+  }
+
+  if (path) {
+    error(L, "%s, %s '%s'", errno_string(errorno), msg, path);
+  } else {
+    error(L, "%s, %s", errno_string(errorno), msg);
+  }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                        event callback dispatchers                          //
@@ -707,13 +745,152 @@ static int luv_tty_get_winsize(lua_State* L) {
 //                              FS Functions                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
+int luv_string_to_flags(lua_State* L, const char* string) {
+  if (strcmp(string, "r") == 0) return O_RDONLY;
+  if (strcmp(string, "r+") == 0) return O_RDWR;
+  if (strcmp(string, "w") == 0) return O_CREAT | O_TRUNC | O_WRONLY;
+  if (strcmp(string, "w+") == 0) return O_CREAT | O_TRUNC | O_RDWR;
+  if (strcmp(string, "a") == 0) return O_APPEND | O_CREAT | O_WRONLY;
+  if (strcmp(string, "a+") == 0) return O_APPEND | O_CREAT | O_RDWR;
+  error(L, "Unknown file open flag'%s'", string);
+  return 0;
+}
+
+void luv_fs_after(uv_fs_t* req) {
+  luv_fs_ref_t* ref = req->data;
+  lua_State *L = ref->L;
+  int before = lua_gettop(L);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+
+  if (req->result == -1) {
+    lua_pop(L, 1);
+    luv_fs_error(L, req->errorno, NULL, NULL, req->path);
+  } else {
+    int argc = 0;
+    switch (req->fs_type) {
+
+      case UV_FS_CLOSE:
+      case UV_FS_RENAME:
+      case UV_FS_UNLINK:
+      case UV_FS_RMDIR:
+      case UV_FS_MKDIR:
+      case UV_FS_FTRUNCATE:
+      case UV_FS_FSYNC:
+      case UV_FS_FDATASYNC:
+      case UV_FS_LINK:
+      case UV_FS_SYMLINK:
+      case UV_FS_CHMOD:
+      case UV_FS_FCHMOD:
+      case UV_FS_CHOWN:
+      case UV_FS_FCHOWN:
+      case UV_FS_UTIME:
+      case UV_FS_FUTIME:
+        argc = 0;
+        break;
+
+      case UV_FS_OPEN:
+      case UV_FS_SENDFILE:
+      case UV_FS_WRITE:
+        argc = 1;
+        lua_pushinteger(L, req->result);
+        break;
+
+      case UV_FS_STAT:
+      case UV_FS_LSTAT:
+      case UV_FS_FSTAT:
+        {
+/*          NODE_STAT_STRUCT *s = reinterpret_cast<NODE_STAT_STRUCT*>(req->ptr);*/
+/*          argv[1] = BuildStatsObject(s);*/
+        }
+        break;
+
+      case UV_FS_READLINK:
+/*        argv[1] = String::New(static_cast<char*>(req->ptr));*/
+        break;
+
+      case UV_FS_READ:
+        // Buffer interface
+/*        argv[1] = Integer::New(req->result);*/
+        break;
+
+      case UV_FS_READDIR:
+        {
+/*          char *namebuf = static_cast<char*>(req->ptr);*/
+/*          int nnames = req->result;*/
+
+/*          Local<Array> names = Array::New(nnames);*/
+
+/*          for (int i = 0; i < nnames; i++) {*/
+/*            Local<String> name = String::New(namebuf);*/
+/*            names->Set(Integer::New(i), name);*/
+/*#ifndef NDEBUG*/
+/*            namebuf += strlen(namebuf);*/
+/*            assert(*namebuf == '\0');*/
+/*            namebuf += 1;*/
+/*#else*/
+/*            namebuf += strlen(namebuf) + 1;*/
+/*#endif*/
+/*          }*/
+
+/*          argv[1] = names;*/
+        }
+        break;
+
+      default:
+        assert(0 && "Unhandled eio response");
+    }
+
+    if (lua_pcall(L, argc, 0, 0) != 0) {
+      error(L, "error running function 'on_after_fs': %s", lua_tostring(L, -1));
+    }
+
+
+  }
+
+  free(ref);// We're done with the ref object, free it
+  assert(lua_gettop(L) == before);
+}
+
 static int luv_fs_open(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_open");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
+  int mode = luaL_checkint(L, 3);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 4); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+
+  if (uv_fs_open(uv_default_loop(), &ref->fs_req, path, flags, mode, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_open: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 static int luv_fs_close(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_close");
+  int before = lua_gettop(L);
+  int fd = luaL_checkint(L, 1);
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 2); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+
+  if (uv_fs_close(uv_default_loop(), &ref->fs_req, (uv_file)fd, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_close: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
