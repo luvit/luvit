@@ -1,7 +1,7 @@
 local uv = require('uv');
 
 p("uv", uv)
-
+p("process", process)
 
 uv.fs_open("license.txt", 'r', 420, function (fd)
   p("on_open", {fd=fd})
