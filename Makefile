@@ -33,7 +33,7 @@ ${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 
 ${BUILDDIR}/%.o: src/%.c
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src
+	$(CC) -Wall -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o
 	$(CC) -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o -Wall -lm -ldl -lrt -Wl,-E
