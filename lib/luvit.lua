@@ -1,15 +1,14 @@
 -- Dump args to the screen for debugging
 function p(...)
   local n = select('#', ...)
-  local arguments = { n = n, ... }
+  local arguments = { ... }
   local dump = require('utils').dump
-  local parts = {}
 
-  for i = 1, arguments.n do
-    parts[i] = dump(arguments[i])
+  for i = 1, n do
+    arguments[i] = dump(arguments[i])
   end
 
-  print(table.concat(parts, "\t"))
+  print(table.concat(arguments, "\t"))
 end
 
 
@@ -26,13 +25,10 @@ else
   end
 
   local function print_results(results)
-    local parts = {}
-
     for i = 1, results.n do
-      parts[#parts + 1] = dump(results[i])
+      results[i] = dump(results[i])
     end
-
-    print(table.concat(parts, '\t'))
+    print(table.concat(results, '\t'))
   end
 
 
