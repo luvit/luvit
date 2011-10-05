@@ -704,6 +704,35 @@ static int luv_tty_get_winsize(lua_State* L) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//                              FS Functions                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+static int luv_fs_open(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_open");
+  return 0;
+}
+
+static int luv_fs_close(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_close");
+  return 0;
+}
+
+static int luv_fs_read(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_read");
+  return 0;
+}
+
+static int luv_fs_write(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_write");
+  return 0;
+}
+
+static int luv_fs_unlink(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_unlink");
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //                              Loop Functions                                //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -762,6 +791,13 @@ static const luaL_reg luv_f[] = {
   {"tty_init", luv_tty_init},
   {"tty_set_mode", luv_tty_set_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
+
+  // FS functions
+  {"fs_open", luv_fs_open},
+  {"fs_close", luv_fs_close},
+  {"fs_read", luv_fs_read},
+  {"fs_write", luv_fs_write},
+  {"fs_unlink", luv_fs_unlink},
 
   // Loop functions
   {"run", luv_run},
