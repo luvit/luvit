@@ -927,7 +927,22 @@ static int luv_fs_write(lua_State* L) {
 }
 
 static int luv_fs_unlink(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_unlink");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 2); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+
+  if (uv_fs_unlink(uv_default_loop(), &ref->fs_req, path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_unlink: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
