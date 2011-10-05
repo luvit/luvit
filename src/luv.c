@@ -59,6 +59,7 @@ typedef struct {
   lua_State* L;
   int r;
   uv_fs_t fs_req;
+  void* buf;
 } luv_fs_ref_t;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -810,8 +811,10 @@ void luv_fs_after(uv_fs_t* req) {
         break;
 
       case UV_FS_READ:
-        // Buffer interface
-/*        argv[1] = Integer::New(req->result);*/
+        argc = 2;
+        lua_pushlstring(L, ref->buf, req->result);
+        lua_pushinteger(L, req->result);
+        free(ref->buf);
         break;
 
       case UV_FS_READDIR:
@@ -848,6 +851,7 @@ void luv_fs_after(uv_fs_t* req) {
 
   }
 
+  uv_fs_req_cleanup(req);
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
 }
@@ -895,7 +899,25 @@ static int luv_fs_close(lua_State* L) {
 }
 
 static int luv_fs_read(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_read");
+  int before = lua_gettop(L);
+  int fd = luaL_checkint(L, 1);
+  int offset = luaL_checkint(L, 2);
+  int length = luaL_checkint(L, 3);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, 4); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+  ref->buf = malloc(length);
+
+  if (uv_fs_read(uv_default_loop(), &ref->fs_req, (uv_file)fd, ref->buf, length, offset, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_read: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
