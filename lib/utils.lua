@@ -42,7 +42,7 @@ function dump(o, depth)
     return color(tostring(o), "blue")
   end
   if type(o) == 'string' then
-    return color('"', "Bgreen", "green") .. o:gsub("\n",color("\\n", "Bgreen", "green")):gsub("\r",color("\\r", "Bgreen", "green")):gsub("\t",color("\\t", "Bgreen", "green")) .. color('"', "Bgreen")
+    return color('"', "Bgreen", "green") .. o:gsub("\\", color("\\\\", "Bgreen", green)):gsub("%z", color("\\0", "Bgreen", "green")):gsub("\n",color("\\n", "Bgreen", "green")):gsub("\r",color("\\r", "Bgreen", "green")):gsub("\t",color("\\t", "Bgreen", "green")) .. color('"', "Bgreen")
   end
   if type(o) == 'table' then
     if (depth > 1) then
