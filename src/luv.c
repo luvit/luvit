@@ -856,18 +856,24 @@ void luv_fs_after(uv_fs_t* req) {
   assert(lua_gettop(L) == before);
 }
 
+// Utility for storing the callback in the fs_req token
+luv_fs_ref_t* luv_fs_store_callback(lua_State* L, int index) {
+  luaL_checktype(L, index, LUA_TFUNCTION);
+
+  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
+  ref->L = L;
+  lua_pushvalue(L, index); // Store the callback
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  ref->fs_req.data = ref;
+  return ref;
+}
+
 static int luv_fs_open(lua_State* L) {
   int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
   int mode = strtoul(luaL_checkstring(L, 3), NULL, 8);
-  luaL_checktype(L, 4, LUA_TFUNCTION);
-
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 4); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 4);
 
   if (uv_fs_open(uv_default_loop(), &ref->fs_req, path, flags, mode, luv_fs_after)) {
     uv_err_t err = uv_last_error(uv_default_loop());
@@ -881,13 +887,7 @@ static int luv_fs_open(lua_State* L) {
 static int luv_fs_close(lua_State* L) {
   int before = lua_gettop(L);
   int fd = luaL_checkint(L, 1);
-  luaL_checktype(L, 2, LUA_TFUNCTION);
-
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 2); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 2);
 
   if (uv_fs_close(uv_default_loop(), &ref->fs_req, (uv_file)fd, luv_fs_after)) {
     uv_err_t err = uv_last_error(uv_default_loop());
@@ -903,13 +903,8 @@ static int luv_fs_read(lua_State* L) {
   int fd = luaL_checkint(L, 1);
   int offset = luaL_checkint(L, 2);
   int length = luaL_checkint(L, 3);
-  luaL_checktype(L, 4, LUA_TFUNCTION);
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 4);
 
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 4); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
   ref->buf = malloc(length);
 
   if (uv_fs_read(uv_default_loop(), &ref->fs_req, (uv_file)fd, ref->buf, length, offset, luv_fs_after)) {
@@ -927,13 +922,7 @@ static int luv_fs_write(lua_State* L) {
   int offset = luaL_checkint(L, 2);
   size_t length;
   const char* chunk = luaL_checklstring(L, 3, &length);
-  luaL_checktype(L, 4, LUA_TFUNCTION);
-
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 4); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 4);
 
   if (uv_fs_write(uv_default_loop(), &ref->fs_req, (uv_file)fd, (void*)chunk, length, offset, luv_fs_after)) {
     uv_err_t err = uv_last_error(uv_default_loop());
@@ -947,13 +936,7 @@ static int luv_fs_write(lua_State* L) {
 static int luv_fs_unlink(lua_State* L) {
   int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
-  luaL_checktype(L, 2, LUA_TFUNCTION);
-
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 2); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 2);
 
   if (uv_fs_unlink(uv_default_loop(), &ref->fs_req, path, luv_fs_after)) {
     uv_err_t err = uv_last_error(uv_default_loop());
@@ -968,13 +951,7 @@ static int luv_fs_mkdir(lua_State* L) {
   int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   int mode = luaL_checkint(L, 2);
-  luaL_checktype(L, 3, LUA_TFUNCTION);
-
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 3); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 3);
 
   if (uv_fs_mkdir(uv_default_loop(), &ref->fs_req, path, mode, luv_fs_after)) {
     uv_err_t err = uv_last_error(uv_default_loop());
@@ -988,13 +965,7 @@ static int luv_fs_mkdir(lua_State* L) {
 static int luv_fs_rmdir(lua_State* L) {
   int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
-  luaL_checktype(L, 2, LUA_TFUNCTION);
-
-  luv_fs_ref_t* ref = (luv_fs_ref_t*)malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, 2); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  ref->fs_req.data = ref;
+  luv_fs_ref_t* ref = luv_fs_store_callback(L, 2);
 
   if (uv_fs_rmdir(uv_default_loop(), &ref->fs_req, path, luv_fs_after)) {
     uv_err_t err = uv_last_error(uv_default_loop());
