@@ -360,43 +360,126 @@ int luv_fs_fsync(lua_State* L) {
   return 0;
 }
 
+
 int luv_fs_fdatasync(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_fdatasync");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_fdatasync(uv_default_loop(), req, file, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_fdatasync: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_ftruncate(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_ftruncate");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  off_t offset = luaL_checkint(L, 2);
+  uv_fs_t* req = luv_fs_store_callback(L, 3);
+
+  if (uv_fs_ftruncate(uv_default_loop(), req, file, offset, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_ftruncate: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_sendfile(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_sendfile");
+  int before = lua_gettop(L);
+  uv_file out_fd = luaL_checkint(L, 1);
+  uv_file in_fd = luaL_checkint(L, 2);
+  off_t in_offset = luaL_checkint(L, 3);
+  size_t length = luaL_checkint(L, 4);
+  uv_fs_t* req = luv_fs_store_callback(L, 5);
+
+  if (uv_fs_sendfile(uv_default_loop(), req, out_fd, in_fd, in_offset, length, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_sendfile: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_chmod(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_chmod");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
+  uv_fs_t* req = luv_fs_store_callback(L, 3);
+
+  if (uv_fs_chmod(uv_default_loop(), req, path, mode, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_chmod: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_utime(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_utime");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  double atime = luaL_checknumber(L, 2);
+  double mtime = luaL_checknumber(L, 3);
+  uv_fs_t* req = luv_fs_store_callback(L, 4);
+
+  if (uv_fs_utime(uv_default_loop(), req, path, atime, mtime, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_utime: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_futime(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_futime");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  double atime = luaL_checknumber(L, 2);
+  double mtime = luaL_checknumber(L, 3);
+  uv_fs_t* req = luv_fs_store_callback(L, 4);
+
+  if (uv_fs_futime(uv_default_loop(), req, file, atime, mtime, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_futime: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_lstat(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_lstat");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_lstat(uv_default_loop(), req, path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_lstat: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_link(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_link");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  const char* new_path = luaL_checkstring(L, 2);
+  uv_fs_t* req = luv_fs_store_callback(L, 3);
+
+  if (uv_fs_link(uv_default_loop(), req, path, new_path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_link: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 

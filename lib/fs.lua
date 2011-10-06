@@ -18,6 +18,8 @@ function wrap(fn, nargs)
         fn(args[1], args[2], resume)
       elseif (nargs == 3) then
         fn(args[1], args[2], args[3], resume)
+      elseif (nargs == 4) then
+        fn(args[1], args[2], args[3], args[4], resume)
       else
         error("Too many nargs")
       end
@@ -46,6 +48,14 @@ return {
   stat = wrap(UV.fs_stat, 1),
   fstat = wrap(UV.fs_fstat, 1),
   rename = wrap(UV.fs_rename, 2),
-  fsync = wrap(UV.fs_fsync, 1)
+  fsync = wrap(UV.fs_fsync, 1),
+  fdatasync = wrap(UV.fs_fdatasync, 1),
+  ftruncate = wrap(UV.fs_ftruncate, 2),
+  sendfile = wrap(UV.fs_sendfile, 4),
+  chmod = wrap(UV.fs_chmod, 2),
+  utime = wrap(UV.fs_utime, 3),
+  futime = wrap(UV.fs_futime, 3),
+  lstat = wrap(UV.fs_lstat, 1),
+  link = wrap(UV.fs_link, 2),
 }
 
