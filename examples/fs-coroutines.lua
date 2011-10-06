@@ -29,4 +29,13 @@ FS.fiber(function (co)
 
 end)
 
+FS.fiber(function (co)
+
+  print("scanning directory...")
+  local err, files = FS.readdir(co, ".")
+  p("on_open", {err=err, files=files})
+  if (err) then return end
+
+end)
+
 

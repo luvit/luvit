@@ -38,3 +38,7 @@ FS.open("tempfile", "w", "0644", function (err, fd)
     end)
   end)
 end)
+
+FS.readdir(".", function (err, files)
+  p("on_readdir", {err=err,files=files})
+end)
