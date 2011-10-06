@@ -4,9 +4,8 @@ HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 
-LUALIBS=${GENDIR}/http.o  \
-        ${GENDIR}/tcp.o   \
-        ${GENDIR}/luvit.o \
+LUALIBS=${GENDIR}/luvit.o \
+        ${GENDIR}/http.o \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o      \

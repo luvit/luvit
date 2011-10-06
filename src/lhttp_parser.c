@@ -49,7 +49,6 @@ static int lhttp_parser_on_message_begin(http_parser *p) {
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_message_begin\n");
     lua_pop(L, 2);
     return 0;
   };
@@ -71,7 +70,6 @@ static int lhttp_parser_on_message_complete(http_parser *p) {
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_message_complete\n");
     lua_pop(L, 2);
     return 0;
   };
@@ -93,7 +91,6 @@ static int lhttp_parser_on_url(http_parser *p, const char *at, size_t length) {
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_url\n");
     lua_pop(L, 2);
     return 0;
   };
@@ -117,7 +114,6 @@ static int lhttp_parser_on_header_field(http_parser *p, const char *at, size_t l
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_header_field\n");
     lua_pop(L, 2);
     return 0;
   };
@@ -141,7 +137,6 @@ static int lhttp_parser_on_header_value(http_parser *p, const char *at, size_t l
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_header_value\n");
     lua_pop(L, 2);
     return 0;
   };
@@ -165,7 +160,6 @@ static int lhttp_parser_on_body(http_parser *p, const char *at, size_t length) {
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_body\n");
     lua_pop(L, 2);
     return 0;
   };
@@ -189,7 +183,6 @@ static int lhttp_parser_on_headers_complete(http_parser *p) {
   // See if it's a function
   if (lua_isfunction (L, -1) == 0) {
     // no function defined
-    printf("missing: on_headers_complete\n");
     lua_pop(L, 2);
     return 0;
   };
