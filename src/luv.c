@@ -858,13 +858,22 @@ void luv_fs_after(uv_fs_t* req) {
 
 // Utility for storing the callback in the fs_req token
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
+  int before = lua_gettop(L);
+
   luaL_checktype(L, index, LUA_TFUNCTION);
 
+  // Get the main thread
+  lua_getglobal(L, "main_thread");
+  lua_State* L1 = lua_tothread(L, -1);
+  lua_pop(L, 1);
+
   luv_fs_ref_t* ref = malloc(sizeof(luv_fs_ref_t));
-  ref->L = L;
+  ref->L = L1;
   lua_pushvalue(L, index); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  lua_xmove(L, L1, 1); // Move to the main_thread
+  ref->r = luaL_ref(L1, LUA_REGISTRYINDEX);
   ref->fs_req.data = ref;
+  assert(lua_gettop(L) == before);
   return &ref->fs_req;
 }
 

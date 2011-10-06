@@ -1,4 +1,5 @@
 #include <string.h>
+#include <assert.h>
 
 #include "lua.h"
 #include "lualib.h"
@@ -53,6 +54,8 @@ int main(int argc, char *argv[])
 
   lua_setglobal(L, "process");
 
+  assert(lua_pushthread(L) == 1);
+  lua_setglobal(L, "main_thread");
 
   // Run the main lua script
   if (luaL_dostring(L, "assert(require('luvit'))")) {
