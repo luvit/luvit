@@ -29,7 +29,13 @@ function wrap(fn, nargs)
   end
 end
 
+function fiber(fn)
+  local co = coroutine.create(fn)
+  assert(coroutine.resume(co, co))
+end
+
 return {
+  fiber = fiber,
   open = wrap(UV.fs_open, 3),
   close = wrap(UV.fs_close, 1),
   read = wrap(UV.fs_read, 3),
