@@ -12,6 +12,17 @@ void error (lua_State *L, const char *fmt, ...) {
   exit(EXIT_FAILURE);
 }
 
+// Pushes a formatted string on the stack
+void push_formatted_string(lua_State *L, const char *fmt, ...) {
+  char buffer[PATH_MAX + 128];
+  int length;
+  va_list argp;
+  va_start(argp, fmt);
+  length = vsnprintf(buffer, PATH_MAX + 128, fmt, argp);
+  va_end(argp);
+  lua_pushlstring(L, buffer, length);
+}
+
 const char* errno_message(int errorno) {
   uv_err_t err;
   memset(&err, 0, sizeof err);

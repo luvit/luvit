@@ -9,6 +9,7 @@
 
 #include "luv_fs.h"
 
+// Pushes a error object onto the stack
 void luv_fs_error(lua_State* L,
                   int errorno,
                   const char *syscall,
@@ -19,10 +20,18 @@ void luv_fs_error(lua_State* L,
     msg = errno_message(errorno);
   }
 
+  lua_newtable(L);
   if (path) {
-    error(L, "%s, %s '%s'", errno_string(errorno), msg, path);
+    push_formatted_string(L, "%s, %s '%s'", errno_string(errorno), msg, path);
   } else {
-    error(L, "%s, %s", errno_string(errorno), msg);
+    push_formatted_string(L, "%s, %s", errno_string(errorno), msg);
+  }
+  lua_setfield(L, -2, "message");
+  lua_pushstring(L, errno_string(errorno));
+  lua_setfield(L, -2, "code");
+  if (path) {
+    lua_pushstring(L, path);
+    lua_setfield(L, -2, "path");
   }
 }
 
@@ -44,11 +53,11 @@ void luv_fs_after(uv_fs_t* req) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
+  int argc = 0;
   if (req->result == -1) {
-    lua_pop(L, 1);
     luv_fs_error(L, req->errorno, NULL, NULL, req->path);
   } else {
-    int argc = 0;
+    lua_pushnil(L);
     switch (req->fs_type) {
 
       case UV_FS_CLOSE:
@@ -121,9 +130,8 @@ void luv_fs_after(uv_fs_t* req) {
         break;
 
       case UV_FS_READ:
-        argc = 2;
+        argc = 1;
         lua_pushlstring(L, ref->buf, req->result);
-        lua_pushinteger(L, req->result);
         free(ref->buf);
         break;
 
@@ -154,11 +162,10 @@ void luv_fs_after(uv_fs_t* req) {
         assert(0 && "Unhandled eio response");
     }
 
-    if (lua_pcall(L, argc, 0, 0) != 0) {
-      error(L, "error running function 'on_after_fs': %s", lua_tostring(L, -1));
-    }
+  }
 
-
+  if (lua_pcall(L, argc + 1, 0, 0) != 0) {
+    error(L, "%s", lua_tostring(L, -1));
   }
 
   uv_fs_req_cleanup(req);

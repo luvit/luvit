@@ -4,24 +4,29 @@ local co
 co = coroutine.create(function (filename)
 
   print("opening...")
-  local fd = FS.open(co, filename, 'r', "0644")
-  p("on_open", {fd=fd})
+  local err, fd = FS.open(co, filename, 'r', "0644")
+  p("on_open", {err=err, fd=fd})
+  if (err) then return end
 
   print("fstatting...")
-  local stat = FS.fstat(co, fd)
-  p("stat", {stat=stat})
+  local err, stat = FS.fstat(co, fd)
+  p("stat", {err=err, stat=stat})
+  if (err) then return end
 
   print("reading...")
   local offset = 0
   repeat
-    local chunk, length = FS.read(co, fd, offset, 128)
-    p("on_read", {chunk=chunk, offset=offset, length=length})
+    local err, chunk = FS.read(co, fd, offset, 128)
+    local length = #chunk
+    p("on_read", {err=err, chunk=chunk, offset=offset, length=length})
+    if (err) then return end
     offset = offset + length
   until length == 0
 
   print("closing...")
-  FS.close(co, fd)
-  p("on_close")
+  local err = FS.close(co, fd)
+  p("on_close", {err=err})
+  if (err) then return end
 
 end)
 coroutine.resume(co, "license.txt")
