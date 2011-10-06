@@ -157,6 +157,7 @@ Indentation denotes inheritance
 
 - `luv_handle`: Generic handle
     - `luv_udp`: a plain udp handle
+    - `luv_fs_watcher`: a filesystem watcher
     - `luv_stream`: a fifo stream of data
         - `luv_tcp`: a tcp network connection
         - `luv_pipe`: a named socket or domain socket
