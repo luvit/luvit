@@ -261,3 +261,95 @@ int luv_fs_rmdir(lua_State* L) {
   assert(lua_gettop(L) == before);
   return 0;
 }
+
+int luv_fs_stat(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_stat");
+  return 0;
+}
+
+int luv_fs_fstat(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_fstat");
+  return 0;
+}
+
+int luv_fs_rename(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_rename");
+  return 0;
+}
+
+int luv_fs_fsync(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_fsync");
+  return 0;
+}
+
+int luv_fs_fdatasync(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_fdatasync");
+  return 0;
+}
+
+int luv_fs_ftruncate(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_ftruncate");
+  return 0;
+}
+
+int luv_fs_sendfile(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_sendfile");
+  return 0;
+}
+
+int luv_fs_chmod(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_chmod");
+  return 0;
+}
+
+int luv_fs_utime(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_utime");
+  return 0;
+}
+
+int luv_fs_futime(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_futime");
+  return 0;
+}
+
+int luv_fs_lstat(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_lstat");
+  return 0;
+}
+
+int luv_fs_link(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_link");
+  return 0;
+}
+
+int luv_fs_symlink(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_symlink");
+  return 0;
+}
+
+int luv_fs_readlink(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_readlink");
+  return 0;
+}
+
+int luv_fs_fchmod(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_fchmod");
+  return 0;
+}
+
+int luv_fs_chown(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_chown");
+  return 0;
+}
+
+int luv_fs_fchown(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_fchown");
+  return 0;
+}
+
+int luv_fs_event_init(lua_State* L) {
+  error(L, "TODO: Implement luv_fs_event_init");
+  return 0;
+}
+
+
