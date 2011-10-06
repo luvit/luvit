@@ -13,12 +13,6 @@
 #define TRUE !FALSE
 #endif
 
-// Basically throws an exception using printf style formatting
-void error (lua_State *L, const char *fmt, ...);
-
-// Pushes a formatted string on the stack
-void push_formatted_string(lua_State *L, const char *fmt, ...);
-
 const char* errno_message(int errorno);
 const char* errno_string(int errorno);
 

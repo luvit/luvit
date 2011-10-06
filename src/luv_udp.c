@@ -23,42 +23,42 @@ int luv_new_udp (lua_State* L) {
 }
 
 int luv_udp_init(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_init");
+  return luaL_error(L, "TODO: Implement luv_udp_init");
   return 0;
 }
 
 int luv_udp_bind(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_bind");
+  return luaL_error(L, "TODO: Implement luv_udp_bind");
   return 0;
 }
 
 int luv_udp_bind6(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_bind6");
+  return luaL_error(L, "TODO: Implement luv_udp_bind6");
   return 0;
 }
 
 int luv_udp_getsockname(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_getsockname");
+  return luaL_error(L, "TODO: Implement luv_udp_getsockname");
   return 0;
 }
 
 int luv_udp_send(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_send");
+  return luaL_error(L, "TODO: Implement luv_udp_send");
   return 0;
 }
 
 int luv_udp_send6(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_send6");
+  return luaL_error(L, "TODO: Implement luv_udp_send6");
   return 0;
 }
 
 int luv_udp_recv_start(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_recv_start");
+  return luaL_error(L, "TODO: Implement luv_udp_recv_start");
   return 0;
 }
 
 int luv_udp_recv_stop(lua_State* L) {
-  error(L, "TODO: Implement luv_udp_recv_stop");
+  return luaL_error(L, "TODO: Implement luv_udp_recv_stop");
   return 0;
 }
 

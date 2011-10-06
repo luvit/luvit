@@ -23,17 +23,17 @@ int luv_new_tty (lua_State* L) {
 }
 
 int luv_tty_init(lua_State* L) {
-  error(L, "TODO: Implement luv_tty_init");
+  return luaL_error(L, "TODO: Implement luv_tty_init");
   return 0;
 }
 
 int luv_tty_set_mode(lua_State* L) {
-  error(L, "TODO: Implement luv_tty_set_mode");
+  return luaL_error(L, "TODO: Implement luv_tty_set_mode");
   return 0;
 }
 
 int luv_tty_get_winsize(lua_State* L) {
-  error(L, "TODO: Implement luv_tty_get_winsize");
+  return luaL_error(L, "TODO: Implement luv_tty_get_winsize");
   return 0;
 }
 

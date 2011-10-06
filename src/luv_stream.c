@@ -35,7 +35,7 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
     if (err.code == UV_EOF) {
       luv_emit_event(L, "end", 0);
     } else {
-      error(L, "read: %s", uv_strerror(err));
+      luaL_error(L, "read: %s", uv_strerror(err));
     }
   }
   lua_pop(L, 1); // Remove the userdata
@@ -57,7 +57,7 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
 
   lua_pushnumber(L, status);
   if (lua_pcall(L, 1, 0, 0) != 0) {
-    error(L, "error running function 'on_shutdown': %s", lua_tostring(L, -1));
+    luaL_error(L, "error running function 'on_shutdown': %s", lua_tostring(L, -1));
   }
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
@@ -73,7 +73,7 @@ void luv_after_write(uv_write_t* req, int status) {
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
   lua_pushnumber(L, status);
   if (lua_pcall(L, 1, 0, 0) != 0) {
-    error(L, "error running function 'on_write': %s", lua_tostring(L, -1));
+    luaL_error(L, "error running function 'on_write': %s", lua_tostring(L, -1));
   }
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
@@ -109,7 +109,7 @@ int luv_listen (lua_State* L) {
 
   if (uv_listen(handle, 128, luv_on_connection)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "listen: %s", uv_strerror(err));
+    luaL_error(L, "listen: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -122,7 +122,7 @@ int luv_accept (lua_State* L) {
   uv_stream_t* client = (uv_stream_t*)luv_checkudata(L, 2, "stream");
   if (uv_accept(server, client)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "accept: %s", uv_strerror(err));
+    luaL_error(L, "accept: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);

@@ -47,7 +47,7 @@ int luv_tcp_bind (lua_State* L) {
 
   if (uv_tcp_bind(handle, address)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_bind: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_bind: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -64,7 +64,7 @@ int luv_tcp_bind6(lua_State* L) {
 
   if (uv_tcp_bind6(handle, address)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_bind6: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_bind6: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -80,7 +80,7 @@ int luv_tcp_getsockname(lua_State* L) {
 
   if (uv_tcp_getsockname(handle, (struct sockaddr*)(&address), &addrlen)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_getsockname: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_getsockname: %s", uv_strerror(err));
   }
 
   int family = address.ss_family;
@@ -117,7 +117,7 @@ int luv_tcp_getpeername(lua_State* L) {
 
   if (uv_tcp_getpeername(handle, (struct sockaddr*)(&address), &addrlen)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_getpeername: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_getpeername: %s", uv_strerror(err));
   }
 
   int family = address.ss_family;
@@ -166,7 +166,7 @@ int luv_tcp_connect(lua_State* L) {
 
   if (uv_tcp_connect(&ref->connect_req, handle, address, luv_after_connect)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_connect: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_connect: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
@@ -194,7 +194,7 @@ int luv_tcp_connect6(lua_State* L) {
 
   if (uv_tcp_connect6(&ref->connect_req, handle, address, luv_after_connect)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_connect6: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_connect6: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);

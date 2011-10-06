@@ -23,22 +23,22 @@ int luv_new_pipe (lua_State* L) {
 }
 
 int luv_pipe_init(lua_State* L) {
-  error(L, "TODO: Implement luv_pipe_init");
+  return luaL_error(L, "TODO: Implement luv_pipe_init");
   return 0;
 }
 
 int luv_pipe_open(lua_State* L) {
-  error(L, "TODO: Implement luv_pipe_open");
+  return luaL_error(L, "TODO: Implement luv_pipe_open");
   return 0;
 }
 
 int luv_pipe_bind(lua_State* L) {
-  error(L, "TODO: Implement luv_pipe_bind");
+  return luaL_error(L, "TODO: Implement luv_pipe_bind");
   return 0;
 }
 
 int luv_pipe_connect(lua_State* L) {
-  error(L, "TODO: Implement luv_pipe_connect");
+  return luaL_error(L, "TODO: Implement luv_pipe_connect");
   return 0;
 }
 

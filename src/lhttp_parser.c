@@ -53,7 +53,7 @@ static int lhttp_parser_on_message_begin(http_parser *p) {
     return 0;
   };
   if (lua_pcall(L, 0, 1, 0) != 0) {
-    error(L, "error running function 'on_message_begin': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_message_begin': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 1); // pop returned value
   lua_pop(L, 1); // pop the userdata env
@@ -74,7 +74,7 @@ static int lhttp_parser_on_message_complete(http_parser *p) {
     return 0;
   };
   if (lua_pcall(L, 0, 1, 0) != 0) {
-    error(L, "error running function 'on_message_complete': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_message_complete': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 2); // pop returned value and the userdata env
   return 0;
@@ -98,7 +98,7 @@ static int lhttp_parser_on_url(http_parser *p, const char *at, size_t length) {
   lua_pushlstring(L, at, length);
 
   if (lua_pcall(L, 1, 1, 0) != 0) {
-    error(L, "error running function 'on_url': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_url': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 2); // pop returned value and the userdata env
   return 0;
@@ -121,7 +121,7 @@ static int lhttp_parser_on_header_field(http_parser *p, const char *at, size_t l
   lua_pushlstring(L, at, length);
 
   if (lua_pcall(L, 1, 1, 0) != 0) {
-    error(L, "error running function 'on_header_field': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_header_field': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 2); // pop returned value and the userdata env
   return 0;
@@ -144,7 +144,7 @@ static int lhttp_parser_on_header_value(http_parser *p, const char *at, size_t l
   lua_pushlstring(L, at, length);
 
   if (lua_pcall(L, 1, 1, 0) != 0) {
-    error(L, "error running function 'on_header_value': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_header_value': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 2); // pop returned value and the userdata env
   return 0;
@@ -167,7 +167,7 @@ static int lhttp_parser_on_body(http_parser *p, const char *at, size_t length) {
   lua_pushlstring(L, at, length);
 
   if (lua_pcall(L, 1, 1, 0) != 0) {
-    error(L, "error running function 'on_body': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_body': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 2); // pop returned value and the userdata env
   return 0;
@@ -217,7 +217,7 @@ static int lhttp_parser_on_headers_complete(http_parser *p) {
 
 
   if (lua_pcall(L, 1, 1, 0) != 0) {
-    error(L, "error running function 'on_headers_complete': %s", lua_tostring(L, -1));
+    return luaL_error(L, "error running function 'on_headers_complete': %s", lua_tostring(L, -1));
   }
   lua_pop(L, 2); // pop returned value and the userdata env
   return 0;
@@ -283,7 +283,7 @@ static int lhttp_parser_finish (lua_State *L) {
   int rv = http_parser_execute(parser, &lhttp_parser_settings, NULL, 0);
 
   if (rv != 0) {
-    error(L, "Parse Error");
+    return luaL_error(L, "Parse Error");
   }
 
   return 0;
