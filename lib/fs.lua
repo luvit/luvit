@@ -9,7 +9,7 @@ function wrap(fn, nargs)
   return function (coro, ...)
     if (type(coro) == 'thread') then
       local resume = function (...)
-        coroutine.resume(coro, ...)
+        assert(coroutine.resume(coro, ...))
       end
       local args = {...}
       if (nargs == 1) then
