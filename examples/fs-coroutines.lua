@@ -8,6 +8,11 @@ co = coroutine.create(function (filename)
   local fd = coroutine.yield()
   p("on_open", {fd=fd})
 
+  print("fstatting...")
+  UV.fs_fstat(fd, resume)
+  local stat = coroutine.yield()
+  p("stat", {stat=stat})
+
   print("reading...")
   UV.fs_read(fd, 0, 4096, resume)
   local chunk, length = coroutine.yield()

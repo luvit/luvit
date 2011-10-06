@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 #include "luv_fs.h"
 
@@ -76,9 +80,39 @@ void luv_fs_after(uv_fs_t* req) {
       case UV_FS_STAT:
       case UV_FS_LSTAT:
       case UV_FS_FSTAT:
+        argc = 1;
         {
-/*          NODE_STAT_STRUCT *s = reinterpret_cast<NODE_STAT_STRUCT*>(req->ptr);*/
-/*          argv[1] = BuildStatsObject(s);*/
+        struct stat* s = (struct stat*)(req->ptr);
+
+        lua_newtable(L);
+        lua_pushinteger(L, s->st_dev);
+        lua_setfield(L, -2, "dev");
+        lua_pushinteger(L, s->st_ino);
+        lua_setfield(L, -2, "ino");
+        lua_pushinteger(L, s->st_mode);
+        lua_setfield(L, -2, "mode");
+        lua_pushinteger(L, s->st_nlink);
+        lua_setfield(L, -2, "nlink");
+        lua_pushinteger(L, s->st_uid);
+        lua_setfield(L, -2, "uid");
+        lua_pushinteger(L, s->st_gid);
+        lua_setfield(L, -2, "gid");
+        lua_pushinteger(L, s->st_rdev);
+        lua_setfield(L, -2, "rdev");
+        lua_pushinteger(L, s->st_size);
+        lua_setfield(L, -2, "size");
+#ifdef __POSIX__
+        lua_pushinteger(L, s->st_blksize);
+        lua_setfield(L, -2, "blksize");
+        lua_pushinteger(L, s->st_blocks);
+        lua_setfield(L, -2, "blocks");
+#endif
+        lua_pushinteger(L, s->st_atime);
+        lua_setfield(L, -2, "atime");
+        lua_pushinteger(L, s->st_mtime);
+        lua_setfield(L, -2, "mtime");
+        lua_pushinteger(L, s->st_ctime);
+        lua_setfield(L, -2, "ctime");
         }
         break;
 
@@ -263,12 +297,30 @@ int luv_fs_rmdir(lua_State* L) {
 }
 
 int luv_fs_stat(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_stat");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_stat(uv_default_loop(), req, path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_stat: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_fstat(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_fstat");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_fstat(uv_default_loop(), req, file, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_fstat: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
