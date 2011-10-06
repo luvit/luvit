@@ -4,7 +4,24 @@ HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 
-all: luvit
+LUALIBS=${GENDIR}/http.o  \
+        ${GENDIR}/tcp.o   \
+        ${GENDIR}/luvit.o \
+        ${GENDIR}/utils.o
+
+LUVLIBS=${BUILDDIR}/utils.o  \
+        ${BUILDDIR}/luv_fs.o \
+        ${BUILDDIR}/lhttp_parser.o
+
+ALLLIBS=${BUILDDIR}/luvit.o       \
+        ${LUVLIBS}                \
+        ${BUILDDIR}/luv.o         \
+        ${LUADIR}/src/libluajit.a \
+        ${UVDIR}/uv.a             \
+        ${HTTPDIR}/http_parser.o  \
+        ${LUALIBS}
+
+all: ${BUILDDIR}/luvit
 
 ${GENDIR}:
 	mkdir -p ${GENDIR}
@@ -28,15 +45,12 @@ ${GENDIR}/%.c: lib/%.lua ${LUADIR}/src/libluajit.a
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -Wall -c $< -o $@
 
-${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
-	$(CC) -Wall -o ${BUILDDIR}/webserver src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o -I${HTTPDIR} -I${UVDIR}/include -lrt -lm
-
-${BUILDDIR}/%.o: src/%.c
+${BUILDDIR}/%.o: src/%.c src/%.h
 	mkdir -p ${BUILDDIR}
 	$(CC) -Wall -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
-${BUILDDIR}/luvit: ${GENDIR} ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o
-	$(CC) -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit.o ${BUILDDIR}/utils.o ${BUILDDIR}/luv.o ${BUILDDIR}/lhttp_parser.o ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${GENDIR}/http.o ${GENDIR}/tcp.o ${GENDIR}/luvit.o ${GENDIR}/utils.o -Wall -lm -ldl -lrt -Wl,-E
+${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
+	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lrt -Wl,-E
 
 clean:
 	make -C ${LUADIR} clean
@@ -46,4 +60,8 @@ clean:
 
 install: ${BUILDDIR}/luvit
 	install ${BUILDDIR}/luvit -s -v /usr/local/bin/luvit
+
+${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+	$(CC) -Wall -o ${BUILDDIR}/webserver src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o -I${HTTPDIR} -I${UVDIR}/include -lrt -lm
+
 

@@ -5,6 +5,7 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+#include "luvit.h"
 #include "uv.h"
 #include "utils.h"
 #include "luv.h"
