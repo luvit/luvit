@@ -25,6 +25,7 @@ int luv_fs_write(lua_State* L);
 int luv_fs_unlink(lua_State* L);
 int luv_fs_mkdir(lua_State* L);
 int luv_fs_rmdir(lua_State* L);
+int luv_fs_readdir(lua_State* L);
 int luv_fs_stat(lua_State* L);
 int luv_fs_fstat(lua_State* L);
 int luv_fs_rename(lua_State* L);

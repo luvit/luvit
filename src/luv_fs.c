@@ -298,8 +298,6 @@ int luv_fs_rmdir(lua_State* L) {
   return 0;
 }
 
-//int uv_fs_readdir(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags,
-//    uv_fs_cb cb);
 int luv_fs_readdir(lua_State* L) {
   int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);

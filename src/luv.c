@@ -81,6 +81,7 @@ static const luaL_reg luv_f[] = {
   {"fs_unlink", luv_fs_unlink},
   {"fs_mkdir", luv_fs_mkdir},
   {"fs_rmdir", luv_fs_rmdir},
+  {"fs_readdir", luv_fs_readdir},
   {"fs_stat", luv_fs_stat},
   {"fs_fstat", luv_fs_fstat},
   {"fs_rename", luv_fs_rename},
