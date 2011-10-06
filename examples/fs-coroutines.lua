@@ -12,12 +12,15 @@ co = coroutine.create(function (filename)
   p("stat", {stat=stat})
 
   print("reading...")
-  local chunk, length = FS.read(co, fd, 0, 4096)
-  p("on_read", {chunk=chunk, length=length})
+  local offset = 0
+  repeat
+    local chunk, length = FS.read(co, fd, offset, 128)
+    p("on_read", {chunk=chunk, offset=offset, length=length})
+    offset = offset + length
+  until length == 0
 
   print("closing...")
   FS.close(co, fd)
-  coroutine.yield()
   p("on_close")
 
 end)
