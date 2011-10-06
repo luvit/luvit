@@ -7,6 +7,7 @@
 #include "luv_fs.h"
 #include "luv_handle.h"
 #include "luv_udp.h"
+#include "luv_fs_watcher.h"
 #include "luv_stream.h"
 #include "luv_tcp.h"
 #include "luv_pipe.h"
@@ -27,6 +28,7 @@ static int luv_run (lua_State* L) {
 static const luaL_reg luv_f[] = {
   // Constructors
   {"new_udp", luv_new_udp},
+  {"new_fs_watcher", luv_new_fs_watcher},
   {"new_tcp", luv_new_tcp},
   {"new_pipe", luv_new_pipe},
   {"new_tty", luv_new_tty},
@@ -44,6 +46,8 @@ static const luaL_reg luv_f[] = {
   {"udp_send6", luv_udp_send6},
   {"udp_recv_start", luv_udp_recv_start},
   {"udp_recv_stop", luv_udp_recv_stop},
+
+  // FS Watcher functions
 
   // Stream functions
   {"shutdown", luv_shutdown},
@@ -99,7 +103,6 @@ static const luaL_reg luv_f[] = {
   {"fs_fchmod", luv_fs_fchmod},
   {"fs_chown", luv_fs_chown},
   {"fs_fchown", luv_fs_fchown},
-  {"fs_event_init", luv_fs_event_init},
 
   // Loop functions
   {"run", luv_run},
@@ -120,6 +123,10 @@ static const luaL_reg luv_udp_m[] = {
   {"send6", luv_udp_send6},
   {"recv_start", luv_udp_recv_start},
   {"recv_stop", luv_udp_recv_stop},
+  {NULL, NULL}
+};
+
+static const luaL_reg luv_fs_watcher_m[] = {
   {NULL, NULL}
 };
 
@@ -183,6 +190,20 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   // use method table in metatable's __index
   lua_setfield(L, -2, "__index");
   lua_pop(L, 1); // we're done with luv_udp
+
+  // Metatable for fs_watcher
+  luaL_newmetatable(L, "luv_fs_watcher");
+  // Create table of fs_watcher methods
+  lua_newtable(L); // fs_watcher_m
+  luaL_register(L, NULL, luv_fs_watcher_m);
+  lua_pushboolean(L, TRUE);
+  lua_setfield(L, -2, "is_fs_watcher"); // Tag for polymorphic type checking
+  // Load the parent metatable so we can inherit it's methods
+  luaL_newmetatable(L, "luv_handle");
+  lua_setmetatable(L, -2);
+  // use method table in metatable's __index
+  lua_setfield(L, -2, "__index");
+  lua_pop(L, 1); // we're done with luv_fs_watcher
 
   // Metatable for streams
   luaL_newmetatable(L, "luv_stream");

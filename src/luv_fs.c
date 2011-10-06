@@ -9,6 +9,38 @@
 
 #include "luv_fs.h"
 
+void luv_push_stats_table(lua_State* L, struct stat* s) {
+  lua_newtable(L);
+  lua_pushinteger(L, s->st_dev);
+  lua_setfield(L, -2, "dev");
+  lua_pushinteger(L, s->st_ino);
+  lua_setfield(L, -2, "ino");
+  lua_pushinteger(L, s->st_mode);
+  lua_setfield(L, -2, "mode");
+  lua_pushinteger(L, s->st_nlink);
+  lua_setfield(L, -2, "nlink");
+  lua_pushinteger(L, s->st_uid);
+  lua_setfield(L, -2, "uid");
+  lua_pushinteger(L, s->st_gid);
+  lua_setfield(L, -2, "gid");
+  lua_pushinteger(L, s->st_rdev);
+  lua_setfield(L, -2, "rdev");
+  lua_pushinteger(L, s->st_size);
+  lua_setfield(L, -2, "size");
+#ifdef __POSIX__
+  lua_pushinteger(L, s->st_blksize);
+  lua_setfield(L, -2, "blksize");
+  lua_pushinteger(L, s->st_blocks);
+  lua_setfield(L, -2, "blocks");
+#endif
+  lua_pushinteger(L, s->st_atime);
+  lua_setfield(L, -2, "atime");
+  lua_pushinteger(L, s->st_mtime);
+  lua_setfield(L, -2, "mtime");
+  lua_pushinteger(L, s->st_ctime);
+  lua_setfield(L, -2, "ctime");
+}
+
 // Pushes a error object onto the stack
 void luv_fs_error(lua_State* L,
                   int errorno,
@@ -89,39 +121,7 @@ void luv_fs_after(uv_fs_t* req) {
       case UV_FS_LSTAT:
       case UV_FS_FSTAT:
         argc = 1;
-        {
-        struct stat* s = (struct stat*)(req->ptr);
-
-        lua_newtable(L);
-        lua_pushinteger(L, s->st_dev);
-        lua_setfield(L, -2, "dev");
-        lua_pushinteger(L, s->st_ino);
-        lua_setfield(L, -2, "ino");
-        lua_pushinteger(L, s->st_mode);
-        lua_setfield(L, -2, "mode");
-        lua_pushinteger(L, s->st_nlink);
-        lua_setfield(L, -2, "nlink");
-        lua_pushinteger(L, s->st_uid);
-        lua_setfield(L, -2, "uid");
-        lua_pushinteger(L, s->st_gid);
-        lua_setfield(L, -2, "gid");
-        lua_pushinteger(L, s->st_rdev);
-        lua_setfield(L, -2, "rdev");
-        lua_pushinteger(L, s->st_size);
-        lua_setfield(L, -2, "size");
-#ifdef __POSIX__
-        lua_pushinteger(L, s->st_blksize);
-        lua_setfield(L, -2, "blksize");
-        lua_pushinteger(L, s->st_blocks);
-        lua_setfield(L, -2, "blocks");
-#endif
-        lua_pushinteger(L, s->st_atime);
-        lua_setfield(L, -2, "atime");
-        lua_pushinteger(L, s->st_mtime);
-        lua_setfield(L, -2, "mtime");
-        lua_pushinteger(L, s->st_ctime);
-        lua_setfield(L, -2, "ctime");
-        }
+        luv_push_stats_table(L, (struct stat*)req->ptr);
         break;
 
       case UV_FS_READLINK:
@@ -569,10 +569,4 @@ int luv_fs_fchown(lua_State* L) {
   assert(lua_gettop(L) == before);
   return 0;
 }
-
-int luv_fs_event_init(lua_State* L) {
-  return luaL_error(L, "TODO: Implement luv_fs_event_init");
-  return 0;
-}
-
 

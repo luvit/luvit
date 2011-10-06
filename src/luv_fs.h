@@ -6,6 +6,8 @@
 #include "uv.h"
 #include "utils.h"
 
+void luv_push_stats_table(lua_State* L, struct stat* s);
+
 void luv_fs_error(lua_State* L, int errorno, const char *syscall, const char *msg, const char *path);
 
 // Utility to convert string flags to proper int flags
@@ -43,7 +45,6 @@ int luv_fs_readlink(lua_State* L);
 int luv_fs_fchmod(lua_State* L);
 int luv_fs_chown(lua_State* L);
 int luv_fs_fchown(lua_State* L);
-int luv_fs_event_init(lua_State* L);
 
 typedef struct {
   lua_State* L;
