@@ -1,0 +1,7 @@
+#!/bin/sh
+
+#rm lib.so
+#gcc -o lib.so -shared lib.c
+#LD_PRELOAD=./lib.so luvit test.lua
+
+LD_PRELOAD=/home/dvv/LUA/libwebsockets/lib/.libs/libwebsockets.so luvit test1.lua
