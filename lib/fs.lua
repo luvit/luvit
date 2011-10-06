@@ -45,6 +45,7 @@ return {
   unlink = wrap(UV.fs_unlink, 1),
   mkdir = wrap(UV.fs_mkdir, 2),
   rmdir = wrap(UV.fs_rmdir, 1),
+  readdir = wrap(UV.fs_readdir, 1),
   stat = wrap(UV.fs_stat, 1),
   fstat = wrap(UV.fs_fstat, 1),
   rename = wrap(UV.fs_rename, 2),
@@ -57,5 +58,10 @@ return {
   futime = wrap(UV.fs_futime, 3),
   lstat = wrap(UV.fs_lstat, 1),
   link = wrap(UV.fs_link, 2),
+  symlink = wrap(UV.fs_symlink, 3),
+  readlink = wrap(UV.fs_readlink, 1),
+  fchmod = wrap(UV.fs_fchmod, 2),
+  chown = wrap(UV.fs_chown, 3),
+  fchown = wrap(UV.fs_fchown, 3),
 }
 

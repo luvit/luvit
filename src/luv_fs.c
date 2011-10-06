@@ -126,7 +126,8 @@ void luv_fs_after(uv_fs_t* req) {
         break;
 
       case UV_FS_READLINK:
-/*        argv[1] = String::New(static_cast<char*>(req->ptr));*/
+        argc = 1;
+        lua_pushstring(L, (char*)req->ptr);
         break;
 
       case UV_FS_READ:
@@ -137,24 +138,19 @@ void luv_fs_after(uv_fs_t* req) {
 
       case UV_FS_READDIR:
         {
-/*          char *namebuf = static_cast<char*>(req->ptr);*/
-/*          int nnames = req->result;*/
+          char* namebuf = (char*)req->ptr;
+          int nnames = req->result;
 
-/*          Local<Array> names = Array::New(nnames);*/
-
-/*          for (int i = 0; i < nnames; i++) {*/
-/*            Local<String> name = String::New(namebuf);*/
-/*            names->Set(Integer::New(i), name);*/
-/*#ifndef NDEBUG*/
-/*            namebuf += strlen(namebuf);*/
-/*            assert(*namebuf == '\0');*/
-/*            namebuf += 1;*/
-/*#else*/
-/*            namebuf += strlen(namebuf) + 1;*/
-/*#endif*/
-/*          }*/
-
-/*          argv[1] = names;*/
+          argc = 1;
+          lua_createtable(L, nnames, 0);
+          int i;
+          for (i = 0; i < nnames; i++) {
+            lua_pushstring(L, namebuf);
+            lua_rawseti(L, -2, i + 1);
+            namebuf += strlen(namebuf);
+            assert(*namebuf == '\0');
+            namebuf += 1;
+          }
         }
         break;
 
@@ -302,6 +298,23 @@ int luv_fs_rmdir(lua_State* L) {
   assert(lua_gettop(L) == before);
   return 0;
 }
+
+//int uv_fs_readdir(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags,
+//    uv_fs_cb cb);
+int luv_fs_readdir(lua_State* L) {
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_readdir(uv_default_loop(), req, path, 0, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_readdir: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
+  return 0;
+}
+
 
 int luv_fs_stat(lua_State* L) {
   int before = lua_gettop(L);
@@ -484,27 +497,79 @@ int luv_fs_link(lua_State* L) {
 }
 
 int luv_fs_symlink(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_symlink");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  const char* new_path = luaL_checkstring(L, 2);
+  int flags  = luaL_checkint(L, 3);
+  uv_fs_t* req = luv_fs_store_callback(L, 4);
+
+  if (uv_fs_symlink(uv_default_loop(), req, path, new_path, flags, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_symlink: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_readlink(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_readlink");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_readlink(uv_default_loop(), req, path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_readlink: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_fchmod(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_fchmod");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
+  uv_fs_t* req = luv_fs_store_callback(L, 3);
+
+  if (uv_fs_fchmod(uv_default_loop(), req, file, mode, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_fchmod: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_chown(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_chown");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  int uid = luaL_checkint(L, 2);
+  int gid = luaL_checkint(L, 3);
+  uv_fs_t* req = luv_fs_store_callback(L, 4);
+
+  if (uv_fs_chown(uv_default_loop(), req, path, uid, gid, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_chown: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_fchown(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_fchown");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  int uid = luaL_checkint(L, 2);
+  int gid = luaL_checkint(L, 3);
+  uv_fs_t* req = luv_fs_store_callback(L, 4);
+
+  if (uv_fs_fchown(uv_default_loop(), req, file, uid, gid, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_fchown: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
