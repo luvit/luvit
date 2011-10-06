@@ -84,7 +84,10 @@ function dump(o, depth)
     end
   end
   if type(o) == 'userdata' then
-    return color(tostring(o), "red")
+    return color(tostring(o), "magenta")
+  end
+  if type(o) == 'thread' then
+    return color(tostring(o), "Bred")
   end
   if type(o) == 'function' then
     return color(tostring(o), "cyan")
