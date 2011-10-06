@@ -1,10 +1,16 @@
 local FS = require('fs');
 
-local co
-co = coroutine.create(function (filename)
+-- Simple wrapper for coroutine steps
+function fiber(fn)
+  local co = coroutine.create(fn)
+  assert(coroutine.resume(co, co))
+end
+
+
+fiber(function (co)
 
   print("opening...")
-  local err, fd = FS.open(co, filename, 'r', "0644")
+  local err, fd = FS.open(co, "license.txt", "r", "0644")
   p("on_open", {err=err, fd=fd})
   if (err) then return end
 
@@ -29,6 +35,5 @@ co = coroutine.create(function (filename)
   if (err) then return end
 
 end)
-coroutine.resume(co, "license.txt")
 
 
