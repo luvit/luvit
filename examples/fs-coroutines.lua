@@ -1,33 +1,26 @@
-local UV = require('uv');
+local FS = require('fs');
 
 local co
 co = coroutine.create(function (filename)
 
   print("opening...")
-  UV.fs_open(filename, 'r', "0644", resume)
-  local fd = coroutine.yield()
+  local fd = FS.open(co, filename, 'r', "0644")
   p("on_open", {fd=fd})
 
   print("fstatting...")
-  UV.fs_fstat(fd, resume)
-  local stat = coroutine.yield()
+  local stat = FS.fstat(co, fd)
   p("stat", {stat=stat})
 
   print("reading...")
-  UV.fs_read(fd, 0, 4096, resume)
-  local chunk, length = coroutine.yield()
+  local chunk, length = FS.read(co, fd, 0, 4096)
   p("on_read", {chunk=chunk, length=length})
 
   print("closing...")
-  UV.fs_close(fd, resume)
+  FS.close(co, fd)
   coroutine.yield()
   p("on_close")
 
 end)
+coroutine.resume(co, "license.txt")
 
-function resume(...)
-  coroutine.resume(co, ...)
-end
-
-resume("license.txt")
 

@@ -6,6 +6,7 @@ GENDIR=${BUILDDIR}/generated
 
 LUALIBS=${GENDIR}/luvit.o \
         ${GENDIR}/http.o \
+        ${GENDIR}/fs.o \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o      \
