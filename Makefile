@@ -16,6 +16,7 @@ LUVLIBS=${BUILDDIR}/utils.o      \
         ${BUILDDIR}/luv_stream.o \
         ${BUILDDIR}/luv_tcp.o    \
         ${BUILDDIR}/luv_pipe.o   \
+        ${BUILDDIR}/luv_tty.o    \
         ${BUILDDIR}/lhttp_parser.o
 
 ALLLIBS=${BUILDDIR}/luvit.o       \
