@@ -9,10 +9,11 @@ LUALIBS=${GENDIR}/http.o  \
         ${GENDIR}/luvit.o \
         ${GENDIR}/utils.o
 
-LUVLIBS=${BUILDDIR}/utils.o  \
-        ${BUILDDIR}/luv_fs.o \
+LUVLIBS=${BUILDDIR}/utils.o      \
+        ${BUILDDIR}/luv_fs.o     \
         ${BUILDDIR}/luv_handle.o \
-        ${BUILDDIR}/luv_tcp.o \
+        ${BUILDDIR}/luv_stream.o \
+        ${BUILDDIR}/luv_tcp.o    \
         ${BUILDDIR}/lhttp_parser.o
 
 ALLLIBS=${BUILDDIR}/luvit.o       \
