@@ -5,37 +5,13 @@
 #include <string.h>
 
 #include "luv_fs.h"
-
-// C doesn't have booleans on it's own
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE !FALSE
-#endif
-
-// Temporary hack: libuv should provide uv_inet_pton and uv_inet_ntop.
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#   include <inet_net_pton.h>
-#   include <inet_ntop.h>
-# define uv_inet_pton ares_inet_pton
-# define uv_inet_ntop ares_inet_ntop
-
-#else // __POSIX__
-# include <arpa/inet.h>
-# define uv_inet_pton inet_pton
-# define uv_inet_ntop inet_ntop
-#endif
-
+#include "luv_handle.h"
+#include "luv_tcp.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //                              ref structs                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef struct {
-  lua_State* L;
-  int r;
-} luv_ref_t;
 
 typedef struct {
   lua_State* L;
@@ -50,69 +26,13 @@ typedef struct {
   uv_shutdown_t shutdown_req;
 } luv_shutdown_ref_t;
 
-typedef struct {
-  lua_State* L;
-  int r;
-  uv_connect_t connect_req;
-} luv_connect_ref_t;
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //                             utility functions                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-// An alternative to luaL_checkudata that takes inheritance into account for polymorphism
-// Make sure to not call with long type strings or strcat will overflow
-void* luv_checkudata(lua_State* L, int index, const char* type) {
-  luaL_checktype(L, index, LUA_TUSERDATA);
 
-  // prefix with is_ before looking up property
-  char key[32];
-  strcpy(key, "is_");
-  strcat(key, type);
-
-  lua_getfield(L, index, key);
-  if (lua_isnil(L, -1)) {
-    lua_pop(L, 1);
-    luaL_argerror(L, index, key);
-  };
-  lua_pop(L, 1);
-
-  return lua_touserdata(L, index);
-}
-
-// Registers a callback, callback_index can't be negative
-void luv_register_event(lua_State* L, int userdata_index, const char* name, int callback_index) {
-  int before = lua_gettop(L);
-  lua_getfenv(L, userdata_index);
-  lua_pushvalue(L, callback_index);
-  lua_setfield(L, -2, name);
-  lua_pop(L, 1);
-  assert(lua_gettop(L) == before);
-}
-
-// Emit an event of the current userdata consuming nargs
-// Assumes userdata is right below args
-void luv_emit_event(lua_State* L, const char* name, int nargs) {
-  int before = lua_gettop(L);
-  // Load the connection callback
-  lua_getfenv(L, -nargs - 1);
-  lua_getfield(L, -1, name);
-  lua_remove(L, -2);
-  if (lua_isfunction (L, -1) == 0) {
-    //printf("missing event: on_%s\n", name);
-    lua_pop(L, 1 + nargs);
-    assert(lua_gettop(L) == before - nargs);
-    return;
-  }
-
-  // move the function below the args
-  lua_insert(L, -nargs - 1);
-  if (lua_pcall(L, nargs, 0, 0) != 0) {
-    error(L, "error running function 'on_%s': %s", name, lua_tostring(L, -1));
-  }
-  assert(lua_gettop(L) == before - nargs);
-}
 
 
 
@@ -130,31 +50,6 @@ void luv_on_connection(uv_stream_t* handle, int status) {
   lua_pushinteger(L, status);
   luv_emit_event(L, "connection", 1);
   lua_pop(L, 1); // remove the userdata
-  assert(lua_gettop(L) == before);
-}
-
-uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size) {
-  uv_buf_t buf;
-  buf.base = malloc(suggested_size);
-  buf.len = suggested_size;
-  return buf;
-}
-
-void luv_on_close(uv_handle_t* handle) {
-
-  // load the lua state and the userdata
-  luv_ref_t* ref = handle->data;
-  lua_State *L = ref->L;
-  int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-
-  luv_emit_event(L, "closed", 0);
-  lua_pop(L, 1); // remove userdata
-
-  // This handle is no longer valid, clean up memory
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
-  free(ref);
-
   assert(lua_gettop(L) == before);
 }
 
@@ -222,19 +117,7 @@ void luv_after_write(uv_write_t* req, int status) {
 
 }
 
-void luv_after_connect(uv_connect_t* req, int status) {
-  // load the lua state and the userdata
-  luv_connect_ref_t* ref = req->data;
-  lua_State *L = ref->L;
-  int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
-  lua_pushinteger(L, status);
-  luv_emit_event(L, "complete", 1);
-  lua_pop(L, 1); // remove the userdata
-
-  assert(lua_gettop(L) == before);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                               Constructors                                 //
@@ -256,32 +139,6 @@ static int luv_new_udp (lua_State* L) {
 
   assert(lua_gettop(L) == before + 1);
 
-  return 1;
-}
-
-static int luv_new_tcp (lua_State* L) {
-  int before = lua_gettop(L);
-
-  uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
-  uv_tcp_init(uv_default_loop(), handle);
-
-  // Set metatable for type
-  luaL_getmetatable(L, "luv_tcp");
-  lua_setmetatable(L, -2);
-
-  // Create a local environment for storing stuff
-  lua_newtable(L);
-  lua_setfenv (L, -2);
-
-  // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, -1); // duplicate so we can _ref it
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  handle->data = ref;
-
-  assert(lua_gettop(L) == before + 1);
-  // return the userdata
   return 1;
 }
 
@@ -321,31 +178,6 @@ static int luv_new_tty (lua_State* L) {
   assert(lua_gettop(L) == before + 1);
 
   return 1;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//                             Handle Functions                               //
-////////////////////////////////////////////////////////////////////////////////
-
-static int luv_close (lua_State* L) {
-  int before = lua_gettop(L);
-  uv_handle_t* handle = (uv_handle_t*)luv_checkudata(L, 1, "handle");
-  uv_close(handle, luv_on_close);
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-static int luv_set_handler(lua_State* L) {
-  int before = lua_gettop(L);
-  luv_checkudata(L, 1, "handle");
-  const char* name = luaL_checkstring(L, 2);
-  luaL_checktype(L, 3, LUA_TFUNCTION);
-
-  luv_register_event(L, 1, name, 3);
-
-  assert(lua_gettop(L) == before);
-  return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -484,182 +316,6 @@ static int luv_write (lua_State* L) {
   ref->refbuf.len = len;
 
   uv_write(&ref->write_req, handle, &ref->refbuf, 1, luv_after_write);
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//                               TCP Functions                                //
-////////////////////////////////////////////////////////////////////////////////
-
-static int luv_tcp_init (lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  uv_tcp_init(uv_default_loop(), handle);
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-static int luv_tcp_bind (lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  const char* host = luaL_checkstring(L, 2);
-  int port = luaL_checkint(L, 3);
-
-  struct sockaddr_in address = uv_ip4_addr(host, port);
-
-  if (uv_tcp_bind(handle, address)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_bind: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-static int luv_tcp_bind6(lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  const char* host = luaL_checkstring(L, 2);
-  int port = luaL_checkint(L, 3);
-
-  struct sockaddr_in6 address = uv_ip6_addr(host, port);
-
-  if (uv_tcp_bind6(handle, address)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_bind6: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-static int luv_tcp_getsockname(lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-
-  struct sockaddr_storage address;
-  int addrlen = sizeof(address);
-
-  if (uv_tcp_getsockname(handle, (struct sockaddr*)(&address), &addrlen)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_getsockname: %s", uv_strerror(err));
-  }
-
-  int family = address.ss_family;
-  int port;
-  char ip[INET6_ADDRSTRLEN];
-  if (family == AF_INET) {
-    struct sockaddr_in* addrin = (struct sockaddr_in*)&address;
-    uv_inet_ntop(AF_INET, &(addrin->sin_addr), ip, INET6_ADDRSTRLEN);
-    port = ntohs(addrin->sin_port);
-  } else if (family == AF_INET6) {
-    struct sockaddr_in6* addrin6 = (struct sockaddr_in6*)&address;
-    uv_inet_ntop(AF_INET6, &(addrin6->sin6_addr), ip, INET6_ADDRSTRLEN);
-    port = ntohs(addrin6->sin6_port);
-  }
-
-  lua_newtable(L);
-  lua_pushnumber(L, port);
-  lua_setfield(L, -2, "port");
-  lua_pushnumber(L, family);
-  lua_setfield(L, -2, "family");
-  lua_pushstring(L, ip);
-  lua_setfield(L, -2, "address");
-
-  assert(lua_gettop(L) == before + 1);
-  return 1;
-}
-
-static int luv_tcp_getpeername(lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-
-  struct sockaddr_storage address;
-  int addrlen = sizeof(address);
-
-  if (uv_tcp_getpeername(handle, (struct sockaddr*)(&address), &addrlen)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_getpeername: %s", uv_strerror(err));
-  }
-
-  int family = address.ss_family;
-  int port;
-  char ip[INET6_ADDRSTRLEN];
-  if (family == AF_INET) {
-    struct sockaddr_in* addrin = (struct sockaddr_in*)&address;
-    uv_inet_ntop(AF_INET, &(addrin->sin_addr), ip, INET6_ADDRSTRLEN);
-    port = ntohs(addrin->sin_port);
-  } else if (family == AF_INET6) {
-    struct sockaddr_in6* addrin6 = (struct sockaddr_in6*)&address;
-    uv_inet_ntop(AF_INET6, &(addrin6->sin6_addr), ip, INET6_ADDRSTRLEN);
-    port = ntohs(addrin6->sin6_port);
-  }
-
-  lua_newtable(L);
-  lua_pushnumber(L, port);
-  lua_setfield(L, -2, "port");
-  lua_pushnumber(L, family);
-  lua_setfield(L, -2, "family");
-  lua_pushstring(L, ip);
-  lua_setfield(L, -2, "address");
-
-  assert(lua_gettop(L) == before + 1);
-  return 1;
-}
-
-static int luv_tcp_connect(lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-
-  const char* ip_address = luaL_checkstring(L, 2);
-  int port = luaL_checkint(L, 3);
-
-  struct sockaddr_in address = uv_ip4_addr(ip_address, port);
-
-  luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
-
-  // Store a reference to the userdata
-  ref->L = L;
-  lua_pushvalue(L, 1);
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-
-  // Give the connect_req access to this
-  ref->connect_req.data = ref;
-
-  if (uv_tcp_connect(&ref->connect_req, handle, address, luv_after_connect)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_connect: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-static int luv_tcp_connect6(lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-
-  const char* ip_address = luaL_checkstring(L, 2);
-  int port = luaL_checkint(L, 3);
-
-  struct sockaddr_in6 address = uv_ip6_addr(ip_address, port);
-
-  luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
-
-  // Store a reference to the userdata
-  ref->L = L;
-  lua_pushvalue(L, 1);
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-
-  // Give the connect_req access to this
-  ref->connect_req.data = ref;
-
-  if (uv_tcp_connect6(&ref->connect_req, handle, address, luv_after_connect)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    error(L, "tcp_connect6: %s", uv_strerror(err));
-  }
-
   assert(lua_gettop(L) == before);
   return 0;
 }

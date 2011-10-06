@@ -11,6 +11,8 @@ LUALIBS=${GENDIR}/http.o  \
 
 LUVLIBS=${BUILDDIR}/utils.o  \
         ${BUILDDIR}/luv_fs.o \
+        ${BUILDDIR}/luv_handle.o \
+        ${BUILDDIR}/luv_tcp.o \
         ${BUILDDIR}/lhttp_parser.o
 
 ALLLIBS=${BUILDDIR}/luvit.o       \
