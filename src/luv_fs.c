@@ -332,12 +332,31 @@ int luv_fs_fstat(lua_State* L) {
 }
 
 int luv_fs_rename(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_rename");
+  int before = lua_gettop(L);
+  const char* path = luaL_checkstring(L, 1);
+  const char* new_path = luaL_checkstring(L, 2);
+  uv_fs_t* req = luv_fs_store_callback(L, 3);
+
+  if (uv_fs_rename(uv_default_loop(), req, path, new_path, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_rename: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_fs_fsync(lua_State* L) {
-  error(L, "TODO: Implement luv_fs_fsync");
+  int before = lua_gettop(L);
+  uv_file file = luaL_checkint(L, 1);
+  uv_fs_t* req = luv_fs_store_callback(L, 2);
+
+  if (uv_fs_fsync(uv_default_loop(), req, file, luv_fs_after)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    error(L, "fs_fsync: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
   return 0;
 }
 

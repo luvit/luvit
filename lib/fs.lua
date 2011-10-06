@@ -44,6 +44,8 @@ return {
   mkdir = wrap(UV.fs_mkdir, 2),
   rmdir = wrap(UV.fs_rmdir, 1),
   stat = wrap(UV.fs_stat, 1),
-  fstat = wrap(UV.fs_fstat, 1)
+  fstat = wrap(UV.fs_fstat, 1),
+  rename = wrap(UV.fs_rename, 2),
+  fsync = wrap(UV.fs_fsync, 1)
 }
 
