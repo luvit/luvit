@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "luv.h"
 #include "lhttp_parser.h"
+#include "lenv.h"
 
 int main(int argc, char *argv[])
 {
@@ -28,11 +29,15 @@ int main(int argc, char *argv[])
   // Register uv
   lua_pushcfunction(L, luaopen_uv);
   lua_setfield(L, -2, "uv");
+  // Register env
+  lua_pushcfunction(L, luaopen_env);
+  lua_setfield(L, -2, "env");
 
   // We're done with preload, put it away
   lua_pop(L, 1);
 
-  lua_createtable (L, argc, 0); // Create the `argv` table
+  // Get argv
+  lua_createtable (L, argc, 0);
   int index;
   for (index = 0; index < argc; index++) {
     lua_pushstring (L, argv[index]);
