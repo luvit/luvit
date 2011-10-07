@@ -1,15 +1,20 @@
 local UV = require('uv')
+local Table = require('table')
+local Coroutine = require('coroutine')
 
-local function resume(...)
-  coroutine.resume(co, ...)
+local CHUNK_SIZE = 4096
+
+local function fiber(fn)
+  local co = Coroutine.create(fn)
+  assert(Coroutine.resume(co, co))
 end
 
 -- Make functions work with coros or callbacks
 local function wrap(fn, nargs)
   return function (coro, ...)
     if (type(coro) == 'thread') then
-      local resume = function (...)
-        assert(coroutine.resume(coro, ...))
+      local function resume(...)
+        assert(Coroutine.resume(coro, ...))
       end
       local args = {...}
       if (nargs == 1) then
@@ -23,15 +28,13 @@ local function wrap(fn, nargs)
       else
         error("Too many nargs")
       end
-      return coroutine.yield()
+      return Coroutine.yield()
     else
       -- In this case coro is actually the first arg
       fn(coro, ...)
     end
   end
 end
-
-local CHUNK_SIZE = 4096
 
 local function read_file(path, callback)
   UV.fs_open(path, "r", "0666", function (err, fd)
@@ -45,7 +48,7 @@ local function read_file(path, callback)
         if #chunk == 0 then
           UV.fs_close(fd, function (err)
             if (err) then return callback(err) end
-            return callback(nil, table.concat(parts, ""))
+            return callback(nil, Table.concat(parts, ""))
           end)
         else
           parts[index] = chunk
@@ -65,7 +68,7 @@ local function write_file(path, data, callback)
     local offset = 0
     local length = #data
     local function writechunk()
-      UV.fs_write(fd, offset, string.sub(data, offset + 1, CHUNK_SIZE + offset), function (err, bytes_written)
+      UV.fs_write(fd, offset, data:sub(offset + 1, CHUNK_SIZE + offset), function (err, bytes_written)
         if err then return callback(err) end
         if bytes_written + offset < length then
           offset = offset + bytes_written
@@ -77,11 +80,6 @@ local function write_file(path, data, callback)
     end
     writechunk()
   end)
-end
-
-local function fiber(fn)
-  local co = coroutine.create(fn)
-  assert(coroutine.resume(co, co))
 end
 
 return {

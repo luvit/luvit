@@ -1,6 +1,5 @@
 local UV = require('uv')
 
-local stdin = UV.new_tty(0)
 p(stdin)
 
 -- Set raw mode
@@ -14,7 +13,10 @@ end)
 
 UV.set_handler(stdin, 'end', function ()
   p("on_end")
+  UV.read_stop(stdin);
   UV.close(stdin)
+  UV.close(stdout)
+  UV.close(stderr)
 end)
 
 --UV.tty_reset_mode()

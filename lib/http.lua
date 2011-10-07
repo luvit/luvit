@@ -56,7 +56,7 @@ local status_codes_table = {
 }
 
 -- Simple HTTP server
-function create_server(on_connection)
+local function create_server(on_connection)
   local socket = uv.new_tcp()
   local server = {}
   function server:listen(port, host)

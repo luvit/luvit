@@ -17,7 +17,7 @@ local colors = {
   Bwhite   = "1;37"
 }
 
-function color(string, color_name, reset_name)
+local function color(string, color_name, reset_name)
   local color = colors[color_name] or "0"
   if (reset_name) then
     local reset_color = colors[reset_name]
@@ -27,7 +27,7 @@ function color(string, color_name, reset_name)
   end
 end
 
-function dump(o, depth)
+local function dump(o, depth)
   if type(depth) == 'nil' then
     depth = 0
   end
