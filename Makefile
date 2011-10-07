@@ -36,25 +36,31 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 
 all: ${BUILDDIR}/luvit
 
+deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+
 ${GENDIR}:
 	mkdir -p ${GENDIR}
 
 ${LUADIR}/src/libluajit.a:
+	git submodule update --init ${LUADIR}
+	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" -i deps/luajit/src/Makefile
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
+	git submodule update --init ${UVDIR}
 	$(MAKE) -C ${UVDIR} uv.a
 
 ${HTTPDIR}/http_parser.o:
+	git submodule update --init ${HTTPDIR}
 	make -C ${HTTPDIR} http_parser.o
 
-${GENDIR}/%.c: lib/%.lua ${LUADIR}/src/libluajit.a
+${GENDIR}/%.c: lib/%.lua deps
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -Wall -c $< -o $@
 
-${BUILDDIR}/%.o: src/%.c src/%.h
+${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
 	$(CC) -Wall -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
