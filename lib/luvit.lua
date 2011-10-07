@@ -9,12 +9,23 @@ _G.jit = nil
 _G.bit = nil
 _G.debug = nil
 _G.table = nil
+print = nil
+
 
 -- Load libraries used in this file
 local Table = require('table')
 local UV = require('uv')
 local Utils = require('utils')
 local Env = require('env')
+
+-- Load the I/O as streams
+-- But don't hold the event loop open for them
+stdin = UV.new_tty(0)
+UV.unref()
+
+-- Make a handy noop function for when needed
+-- TODO: fix APIs so this isn't needed
+function noop() end
 
 -- A nice global data dumper
 function p(...)
@@ -25,7 +36,13 @@ function p(...)
     arguments[i] = Utils.dump(arguments[i])
   end
 
-  print(Table.concat(arguments, "\t"))
+  stdin:write(Table.concat(arguments, "\t") .. "\n", noop)
+end
+
+
+-- Replace print
+function print(...)
+  stdin:write(Table.concat({...}, "\t") .. "\n", noop)
 end
 
 -- Add global access to the environment variables using a dynamic table
@@ -53,20 +70,6 @@ setmetatable(env, {
     end
   end
 })
-
--- Load the I/O as streams
--- But don't hold the event loop open for them
-stdin = UV.new_tty(0)
-UV.unref()
-stdout = UV.new_tty(1)
-UV.unref()
-stderr = UV.new_tty(2)
-UV.unref()
-
-
--- Make a handy noop function for when needed
--- TODO: fix APIs so this isn't needed
-function noop() end
 
 -- Load the file given or start the interactive repl
 if argv[1] then

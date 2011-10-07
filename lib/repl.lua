@@ -54,14 +54,12 @@ do
   end
 end
 
-local stdout = UV.new_tty(1);
 
-
-function display_prompt(prompt)
-  stdout:write(prompt .. ' ', noop)
+local function display_prompt(prompt)
+  stdin:write(prompt .. ' ', noop)
 end
 
-stdout:write("Welcome to the luvit repl\n", noop)
+print("\n" .. Utils.color("Welcome to the ", "Bgreen", "Bred") .. "Luvit" .. Utils.color(" repl", "Bgreen"))
 
 display_prompt '>'
 
@@ -72,9 +70,8 @@ UV.set_handler(stdin, 'read', function (line)
 end)
 
 UV.set_handler(stdin, 'end', function ()
-  print("Bye!")
-  UV.close(stdin)
-  UV.close(stdout)
+  print(Utils.color("\nBye!", "Bblue"))
+  stdin:close()
 end)
 
 UV.read_start(stdin)
