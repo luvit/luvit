@@ -8,6 +8,7 @@
 #include "luv_handle.h"
 #include "luv_udp.h"
 #include "luv_fs_watcher.h"
+#include "luv_timer.h"
 #include "luv_stream.h"
 #include "luv_tcp.h"
 #include "luv_pipe.h"
@@ -47,6 +48,13 @@ static const luaL_reg luv_f[] = {
   {"udp_recv_stop", luv_udp_recv_stop},
 
   // FS Watcher functions
+
+  // Timer functions
+  {"new_timer", luv_new_timer},
+  {"timer_start", luv_timer_start},
+  {"timer_stop", luv_timer_stop},
+  {"timer_again", luv_timer_again},
+  {"timer_set_repeat", luv_timer_set_repeat},
 
   // Stream functions
   {"shutdown", luv_shutdown},
@@ -126,6 +134,14 @@ static const luaL_reg luv_fs_watcher_m[] = {
   {NULL, NULL}
 };
 
+static const luaL_reg luv_timer_m[] = {
+  {"start", luv_timer_start},
+  {"stop", luv_timer_stop},
+  {"again", luv_timer_again},
+  {"set_repeat", luv_timer_set_repeat},
+  {NULL, NULL}
+};
+
 static const luaL_reg luv_stream_m[] = {
   {"shutdown", luv_shutdown},
   {"listen", luv_listen},
@@ -199,6 +215,20 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   // use method table in metatable's __index
   lua_setfield(L, -2, "__index");
   lua_pop(L, 1); // we're done with luv_fs_watcher
+
+  // Metatable for timer
+  luaL_newmetatable(L, "luv_timer");
+  // Create table of timer methods
+  lua_newtable(L); // timer_m
+  luaL_register(L, NULL, luv_timer_m);
+  lua_pushboolean(L, TRUE);
+  lua_setfield(L, -2, "is_timer"); // Tag for polymorphic type checking
+  // Load the parent metatable so we can inherit it's methods
+  luaL_newmetatable(L, "luv_handle");
+  lua_setmetatable(L, -2);
+  // use method table in metatable's __index
+  lua_setfield(L, -2, "__index");
+  lua_pop(L, 1); // we're done with luv_timer
 
   // Metatable for streams
   luaL_newmetatable(L, "luv_stream");
