@@ -32,18 +32,13 @@ int main(int argc, char *argv[])
   // We're done with preload, put it away
   lua_pop(L, 1);
 
-  // Populate a couple global things that lua can't do
-  lua_newtable(L); // Create the `process` table
-
-  lua_createtable (L, argc, 0); // Create the `process.argv` table
+  lua_createtable (L, argc, 0); // Create the `argv` table
   int index;
   for (index = 0; index < argc; index++) {
     lua_pushstring (L, argv[index]);
     lua_rawseti(L, -2, index);
   }
-  lua_setfield(L, -2, "argv");
-
-  lua_setglobal(L, "process");
+  lua_setglobal(L, "argv");
 
   assert(lua_pushthread(L) == 1);
   lua_setglobal(L, "main_thread");

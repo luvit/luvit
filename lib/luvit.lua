@@ -12,8 +12,8 @@ function p(...)
 end
 
 
-if process.argv[1] then
-  dofile(process.argv[1])
+if argv[1] then
+  dofile(argv[1])
 else
 
   local dump = require('utils').dump
