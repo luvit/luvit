@@ -59,7 +59,9 @@ local function display_prompt(prompt)
   stdin:write(prompt .. ' ', noop)
 end
 
-print("\n" .. Utils.color("Welcome to the ", "Bgreen", "Bred") .. "Luvit" .. Utils.color(" repl", "Bgreen"))
+local c = Utils.color
+
+print("\n" .. c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c("Bwhite") .. " repl" .. c())
 
 display_prompt '>'
 
@@ -70,7 +72,7 @@ UV.set_handler(stdin, 'read', function (line)
 end)
 
 UV.set_handler(stdin, 'end', function ()
-  print(Utils.color("\nBye!", "Bblue"))
+  print(Utils.colorize("Bblue", "\nBye!"))
   stdin:close()
 end)
 

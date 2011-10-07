@@ -17,15 +17,23 @@ local colors = {
   Bwhite   = "1;37"
 }
 
-local function color(string, color_name, reset_name)
-  local color = colors[color_name] or "0"
-  if (reset_name) then
-    local reset_color = colors[reset_name]
-    return "\27[" .. color .. "m" .. string .. "\27[" .. reset_color .. "m"
-  else
-    return "\27[" .. color .. "m" .. string .. "\27[0m"
-  end
+local function color(color_name)
+  return "\27[" .. (colors[color_name] or "0") .. "m"
 end
+
+local function colorize(color_name, string, reset_name)
+  return color(color_name) .. string .. color(reset_name)
+end
+
+local backslash = colorize("Bgreen", "\\\\", "green")
+local null      = colorize("Bgreen", "\\0", "green")
+local newline   = colorize("Bgreen", "\\n", "green")
+local carraige  = colorize("Bgreen", "\\r", "green")
+local tab       = colorize("Bgreen", "\\t", "green")
+local quote     = colorize("Bgreen", '"', "green")
+local quote2    = colorize("Bgreen", '"')
+local obracket  = colorize("white", '[')
+local cbracket  = colorize("white", ']')
 
 local function dump(o, depth)
   if type(depth) == 'nil' then
@@ -33,20 +41,20 @@ local function dump(o, depth)
   end
   local indent = ("  "):rep(depth)
   if type(o) == 'nil' then
-    return color("nil", "Bblack")
+    return colorize("Bblack", "nil")
   end
   if type(o) == 'boolean' then
-    return color(tostring(o), "yellow")
+    return colorize("yellow", tostring(o))
   end
   if type(o) == 'number' then
-    return color(tostring(o), "blue")
+    return colorize("blue", tostring(o))
   end
   if type(o) == 'string' then
-    return color('"', "Bgreen", "green") .. o:gsub("\\", color("\\\\", "Bgreen", green)):gsub("%z", color("\\0", "Bgreen", "green")):gsub("\n",color("\\n", "Bgreen", "green")):gsub("\r",color("\\r", "Bgreen", "green")):gsub("\t",color("\\t", "Bgreen", "green")) .. color('"', "Bgreen")
+    return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
   end
   if type(o) == 'table' then
     if (depth > 1) then
-      return color(tostring(o), "yellow")
+      return colorize("yellow", tostring(o))
     end
 
     -- Check to see if this is an array
@@ -72,7 +80,7 @@ local function dump(o, depth)
         if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
           s = s .. k .. ' = '
         else
-          s = s .. color('[', "white") .. dump(k, 100) ..color(']', "white") .. ' = '
+          s = s .. '[' .. dump(k, 100) .. '] = '
         end
       end
       s = s .. dump(v, depth + 1)
@@ -84,13 +92,13 @@ local function dump(o, depth)
     end
   end
   if type(o) == 'userdata' then
-    return color(tostring(o), "magenta")
+    return colorize("magenta", tostring(o))
   end
   if type(o) == 'thread' then
-    return color(tostring(o), "Bred")
+    return colorize("Bred", tostring(o))
   end
   if type(o) == 'function' then
-    return color(tostring(o), "cyan")
+    return colorize("cyan", tostring(o))
   end
   -- This doesn't happen right?
   return tostring(o)
@@ -99,7 +107,8 @@ end
 
 return {
   dump = dump,
-  color = color
+  color = color,
+  colorize = colorize
 }
 
 --print("nil", dump(nil))
@@ -120,6 +129,7 @@ return {
 --  ["table"] = {age = 29, name="Tim"},
 --  ["string"] = "Another String",
 --  ["function"] = dump,
+--  ["thread"] = coroutine.create(dump),
 --  [print] = {{"deep"},{{"nesting"}},3,4,5},
 --  [{1,2,3}] = {4,5,6}
 --}))
