@@ -159,9 +159,7 @@ void luv_fs_after(uv_fs_t* req) {
 
   }
 
-  if (lua_pcall(L, argc + 1, 0, 0) != 0) {
-    luaL_error(L, "%s", lua_tostring(L, -1));
-  }
+  lua_call(L, argc + 1, 0);
 
   uv_fs_req_cleanup(req);
   free(ref);// We're done with the ref object, free it

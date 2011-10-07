@@ -30,9 +30,8 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
 
   // move the function below the args
   lua_insert(L, -nargs - 1);
-  if (lua_pcall(L, nargs, 0, 0) != 0) {
-    luaL_error(L, "error running function 'on_%s': %s", name, lua_tostring(L, -1));
-  }
+  lua_call(L, nargs, 0);
+
   assert(lua_gettop(L) == before - nargs);
 }
 
