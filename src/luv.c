@@ -19,7 +19,7 @@
 //                              Loop Functions                                //
 ////////////////////////////////////////////////////////////////////////////////
 
-static int luv_run (lua_State* L) {
+static int luv_run(lua_State* L) {
   uv_run(uv_default_loop());
   return 0;
 }
@@ -29,10 +29,47 @@ static int luv_ref (lua_State* L) {
   return 0;
 }
 
-static int luv_unref (lua_State* L) {
+static int luv_unref(lua_State* L) {
   uv_unref(uv_default_loop());
   return 0;
 }
+
+static int luv_update_time(lua_State* L) {
+  uv_update_time(uv_default_loop());
+  return 0;
+}
+
+static int luv_now(lua_State* L) {
+  int64_t now = uv_now(uv_default_loop());
+  lua_pushinteger(L, now);
+  return 1;
+}
+
+static int luv_hrtime(lua_State* L) {
+  int64_t now = uv_hrtime();
+  lua_pushinteger(L, now);
+  return 1;
+}
+
+static int luv_get_free_memory(lua_State* L) {
+  lua_pushnumber(L, uv_get_free_memory());
+  return 1;
+}
+
+static int luv_get_total_memory(lua_State* L) {
+  lua_pushnumber(L, uv_get_total_memory());
+  return 1;
+}
+
+static int luv_loadavg(lua_State* L) {
+  double avg[3];
+  uv_loadavg(avg);
+  lua_pushnumber(L, avg[0]);
+  lua_pushnumber(L, avg[1]);
+  lua_pushnumber(L, avg[2]);
+  return 3;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -120,10 +157,16 @@ static const luaL_reg luv_f[] = {
   {"fs_chown", luv_fs_chown},
   {"fs_fchown", luv_fs_fchown},
 
-  // Loop functions
+  // Misc functions
   {"run", luv_run},
   {"ref", luv_ref},
   {"unref", luv_unref},
+  {"update_time", luv_update_time},
+  {"now", luv_now},
+  {"hrtime", luv_hrtime},
+  {"get_free_memory", luv_get_free_memory},
+  {"get_total_memory", luv_get_total_memory},
+  {"loadavg", luv_loadavg},
   {NULL, NULL}
 };
 

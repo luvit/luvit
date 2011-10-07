@@ -48,17 +48,17 @@ bindings into logical submodules and mark the implementation progress.
 
 ## Pipe
 
- - `luv_new_pipe`: Create a new pipe instance
- - `uv_pipe_open`: Opens an existing file descriptor or HANDLE as a pipe.
- - `uv_pipe_bind`: ?
- - `uv_pipe_connect`: ?
+ * `luv_new_pipe`: Create a new pipe instance
+ * `uv_pipe_open`: Opens an existing file descriptor or HANDLE as a pipe.
+ * `uv_pipe_bind`: ?
+ * `uv_pipe_connect`: ?
 
 ## TTY
 
- - `luv_new_tty`: Create a new tty instance
- - `uv_tty_set_mode`: Set mode. 0 for normal, 1 for raw.
- - `uv_tty_reset_mode`:
- - `uv_tty_get_winsize`: Gets the current Window size.
+ * `luv_new_tty`: Create a new tty instance
+ * `uv_tty_set_mode`: Set mode. 0 for normal, 1 for raw.
+ * `uv_tty_reset_mode`:
+ * `uv_tty_get_winsize`: Gets the current Window size.
 
 ## FS
 
@@ -105,9 +105,9 @@ bindings into logical submodules and mark the implementation progress.
 
 ## Timestamp Functions ?
 
- - `uv_update_time`: ?
- - `uv_now`: get current timestamp
- - `uv_hrtime`: timestamp with nanosecond precision
+ * `uv_update_time`: ?
+ * `uv_now`: get current timestamp
+ * `uv_hrtime`: timestamp with nanosecond precision
 
 ## DNS
 
@@ -143,9 +143,9 @@ bindings into logical submodules and mark the implementation progress.
  - `uv_std_handle`: ??
  - `uv_queue_work`: generic work queue hook
  * `uv_exepath`: find the path of the executable
- - `uv_get_free_memory`:
- - `uv_get_total_memory`:
- - `uv_loadavg`:
+ * `uv_get_free_memory`:
+ * `uv_get_total_memory`:
+ * `uv_loadavg`:
 
 --------------------------------------------------------------------------------
 
