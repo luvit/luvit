@@ -43,16 +43,6 @@ int main(int argc, char *argv[])
   }
   lua_setfield(L, -2, "argv");
 
-  size_t size = 2*PATH_MAX;
-  char exec_path[size];
-  if (uv_exepath(exec_path, &size) != 0) {
-    // as a last ditch effort, fallback on argv[0] ?
-    lua_pushstring(L, argv[0]);
-  } else {
-    lua_pushlstring(L, exec_path, size);
-  }
-  lua_setfield(L, -2, "exec_path");
-
   lua_setglobal(L, "process");
 
   assert(lua_pushthread(L) == 1);

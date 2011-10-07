@@ -115,6 +115,7 @@ static const luaL_reg luv_f[] = {
   {"get_free_memory", luv_get_free_memory},
   {"get_total_memory", luv_get_total_memory},
   {"loadavg", luv_loadavg},
+  {"execpath", luv_execpath},
   {NULL, NULL}
 };
 

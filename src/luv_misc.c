@@ -54,3 +54,15 @@ int luv_loadavg(lua_State* L) {
   return 3;
 }
 
+int luv_execpath(lua_State* L) {
+  size_t size = 2*PATH_MAX;
+  char exec_path[size];
+  if (uv_exepath(exec_path, &size)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    return luaL_error(L, "tcp_bind6: %s", uv_strerror(err));
+  }
+  lua_pushlstring(L, exec_path, size);
+  return 1;
+}
+
+
