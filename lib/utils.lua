@@ -53,7 +53,7 @@ local function dump(o, depth)
     return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
   end
   if type(o) == 'table' then
-    if (depth > 1) then
+    if depth > 1 then
       return colorize("yellow", tostring(o))
     end
 
@@ -85,7 +85,7 @@ local function dump(o, depth)
       end
       s = s .. dump(v, depth + 1)
     end
-    if (#s > 200) then
+    if #s > 200 then
       return s:gsub("\255", "\n" .. indent .. "  ") .. "\n" .. indent .. "}"
     else
       return s:gsub("\255", " ") .. " }"

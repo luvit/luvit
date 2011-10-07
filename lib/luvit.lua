@@ -20,7 +20,7 @@ local Env = require('env')
 
 -- Load the I/O as streams
 -- But don't hold the event loop open for them
-stdin = UV.new_tty(0)
+tty = UV.new_tty(0)
 UV.unref()
 
 -- Make a handy noop function for when needed
@@ -36,13 +36,13 @@ function p(...)
     arguments[i] = Utils.dump(arguments[i])
   end
 
-  stdin:write(Table.concat(arguments, "\t") .. "\n", noop)
+  tty:write(Table.concat(arguments, "\t") .. "\n", noop)
 end
 
 
 -- Replace print
 function print(...)
-  stdin:write(Table.concat({...}, "\t") .. "\n", noop)
+  tty:write(Table.concat({...}, "\t") .. "\n", noop)
 end
 
 -- Add global access to the environment variables using a dynamic table

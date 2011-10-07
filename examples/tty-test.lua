@@ -1,20 +1,20 @@
 
-p(stdin)
+p(tty)
 
 -- Set raw mode
---UV.tty_set_mode(stdin, 1)
+--tty:set_mode(1)
 
-stdin:read_start()
+tty:read_start()
 
-stdin:set_handler('read', function (chunk)
+tty:set_handler('read', function (chunk)
   p("on_read", chunk)
 end)
 
-stdin:set_handler('end', function ()
+tty:set_handler('end', function ()
   p("on_end")
-  stdin:close();
+  tty:close()
+  tty:reset_mode()
 end)
 
---UV.tty_reset_mode()
 
 

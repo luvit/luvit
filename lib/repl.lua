@@ -56,7 +56,7 @@ end
 
 
 local function display_prompt(prompt)
-  stdin:write(prompt .. ' ', noop)
+  tty:write(prompt .. ' ', noop)
 end
 
 local c = Utils.color
@@ -66,15 +66,15 @@ print("\n" .. c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen"
 display_prompt '>'
 
 
-UV.set_handler(stdin, 'read', function (line)
+tty:set_handler('read', function (line)
   local prompt = evaluate_line(line)
   display_prompt(prompt)
 end)
 
-UV.set_handler(stdin, 'end', function ()
+tty:set_handler('end', function ()
   print(Utils.colorize("Bblue", "\nBye!"))
-  stdin:close()
+  tty:close()
 end)
 
-UV.read_start(stdin)
+tty:read_start()
 

@@ -12,18 +12,18 @@ end
 -- Make functions work with coros or callbacks
 local function wrap(fn, nargs)
   return function (coro, ...)
-    if (type(coro) == 'thread') then
+    if type(coro) == 'thread' then
       local function resume(...)
         assert(Coroutine.resume(coro, ...))
       end
       local args = {...}
-      if (nargs == 1) then
+      if nargs == 1 then
         fn(args[1], resume)
-      elseif (nargs == 2) then
+      elseif nargs == 2 then
         fn(args[1], args[2], resume)
-      elseif (nargs == 3) then
+      elseif nargs == 3 then
         fn(args[1], args[2], args[3], resume)
-      elseif (nargs == 4) then
+      elseif nargs == 4 then
         fn(args[1], args[2], args[3], args[4], resume)
       else
         error("Too many nargs")
@@ -38,16 +38,16 @@ end
 
 local function read_file(path, callback)
   UV.fs_open(path, "r", "0666", function (err, fd)
-    if (err) then return callback(err) end
+    if err then return callback(err) end
     local parts = {}
     local offset = 0
     local index = 1
     local function readchunk()
       UV.fs_read(fd, offset, CHUNK_SIZE, function (err, chunk)
-        if (err) then return callback(err) end
+        if err then return callback(err) end
         if #chunk == 0 then
           UV.fs_close(fd, function (err)
-            if (err) then return callback(err) end
+            if err then return callback(err) end
             return callback(nil, Table.concat(parts, ""))
           end)
         else
