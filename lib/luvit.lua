@@ -11,6 +11,34 @@ function p(...)
   print(table.concat(arguments, "\t"))
 end
 
+-- Add global access to the environment variables using a dynamic table
+local Env = require('env')
+env = {}
+setmetatable(env, {
+  __pairs = function (table)
+    local keys = Env.keys()
+    local index = 0
+    return function (...)
+      index = index + 1
+      local name = keys[index]
+      if name then
+        return name, table[name]
+      end
+    end
+  end,
+  __index = function (table, name)
+    return Env.get(name)
+  end,
+  __newindex = function (table, name, value)
+    if value then
+      Env.set(name, value, 1)
+    else
+      Env.unset(name)
+    end
+  end
+})
+
+
 
 if argv[1] then
   dofile(argv[1])
