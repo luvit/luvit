@@ -1,11 +1,11 @@
 local UV = require('uv')
 
-function resume(...)
+local function resume(...)
   coroutine.resume(co, ...)
 end
 
 -- Make functions work with coros or callbacks
-function wrap(fn, nargs)
+local function wrap(fn, nargs)
   return function (coro, ...)
     if (type(coro) == 'thread') then
       local resume = function (...)
@@ -31,13 +31,63 @@ function wrap(fn, nargs)
   end
 end
 
-function fiber(fn)
+local CHUNK_SIZE = 4096
+
+local function read_file(path, callback)
+  UV.fs_open(path, "r", "0666", function (err, fd)
+    if (err) then return callback(err) end
+    local parts = {}
+    local offset = 0
+    local index = 1
+    local function readchunk()
+      UV.fs_read(fd, offset, CHUNK_SIZE, function (err, chunk)
+        if (err) then return callback(err) end
+        if #chunk == 0 then
+          UV.fs_close(fd, function (err)
+            if (err) then return callback(err) end
+            return callback(nil, table.concat(parts, ""))
+          end)
+        else
+          parts[index] = chunk
+          index = index + 1
+          offset = offset + #chunk
+          readchunk()
+        end
+      end)
+    end
+    readchunk()
+  end)
+end
+
+local function write_file(path, data, callback)
+  UV.fs_open(path, "w", "0666", function (err, fd)
+    if err then return callback(err) end
+    local offset = 0
+    local length = #data
+    local function writechunk()
+      UV.fs_write(fd, offset, string.sub(data, offset + 1, CHUNK_SIZE + offset), function (err, bytes_written)
+        if err then return callback(err) end
+        if bytes_written + offset < length then
+          offset = offset + bytes_written
+          writechunk()
+        else
+          UV.fs_close(fd, callback)
+        end
+      end)
+    end
+    writechunk()
+  end)
+end
+
+local function fiber(fn)
   local co = coroutine.create(fn)
   assert(coroutine.resume(co, co))
 end
 
 return {
   fiber = fiber,
+  read_file = wrap(read_file, 1),
+  write_file = wrap(write_file, 2),
   open = wrap(UV.fs_open, 3),
   close = wrap(UV.fs_close, 1),
   read = wrap(UV.fs_read, 3),
