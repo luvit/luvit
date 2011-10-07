@@ -17,6 +17,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_udp.o        \
         ${BUILDDIR}/luv_fs_watcher.o \
         ${BUILDDIR}/luv_timer.o      \
+        ${BUILDDIR}/luv_process.o    \
         ${BUILDDIR}/luv_stream.o     \
         ${BUILDDIR}/luv_tcp.o        \
         ${BUILDDIR}/luv_pipe.o       \

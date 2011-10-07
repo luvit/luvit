@@ -137,6 +137,10 @@ int luv_read_start (lua_State* L) {
   return 0;
 }
 
+int luv_read_start2(lua_State* L) {
+  return luaL_error(L, "TODO: Implement luv_read_start2");
+}
+
 int luv_read_stop(lua_State* L) {
   int before = lua_gettop(L);
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
@@ -171,4 +175,9 @@ int luv_write (lua_State* L) {
   assert(lua_gettop(L) == before);
   return 0;
 }
+
+int luv_write2(lua_State* L) {
+  return luaL_error(L, "TODO: Implement luv_write2");
+}
+
 

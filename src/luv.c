@@ -9,6 +9,7 @@
 #include "luv_udp.h"
 #include "luv_fs_watcher.h"
 #include "luv_timer.h"
+#include "luv_process.h"
 #include "luv_stream.h"
 #include "luv_tcp.h"
 #include "luv_pipe.h"
@@ -74,18 +75,13 @@ static int luv_loadavg(lua_State* L) {
 ////////////////////////////////////////////////////////////////////////////////
 
 static const luaL_reg luv_f[] = {
-  // Constructors
-  {"new_udp", luv_new_udp},
-  {"new_fs_watcher", luv_new_fs_watcher},
-  {"new_tcp", luv_new_tcp},
-  {"new_pipe", luv_new_pipe},
-  {"new_tty", luv_new_tty},
 
   // Handle functions
   {"close", luv_close},
   {"set_handler", luv_set_handler},
 
   // UDP functions
+  {"new_udp", luv_new_udp},
   {"udp_bind", luv_udp_bind},
   {"udp_bind6", luv_udp_bind6},
   {"udp_getsockname", luv_udp_getsockname},
@@ -95,6 +91,7 @@ static const luaL_reg luv_f[] = {
   {"udp_recv_stop", luv_udp_recv_stop},
 
   // FS Watcher functions
+  {"new_fs_watcher", luv_new_fs_watcher},
 
   // Timer functions
   {"new_timer", luv_new_timer},
@@ -104,15 +101,22 @@ static const luaL_reg luv_f[] = {
   {"timer_set_repeat", luv_timer_set_repeat},
   {"timer_get_repeat", luv_timer_get_repeat},
 
+  // Process functions
+  {"spawn", luv_spawn},
+  {"process_kill", luv_process_kill},
+
   // Stream functions
   {"shutdown", luv_shutdown},
   {"listen", luv_listen},
   {"accept", luv_accept},
   {"read_start", luv_read_start},
+  {"read_start2", luv_read_start2},
   {"read_stop", luv_read_stop},
   {"write", luv_write},
+  {"write2", luv_write2},
 
   // TCP functions
+  {"new_tcp", luv_new_tcp},
   {"tcp_bind", luv_tcp_bind},
   {"tcp_bind6", luv_tcp_bind6},
   {"tcp_getsockname", luv_tcp_getsockname},
@@ -121,11 +125,13 @@ static const luaL_reg luv_f[] = {
   {"tcp_connect6", luv_tcp_connect6},
 
   // Pipe functions
+  {"new_pipe", luv_new_pipe},
   {"pipe_open", luv_pipe_open},
   {"pipe_bind", luv_pipe_bind},
   {"pipe_connect", luv_pipe_connect},
 
   // TTY functions
+  {"new_tty", luv_new_tty},
   {"tty_set_mode", luv_tty_set_mode},
   {"tty_reset_mode", luv_tty_reset_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
@@ -200,13 +206,21 @@ static const luaL_reg luv_timer_m[] = {
   {NULL, NULL}
 };
 
+
+static const luaL_reg luv_process_m[] = {
+  {"kill", luv_process_kill},
+  {NULL, NULL}
+};
+
 static const luaL_reg luv_stream_m[] = {
   {"shutdown", luv_shutdown},
   {"listen", luv_listen},
   {"accept", luv_accept},
   {"read_start", luv_read_start},
+  {"read_start2", luv_read_start2},
   {"read_stop", luv_read_stop},
   {"write", luv_write},
+  {"write2", luv_write2},
   {NULL, NULL}
 };
 
@@ -288,6 +302,20 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   // use method table in metatable's __index
   lua_setfield(L, -2, "__index");
   lua_pop(L, 1); // we're done with luv_timer
+
+  // Metatable for process
+  luaL_newmetatable(L, "luv_process");
+  // Create table of process methods
+  lua_newtable(L); // process_m
+  luaL_register(L, NULL, luv_process_m);
+  lua_pushboolean(L, TRUE);
+  lua_setfield(L, -2, "is_process"); // Tag for polymorphic type checking
+  // Load the parent metatable so we can inherit it's methods
+  luaL_newmetatable(L, "luv_handle");
+  lua_setmetatable(L, -2);
+  // use method table in metatable's __index
+  lua_setfield(L, -2, "__index");
+  lua_pop(L, 1); // we're done with luv_process
 
   // Metatable for streams
   luaL_newmetatable(L, "luv_stream");

@@ -32,9 +32,9 @@ bindings into logical submodules and mark the implementation progress.
  * `uv_accept`: accept a connection after the callback has been called
  * `uv_read_start`: start reading data from an incoming stream
  * `uv_read_stop`: stop the stream?
- - `uv_read2_start`:
+ - `uv_read2_start`: extended read that can pass file descriptors
  * `uv_write`: write data to a stream, handles ordering for you
- - `uv_write2`:
+ - `uv_write2`: extended write that can pass file descriptors
 
 ## TCP
 
@@ -157,6 +157,7 @@ Indentation denotes inheritance
     - `luv_udp`: a plain udp handle
     - `luv_fs_watcher`: a filesystem watcher
     - `luv_timer`:
+    - `luv_process`: represents a sub proces
     - `luv_stream`: a fifo stream of data
         - `luv_tcp`: a tcp network connection
         - `luv_pipe`: a named socket or domain socket
