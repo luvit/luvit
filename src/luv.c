@@ -24,6 +24,16 @@ static int luv_run (lua_State* L) {
   return 0;
 }
 
+static int luv_ref (lua_State* L) {
+  uv_ref(uv_default_loop());
+  return 0;
+}
+
+static int luv_unref (lua_State* L) {
+  uv_unref(uv_default_loop());
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static const luaL_reg luv_f[] = {
@@ -112,6 +122,8 @@ static const luaL_reg luv_f[] = {
 
   // Loop functions
   {"run", luv_run},
+  {"ref", luv_ref},
+  {"unref", luv_unref},
   {NULL, NULL}
 };
 

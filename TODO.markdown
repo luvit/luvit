@@ -119,7 +119,7 @@ bindings into logical submodules and mark the implementation progress.
 ## Event Loop functions
 
  * `uv_run`: starts a loop and blocks till it's done
- - `uv_ref`, `uv_unref`: Manually modify the event loop's reference count.
+ * `uv_ref`, `uv_unref`: Manually modify the event loop's reference count.
     Useful if the user wants to have a handle or timeout that doesn't keep the
     loop alive.
  - `uv_prepare_init`, `uv_prepare_start`, `uv_prepare_stop`: Every active
