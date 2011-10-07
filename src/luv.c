@@ -80,6 +80,7 @@ static const luaL_reg luv_f[] = {
 
   // TTY functions
   {"tty_set_mode", luv_tty_set_mode},
+  {"tty_reset_mode", luv_tty_reset_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
 
   // FS functions
@@ -173,6 +174,7 @@ static const luaL_reg luv_pipe_m[] = {
 
 static const luaL_reg luv_tty_m[] = {
   {"tty_set_mode", luv_tty_set_mode},
+  {"tty_reset_mode", luv_tty_reset_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
   {NULL, NULL}
 };

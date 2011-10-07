@@ -15,7 +15,6 @@ end
 if process.argv[1] then
   dofile(process.argv[1])
 else
-  -- TODO: make repl non-blocking
 
   local dump = require('utils').dump
 
@@ -71,15 +70,34 @@ else
     end
   end
 
+  local UV = require('uv');
+
+  local stdout = UV.new_tty(1);
+  local function noop() end
+
+
   function display_prompt(prompt)
-    io.stdout:write(prompt .. ' ')
+    stdout:write(prompt .. ' ', noop)
   end
 
+  stdout:write("Welcome to the luvit repl\n", noop)
+
   display_prompt '>'
-  for line in io.stdin:lines() do
+
+
+  local stdin = UV.new_tty(0)
+  UV.set_handler(stdin, 'read', function (line)
     local prompt = evaluate_line(line)
     display_prompt(prompt)
-  end
+  end)
+
+  UV.set_handler(stdin, 'end', function ()
+    print("Bye!")
+    UV.close(stdin)
+    UV.close(stdout)
+  end)
+
+  UV.read_start(stdin)
 end
 
 require('uv').run()
