@@ -8,6 +8,7 @@ LUALIBS=${GENDIR}/luvit.o \
         ${GENDIR}/http.o \
         ${GENDIR}/fs.o \
         ${GENDIR}/events.o \
+        ${GENDIR}/timer.o \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \

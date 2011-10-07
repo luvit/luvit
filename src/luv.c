@@ -55,6 +55,7 @@ static const luaL_reg luv_f[] = {
   {"timer_stop", luv_timer_stop},
   {"timer_again", luv_timer_again},
   {"timer_set_repeat", luv_timer_set_repeat},
+  {"timer_get_repeat", luv_timer_get_repeat},
 
   // Stream functions
   {"shutdown", luv_shutdown},
@@ -139,6 +140,7 @@ static const luaL_reg luv_timer_m[] = {
   {"stop", luv_timer_stop},
   {"again", luv_timer_again},
   {"set_repeat", luv_timer_set_repeat},
+  {"get_repeat", luv_timer_get_repeat},
   {NULL, NULL}
 };
 

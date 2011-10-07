@@ -95,12 +95,13 @@ bindings into logical submodules and mark the implementation progress.
 
 ## Timers
 
- - `luv_new_timer`:
- - `uv_timer_start`: start a timer
- - `uv_timer_stop`: stop the timer
- - `uv_timer_again`: Stop the timer, and if it is repeating restart it using the
+ * `luv_new_timer`:
+ * `uv_timer_start`: start a timer
+ * `uv_timer_stop`: stop the timer
+ * `uv_timer_again`: Stop the timer, and if it is repeating restart it using the
     repeat value as the timeout
- - `uv_timer_set_repeat`: Set the repeat value
+ * `uv_timer_set_repeat`: Set the repeat value
+ * `uv_timer_get_repeat`: get the repeat value
 
 ## Timestamp Functions ?
 
