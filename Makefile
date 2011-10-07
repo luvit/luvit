@@ -33,10 +33,6 @@ all: ${BUILDDIR}/luvit
 ${GENDIR}:
 	mkdir -p ${GENDIR}
 
-webserver: ${BUILDDIR}/webserver
-
-luvit: ${BUILDDIR}/luvit
-
 ${LUADIR}/src/libluajit.a:
 	$(MAKE) -C ${LUADIR}
 
@@ -67,8 +63,4 @@ clean:
 
 install: ${BUILDDIR}/luvit
 	install ${BUILDDIR}/luvit -s -v /usr/local/bin/luvit
-
-${BUILDDIR}/webserver: src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
-	$(CC) -Wall -o ${BUILDDIR}/webserver src/webserver.c ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o -I${HTTPDIR} -I${UVDIR}/include -lrt -lm
-
 

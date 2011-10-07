@@ -22,11 +22,6 @@ int luv_new_udp (lua_State* L) {
   return 1;
 }
 
-int luv_udp_init(lua_State* L) {
-  return luaL_error(L, "TODO: Implement luv_udp_init");
-  return 0;
-}
-
 int luv_udp_bind(lua_State* L) {
   return luaL_error(L, "TODO: Implement luv_udp_bind");
   return 0;

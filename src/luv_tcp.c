@@ -29,14 +29,6 @@ int luv_new_tcp (lua_State* L) {
   return 1;
 }
 
-int luv_tcp_init (lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  uv_tcp_init(uv_default_loop(), handle);
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
 int luv_tcp_bind (lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");

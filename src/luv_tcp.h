@@ -21,7 +21,6 @@
 #endif
 
 int luv_new_tcp (lua_State* L);
-int luv_tcp_init (lua_State* L);
 int luv_tcp_bind (lua_State* L);
 int luv_tcp_bind6(lua_State* L);
 int luv_tcp_getsockname(lua_State* L);

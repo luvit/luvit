@@ -38,7 +38,6 @@ static const luaL_reg luv_f[] = {
   {"set_handler", luv_set_handler},
 
   // UDP functions
-  {"udp_init", luv_udp_init},
   {"udp_bind", luv_udp_bind},
   {"udp_bind6", luv_udp_bind6},
   {"udp_getsockname", luv_udp_getsockname},
@@ -58,7 +57,6 @@ static const luaL_reg luv_f[] = {
   {"write", luv_write},
 
   // TCP functions
-  {"tcp_init", luv_tcp_init},
   {"tcp_bind", luv_tcp_bind},
   {"tcp_bind6", luv_tcp_bind6},
   {"tcp_getsockname", luv_tcp_getsockname},
@@ -67,13 +65,11 @@ static const luaL_reg luv_f[] = {
   {"tcp_connect6", luv_tcp_connect6},
 
   // Pipe functions
-  {"pipe_init", luv_pipe_init},
   {"pipe_open", luv_pipe_open},
   {"pipe_bind", luv_pipe_bind},
   {"pipe_connect", luv_pipe_connect},
 
   // TTY functions
-  {"tty_init", luv_tty_init},
   {"tty_set_mode", luv_tty_set_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
 
@@ -141,7 +137,6 @@ static const luaL_reg luv_stream_m[] = {
 };
 
 static const luaL_reg luv_tcp_m[] = {
-  {"init", luv_tcp_init},
   {"bind", luv_tcp_bind},
   {"bind6", luv_tcp_bind6},
   {"getsockname", luv_tcp_getsockname},

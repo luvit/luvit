@@ -22,11 +22,6 @@ int luv_new_tty (lua_State* L) {
   return 1;
 }
 
-int luv_tty_init(lua_State* L) {
-  return luaL_error(L, "TODO: Implement luv_tty_init");
-  return 0;
-}
-
 int luv_tty_set_mode(lua_State* L) {
   return luaL_error(L, "TODO: Implement luv_tty_set_mode");
   return 0;
