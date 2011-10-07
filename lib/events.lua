@@ -1,5 +1,13 @@
 local emitter_prototype = {}
 
+function emitter_prototype:once(name, callback)
+  local function wrapped(...)
+    self:remove_listener(name, wrapped)
+    callback(...)
+  end
+  self:on(name, wrapped)
+end
+
 function emitter_prototype:on(name, callback)
   if not self.handlers then self.handlers = {} end
   local handlers = self.handlers
