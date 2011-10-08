@@ -55,8 +55,12 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
-  lua_pushnumber(L, status);
-  luv_acall(L, 1, 0, "after_shutdown");
+  if (lua_isfunction(L, -1)) {
+    lua_pushnumber(L, status);
+    luv_acall(L, 1, 0, "after_shutdown");
+  } else {
+    lua_pop(L, 1);
+  }
 
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
@@ -70,8 +74,12 @@ void luv_after_write(uv_write_t* req, int status) {
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
-  lua_pushnumber(L, status);
-  luv_acall(L, 1, 0, "after_write");
+  if (lua_isfunction(L, -1)) {
+    lua_pushnumber(L, status);
+    luv_acall(L, 1, 0, "after_write");
+  } else {
+    lua_pop(L, 1);
+  }
 
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
@@ -81,7 +89,7 @@ void luv_after_write(uv_write_t* req, int status) {
 int luv_shutdown(lua_State* L) {
   int before = lua_gettop(L);
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
-  luaL_checktype(L, 2, LUA_TFUNCTION);
+
   luv_shutdown_ref_t* ref = (luv_shutdown_ref_t*)malloc(sizeof(luv_shutdown_ref_t));
 
   // Store a reference to the callback
@@ -152,7 +160,6 @@ int luv_write (lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
-  luaL_checktype(L, 3, LUA_TFUNCTION);
 
   luv_write_ref_t* ref = (luv_write_ref_t*)malloc(sizeof(luv_write_ref_t));
 
