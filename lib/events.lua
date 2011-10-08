@@ -38,12 +38,12 @@ function emitter_prototype:remove_listeners(name)
   handlers[name] = nil
 end
 
-local function new_event_emitter()
+local function new()
   local emitter = {}
   setmetatable(emitter, {__index=emitter_prototype})
   return emitter
 end
 
 return {
-  new_event_emitter = new_event_emitter
+  new = new
 }

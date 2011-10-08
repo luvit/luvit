@@ -10,6 +10,7 @@ LUALIBS=${GENDIR}/luvit.o  \
         ${GENDIR}/events.o \
         ${GENDIR}/timer.o  \
         ${GENDIR}/repl.o   \
+        ${GENDIR}/fibers.o \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \

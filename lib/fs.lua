@@ -1,40 +1,8 @@
 local UV = require('uv')
 local Table = require('table')
-local Coroutine = require('coroutine')
+local Fibers = require('fibers')
 
 local CHUNK_SIZE = 4096
-
-local function fiber(fn)
-  local co = Coroutine.create(fn)
-  assert(Coroutine.resume(co, co))
-end
-
--- Make functions work with coros or callbacks
-local function wrap(fn, nargs)
-  return function (coro, ...)
-    if type(coro) == 'thread' then
-      local function resume(...)
-        assert(Coroutine.resume(coro, ...))
-      end
-      local args = {...}
-      if nargs == 1 then
-        fn(args[1], resume)
-      elseif nargs == 2 then
-        fn(args[1], args[2], resume)
-      elseif nargs == 3 then
-        fn(args[1], args[2], args[3], resume)
-      elseif nargs == 4 then
-        fn(args[1], args[2], args[3], args[4], resume)
-      else
-        error("Too many nargs")
-      end
-      return Coroutine.yield()
-    else
-      -- In this case coro is actually the first arg
-      fn(coro, ...)
-    end
-  end
-end
 
 local function read_file(path, callback)
   UV.fs_open(path, "r", "0666", function (err, fd)
@@ -83,33 +51,32 @@ local function write_file(path, data, callback)
 end
 
 return {
-  fiber = fiber,
-  read_file = wrap(read_file, 1),
-  write_file = wrap(write_file, 2),
-  open = wrap(UV.fs_open, 3),
-  close = wrap(UV.fs_close, 1),
-  read = wrap(UV.fs_read, 3),
-  write = wrap(UV.fs_write, 3),
-  unlink = wrap(UV.fs_unlink, 1),
-  mkdir = wrap(UV.fs_mkdir, 2),
-  rmdir = wrap(UV.fs_rmdir, 1),
-  readdir = wrap(UV.fs_readdir, 1),
-  stat = wrap(UV.fs_stat, 1),
-  fstat = wrap(UV.fs_fstat, 1),
-  rename = wrap(UV.fs_rename, 2),
-  fsync = wrap(UV.fs_fsync, 1),
-  fdatasync = wrap(UV.fs_fdatasync, 1),
-  ftruncate = wrap(UV.fs_ftruncate, 2),
-  sendfile = wrap(UV.fs_sendfile, 4),
-  chmod = wrap(UV.fs_chmod, 2),
-  utime = wrap(UV.fs_utime, 3),
-  futime = wrap(UV.fs_futime, 3),
-  lstat = wrap(UV.fs_lstat, 1),
-  link = wrap(UV.fs_link, 2),
-  symlink = wrap(UV.fs_symlink, 3),
-  readlink = wrap(UV.fs_readlink, 1),
-  fchmod = wrap(UV.fs_fchmod, 2),
-  chown = wrap(UV.fs_chown, 3),
-  fchown = wrap(UV.fs_fchown, 3),
+  read_file = Fibers.wrap(read_file, 1),
+  write_file = Fibers.wrap(write_file, 2),
+  open = Fibers.wrap(UV.fs_open, 3),
+  close = Fibers.wrap(UV.fs_close, 1),
+  read = Fibers.wrap(UV.fs_read, 3),
+  write = Fibers.wrap(UV.fs_write, 3),
+  unlink = Fibers.wrap(UV.fs_unlink, 1),
+  mkdir = Fibers.wrap(UV.fs_mkdir, 2),
+  rmdir = Fibers.wrap(UV.fs_rmdir, 1),
+  readdir = Fibers.wrap(UV.fs_readdir, 1),
+  stat = Fibers.wrap(UV.fs_stat, 1),
+  fstat = Fibers.wrap(UV.fs_fstat, 1),
+  rename = Fibers.wrap(UV.fs_rename, 2),
+  fsync = Fibers.wrap(UV.fs_fsync, 1),
+  fdatasync = Fibers.wrap(UV.fs_fdatasync, 1),
+  ftruncate = Fibers.wrap(UV.fs_ftruncate, 2),
+  sendfile = Fibers.wrap(UV.fs_sendfile, 4),
+  chmod = Fibers.wrap(UV.fs_chmod, 2),
+  utime = Fibers.wrap(UV.fs_utime, 3),
+  futime = Fibers.wrap(UV.fs_futime, 3),
+  lstat = Fibers.wrap(UV.fs_lstat, 1),
+  link = Fibers.wrap(UV.fs_link, 2),
+  symlink = Fibers.wrap(UV.fs_symlink, 3),
+  readlink = Fibers.wrap(UV.fs_readlink, 1),
+  fchmod = Fibers.wrap(UV.fs_fchmod, 2),
+  chown = Fibers.wrap(UV.fs_chown, 3),
+  fchown = Fibers.wrap(UV.fs_fchown, 3),
 }
 

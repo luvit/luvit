@@ -1,6 +1,6 @@
 local Events = require('events')
 
-local emitter = Events.new_event_emitter()
+local emitter = Events.new()
 
 emitter:on("foo", function (...)
   p("on_foo", ...)

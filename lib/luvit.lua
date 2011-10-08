@@ -9,7 +9,7 @@ _G.jit = nil
 _G.bit = nil
 _G.debug = nil
 _G.table = nil
-print = nil
+_G.print = nil
 
 
 -- Load libraries used in this file
@@ -80,7 +80,7 @@ setmetatable(env, {
 -- This is called by all the event sources from C
 -- The user can override it to hook into event sources
 function event_source(name, fn, ...)
-  fn(...)
+  return fn(...)
 end
 
 -- Load the file given or start the interactive repl
