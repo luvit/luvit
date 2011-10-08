@@ -45,8 +45,9 @@ int main(int argc, char *argv[])
   }
   lua_setglobal(L, "argv");
 
+  // Hold a reference to the main thread in the registry
   assert(lua_pushthread(L) == 1);
-  lua_setglobal(L, "main_thread");
+  lua_setfield(L, LUA_REGISTRYINDEX, "main_thread");
 
   // Run the main lua script
   if (luaL_dostring(L, "assert(require('luvit'))")) {

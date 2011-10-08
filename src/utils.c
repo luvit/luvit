@@ -5,13 +5,20 @@
 
 // Meant as a lua_call replace for use in async callbacks
 // Uses the main loop and event source
-void luv_acall(lua_State *L, int nargs, int nresults, const char* source) {
-  if (lua_status(L) == LUA_YIELD) {
-    // We can't lua_call into a suspended thread, bad stuff happens
-    printf("DROPPING EVENT %s in thread %p\n", source, L);
-    lua_pop(L, nargs + nresults + 1);
-    return;
+void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
+
+  printf("Before %d\n", lua_gettop(C));
+  // Get the main thread without cheating
+  lua_getfield(C, LUA_REGISTRYINDEX, "main_thread");
+  lua_State* L = lua_tothread(C, -1);
+  lua_pop(C, 1);
+  printf("After %d\n", lua_gettop(C));
+
+  // If C is not main then move to main
+  if (C != L) {
+    lua_xmove (C, L, nargs + nresults + 1);
   }
+
   lua_call(L, nargs, nresults);
 }
 
