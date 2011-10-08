@@ -25,10 +25,6 @@ local Debug = require('debug')
 tty = UV.new_tty(0)
 UV.unref()
 
--- Make a handy noop function for when needed
--- TODO: fix APIs so this isn't needed
-function noop() end
-
 -- A nice global data dumper
 function p(...)
   local n = select('#', ...)
@@ -38,13 +34,13 @@ function p(...)
     arguments[i] = Utils.dump(arguments[i])
   end
 
-  tty:write(Table.concat(arguments, "\t") .. "\n", noop)
+  tty:write(Table.concat(arguments, "\t") .. "\n")
 end
 
 
 -- Replace print
 function print(...)
-  tty:write(Table.concat({...}, "\t") .. "\n", noop)
+  tty:write(Table.concat({...}, "\t") .. "\n")
 end
 
 -- Add global access to the environment variables using a dynamic table
@@ -74,16 +70,14 @@ setmetatable(env, {
 })
 
 -- This is called by all the event sources from C
+-- The user can override it to hook into event sources
 function event_source(fn, ...)
-  local args = {...}
-  xpcall(function ()
-    fn(unpack(args))
-  end, Debug.traceback)
+  fn(...)
 end
 
 -- Load the file given or start the interactive repl
 if argv[1] then
-  event_source(loadfile(argv[1]))
+  dofile(argv[1])
 else
   require('repl')
 end
