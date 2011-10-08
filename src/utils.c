@@ -3,6 +3,13 @@
 
 #include "utils.h"
 
+// Meant as a lua_call replace for use in async callbacks
+// Uses the main loop and event source
+void luv_acall(lua_State *L, int nargs, int nresults, const char* source) {
+/*  printf("event_source %s L = %p %d\n", source, L, lua_status(L));*/
+  lua_call(L, nargs, nresults);
+}
+
 const char* errno_message(int errorno) {
   uv_err_t err;
   memset(&err, 0, sizeof err);

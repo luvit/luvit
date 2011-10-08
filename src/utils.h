@@ -13,6 +13,8 @@
 #define TRUE !FALSE
 #endif
 
+void luv_acall(lua_State *L, int nargs, int nresults, const char* source);
+
 const char* errno_message(int errorno);
 const char* errno_string(int errorno);
 

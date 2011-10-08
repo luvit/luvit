@@ -30,7 +30,7 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
 
   // move the function below the args
   lua_insert(L, -nargs - 1);
-  lua_call(L, nargs, 0);
+  luv_acall(L, nargs, 0, name);
 
   assert(lua_gettop(L) == before - nargs);
 }

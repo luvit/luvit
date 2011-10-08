@@ -56,7 +56,7 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
   lua_pushnumber(L, status);
-  lua_call(L, 1, 0);
+  luv_acall(L, 1, 0, "after_shutdown");
 
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
@@ -71,7 +71,7 @@ void luv_after_write(uv_write_t* req, int status) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
   lua_pushnumber(L, status);
-  lua_call(L, 1, 0);
+  luv_acall(L, 1, 0, "after_write");
 
   free(ref);// We're done with the ref object, free it
   assert(lua_gettop(L) == before);
