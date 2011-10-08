@@ -14,10 +14,21 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 
   // If C is not main then move to main
   if (C != L) {
-    lua_xmove (C, L, nargs + nresults + 1);
+    lua_getglobal(L, "event_source");
+    lua_xmove (C, L, nargs + 1);
+    lua_call(L, nargs + 1, nresults);
+    return;
   }
 
-  lua_call(L, nargs, nresults);
+  // Wrap the call with the event_source function
+  int offset = nargs + 2;
+  lua_getglobal(L, "event_source");
+  lua_insert(L, -offset);
+
+  if (lua_pcall(L, nargs + 1, nresults, 0)) {
+    luaL_error(L, "EVERR '%s': %s", source, lua_tostring(L, -1));
+  }
+
 }
 
 const char* errno_message(int errorno) {
