@@ -17,6 +17,8 @@ local Table = require('table')
 local UV = require('uv')
 local Utils = require('utils')
 local Env = require('env')
+local FS = require('fs')
+local Debug = require('debug')
 
 -- Load the I/O as streams
 -- But don't hold the event loop open for them
@@ -71,9 +73,17 @@ setmetatable(env, {
   end
 })
 
+-- This is called by all the event sources from C
+function event_source(fn, ...)
+  local args = {...}
+  xpcall(function ()
+    fn(unpack(args))
+  end, Debug.traceback)
+end
+
 -- Load the file given or start the interactive repl
 if argv[1] then
-  dofile(argv[1])
+  event_source(loadfile(argv[1]))
 else
   require('repl')
 end
