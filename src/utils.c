@@ -7,12 +7,10 @@
 // Uses the main loop and event source
 void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 
-  printf("Before %d\n", lua_gettop(C));
   // Get the main thread without cheating
   lua_getfield(C, LUA_REGISTRYINDEX, "main_thread");
   lua_State* L = lua_tothread(C, -1);
   lua_pop(C, 1);
-  printf("After %d\n", lua_gettop(C));
 
   // If C is not main then move to main
   if (C != L) {

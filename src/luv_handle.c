@@ -22,7 +22,6 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
   lua_getfield(L, -1, name);
   lua_remove(L, -2);
   if (lua_isfunction (L, -1) == 0) {
-    //printf("missing event: on_%s\n", name);
     lua_pop(L, 1 + nargs);
     assert(lua_gettop(L) == before - nargs);
     return;
