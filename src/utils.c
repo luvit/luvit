@@ -15,8 +15,9 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
   // If C is not main then move to main
   if (C != L) {
     lua_getglobal(L, "event_source");
+    lua_pushstring(L, source);
     lua_xmove (C, L, nargs + 1);
-    lua_call(L, nargs + 1, nresults);
+    lua_call(L, nargs + 2, nresults);
     return;
   }
 
@@ -24,8 +25,10 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
   int offset = nargs + 2;
   lua_getglobal(L, "event_source");
   lua_insert(L, -offset);
+  lua_pushstring(L, source);
+  lua_insert(L, -offset);
 
-  if (lua_pcall(L, nargs + 1, nresults, 0)) {
+  if (lua_pcall(L, nargs + 2, nresults, 0)) {
     luaL_error(L, "EVERR '%s': %s", source, lua_tostring(L, -1));
   }
 

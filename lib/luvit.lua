@@ -25,6 +25,18 @@ local Debug = require('debug')
 tty = UV.new_tty(0)
 UV.unref()
 
+-- Replace print
+function print(...)
+  local n = select('#', ...)
+  local arguments = { ... }
+
+  for i = 1, n do
+    arguments[i] = tostring(arguments[i])
+  end
+
+  tty:write(Table.concat(arguments, "\t") .. "\n")
+end
+
 -- A nice global data dumper
 function p(...)
   local n = select('#', ...)
@@ -38,10 +50,6 @@ function p(...)
 end
 
 
--- Replace print
-function print(...)
-  tty:write(Table.concat({...}, "\t") .. "\n")
-end
 
 -- Add global access to the environment variables using a dynamic table
 env = {}
@@ -71,7 +79,7 @@ setmetatable(env, {
 
 -- This is called by all the event sources from C
 -- The user can override it to hook into event sources
-function event_source(fn, ...)
+function event_source(name, fn, ...)
   fn(...)
 end
 
