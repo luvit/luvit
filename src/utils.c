@@ -6,7 +6,12 @@
 // Meant as a lua_call replace for use in async callbacks
 // Uses the main loop and event source
 void luv_acall(lua_State *L, int nargs, int nresults, const char* source) {
-/*  printf("event_source %s L = %p %d\n", source, L, lua_status(L));*/
+  if (lua_status(L) == LUA_YIELD) {
+    // We can't lua_call into a suspended thread, bad stuff happens
+    printf("DROPPING EVENT %s in thread %p\n", source, L);
+    lua_pop(L, nargs + nresults + 1);
+    return;
+  }
   lua_call(L, nargs, nresults);
 }
 
