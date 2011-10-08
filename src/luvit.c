@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
   if (luaL_dostring(L, "assert(require('luvit'))")) {
     printf("%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
+    lua_close(L);
     return -1;
   }
 
