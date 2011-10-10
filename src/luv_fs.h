@@ -13,9 +13,6 @@ void luv_fs_error(lua_State* L, int errorno, const char *syscall, const char *ms
 // Utility to convert string flags to proper int flags
 int luv_string_to_flags(lua_State* L, const char* string);
 
-// Common callback for all luv_fs_* async functions
-void luv_fs_after(uv_fs_t* req);
-
 // Utility for storing the callback in the fs_req token
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index);
 
