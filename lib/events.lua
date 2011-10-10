@@ -11,7 +11,15 @@ end
 function emitter_prototype:on(name, callback)
   if not self.handlers then self.handlers = {} end
   local handlers = self.handlers
-  if not handlers[name] then handlers[name] = {} end
+  if not handlers[name] then
+    if self.userdata then
+      local emitter = self
+      self.userdata:set_handler(name, function (...)
+        emitter:emit(name, ...)
+      end)
+    end
+    handlers[name] = {}
+  end
   handlers[name][callback] = true
 end
 emitter_prototype.add_listener = emitter_prototype.on
@@ -35,15 +43,23 @@ end
 function emitter_prototype:remove_listeners(name)
   if not self.handlers then return end
   local handlers = self.handlers
-  handlers[name] = nil
+  if handlers[name] then
+    if self.userdata then
+      self.userdata.set_handler(name, nil)
+    end
+    handlers[name] = nil
+  end
 end
+
+local emitter_meta = {__index=emitter_prototype}
 
 local function new()
   local emitter = {}
-  setmetatable(emitter, {__index=emitter_prototype})
+  setmetatable(emitter, emitter_meta)
   return emitter
 end
 
 return {
-  new = new
+  new = new,
+  emitter_meta = emitter_meta
 }

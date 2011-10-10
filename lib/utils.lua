@@ -104,11 +104,19 @@ local function dump(o, depth)
   return tostring(o)
 end
 
+-- Shared metatable for all userdata type wrappers
+local user_meta = {
+  __index = function (table, key)
+    return table.prototype[key] or table.userdata[key]
+  end,
+  __newindex = rawset
+}
 
 return {
   dump = dump,
   color = color,
-  colorize = colorize
+  colorize = colorize,
+  user_meta = user_meta
 }
 
 --print("nil", dump(nil))

@@ -10,6 +10,7 @@ LUALIBS=${GENDIR}/luvit.o  \
         ${GENDIR}/events.o \
         ${GENDIR}/timer.o  \
         ${GENDIR}/repl.o   \
+        ${GENDIR}/tcp.o    \
         ${GENDIR}/fibers.o \
         ${GENDIR}/utils.o
 
