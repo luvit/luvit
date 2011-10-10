@@ -78,6 +78,11 @@ void luv_io_error(lua_State* L,
 // An alternative to luaL_checkudata that takes inheritance into account for polymorphism
 // Make sure to not call with long type strings or strcat will overflow
 void* luv_checkudata(lua_State* L, int index, const char* type) {
+  // Check for table wrappers as well and replace it with the userdata it points to
+  if (lua_istable (L, index)) {
+    lua_getfield(L, index, "userdata");
+    lua_replace(L, index);
+  }
   luaL_checktype(L, index, LUA_TUSERDATA);
 
   // prefix with is_ before looking up property
