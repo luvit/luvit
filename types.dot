@@ -1,0 +1,53 @@
+digraph finite_state_machine {
+	rankdir = "LR"
+	node [fontname=Sans]
+
+  /* Userdata */
+  node [shape = Mrecord, fillcolor=orange, style=filled];
+  uhandle [label="<udata>HANDLE|close|set_handler"];
+  uprocess [label="<udata>PROCESS|kill"];
+  utimer [label="<udata>TIMER|start|stop|again|set_repeat|get_repeat"];
+  uudp [label="<udata>UDP|bind|bind6|getsockname|send|send6|recv_start|recv_stop"];
+  uwatcher [label="<udata>WATCHER"];
+  ustream [label="<udata>STREAM|shutdown|listen|accept|read_start|read_start2|read_stop|write|write2"];
+  utcp [label="<udata>TCP|bind|bind6|getsockname|getpeername|connect|connect6"];
+  upipe [label="<udata>PIPE|open|bind|connect"];
+  utty [label="<udata>TTY|set_mode|reset_mode|get_winsize"];
+
+  /* lua types */
+  node [shape = Mrecord, fillcolor=lightskyblue, style=filled];
+  emitter [label="<table>EMITTER|on|add_listener|emit|remove_listener|remove_listeners"];
+  udp [label="<table>UDP"];
+  stream [label="<table>STREAM"];
+  tcp [label="<table>TCP"];
+  tty [label="<table>TTY"];
+  pipe [label="<table>PIPE"];
+  
+
+  /* Inheritance Chains */
+  edge [style=dashed]
+  // intra udata
+  uprocess:udata -> uhandle:udata;
+  utimer:udata -> uhandle:udata;
+  ustream:udata -> uhandle:udata;
+  uwatcher:udata -> uhandle:udata;
+  uudp:udata -> uhandle:udata;
+  utcp:udata -> ustream:udata;
+  utty:udata -> ustream:udata;
+  upipe:udata -> ustream:udata;
+  
+  // intra table
+  stream:table -> emitter:table;
+  udp:table -> emitter:table;
+  tcp:table -> stream:table;
+  tty:table -> stream:table;
+  pipe:table -> stream:table;
+  
+  // cross
+  tty:table -> utty:udata;
+  tcp:table -> utcp:udata;
+  pipe:table -> upipe:udata;
+  udp:table -> uudp:udata;
+  
+}
+
