@@ -25,9 +25,15 @@ end
 emitter_prototype.add_listener = emitter_prototype.on
 
 function emitter_prototype:emit(name, ...)
-  if not self.handlers then return end
+  if not self.handlers then
+    if (name == "error") then error(...) end
+    return
+  end
   local handlers = self.handlers
-  if not handlers[name] then return end
+  if not handlers[name] then
+    if (name == "error") then error(...) end
+    return
+  end
   for k, v in pairs(handlers[name]) do
     k(...)
   end
