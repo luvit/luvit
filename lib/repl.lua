@@ -66,7 +66,7 @@ print("\n" .. c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen"
 display_prompt '>'
 
 
-tty:set_handler('read', function (line)
+tty:set_handler('data', function (line)
   local prompt = evaluate_line(line)
   display_prompt(prompt)
 end)

@@ -7,6 +7,9 @@ local tcp_prototype = {}
 setmetatable(tcp_prototype, stream_meta)
 TCP.prototype = tcp_prototype
 
+-- Used by things like Response that "inherit" from tcp
+TCP.meta = {__index=TCP.prototype}
+
 function TCP.new()
   local tcp = {
     userdata = UV.new_tcp(),
@@ -20,7 +23,7 @@ function TCP.create_server(ip, port, on_connection)
   local server = TCP.new()
   server:bind(ip, port)
 
-  server:listen(function (err, status)
+  server:listen(function (err)
     if (err) then
       return server:emit("error", err)
     end

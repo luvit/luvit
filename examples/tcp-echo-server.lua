@@ -4,7 +4,7 @@ local server = TCP.create_server("0.0.0.0", 8080, function (client)
   p("on_connection", err, client)
 
   print("Adding listener for data events")
-  client:on("read", function (chunk)
+  client:on("data", function (chunk)
     p("on_read", chunk)
     
     print("Sending chunk back to client")
@@ -26,6 +26,7 @@ local server = TCP.create_server("0.0.0.0", 8080, function (client)
   
 end)
 
+print("Listening for errors in the server")
 server:on("error", function (err)
   p("ERROR", err)
 end)

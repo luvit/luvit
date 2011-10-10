@@ -4,18 +4,20 @@ HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 
-LUALIBS=${GENDIR}/luvit.o  \
-        ${GENDIR}/http.o   \
-        ${GENDIR}/fs.o     \
-        ${GENDIR}/emitter.o\
-        ${GENDIR}/udp.o    \
-        ${GENDIR}/stream.o \
-        ${GENDIR}/tcp.o    \
-        ${GENDIR}/pipe.o   \
-        ${GENDIR}/tty.o    \
-        ${GENDIR}/timer.o  \
-        ${GENDIR}/repl.o   \
-        ${GENDIR}/fibers.o \
+LUALIBS=${GENDIR}/luvit.o    \
+        ${GENDIR}/http.o     \
+        ${GENDIR}/request.o  \
+        ${GENDIR}/response.o \
+        ${GENDIR}/fs.o       \
+        ${GENDIR}/emitter.o  \
+        ${GENDIR}/udp.o      \
+        ${GENDIR}/stream.o   \
+        ${GENDIR}/tcp.o      \
+        ${GENDIR}/pipe.o     \
+        ${GENDIR}/tty.o      \
+        ${GENDIR}/timer.o    \
+        ${GENDIR}/repl.o     \
+        ${GENDIR}/fibers.o   \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \

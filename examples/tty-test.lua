@@ -1,4 +1,5 @@
 
+
 p(tty)
 
 -- Set raw mode
@@ -6,7 +7,7 @@ p(tty)
 
 tty:read_start()
 
-tty:set_handler('read', function (chunk)
+tty:set_handler('data', function (chunk)
   p("on_read", chunk)
 end)
 

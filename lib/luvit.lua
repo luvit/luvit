@@ -19,10 +19,11 @@ local Utils = require('utils')
 local Env = require('env')
 local FS = require('fs')
 local Debug = require('debug')
+local TTY = require('tty')
 
 -- Load the I/O as streams
 -- But don't hold the event loop open for them
-tty = UV.new_tty(0)
+tty = TTY.new(0)
 UV.unref()
 
 -- Replace print

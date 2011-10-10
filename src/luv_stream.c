@@ -32,7 +32,7 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
     lua_pushlstring (L, buf.base, nread);
     lua_pushinteger (L, nread);
-    luv_emit_event(L, "read", 2);
+    luv_emit_event(L, "data", 2);
 
   } else {
     uv_err_t err = uv_last_error(uv_default_loop());
