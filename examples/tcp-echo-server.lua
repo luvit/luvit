@@ -1,26 +1,15 @@
 local TCP = require('tcp')
 
-print("Creating a new TCP server")
-local server = TCP.new()
+local server = TCP.create_server("0.0.0.0", 8080, function (client)
+  p("on_connection", err, client)
 
-print("Binding to 0.0.0.0 on port 8080")
-server:bind("0.0.0.0", 8080)
-
-print("Server listening")
-server:listen(function (...)
-
-  p("on_connection", ...)
-
-  print("Creating new tcp client object")
-  local client = TCP.new()
-  
   print("Adding listener for data events")
-  client:on("read", function (chunk, len)
-    p("on_read", chunk, len)
+  client:on("read", function (chunk)
+    p("on_read", chunk)
     
     print("Sending chunk back to client")
-    client:write(chunk, function ()
-      p("on_written")
+    client:write(chunk, function (err)
+      p("on_written", err)
     end)
 
   end)
@@ -35,12 +24,11 @@ server:listen(function (...)
     end)
   end)
   
-  print("Accepting the client")
-  server:accept(client)
-  
-  print("Starting reads")
-  client:read_start()
-
 end)
 
+server:on("error", function (err)
+  p("ERROR", err)
+end)
+
+print("TCP echo server listening on port 8080")
 
