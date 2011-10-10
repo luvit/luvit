@@ -17,7 +17,7 @@ end
 
 function TCP.create_server(ip, port, on_connection)
   local server = TCP.new()
-  server:bind("0.0.0.0", 8080)
+  server:bind(ip, port)
 
   server:listen(function (err, status)
     if (err) then
