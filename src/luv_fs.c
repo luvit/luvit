@@ -41,32 +41,6 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "ctime");
 }
 
-// Pushes a error object onto the stack
-void luv_fs_error(lua_State* L,
-                  int errorno,
-                  const char *syscall,
-                  const char *msg,
-                  const char *path) {
-
-  if (!msg || !msg[0]) {
-    msg = errno_message(errorno);
-  }
-
-  lua_newtable(L);
-  if (path) {
-    lua_pushfstring(L, "%s, %s '%s'", errno_string(errorno), msg, path);
-  } else {
-    lua_pushfstring(L, "%s, %s", errno_string(errorno), msg);
-  }
-  lua_setfield(L, -2, "message");
-  lua_pushstring(L, errno_string(errorno));
-  lua_setfield(L, -2, "code");
-  if (path) {
-    lua_pushstring(L, path);
-    lua_setfield(L, -2, "path");
-  }
-}
-
 int luv_string_to_flags(lua_State* L, const char* string) {
   if (strcmp(string, "r") == 0) return O_RDONLY;
   if (strcmp(string, "r+") == 0) return O_RDWR;
@@ -86,7 +60,7 @@ void luv_fs_after(uv_fs_t* req) {
 
   int argc = 0;
   if (req->result == -1) {
-    luv_fs_error(L, req->errorno, NULL, NULL, req->path);
+    luv_io_error(L, req->errorno, NULL, NULL, req->path);
   } else {
     lua_pushnil(L);
     switch (req->fs_type) {

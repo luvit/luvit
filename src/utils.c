@@ -48,6 +48,33 @@ const char* errno_string(int errorno) {
   return uv_err_name(err);
 }
 
+// Pushes a error object onto the stack
+void luv_io_error(lua_State* L,
+                  int errorno,
+                  const char *syscall,
+                  const char *msg,
+                  const char *path) {
+
+  if (!msg || !msg[0]) {
+    msg = errno_message(errorno);
+  }
+
+  lua_newtable(L);
+  if (path) {
+    lua_pushfstring(L, "%s, %s '%s'", errno_string(errorno), msg, path);
+  } else {
+    lua_pushfstring(L, "%s, %s", errno_string(errorno), msg);
+  }
+  lua_setfield(L, -2, "message");
+  lua_pushstring(L, errno_string(errorno));
+  lua_setfield(L, -2, "code");
+  if (path) {
+    lua_pushstring(L, path);
+    lua_setfield(L, -2, "path");
+  }
+}
+
+
 // An alternative to luaL_checkudata that takes inheritance into account for polymorphism
 // Make sure to not call with long type strings or strcat will overflow
 void* luv_checkudata(lua_State* L, int index, const char* type) {
