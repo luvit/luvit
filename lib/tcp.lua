@@ -5,6 +5,7 @@ local TCP = {}
 
 local tcp_prototype = {}
 setmetatable(tcp_prototype, stream_meta)
+TCP.prototype = tcp_prototype
 
 function TCP.new()
   local tcp = {
