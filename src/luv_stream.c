@@ -75,7 +75,11 @@ void luv_after_write(uv_write_t* req, int status) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
   if (lua_isfunction(L, -1)) {
-    lua_pushnumber(L, status);
+    if (status == -1) {
+      luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
+    } else {
+      lua_pushnil(L);
+    }
     luv_acall(L, 1, 0, "after_write");
   } else {
     lua_pop(L, 1);
