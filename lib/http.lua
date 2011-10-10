@@ -1,4 +1,4 @@
-local uv = require('uv')
+local UV = require('uv')
 local http_parser = require('http_parser')
 local status_codes_table = {
   [100] = 'Continue',

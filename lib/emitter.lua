@@ -61,5 +61,6 @@ end
 
 return {
   new = new,
-  emitter_meta = emitter_meta
+  prototype = emitter_prototype,
+  meta = emitter_meta
 }

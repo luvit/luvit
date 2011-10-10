@@ -1,46 +1,45 @@
-local UV = require('uv')
+local TCP = require('tcp')
 
 print("Creating a new TCP server")
-local server = UV.new_tcp()
+local server = TCP.new()
 
 print("Binding to 0.0.0.0 on port 8080")
-UV.tcp_bind(server, "0.0.0.0", 8080)
+server:bind("0.0.0.0", 8080)
 
 print("Server listening")
-UV.listen(server, function (status)
-  p("on_connection", status)
+server:listen(function (...)
+
+  p("on_connection", ...)
+
   print("Creating new tcp client object")
-  local client = UV.new_tcp()
+  local client = TCP.new()
   
   print("Adding listener for data events")
-  UV.set_handler(client, "read", function (chunk, len)
+  client:on("read", function (chunk, len)
     p("on_read", chunk, len)
     
     print("Sending chunk back to client")
-    UV.write(client, chunk, function ()
+    client:write(chunk, function ()
       p("on_written")
-    end);
+    end)
 
   end)
   
   print("Adding listener for close event")
-  UV.set_handler(client, "end", function ()
+  client:on("end", function ()
     p("on_end")
     
-    print("Adding listener for closed event")
-    UV.set_handler(client, "closed", function ()
+    print("Closing connection")
+    client:close(function ()
       p("on_closed")
     end)
-    
-    print("Closing connection")
-    UV.close(client)
   end)
   
   print("Accepting the client")
-  UV.accept(server, client)
+  server:accept(client)
   
   print("Starting reads")
-  UV.read_start(client)
+  client:read_start()
 
 end)
 
