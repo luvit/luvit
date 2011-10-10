@@ -50,8 +50,7 @@ function HTTP.create_server(host, port, on_connection)
       end
     })
     
-    client:on("data", function (chunk)
-      local len = #chunk
+    client:on("data", function (chunk, len)
       if len == 0 then return end
       local nparsed = parser:execute(chunk, 0, len)
       if nparsed < len then
