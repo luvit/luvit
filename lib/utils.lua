@@ -1,3 +1,5 @@
+local Table = require('table')
+
 local colors = {
   black   = "0;30",
   red     = "0;31",
@@ -36,10 +38,9 @@ local obracket  = colorize("white", '[')
 local cbracket  = colorize("white", ']')
 
 local function dump(o, depth)
-  if type(depth) == 'nil' then
-    depth = 0
+  if type(o) == 'string' then
+    return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
   end
-  local indent = ("  "):rep(depth)
   if type(o) == 'nil' then
     return colorize("Bblack", "nil")
   end
@@ -49,13 +50,23 @@ local function dump(o, depth)
   if type(o) == 'number' then
     return colorize("blue", tostring(o))
   end
-  if type(o) == 'string' then
-    return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
+  if type(o) == 'userdata' then
+    return colorize("magenta", tostring(o))
+  end
+  if type(o) == 'thread' then
+    return colorize("Bred", tostring(o))
+  end
+  if type(o) == 'function' then
+    return colorize("cyan", tostring(o))
   end
   if type(o) == 'table' then
+    if type(depth) == 'nil' then
+      depth = 0
+    end
     if depth > 1 then
       return colorize("yellow", tostring(o))
     end
+    local indent = ("  "):rep(depth)
 
     -- Check to see if this is an array
     local is_array = true
@@ -67,38 +78,31 @@ local function dump(o, depth)
       i = i + 1
     end
 
-    local s = '{'
     local first = true
+    local lines = {}
+    i = 1
+    local estimated = 0
     for k,v in pairs(o) do
-      if first then
-        first = false
+      local s
+      if is_array then
+        s = ""
       else
-        s = s .. ","
-      end
-      s = s .. "\255"
-      if not is_array then
         if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
-          s = s .. k .. ' = '
+          s = k .. ' = '
         else
-          s = s .. '[' .. dump(k, 100) .. '] = '
+          s = '[' .. dump(k, 100) .. '] = '
         end
       end
       s = s .. dump(v, depth + 1)
+      lines[i] = s
+      estimated = estimated + #s
+      i = i + 1
     end
-    if #s > 200 then
-      return s:gsub("\255", "\n" .. indent .. "  ") .. "\n" .. indent .. "}"
+    if estimated > 200 then
+      return "{\n  " .. indent .. Table.concat(lines, ",\n  " .. indent) .. "\n" .. indent .. "}"
     else
-      return s:gsub("\255", " ") .. " }"
+      return "{ " .. Table.concat(lines, ", ") .. " }"
     end
-  end
-  if type(o) == 'userdata' then
-    return colorize("magenta", tostring(o))
-  end
-  if type(o) == 'thread' then
-    return colorize("Bred", tostring(o))
-  end
-  if type(o) == 'function' then
-    return colorize("cyan", tostring(o))
   end
   -- This doesn't happen right?
   return tostring(o)
