@@ -1,6 +1,5 @@
 local UV = require('uv')
 local Table = require('table')
-local Fibers = require('fibers')
 
 local CHUNK_SIZE = 4096
 
@@ -51,32 +50,32 @@ local function write_file(path, data, callback)
 end
 
 return {
-  read_file = Fibers.wrap(read_file, 1),
-  write_file = Fibers.wrap(write_file, 2),
-  open = Fibers.wrap(UV.fs_open, 3),
-  close = Fibers.wrap(UV.fs_close, 1),
-  read = Fibers.wrap(UV.fs_read, 3),
-  write = Fibers.wrap(UV.fs_write, 3),
-  unlink = Fibers.wrap(UV.fs_unlink, 1),
-  mkdir = Fibers.wrap(UV.fs_mkdir, 2),
-  rmdir = Fibers.wrap(UV.fs_rmdir, 1),
-  readdir = Fibers.wrap(UV.fs_readdir, 1),
-  stat = Fibers.wrap(UV.fs_stat, 1),
-  fstat = Fibers.wrap(UV.fs_fstat, 1),
-  rename = Fibers.wrap(UV.fs_rename, 2),
-  fsync = Fibers.wrap(UV.fs_fsync, 1),
-  fdatasync = Fibers.wrap(UV.fs_fdatasync, 1),
-  ftruncate = Fibers.wrap(UV.fs_ftruncate, 2),
-  sendfile = Fibers.wrap(UV.fs_sendfile, 4),
-  chmod = Fibers.wrap(UV.fs_chmod, 2),
-  utime = Fibers.wrap(UV.fs_utime, 3),
-  futime = Fibers.wrap(UV.fs_futime, 3),
-  lstat = Fibers.wrap(UV.fs_lstat, 1),
-  link = Fibers.wrap(UV.fs_link, 2),
-  symlink = Fibers.wrap(UV.fs_symlink, 3),
-  readlink = Fibers.wrap(UV.fs_readlink, 1),
-  fchmod = Fibers.wrap(UV.fs_fchmod, 2),
-  chown = Fibers.wrap(UV.fs_chown, 3),
-  fchown = Fibers.wrap(UV.fs_fchown, 3),
+  read_file = read_file,
+  write_file = write_file,
+  open = UV.fs_open,
+  close = UV.fs_close,
+  read = UV.fs_read,
+  write = UV.fs_write,
+  unlink = UV.fs_unlink,
+  mkdir = UV.fs_mkdir,
+  rmdir = UV.fs_rmdir,
+  readdir = UV.fs_readdir,
+  stat = UV.fs_stat,
+  fstat = UV.fs_fstat,
+  rename = UV.fs_rename,
+  fsync = UV.fs_fsync,
+  fdatasync = UV.fs_fdatasync,
+  ftruncate = UV.fs_ftruncate,
+  sendfile = UV.fs_sendfile,
+  chmod = UV.fs_chmod,
+  utime = UV.fs_utime,
+  futime = UV.fs_futime,
+  lstat = UV.fs_lstat,
+  link = UV.fs_link,
+  symlink = UV.fs_symlink,
+  readlink = UV.fs_readlink,
+  fchmod = UV.fs_fchmod,
+  chown = UV.fs_chown,
+  fchown = UV.fs_fchown,
 }
 

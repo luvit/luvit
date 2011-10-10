@@ -1,22 +1,28 @@
 local FS = require('fs');
 local Fibers = require('fibers')
+local open = Fibers.wrap(FS.open, 3)
+local fstat = Fibers.wrap(FS.fstat, 1)
+local read = Fibers.wrap(FS.read, 3)
+local close = Fibers.wrap(FS.close, 1)
+local readdir = Fibers.wrap(FS.readdir, 1)
+
 
 Fibers.new(function (co)
 
   print("opening...")
-  local err, fd = FS.open(co, "license.txt", "r", "0644")
+  local err, fd = open(co, "license.txt", "r", "0644")
   p("on_open", {err=err, fd=fd})
   if (err) then return end
 
   print("fstatting...")
-  local err, stat = FS.fstat(co, fd)
+  local err, stat = fstat(co, fd)
   p("stat", {err=err, stat=stat})
   if (err) then return end
 
   print("reading...")
   local offset = 0
   repeat
-    local err, chunk = FS.read(co, fd, offset, 128)
+    local err, chunk = read(co, fd, offset, 128)
     local length = #chunk
     p("on_read", {err=err, chunk=chunk, offset=offset, length=length})
     if (err) then return end
@@ -24,7 +30,7 @@ Fibers.new(function (co)
   until length == 0
 
   print("closing...")
-  local err = FS.close(co, fd)
+  local err = close(co, fd)
   p("on_close", {err=err})
   if (err) then return end
 
@@ -33,7 +39,7 @@ end)
 Fibers.new(function (co)
 
   print("scanning directory...")
-  local err, files = FS.readdir(co, ".")
+  local err, files = readdir(co, ".")
   p("on_open", {err=err, files=files})
   if (err) then return end
 
