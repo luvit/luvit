@@ -1,7 +1,7 @@
 local TCP = require('tcp')
 
 local server = TCP.create_server("0.0.0.0", 8080, function (client)
-  p("on_connection", err, client)
+  p("on_connection", client)
 
   print("Adding listener for data events")
   client:on("data", function (chunk)

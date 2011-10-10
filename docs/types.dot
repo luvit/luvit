@@ -22,6 +22,8 @@ digraph finite_state_machine {
   tcp [label="<table>TCP"];
   tty [label="<table>TTY"];
   pipe [label="<table>PIPE"];
+  request [label="<table>REQUEST"];
+  response [label="<table>RESPONSE|write_head"];
   
 
   /* Inheritance Chains */
@@ -42,6 +44,8 @@ digraph finite_state_machine {
   tcp:table -> stream:table;
   tty:table -> stream:table;
   pipe:table -> stream:table;
+  request:table -> tcp:table;
+  response:table -> tcp:table;
   
   // cross
   tty:table -> utty:udata;
