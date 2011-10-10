@@ -9,9 +9,15 @@ void luv_on_connection(uv_stream_t* handle, int status) {
   lua_State *L = ref->L;
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  if (status == -1) {
+    luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
+    luv_emit_event(L, "connection", 1);
+  } else {
+    lua_pushnil(L);
+    lua_pushinteger(L, status);
+    luv_emit_event(L, "connection", 2);
+  }
 
-  lua_pushinteger(L, status);
-  luv_emit_event(L, "connection", 1);
   lua_pop(L, 1); // remove the userdata
   assert(lua_gettop(L) == before);
 }
@@ -56,8 +62,14 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
   if (lua_isfunction(L, -1)) {
-    lua_pushnumber(L, status);
-    luv_acall(L, 1, 0, "after_shutdown");
+    if (status == -1) {
+      luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
+      luv_acall(L, 1, 0, "after_shutdown");
+    } else {
+      lua_pushnil(L);
+      lua_pushinteger(L, status);
+      luv_acall(L, 2, 0, "after_shutdown");
+    }
   } else {
     lua_pop(L, 1);
   }
@@ -77,10 +89,12 @@ void luv_after_write(uv_write_t* req, int status) {
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
       luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
+      luv_acall(L, 1, 0, "after_write");
     } else {
       lua_pushnil(L);
+      lua_pushinteger(L, status);
+      luv_acall(L, 2, 0, "after_write");
     }
-    luv_acall(L, 1, 0, "after_write");
   } else {
     lua_pop(L, 1);
   }
