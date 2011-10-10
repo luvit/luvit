@@ -13,9 +13,7 @@ void luv_on_connection(uv_stream_t* handle, int status) {
     luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
     luv_emit_event(L, "connection", 1);
   } else {
-    lua_pushnil(L);
-    lua_pushinteger(L, status);
-    luv_emit_event(L, "connection", 2);
+    luv_emit_event(L, "connection", 0);
   }
 
   lua_pop(L, 1); // remove the userdata
@@ -66,9 +64,7 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
       luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
       luv_acall(L, 1, 0, "after_shutdown");
     } else {
-      lua_pushnil(L);
-      lua_pushinteger(L, status);
-      luv_acall(L, 2, 0, "after_shutdown");
+      luv_acall(L, 0, 0, "after_shutdown");
     }
   } else {
     lua_pop(L, 1);
@@ -91,9 +87,7 @@ void luv_after_write(uv_write_t* req, int status) {
       luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
       luv_acall(L, 1, 0, "after_write");
     } else {
-      lua_pushnil(L);
-      lua_pushinteger(L, status);
-      luv_acall(L, 2, 0, "after_write");
+      luv_acall(L, 0, 0, "after_write");
     }
   } else {
     lua_pop(L, 1);
