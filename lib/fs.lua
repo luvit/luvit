@@ -32,12 +32,13 @@ local FS = {
   fchown = UV.fs_fchown,
 }
 
-local CHUNK_SIZE = 4096
+local CHUNK_SIZE = 65536
 
 local read_options = {
   flags = "r",
   mode = "0644",
   offset = 0,
+  length = nil -- nil means read to EOF
 }
 local read_meta = {__index=read_options}
 
@@ -52,16 +53,22 @@ function FS.create_read_stream(path, options)
   local stream = Stream.new()
   FS.open(path, options.flags, options.mode, function (err, fd)
     if err then return stream:emit("error", err) end
-    local offset = 0
+    local offset = options.offset
+    local last = options.length and offset + options.length
+    p({offset=offset,last=last,length=options.length})
+
     local function read_chunk()
-      FS.read(fd, offset, CHUNK_SIZE, function (err, chunk, len)
-        if err then return stream:emit("error", err) end
-        if len == 0 then
-          stream:emit("end")
+      local to_read = (last and CHUNK_SIZE + offset > last and last - offset) or CHUNK_SIZE
+      FS.read(fd, offset, to_read, function (err, chunk, len)
+        if err or len == 0 then
           FS.close(fd, function (err)
             if err then return stream:emit("error", err) end
             stream:emit("close")
           end)
+          if err then return stream:emit("error", err) end
+        end
+        if len == 0 then
+          stream:emit("end")
         else
           stream:emit("data", chunk, len)
           offset = offset + len
