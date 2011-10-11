@@ -3,6 +3,7 @@ local Stream = {prototype = {}}
 local stream_prototype = Stream.prototype
 setmetatable(stream_prototype, emitter_meta)
 local stream_meta = {__index=stream_prototype}
+Stream.meta = stream_meta
 
 function Stream.new()
   local stream = {}
