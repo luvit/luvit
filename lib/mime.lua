@@ -177,7 +177,7 @@ MIME.table = table
 MIME.default = "application/octet-stream"
 
 function MIME.get_type(path)
-  return MIME.table[path:match("[^.]*$")] or MIME.default  
+  return MIME.table[path:lower():match("[^.]*$")] or MIME.default
 end
 
 return MIME
