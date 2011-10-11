@@ -53,7 +53,7 @@ function FS.create_read_stream(path, options)
   FS.open(path, options.flags, options.mode, function (err, fd)
     if err then return stream:emit("error", err) end
     local offset = 0
-    function read_chunk()
+    local function read_chunk()
       FS.read(fd, offset, CHUNK_SIZE, function (err, chunk, len)
         if err then return stream:emit("error", err) end
         if len == 0 then
