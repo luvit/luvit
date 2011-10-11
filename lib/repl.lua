@@ -15,43 +15,41 @@ local function print_results(results)
   print(Table.concat(results, '\t'))
 end
 
-do
-  local buffer = ''
+local buffer = ''
 
-  function evaluate_line(line)
-    local chunk  = buffer .. line
-    local f, err = loadstring('return ' .. chunk, 'REPL') -- first we prefix return
+local function evaluate_line(line)
+  local chunk  = buffer .. line
+  local f, err = loadstring('return ' .. chunk, 'REPL') -- first we prefix return
 
-    if not f then
-      f, err = loadstring(chunk, 'REPL') -- try again without return
-    end
+  if not f then
+    f, err = loadstring(chunk, 'REPL') -- try again without return
+  end
 
-    if f then
-      buffer = ''
-      local success, results = gather_results(xpcall(f, Debug.traceback))
+  if f then
+    buffer = ''
+    local success, results = gather_results(xpcall(f, Debug.traceback))
 
-      if success then
-        -- successful call
-        if results.n > 0 then
-          print_results(results)
-        end
-      else
-        -- error
-        print(results[1])
+    if success then
+      -- successful call
+      if results.n > 0 then
+        print_results(results)
       end
     else
-
-      if err:match "'<eof>'$" then
-        -- Lua expects some more input; stow it away for next time
-        buffer = chunk .. '\n'
-        return '>>'
-      else
-        print(err)
-      end
+      -- error
+      print(results[1])
     end
+  else
 
-    return '>'
+    if err:match "'<eof>'$" then
+      -- Lua expects some more input; stow it away for next time
+      buffer = chunk .. '\n'
+      return '>>'
+    else
+      print(err)
+    end
   end
+
+  return '>'
 end
 
 
