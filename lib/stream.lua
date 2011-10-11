@@ -11,4 +11,13 @@ function Stream.new()
   return stream
 end
 
+function Stream.prototype:pipe(target)
+  self:on('data', function (chunk, len)
+    target:write(chunk)
+  end)
+  self:on('end', function ()
+    target:close()
+  end)
+end
+
 return Stream

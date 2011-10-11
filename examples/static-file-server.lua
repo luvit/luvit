@@ -43,13 +43,8 @@ HTTP.create_server("0.0.0.0", 8080, function(req, res)
       ["Content-Type"] = MIME.get_type(path),
       ["Content-Length"] = stat.size
     })
-    local stream = FS.create_read_stream(path)
-    stream:on('data', function (chunk, len)
-      res:write(chunk)
-    end)
-    stream:on('end', function ()
-      res:close()
-    end)
+
+    FS.create_read_stream(path):pipe(res)
 
   end)
 
