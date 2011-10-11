@@ -70,7 +70,10 @@ function Response.new(client)
 end
 
 function Response.prototype:write_head(code, headers, callback)
-  local head = "HTTP/1.1 " .. code .. " " .. status_codes_table[code] .. "\r\n"
+
+  local reason = status_codes_table[code]
+  if not reason then error("Invalue response code " .. tostring(code)) end
+  local head = "HTTP/1.1 " .. code .. " " .. reason .. "\r\n"
   for field, value in pairs(headers) do
     head = head .. field .. ": " .. value .. "\r\n"
   end

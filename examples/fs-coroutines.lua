@@ -1,13 +1,13 @@
 local FS = require('fs');
-local Fibers = require('fibers')
-local open = Fibers.wrap(FS.open, 3)
-local fstat = Fibers.wrap(FS.fstat, 1)
-local read = Fibers.wrap(FS.read, 3)
-local close = Fibers.wrap(FS.close, 1)
-local readdir = Fibers.wrap(FS.readdir, 1)
+local Fiber = require('fiber')
+local open = Fiber.wrap(FS.open, 3)
+local fstat = Fiber.wrap(FS.fstat, 1)
+local read = Fiber.wrap(FS.read, 3)
+local close = Fiber.wrap(FS.close, 1)
+local readdir = Fiber.wrap(FS.readdir, 1)
 
 
-Fibers.new(function (co)
+Fiber.new(function (co)
 
   print("opening...")
   local err, fd = open(co, "license.txt", "r", "0644")
@@ -36,7 +36,7 @@ Fibers.new(function (co)
 
 end)
 
-Fibers.new(function (co)
+Fiber.new(function (co)
 
   print("scanning directory...")
   local err, files = readdir(co, ".")

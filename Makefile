@@ -6,6 +6,7 @@ GENDIR=${BUILDDIR}/generated
 
 LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/http.o     \
+        ${GENDIR}/url.o      \
         ${GENDIR}/request.o  \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
@@ -17,7 +18,7 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/tty.o      \
         ${GENDIR}/timer.o    \
         ${GENDIR}/repl.o     \
-        ${GENDIR}/fibers.o   \
+        ${GENDIR}/fiber.o    \
         ${GENDIR}/mime.o     \
         ${GENDIR}/utils.o
 
