@@ -34,30 +34,75 @@ local FS = {
 
 local CHUNK_SIZE = 4096
 
-function FS.read_file(path, callback)
-  FS.open(path, "r", "0666", function (err, fd)
-    if err then return callback(err) end
-    local parts = {}
+local read_options = {
+  flags = "r",
+  mode = "0644",
+  offset = 0,
+}
+local read_meta = {__index=read_options}
+
+-- TODO: Implement backpressure here and in tcp streams
+function FS.create_read_stream(path, options)
+  if not options then
+    options = read_options
+  else
+    setmetatable(options, read_meta)
+  end
+
+  local stream = Stream.new()
+  FS.open(path, options.flags, options.mode, function (err, fd)
+    if err then return stream:emit("error", err) end
     local offset = 0
-    local index = 1
-    local function readchunk()
-      FS.read(fd, offset, CHUNK_SIZE, function (err, chunk)
-        if err then return callback(err) end
-        if #chunk == 0 then
+    function read_chunk()
+      FS.read(fd, offset, CHUNK_SIZE, function (err, chunk, len)
+        if err then return stream:emit("error", err) end
+        if len == 0 then
+          stream:emit("end")
           FS.close(fd, function (err)
-            if err then return callback(err) end
-            return callback(nil, Table.concat(parts, ""))
+            if err then return stream:emit("error", err) end
+            stream:emit("close")
           end)
         else
-          parts[index] = chunk
-          index = index + 1
-          offset = offset + #chunk
-          readchunk()
+          stream:emit("data", chunk, len)
+          offset = offset + len
+          read_chunk()
         end
       end)
     end
-    readchunk()
+    read_chunk()
   end)
+  return stream
+end
+
+local write_options = {
+  flags = "w",
+  mode = "0644",
+  offset = 0,
+}
+local write_meta = {__index=write_options}
+
+function FS.create_write_stream(path, options)
+  if not options then
+    options = write_options
+  else
+    setmetatable(options, write_meta)
+  end
+
+  error("TODO: Implement write_stream")
+end
+
+function FS.read_file(path, callback)
+  local stream = FS.create_read_stream(path)
+  local parts = {}
+  local num = 0
+  stream:on("data", function (chunk, len)
+    num = num + 1
+    parts[num] = chunk
+  end)
+  stream:on("end", function ()
+    return callback(nil, Table.concat(parts, ""))
+  end)
+  stream:on("error", callback)
 end
 
 function FS.write_file(path, data, callback)
@@ -80,31 +125,6 @@ function FS.write_file(path, data, callback)
   end)
 end
 
-function FS.create_read_stream(path, options)
-  local stream = Stream.new()
-  FS.open(path, "r", "0666", function (err, fd)
-    if err then return stream:emit("error", err) end
-    local offset = 0
-    function read_chunk()
-      FS.read(fd, offset, CHUNK_SIZE, function (err, chunk, len)
-        if err then return stream:emit("error", err) end
-        if len == 0 then
-          stream:emit("end")
-          FS.close(fd, function (err)
-            if err then return stream:emit("error", err) end
-            stream:emit("closed")
-          end)
-        else
-          stream:emit("data", chunk, len)
-          offset = offset + len
-          read_chunk()
-        end
-      end)
-    end
-    read_chunk()
-  end)
-  return stream
-end
 
 return FS
 
