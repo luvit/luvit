@@ -104,8 +104,9 @@ void luv_after_fs(uv_fs_t* req) {
         break;
 
       case UV_FS_READ:
-        argc = 1;
+        argc = 2;
         lua_pushlstring(L, ref->buf, req->result);
+        lua_pushinteger(L, req->result);
         free(ref->buf);
         break;
 
