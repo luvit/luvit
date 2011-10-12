@@ -1,4 +1,4 @@
-# Luvit (Lua + libUV + jIT = pure awesomesause)
+# Luvit (Lua + libUV + jIT = pure awesomesauce)
 
 Luvit is an attempt to do something crazy by taking nodeJS's awesome
 architecture and dependencies and seeing how it fits in the Lua language.
