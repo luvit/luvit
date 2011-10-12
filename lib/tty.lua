@@ -7,9 +7,9 @@ local tty_prototype = {}
 setmetatable(tty_prototype, stream_meta)
 TTY.prototype = tty_prototype
 
-function TTY.new(fd)
+function TTY.new(fd, readable)
   local tty = {
-    userdata = UV.new_tty(fd),
+    userdata = UV.new_tty(fd, readable),
     prototype = tty_prototype
   }
   setmetatable(tty, user_meta)

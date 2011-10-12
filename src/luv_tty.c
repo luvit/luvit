@@ -6,9 +6,10 @@
 int luv_new_tty (lua_State* L) {
   int before = lua_gettop(L);
   uv_file fd = luaL_checkint(L, 1);
+  int readable = lua_toboolean(L, 2);
 
   uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
-  uv_tty_init(uv_default_loop(), handle, fd);
+  uv_tty_init(uv_default_loop(), handle, fd, readable);
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_tty");
