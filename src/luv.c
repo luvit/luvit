@@ -26,6 +26,7 @@ static const luaL_reg luv_f[] = {
   {"new_udp", luv_new_udp},
   {"udp_bind", luv_udp_bind},
   {"udp_bind6", luv_udp_bind6},
+  {"udp_set_membership", luv_udp_set_membership},
   {"udp_getsockname", luv_udp_getsockname},
   {"udp_send", luv_udp_send},
   {"udp_send6", luv_udp_send6},
@@ -128,6 +129,7 @@ static const luaL_reg luv_handle_m[] = {
 static const luaL_reg luv_udp_m[] = {
   {"bind", luv_udp_bind},
   {"bind6", luv_udp_bind6},
+  {"set_membership", luv_udp_set_membership},
   {"getsockname", luv_udp_getsockname},
   {"send", luv_udp_send},
   {"send6", luv_udp_send6},
