@@ -38,7 +38,7 @@ void luv_on_timer(uv_timer_t* handle, int status) {
 
   lua_pushinteger(L, status);
   luv_emit_event(L, "timeout", 1);
-  lua_pop(L, 1); // remove the userdata
+  //lua_pop(L, 1); // remove the userdata
   assert(lua_gettop(L) == before);
 }
 

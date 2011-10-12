@@ -20,18 +20,23 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
   // Load the connection callback
   lua_getfenv(L, -nargs - 1);
   lua_getfield(L, -1, name);
+  // remove the userdata environment
   lua_remove(L, -2);
+  // Remove the userdata
+  lua_remove(L, -nargs - 2);
+
   if (lua_isfunction (L, -1) == 0) {
     lua_pop(L, 1 + nargs);
-    assert(lua_gettop(L) == before - nargs);
+    assert(lua_gettop(L) == before - nargs - 1);
     return;
   }
+
 
   // move the function below the args
   lua_insert(L, -nargs - 1);
   luv_acall(L, nargs, 0, name);
 
-  assert(lua_gettop(L) == before - nargs);
+  assert(lua_gettop(L) == before - nargs - 1);
 }
 
 void luv_after_connect(uv_connect_t* req, int status) {
@@ -43,7 +48,6 @@ void luv_after_connect(uv_connect_t* req, int status) {
 
   lua_pushinteger(L, status);
   luv_emit_event(L, "complete", 1);
-  lua_pop(L, 1); // remove the userdata
 
   assert(lua_gettop(L) == before);
 }
@@ -64,7 +68,6 @@ void luv_on_close(uv_handle_t* handle) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
   luv_emit_event(L, "closed", 0);
-  lua_pop(L, 1); // remove userdata
 
   // This handle is no longer valid, clean up memory
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);

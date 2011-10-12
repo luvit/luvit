@@ -14,7 +14,6 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
   lua_pushinteger(L, term_signal);
   luv_emit_event(L, "exit", 2);
 
-  lua_pop(L, 1); // remove the userdata
   assert(lua_gettop(L) == before);
 }
 

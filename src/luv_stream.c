@@ -16,7 +16,6 @@ void luv_on_connection(uv_stream_t* handle, int status) {
     luv_emit_event(L, "connection", 0);
   }
 
-  lua_pop(L, 1); // remove the userdata
   assert(lua_gettop(L) == before);
 }
 
@@ -42,7 +41,6 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
       luaL_error(L, "read: %s", uv_strerror(err));
     }
   }
-  lua_pop(L, 1); // Remove the userdata
 
   free(buf.base);
   assert(lua_gettop(L) == before);

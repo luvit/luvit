@@ -27,7 +27,6 @@ void luv_on_fs_event(uv_fs_event_t* handle, const char* filename, int events, in
   }
 
   luv_emit_event(L, "change", 3);
-  lua_pop(L, 1); // remove the userdata
   assert(lua_gettop(L) == before);
 
 }
