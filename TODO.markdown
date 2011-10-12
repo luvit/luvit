@@ -90,8 +90,8 @@ bindings into logical submodules and mark the implementation progress.
 
 ## SubProcess
 
- - `uv_spawn`: Initializes uv_process_t and starts the process
- - `uv_process_kill`: Kills the process with the specified signal
+ * `uv_spawn`: Initializes uv_process_t and starts the process
+ * `uv_process_kill`: Kills the process with the specified signal
 
 ## Timers
 

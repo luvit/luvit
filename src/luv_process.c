@@ -19,8 +19,7 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
 }
 
 
-/* Initializes uv_process_t and starts the process. */
-//int uv_spawn(uv_loop_t*, uv_process_t*, uv_process_options_t options);
+// Initializes uv_process_t and starts the process.
 int luv_spawn(lua_State* L) {
   int before = lua_gettop(L);
   uv_pipe_t* stdin_stream = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
@@ -96,9 +95,6 @@ int luv_spawn(lua_State* L) {
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   handle->data = ref;
-
-
-
 
   assert(lua_gettop(L) == before + 1);
   // return the userdata
