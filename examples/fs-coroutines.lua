@@ -1,4 +1,5 @@
 local FS = require('fs');
+local Timer = require('timer');
 local Fiber = require('fiber')
 
 Fiber.new(function (resume, wait)
@@ -21,6 +22,10 @@ Fiber.new(function (resume, wait)
     p("on_read", {err=err,chunk=chunk, offset=offset, length=length})
     offset = offset + length
   until length == 0
+
+  print("pausing...")
+  Timer.set_timeout(400, resume)
+  wait()
 
   print("closing...")
   FS.close(fd, resume)
