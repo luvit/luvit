@@ -3,8 +3,6 @@ local Table = require('table')
 local Stream = require('stream')
 
 local FS = {
-  read_file = read_file,
-  write_file = write_file,
   open = UV.fs_open,
   close = UV.fs_close,
   read = UV.fs_read,
