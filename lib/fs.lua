@@ -37,6 +37,7 @@ local CHUNK_SIZE = 65536
 local read_options = {
   flags = "r",
   mode = "0644",
+  chunk_size = CHUNK_SIZE,
   offset = 0,
   length = nil -- nil means read to EOF
 }
@@ -55,10 +56,10 @@ function FS.create_read_stream(path, options)
     if err then return stream:emit("error", err) end
     local offset = options.offset
     local last = options.length and offset + options.length
-    p({offset=offset,last=last,length=options.length})
+    local chunk_size = options.chunk_size
 
     local function read_chunk()
-      local to_read = (last and CHUNK_SIZE + offset > last and last - offset) or CHUNK_SIZE
+      local to_read = (last and chunk_size + offset > last and last - offset) or chunk_size
       FS.read(fd, offset, to_read, function (err, chunk, len)
         if err or len == 0 then
           FS.close(fd, function (err)
@@ -66,8 +67,7 @@ function FS.create_read_stream(path, options)
             stream:emit("close")
           end)
           if err then return stream:emit("error", err) end
-        end
-        if len == 0 then
+
           stream:emit("end")
         else
           stream:emit("data", chunk, len)
@@ -84,6 +84,7 @@ end
 local write_options = {
   flags = "w",
   mode = "0644",
+  chunk_size = CHUNK_SIZE,
   offset = 0,
 }
 local write_meta = {__index=write_options}
