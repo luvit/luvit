@@ -10,6 +10,7 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/request.o  \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
+        ${GENDIR}/process.o  \
         ${GENDIR}/emitter.o  \
         ${GENDIR}/udp.o      \
         ${GENDIR}/stream.o   \
