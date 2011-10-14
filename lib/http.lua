@@ -55,7 +55,7 @@ function HTTP.create_server(host, port, on_connection)
       if len == 0 then return end
       local nparsed = parser:execute(chunk, 0, len)
       if nparsed < len then
-        request:emit("Error", "parse error")
+        request:emit("error", "parse error")
       end
     end)
 
