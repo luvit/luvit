@@ -23,6 +23,9 @@ void luv_io_error(lua_State* L, int errorno, const char *syscall, const char *ms
 // Make sure to not call with long type strings or strcat will overflow
 void* luv_checkudata(lua_State* L, int index, const char* type);
 
+const char* luv_handle_type_to_string(uv_handle_type type);
+
+
 typedef struct {
   lua_State* L;
   int r;

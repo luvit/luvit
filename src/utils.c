@@ -105,3 +105,23 @@ void* luv_checkudata(lua_State* L, int index, const char* type) {
   return lua_touserdata(L, index);
 }
 
+const char* luv_handle_type_to_string(uv_handle_type type) {
+  switch (type) {
+    case UV_TCP: return "TCP";
+    case UV_UDP: return "UDP";
+    case UV_NAMED_PIPE: return "NAMED_PIPE";
+    case UV_TTY: return "TTY";
+    case UV_FILE: return "FILE";
+    case UV_TIMER: return "TIMER";
+    case UV_PREPARE: return "PREPARE";
+    case UV_CHECK: return "CHECK";
+    case UV_IDLE: return "IDLE";
+    case UV_ASYNC: return "ASYNC";
+    case UV_ARES_TASK: return "ARES_TASK";
+    case UV_ARES_EVENT: return "ARES_EVENT";
+    case UV_PROCESS: return "PROCESS";
+    case UV_FS_EVENT: return "FS_EVENT";
+    default: return "UNKNOWN_HANDLE";
+  }
+}
+

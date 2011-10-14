@@ -65,4 +65,12 @@ int luv_execpath(lua_State* L) {
   return 1;
 }
 
+int luv_handle_type(lua_State* L) {
+  uv_file file = luaL_checkint(L, 1);
+  uv_handle_type type = uv_guess_handle(file);
+  lua_pushstring(L, luv_handle_type_to_string(type));
+  return 1;
+}
+
+
 
