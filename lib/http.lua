@@ -60,6 +60,7 @@ function HTTP.create_server(host, port, on_connection)
 
     client:on("end", function ()
       parser:finish()
+      request:emit('end')
     end)
 
   end)
