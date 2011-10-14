@@ -40,7 +40,11 @@ function HTTP.create_server(host, port, on_connection)
       end,
       on_headers_complete = function (info)
         request.method = info.method
-        on_connection(request, response)
+        if info.upgrade then
+          server:emit("upgrade", request, client)
+        else
+          on_connection(request, response)
+        end
       end,
       on_body = function (chunk)
         request:emit('data', chunk)
