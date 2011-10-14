@@ -47,6 +47,7 @@ function HTTP.create_server(host, port, on_connection)
       end,
       on_message_complete = function ()
         parser:finish()
+        request:emit('end')
       end
     })
     
@@ -60,7 +61,6 @@ function HTTP.create_server(host, port, on_connection)
 
     client:on("end", function ()
       parser:finish()
-      request:emit('end')
     end)
 
   end)
