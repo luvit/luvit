@@ -81,7 +81,10 @@ setmetatable(env, {
 -- This is called by all the event sources from C
 -- The user can override it to hook into event sources
 function event_source(name, fn, ...)
-  return fn(...)
+  local args = {...}
+  return assert(xpcall(function ()
+    return fn(unpack(args))
+  end, Debug.traceback))
 end
 
 -- Load the file given or start the interactive repl
