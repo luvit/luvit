@@ -38,28 +38,32 @@ local obracket  = colorize("white", '[')
 local cbracket  = colorize("white", ']')
 
 local function dump(o, depth)
-  if type(o) == 'string' then
+  local t = type(o)
+  if t == 'string' then
     return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
   end
-  if type(o) == 'nil' then
+  if t == 'nil' then
     return colorize("Bblack", "nil")
   end
-  if type(o) == 'boolean' then
+  if t == 'boolean' then
     return colorize("yellow", tostring(o))
   end
-  if type(o) == 'number' then
+  if t == 'number' then
     return colorize("blue", tostring(o))
   end
-  if type(o) == 'userdata' then
+  if t == 'userdata' then
     return colorize("magenta", tostring(o))
   end
-  if type(o) == 'thread' then
+  if t == 'thread' then
     return colorize("Bred", tostring(o))
   end
-  if type(o) == 'function' then
+  if t == 'function' then
     return colorize("cyan", tostring(o))
   end
-  if type(o) == 'table' then
+  if t == 'cdata' then
+    return colorize("Bmagenta", tostring(o))
+  end
+  if t == 'table' then
     if type(depth) == 'nil' then
       depth = 0
     end
