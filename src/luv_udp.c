@@ -68,8 +68,26 @@ int luv_udp_bind6(lua_State* L) {
   return 0;
 }
 
+static const char *const luv_membership_options[] = {"join", "leave", NULL};
+
+/*int uv_udp_set_membership(uv_udp_t* handle, const char* multicast_addr,*/
+/*  const char* interface_addr, uv_membership membership);*/
 int luv_udp_set_membership(lua_State* L) {
-  return luaL_error(L, "TODO: Implement luv_udp_set_membership");
+  int before = lua_gettop(L);
+  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
+/*  const char* multicast_addr = luaL_checkstring(L, 2);*/
+  const char* interface_addr = luaL_checkstring(L, 3);
+  int option = luaL_checkoption (L, 4, "membership", luv_membership_options);
+  uv_membership membership = option ? UV_LEAVE_GROUP : UV_JOIN_GROUP;
+
+  // TODO: don't use null, let user pass in
+  if (uv_udp_set_membership(handle, NULL, interface_addr, membership)) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    return luaL_error(L, "udp_set_membership: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
+  return 0;
 }
 
 int luv_udp_getsockname(lua_State* L) {
