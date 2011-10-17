@@ -30,10 +30,7 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
     lua_insert(L, -offset);
     lua_pushstring(L, source);
     lua_insert(L, -offset);
-
-    if (lua_pcall(L, nargs + 2, nresults, 0)) {
-      luaL_error(L, "EVERR '%s': %s", source, lua_tostring(L, -1));
-    }
+    lua_call(L, nargs + 2, nresults);
   }
   assert(lua_gettop(C) == beforeC - nargs - 1);
 
