@@ -74,8 +74,10 @@ void luv_after_fs(uv_fs_t* req) {
 
   int argc = 0;
   if (req->result == -1) {
-    // FIXME: PROPER ERROR HANDLER
-    luv_io_error(L, req->errorno, NULL, NULL, req->path);
+    uv_err_t err;
+    memset(&err, 0, sizeof err);
+    err.code = (uv_err_code)req->errorno;
+    luv_push_async_error(L, err, "after_fs", req->path);
   } else {
     lua_pushnil(L);
     switch (req->fs_type) {
