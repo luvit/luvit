@@ -11,7 +11,7 @@ void luv_on_connection(uv_stream_t* handle, int status) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   if (status == -1) {
     luv_push_async_error(L, uv_last_error(uv_default_loop()), "on_connection", NULL);
-    luv_emit_event(L, "connection", 1);
+    luv_emit_event(L, "error", 1);
   } else {
     luv_emit_event(L, "connection", 0);
   }
@@ -38,7 +38,8 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
     if (err.code == UV_EOF) {
       luv_emit_event(L, "end", 0);
     } else {
-      luaL_error(L, "read: %s", uv_strerror(err));
+      luv_push_async_error(L, uv_last_error(uv_default_loop()), "on_read", NULL);
+      luv_emit_event(L, "error", 1);
     }
   }
 

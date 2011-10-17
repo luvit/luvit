@@ -36,10 +36,12 @@ void luv_on_timer(uv_timer_t* handle, int status) {
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
-  // FIXME: PROPER ERROR HANDLER
-  lua_pushinteger(L, status);
-  luv_emit_event(L, "timeout", 1);
-  //lua_pop(L, 1); // remove the userdata
+  if (status == -1) {
+    luv_push_async_error(L, uv_last_error(uv_default_loop()), "on_timer", NULL);
+    luv_emit_event(L, "error", 1);
+  } else {
+    luv_emit_event(L, "timeout", 0);
+  }
   assert(lua_gettop(L) == before);
 }
 
