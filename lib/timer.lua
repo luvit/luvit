@@ -1,18 +1,20 @@
 local UV = require('uv')
 
-local function set_timeout(duration, callback)
+local function set_timeout(duration, callback, ...)
+  local args = {...}
   local timer = UV.new_timer()
   timer:start(duration, 0, function (status)
     timer:close()
-    callback()
+    callback(unpack(args))
   end)
   return timer
 end
 
-local function set_interval(period, callback)
+local function set_interval(period, callback, ...)
+  local args = {...}
   local timer = UV.new_timer()
   timer:start(period, period, function (status)
-    callback()
+    callback(unpack(args))
   end)
   return timer
 end
