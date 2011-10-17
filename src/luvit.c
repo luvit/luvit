@@ -1,5 +1,7 @@
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
+
 
 #include "lua.h"
 #include "lualib.h"
@@ -11,6 +13,13 @@
 #include "luv.h"
 #include "lhttp_parser.h"
 #include "lenv.h"
+
+
+int luvit_exit(lua_State* L) {
+  int exit_code = luaL_checkint(L, 1);
+  exit(exit_code);
+  return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -44,6 +53,9 @@ int main(int argc, char *argv[])
     lua_rawseti(L, -2, index);
   }
   lua_setglobal(L, "argv");
+
+  lua_pushcfunction(L, luvit_exit);
+  lua_setglobal(L, "exit_process");
 
   // Hold a reference to the main thread in the registry
   assert(lua_pushthread(L) == 1);
