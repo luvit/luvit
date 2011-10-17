@@ -37,9 +37,9 @@ client:on("complete", function ()
       assert(data == "pong")
 
       client:close()
-      server:close()
-      -- `server:close()` is needed only in this test case, to ensure that
-      -- process exits after it's done.
+
+      -- This test is done, let's exit
+      process.exit()
     end)
   end)
 end)

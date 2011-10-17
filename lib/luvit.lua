@@ -10,7 +10,6 @@ _G.bit = nil
 _G.debug = nil
 _G.table = nil
 _G.print = nil
-_G.dofile = nil
 _G.loadfile = nil
 
 -- Hide some stuff behind a metatable
