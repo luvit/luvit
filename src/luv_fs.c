@@ -74,6 +74,7 @@ void luv_after_fs(uv_fs_t* req) {
 
   int argc = 0;
   if (req->result == -1) {
+    // FIXME: PROPER ERROR HANDLER
     luv_io_error(L, req->errorno, NULL, NULL, req->path);
   } else {
     lua_pushnil(L);

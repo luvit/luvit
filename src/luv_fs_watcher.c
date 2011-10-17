@@ -12,6 +12,7 @@ void luv_on_fs_event(uv_fs_event_t* handle, const char* filename, int events, in
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
+  // FIXME: PROPER ERROR HANDLER
   lua_pushinteger(L, status);
 
   switch (events) {

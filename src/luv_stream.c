@@ -9,6 +9,7 @@ void luv_on_connection(uv_stream_t* handle, int status) {
   lua_State *L = ref->L;
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  // FIXME: PROPER ERROR HANDLER
   if (status == -1) {
     luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
     luv_emit_event(L, "connection", 1);
@@ -57,6 +58,7 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
+  // FIXME: PROPER ERROR HANDLER
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
       luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
@@ -80,6 +82,7 @@ void luv_after_write(uv_write_t* req, int status) {
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+  // FIXME: PROPER ERROR HANDLER
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
       luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
