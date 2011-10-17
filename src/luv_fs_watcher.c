@@ -12,22 +12,27 @@ void luv_on_fs_event(uv_fs_event_t* handle, const char* filename, int events, in
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
-  // FIXME: PROPER ERROR HANDLER
-  lua_pushinteger(L, status);
-
-  switch (events) {
-    case UV_RENAME: lua_pushstring(L, "rename"); break;
-    case UV_CHANGE: lua_pushstring(L, "change"); break;
-    default: lua_pushnil(L); break;
-  }
-
-  if (filename) {
-    lua_pushstring(L, filename);
+  if (status == -1) {
+    luv_push_async_error(L, uv_last_error(uv_default_loop()), "on_fs_event", NULL);
+    luv_emit_event(L, "error", 1);
   } else {
-    lua_pushnil(L);
+
+    switch (events) {
+      case UV_RENAME: lua_pushstring(L, "rename"); break;
+      case UV_CHANGE: lua_pushstring(L, "change"); break;
+      default: lua_pushnil(L); break;
+    }
+
+    if (filename) {
+      lua_pushstring(L, filename);
+    } else {
+      lua_pushnil(L);
+    }
+
+    luv_emit_event(L, "change", 2);
+
   }
 
-  luv_emit_event(L, "change", 3);
   assert(lua_gettop(L) == before);
 
 }
