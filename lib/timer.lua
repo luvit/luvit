@@ -25,6 +25,7 @@ local function clear_timer(timer)
 end
 
 return {
+  new = UV.new_timer,
   set_timeout = set_timeout,
   set_interval = set_interval,
   clear_timer = clear_timer,
