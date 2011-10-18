@@ -119,6 +119,7 @@ static const luaL_reg luv_f[] = {
   {"loadavg", luv_loadavg},
   {"execpath", luv_execpath},
   {"handle_type", luv_handle_type},
+  {"activate_signal_handler", luv_activate_signal_handler},
   {NULL, NULL}
 };
 
@@ -195,22 +196,11 @@ static const luaL_reg luv_tty_m[] = {
   {NULL, NULL}
 };
 
-static void luv_on_signal(struct ev_loop *loop, struct ev_signal *w, int revents) {
-  assert(uv_default_loop()->ev == loop);
-  lua_State* L = (lua_State*)w->data;
-  int signum = w->signum;
-  printf("\nON_SIGNAL L=%p, signum=%d, revents=%d\n", L, signum, revents);
-}
+
 
 LUALIB_API int luaopen_uv (lua_State* L) {
   int before = lua_gettop(L);
 
-  // Register for SIGINT
-  struct ev_signal* signal_watcher = (struct ev_signal*)malloc(sizeof(struct ev_signal));
-  signal_watcher->data = L;
-  ev_signal_init (signal_watcher, luv_on_signal, SIGPIPE);
-  struct ev_loop* loop = uv_default_loop()->ev;
-  ev_signal_start (loop, signal_watcher);
 
 
   // metatable for handle userdata types

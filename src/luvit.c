@@ -11,6 +11,7 @@
 #include "uv.h"
 #include "utils.h"
 #include "luv.h"
+#include "lconstants.h"
 #include "lhttp_parser.h"
 #include "lenv.h"
 
@@ -41,6 +42,9 @@ int main(int argc, char *argv[])
   // Register env
   lua_pushcfunction(L, luaopen_env);
   lua_setfield(L, -2, "env");
+  // Register constants
+  lua_pushcfunction(L, luaopen_constants);
+  lua_setfield(L, -2, "constants");
 
   // We're done with preload, put it away
   lua_pop(L, 1);

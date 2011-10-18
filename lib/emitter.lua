@@ -12,7 +12,9 @@ function emitter_prototype:on(name, callback)
   if not self.handlers then self.handlers = {} end
   local handlers = self.handlers
   if not handlers[name] then
-    if self.userdata then
+    if self == process then
+      require("uv").activate_signal_handler(require('constants')[name]);
+    elseif self.userdata then
       local emitter = self
       self.userdata:set_handler(name, function (...)
         emitter:emit(name, ...)

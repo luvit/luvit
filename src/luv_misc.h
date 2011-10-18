@@ -6,6 +6,7 @@
 #include "uv.h"
 #include "utils.h"
 
+int luv_activate_signal_handler(lua_State* L);
 int luv_run(lua_State* L);
 int luv_ref (lua_State* L);
 int luv_unref(lua_State* L);

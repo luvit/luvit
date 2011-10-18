@@ -35,6 +35,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_pipe.o       \
         ${BUILDDIR}/luv_tty.o        \
         ${BUILDDIR}/luv_misc.o       \
+        ${BUILDDIR}/lconstants.o     \
         ${BUILDDIR}/lenv.o           \
         ${BUILDDIR}/lhttp_parser.o
 
