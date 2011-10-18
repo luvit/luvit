@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include "uv-private/ev.h"
 
 #include "luv_fs.h"
 #include "luv_handle.h"
@@ -194,8 +195,22 @@ static const luaL_reg luv_tty_m[] = {
   {NULL, NULL}
 };
 
+static void luv_on_signal(struct ev_loop *loop, struct ev_signal *w, int revents) {
+  lua_State* L = (lua_State*)w->data;
+  int signum = w->signum;
+  printf("ON_SIGNAL L=%p, signum=%d, revents=%d\n", L, signum, revents);
+}
+
 LUALIB_API int luaopen_uv (lua_State* L) {
   int before = lua_gettop(L);
+
+  // Register for SIGINT
+  struct ev_signal signal_watcher;
+  signal_watcher.data = L;
+  ev_signal_init (&signal_watcher, luv_on_signal, SIGINT);
+  struct ev_loop* loop = uv_default_loop()->ev;
+  ev_signal_start (loop, &signal_watcher);
+
 
   // metatable for handle userdata types
   // It is it's own __index table to save space
