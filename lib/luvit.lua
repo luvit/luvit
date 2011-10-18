@@ -33,6 +33,7 @@ local Utils = require('utils')
 local FS = require('fs')
 local TTY = require('tty')
 local Emitter = require('emitter')
+local Constants = require('constants')
 
 process = Emitter.new()
 process.argv = argv
@@ -42,6 +43,11 @@ function process.exit(exit_code)
   process:emit('exit', exit_code)
   exit_process(exit_code or 0)
 end
+
+-- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
+UV.activate_signal_handler(Constants.SIGPIPE);
+UV.activate_signal_handler(Constants.SIGINT);
+UV.activate_signal_handler(Constants.SIGTERM);
 
 -- Load the tty as a pair of pipes
 -- But don't hold the event loop open for them

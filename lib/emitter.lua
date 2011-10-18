@@ -1,3 +1,5 @@
+local Constants = require('constants')
+
 local emitter_prototype = {}
 
 function emitter_prototype:once(name, callback)
@@ -12,8 +14,8 @@ function emitter_prototype:on(name, callback)
   if not self.handlers then self.handlers = {} end
   local handlers = self.handlers
   if not handlers[name] then
-    if self == process then
-      require("uv").activate_signal_handler(require('constants')[name]);
+    if self == process and Constants[name] then
+      require("uv").activate_signal_handler(Constants[name]);
     elseif self.userdata then
       local emitter = self
       self.userdata:set_handler(name, function (...)
@@ -28,12 +30,20 @@ emitter_prototype.add_listener = emitter_prototype.on
 
 function emitter_prototype:emit(name, ...)
   if not self.handlers then
-    if (name == "error") then error(...) end
+    if name == "error" then
+      error(...)
+    elseif name == "SIGINT" or name == "SIGTERM" then
+      process.exit()
+    end
     return
   end
   local handlers = self.handlers
   if not handlers[name] then
-    if (name == "error") then error(...) end
+    if name == "error" then
+      error(...)
+    elseif name == "SIGINT" or name == "SIGTERM" then
+      process.exit()
+    end
     return
   end
   for k, v in pairs(handlers[name]) do
