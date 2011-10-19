@@ -23,6 +23,7 @@
 int luv_new_tcp (lua_State* L);
 int luv_tcp_bind (lua_State* L);
 int luv_tcp_bind6(lua_State* L);
+int luv_tcp_nodelay(lua_State* L);
 int luv_tcp_getsockname(lua_State* L);
 int luv_tcp_getpeername(lua_State* L);
 int luv_tcp_connect(lua_State* L);

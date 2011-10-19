@@ -63,6 +63,22 @@ int luv_tcp_bind6(lua_State* L) {
   return 0;
 }
 
+int luv_tcp_nodelay(lua_State* L) {
+  int before = lua_gettop(L);
+  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
+  int value = lua_toboolean(L, 2);
+
+  int status = setsockopt(handle->fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(int));
+
+  if (status == -1) {
+    uv_err_t err = uv_last_error(uv_default_loop());
+    return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err));
+  }
+
+  assert(lua_gettop(L) == before);
+  return 0;
+}
+
 int luv_tcp_getsockname(lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
