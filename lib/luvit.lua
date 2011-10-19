@@ -120,7 +120,7 @@ end
 local real_require = require
 function require(path)
   if path:sub(1,1) == "." then
-    local source = Debug.getinfo(2).source
+    local source = Debug.getinfo(2, "S").source
     if source:sub(1,1) == "@" then
       local dirname = source:sub(2,source:find("[^/]*$")-1)
       path = dirname .. path
