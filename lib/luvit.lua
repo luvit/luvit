@@ -116,6 +116,19 @@ function event_source(name, fn, ...)
   end, Debug.traceback))
 end
 
+-- Make relative requires be relative to the file that required them
+local real_require = require
+function require(path)
+  if path:sub(1,1) == "." then
+    local source = Debug.getinfo(2).source
+    if source:sub(1,1) == "@" then
+      local dirname = source:sub(2,source:find("[^/]*$")-1)
+      path = dirname .. path
+    end
+  end
+  return real_require(path)
+end
+
 -- Load the file given or start the interactive repl
 if process.argv[1] then
   dofile(process.argv[1])
