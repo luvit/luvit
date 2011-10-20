@@ -12,16 +12,6 @@ _G.table = nil
 _G.print = nil
 _G.loadfile = nil
 
--- Hide some stuff behind a metatable
-local hidden = {}
-setmetatable(_G, {__index=hidden})
-local function hide(name)
-  hidden[name] = _G[name]
-  _G[name] = nil
-end
-hide("_G")
-hide("exit_process")
-
 -- Load libraries used in this file
 local Debug = require('debug')
 
@@ -34,10 +24,42 @@ local FS = require('fs')
 local TTY = require('tty')
 local Emitter = require('emitter')
 local Constants = require('constants')
+local Path = require('path')
 
 process = Emitter.new()
+process.cwd = getcwd
+_G.getcwd = nil
 process.argv = argv
 _G.argv = nil
+
+local base_path = process.cwd()
+
+-- Hide some stuff behind a metatable
+local hidden = {}
+setmetatable(_G, {__index=function(table, key)
+  if key == "__dirname" then
+    local source = Debug.getinfo(2, "S").source
+    if source:sub(1,1) == "@" then
+      return Path.join(base_path, Path.dirname(source:sub(2)))
+    end
+    return
+  elseif key == "__filename" then
+    local source = Debug.getinfo(2, "S").source
+    if source:sub(1,1) == "@" then
+      return Path.join(base_path, source:sub(2))
+    end
+    return
+  else
+    return hidden[key]
+  end
+end})
+local function hide(name)
+  hidden[name] = _G[name]
+  _G[name] = nil
+end
+hide("_G")
+hide("exit_process")
+
 
 function process.exit(exit_code)
   process:emit('exit', exit_code)
@@ -122,8 +144,8 @@ function require(path)
   if path:sub(1,1) == "." then
     local source = Debug.getinfo(2, "S").source
     if source:sub(1,1) == "@" then
-      local dirname = source:sub(2,source:find("[^/]*$")-1)
-      path = dirname .. path
+      local dirname = Path.dirname(source:sub(2))
+      path = Path.join(dirname, path)
     end
   end
   return real_require(path)
