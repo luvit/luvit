@@ -17,7 +17,6 @@ local function split_path(filename)
   return root, dir, basename, ext
 end
 
-
 -- Modifies an array of path parts in place by interpreting "." and ".." segments
 local function normalize_array(parts)
   local skip = 0
@@ -59,6 +58,10 @@ function Path.normalize(path)
     path = "/" .. path
   end
   return path
+end
+
+function Path.join(...)
+  return Path.normalize(Table.concat({...}, "/"))
 end
 
 function Path.dirname(path)
