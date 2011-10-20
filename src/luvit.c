@@ -1,7 +1,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
-
+#include <limits.h> /* PATH_MAX */
 
 #include "lua.h"
 #include "lualib.h"
@@ -20,6 +20,19 @@ int luvit_exit(lua_State* L) {
   int exit_code = luaL_checkint(L, 1);
   exit(exit_code);
   return 0;
+}
+
+static char getbuf[PATH_MAX + 1];
+
+int luvit_getcwd(lua_State* L) {
+  char *r = getcwd(getbuf, ARRAY_SIZE(getbuf) - 1);
+  if (r == NULL) {
+    return luaL_error(L, "luvit_getcwd: %s\n", strerror(errno));
+  }
+
+  getbuf[ARRAY_SIZE(getbuf) - 1] = '\0';
+  lua_pushstring(L, r);
+  return 1;
 }
 
 int main(int argc, char *argv[])
@@ -60,6 +73,9 @@ int main(int argc, char *argv[])
 
   lua_pushcfunction(L, luvit_exit);
   lua_setglobal(L, "exit_process");
+
+  lua_pushcfunction(L, luvit_getcwd);
+  lua_setglobal(L, "getcwd");
 
   // Hold a reference to the main thread in the registry
   assert(lua_pushthread(L) == 1);
