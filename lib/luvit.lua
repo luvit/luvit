@@ -67,9 +67,13 @@ function process.exit(exit_code)
 end
 
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
+-- These shouldn't hold open the event loop
 UV.activate_signal_handler(Constants.SIGPIPE);
+UV.unref()
 UV.activate_signal_handler(Constants.SIGINT);
+UV.unref()
 UV.activate_signal_handler(Constants.SIGTERM);
+UV.unref()
 
 -- Load the tty as a pair of pipes
 -- But don't hold the event loop open for them
