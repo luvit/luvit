@@ -21,6 +21,7 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/repl.o     \
         ${GENDIR}/fiber.o    \
         ${GENDIR}/mime.o     \
+        ${GENDIR}/path.o     \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \
