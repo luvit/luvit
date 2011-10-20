@@ -13,7 +13,7 @@ function HTTP.create_server(host, port, on_connection)
       return server:emit("error", err)
     end
 
-    -- Accept the client and build request and response objects    
+    -- Accept the client and build request and response objects
     local client = TCP.new()
     server:accept(client)
     client:read_start()
@@ -40,9 +40,11 @@ function HTTP.create_server(host, port, on_connection)
       end,
       on_headers_complete = function (info)
         request.method = info.method
-        if info.upgrade then
-          server:emit("upgrade", request, client)
-        else
+        request.version_major = info.version_major
+        request.version_minor = info.version_minor
+        request.upgrade = info.upgrade
+        request.should_keep_alive = info.should_keep_alive
+        if not request.upgrade then
           on_connection(request, response)
         end
       end,
@@ -54,12 +56,16 @@ function HTTP.create_server(host, port, on_connection)
         request:emit('end')
       end
     })
-    
+
     client:on("data", function (chunk, len)
       if len == 0 then return end
       local nparsed = parser:execute(chunk, 0, len)
       if nparsed < len then
-        request:emit("error", "parse error")
+        if request.upgrade then
+          request:emit("upgrade", request, client, chunk:sub(nparsed + 1))
+        else
+          request:emit("error", "parse error")
+        end
       end
     end)
 
@@ -68,7 +74,7 @@ function HTTP.create_server(host, port, on_connection)
     end)
 
   end)
-  
+
   return server
 end
 
