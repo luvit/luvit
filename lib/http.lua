@@ -43,7 +43,20 @@ function HTTP.create_server(host, port, on_connection)
         request.method = info.method
         request.upgrade = info.upgrade
 
-        on_connection(request, response)
+        request.version_major = info.version_major
+        request.version_minor = info.version_minor
+
+        if request.headers.expect and info.version_major == 1 and info.version_minor == 1 and request.headers.expect:lower() == "100-continue" then
+          expect_continue = true
+          if server.handlers and server.handlers.check_continue then
+            server:emit("check_continue", request, response)
+          else
+            response:write_continue()
+            on_connection(request, response)
+          end
+        else
+          on_connection(request, response)
+        end
 
         -- We're done with the parser once we hit an upgrade
         if request.upgrade then

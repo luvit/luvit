@@ -81,4 +81,8 @@ function Response.prototype:write_head(code, headers, callback)
   self:write(head, callback)
 end
 
+function Response.prototype:write_continue()
+  self:write('HTTP/1.1 100 Continue\r\n\r\n')
+end
+
 return Response
