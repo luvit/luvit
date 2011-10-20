@@ -46,8 +46,8 @@ function HTTP.create_server(host, port, on_connection)
         request.version_major = info.version_major
         request.version_minor = info.version_minor
 
+        -- Handle 100-continue requests
         if request.headers.expect and info.version_major == 1 and info.version_minor == 1 and request.headers.expect:lower() == "100-continue" then
-          expect_continue = true
           if server.handlers and server.handlers.check_continue then
             server:emit("check_continue", request, response)
           else
@@ -62,12 +62,12 @@ function HTTP.create_server(host, port, on_connection)
         if request.upgrade then
           parser:finish()
         end
+
       end,
       on_body = function (chunk)
-        request:emit('data', chunk)
+        request:emit('data', chunk, #chunk)
       end,
       on_message_complete = function ()
-        parser:finish()
         request:emit('end')
       end
     })
