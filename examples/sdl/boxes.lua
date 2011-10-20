@@ -3,7 +3,7 @@ local Timer = require('timer')
 local FFI = require('ffi')
 local Debug = require('debug')
 local Math = require('math')
-local SDL = require('sdl')
+local SDL = require('./sdl')
 local Bit = require('bit')
 
 p("SDL", SDL)

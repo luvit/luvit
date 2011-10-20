@@ -3,8 +3,9 @@ local Emitter = require('emitter')
 local Timer = require('timer')
 local UV = require('uv')
 
+p(require('io'))
 -- Use blocking IO since this is startup stuff
-FFI.cdef(require('io').open('ffi_SDL.h', 'r'):read('*a'))
+FFI.cdef(require('io').open(dirname() .. 'ffi_SDL.h', 'r'):read('*a'))
 
 local SDL = {
 }
