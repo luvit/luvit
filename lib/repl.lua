@@ -64,12 +64,12 @@ print("\n" .. c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen"
 display_prompt '>'
 
 
-process.stdin:set_handler('data', function (line)
+process.stdin:on('data', function (line)
   local prompt = evaluate_line(line)
   display_prompt(prompt)
 end)
 
-process.stdin:set_handler('end', function ()
+process.stdin:on('end', function ()
   print(Utils.colorize("Bblue", "\nBye!"))
   process.exit()
 end)
