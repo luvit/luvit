@@ -112,10 +112,18 @@ local function dump(o, depth)
   return tostring(o)
 end
 
+local user_proto = {}
+
+function user_proto.add_handler_type(emitter, name)
+  emitter.userdata:set_handler(name, function (...)
+    emitter:emit(name, ...)
+  end)
+end
+
 -- Shared metatable for all userdata type wrappers
 local user_meta = {
   __index = function (table, key)
-    return table.prototype[key] or table.userdata[key]
+    return table.prototype[key] or user_proto[key] or table.userdata[key]
   end,
   __newindex = rawset
 }
@@ -124,7 +132,8 @@ return {
   dump = dump,
   color = color,
   colorize = colorize,
-  user_meta = user_meta
+  user_meta = user_meta,
+  user_proto = user_proto,
 }
 
 --print("nil", dump(nil))

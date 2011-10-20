@@ -5,6 +5,9 @@ local Request = {}
 Request.prototype = {}
 setmetatable(Request.prototype, TCP.meta)
 
+-- Don't register new event types with the userdata, this should be a plain lua emitter
+Request.prototype.add_handler_type = false
+
 function Request.new(client)
   local request = {
     userdata = client.userdata,

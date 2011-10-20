@@ -2,6 +2,14 @@ local Constants = require('constants')
 
 local emitter_prototype = {}
 
+-- By default, and error events that are not listened for should thow errors
+function emitter_prototype:missing_handler_type(name, ...)
+  if name == "error" then
+    error(...)
+  end
+end
+
+-- Sugar for emitters you want to auto-remove themself after first event
 function emitter_prototype:once(name, callback)
   local function wrapped(...)
     self:remove_listener(name, wrapped)
@@ -10,73 +18,53 @@ function emitter_prototype:once(name, callback)
   self:on(name, wrapped)
 end
 
+-- Add a new typed event emitter
 function emitter_prototype:on(name, callback)
-  if not self.handlers then self.handlers = {} end
-  local handlers = self.handlers
-  if not handlers[name] then
-    if self == process and Constants[name] then
-      local UV = require('uv')
-      UV.activate_signal_handler(Constants[name]);
-      UV.unref()
-    elseif self.userdata then
-      local emitter = self
-      self.userdata:set_handler(name, function (...)
-        emitter:emit(name, ...)
-      end)
-    end
-    handlers[name] = {}
+  local handlers = rawget(self, "handlers")
+  if not handlers then
+    handlers = {}
+    rawset(self, "handlers", handlers)
   end
-  handlers[name][callback] = true
+  local handlers_for_type = rawget(handlers, name)
+  if not handlers_for_type then
+    if self.add_handler_type then
+      self:add_handler_type(name)
+    end
+    handlers_for_type = {}
+    rawset(handlers, name, handlers_for_type)
+  end
+  handlers_for_type[callback] = true
 end
 emitter_prototype.add_listener = emitter_prototype.on
 
 function emitter_prototype:emit(name, ...)
-  if not self.handlers then
-    if name == "error" then
-      error(...)
-    elseif name == "SIGINT" or name == "SIGTERM" then
-      process.exit()
-    end
+  local handlers = rawget(self, "handlers")
+  if not handlers then
+    self:missing_handler_type(name, ...)
     return
   end
-  local handlers = self.handlers
-  if not handlers[name] then
-    if name == "error" then
-      error(...)
-    elseif name == "SIGINT" or name == "SIGTERM" then
-      process.exit()
-    end
+  local handlers_for_type = rawget(handlers, name)
+  if not handlers_for_type then
+    self:missing_handler_type(name, ...)
     return
   end
-  for k, v in pairs(handlers[name]) do
+  for k, v in pairs(handlers_for_type) do
     k(...)
   end
 end
 
 function emitter_prototype:remove_listener(name, callback)
-  if not self.handlers then return end
-  local handlers = self.handlers
-  if not handlers[name] then return end
-  handlers[name][callback] = nil
-end
-
-function emitter_prototype:remove_listeners(name)
-  if not self.handlers then return end
-  local handlers = self.handlers
-  if handlers[name] then
-    if self.userdata then
-      self.userdata.set_handler(name, nil)
-    end
-    handlers[name] = nil
-  end
+  local handlers = rawget(self, "handlers")
+  if not handlers then return end
+  local handlers_for_type = rawget(handlers, name)
+  if not handlers_for_type then return end
+  handlers_for_type[name][callback] = nil
 end
 
 local emitter_meta = {__index=emitter_prototype}
 
 local function new()
-  local emitter = {}
-  setmetatable(emitter, emitter_meta)
-  return emitter
+  return setmetatable({}, emitter_meta)
 end
 
 return {

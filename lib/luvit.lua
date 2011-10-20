@@ -27,6 +27,28 @@ local Constants = require('constants')
 local Path = require('path')
 
 process = Emitter.new()
+
+function process.exit(exit_code)
+  process:emit('exit', exit_code)
+  exit_process(exit_code or 0)
+end
+
+function process:add_handler_type(name)
+  local code = Constants[name]
+  if code then
+    UV.activate_signal_handler(code)
+    UV.unref()
+  end
+end
+
+function process:missing_handler_type(name, ...)
+  if name == "error" then
+    error(...)
+  elseif name == "SIGINT" or name == "SIGTERM" then
+    process.exit()
+  end
+end
+
 process.cwd = getcwd
 _G.getcwd = nil
 process.argv = argv
@@ -60,19 +82,13 @@ end
 hide("_G")
 hide("exit_process")
 
-
-function process.exit(exit_code)
-  process:emit('exit', exit_code)
-  exit_process(exit_code or 0)
-end
-
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
 -- These shouldn't hold open the event loop
-UV.activate_signal_handler(Constants.SIGPIPE);
+UV.activate_signal_handler(Constants.SIGPIPE)
 UV.unref()
-UV.activate_signal_handler(Constants.SIGINT);
+UV.activate_signal_handler(Constants.SIGINT)
 UV.unref()
-UV.activate_signal_handler(Constants.SIGTERM);
+UV.activate_signal_handler(Constants.SIGTERM)
 UV.unref()
 
 -- Load the tty as a pair of pipes
