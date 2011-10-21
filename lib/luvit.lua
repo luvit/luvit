@@ -9,8 +9,11 @@ _G.jit = nil
 _G.bit = nil
 _G.debug = nil
 _G.table = nil
-_G.print = nil
+local loadfile = _G.loadfile
 _G.loadfile = nil
+local dofile = _G.dofile
+_G.dofile = nil
+_G.print = nil
 
 -- Load libraries used in this file
 local Debug = require('debug')
@@ -158,17 +161,71 @@ function event_source(name, fn, ...)
   end, Debug.traceback))
 end
 
--- Make relative requires be relative to the file that required them
-local real_require = require
-function require(path)
-  if path:sub(1,1) == "." then
-    local source = Debug.getinfo(2, "S").source
-    if source:sub(1,1) == "@" then
-      local dirname = Path.dirname(source:sub(2))
-      path = Path.join(dirname, path)
+-- tries to load a module at a specified absolute path
+-- TODO: make these error messages a little prettier
+local function load_module(path)
+  local errors = {}
+  local cname = "luaopen_" .. Path.basename(path)
+
+  local fn, error_message
+
+  -- Try the exact match first
+  fn, error_message = loadfile(path)
+  if fn then return fn end
+  errors[#errors + 1] = "\n\t" .. error_message
+
+  -- Then try with lua appended
+  fn, error_message = loadfile(path .. ".lua")
+  if fn then return fn end
+  errors[#errors + 1] = "\n\t" .. error_message
+
+  -- Then try C addon with luvit appended
+  fn, error_message = package.loadlib(path .. ".luvit", cname)
+  if fn then return fn end
+  errors[#errors + 1] = "\n\t" .. error_message
+
+  -- Then Try a folder with init.lua in it
+  fn, error_message = loadfile(path .. "/init.lua")
+  if fn then return fn end
+  errors[#errors + 1] = "\n\t" .. error_message
+
+  -- Finally try the same for a C addon
+  fn, error_message = package.loadlib(path .. "/init.luvit", cname)
+  if fn then return fn end
+  errors[#errors + 1] = "\n\t" .. error_message
+
+  return Table.concat(errors, "")
+end
+
+-- Remove the cwd based loaders, we don't want them
+package.loaders[2] = nil
+package.loaders[3] = nil
+package.loaders[4] = nil
+package.path = nil
+package.cpath = nil
+package.searchpath = nil
+package.seeall = nil
+package.config = nil
+_G.module = nil
+
+-- Write our own loader that does proper relative requires of both lua scripts
+-- and binary addons
+package.loaders[2] = function (path)
+  local errors = {}
+  local first = path:sub(1, 1)
+
+  -- Relative requires
+  if first == "." then
+    local source = Debug.getinfo(3, "S").source
+    if not source:sub(1, 1) == "@" then
+      path = Path.join(base_path, path)
+    else
+      path = Path.join(base_path, Path.dirname(source:sub(2)), path)
     end
+    local fn, error_message = load_module(path)
+    return fn, error_message
   end
-  return real_require(path)
+  error("TODO: Implement the rest of the load path styles")
 end
 
 -- Load the file given or start the interactive repl
