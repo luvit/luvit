@@ -116,21 +116,25 @@ function Response.prototype:write_head(code, headers, callback)
   self.userdata:write(head, callback)
 end
 
-function Response.prototype:write_continue()
-  self.userdata:write('HTTP/1.1 100 Continue\r\n\r\n')
+function Response.prototype:write_continue(callback)
+  self.userdata:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
 end
 
-function Response.prototype:write(chunk)
+function Response.prototype:write(chunk, callback)
   local userdata = self.userdata
   if self.chunked then
     userdata:write(string_format("%x\r\n", #chunk))
     userdata:write(chunk)
-    return userdata:write("\r\n")
+    return userdata:write("\r\n", callback)
   end
-  return userdata:write(chunk)
+  return userdata:write(chunk, callback)
 end
 
-function Response.prototype:finish(chunk)
+function Response.prototype:finish(chunk, callback)
+  if type(chunk) == "function" and callback == nil then
+    callback = chunk
+    chunk = nil
+  end
   if chunk then
     self:write(chunk)
   end
@@ -138,6 +142,9 @@ function Response.prototype:finish(chunk)
     self.userdata:write('0\r\n\r\n')
   end
   self:close()
+  if callback then
+    self:on("closed", callback)
+  end
 end
 
 
