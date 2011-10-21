@@ -67,7 +67,7 @@ function Response.new(client)
   local response = {
     code = 200,
     headers = {},
-    headers_names = {},
+    header_names = {},
     headers_sent = false,
     userdata = client.userdata,
     prototype = Response.prototype
@@ -79,6 +79,7 @@ end
 Response.prototype.auto_date = true
 Response.prototype.auto_server = "Luvit"
 Response.prototype.auto_chunked = true
+Response.prototype.auto_content_type = "text/html"
 
 function Response.prototype:set_code(code)
   if self.headers_sent then error("Headers already sent") end
@@ -124,7 +125,7 @@ function Response.prototype:flush_head(callback)
 
   local head = {"HTTP/1.1 " .. self.code .. " " .. reason .. "\r\n"}
   local length = 1
-  local has_server, has_content_length, has_date
+  local has_server, has_content_length, has_date, has_content_type
 
   for field, value in pairs(self.headers) do
     if type(field) == "number" then
@@ -133,6 +134,7 @@ function Response.prototype:flush_head(callback)
     local lower = field:lower()
     if lower == "server" then has_server = true
     elseif lower == "content-length" then has_content_length = true
+    elseif lower == "content-type" then has_content_type = true
     elseif lower == "date" then has_date = true
     elseif lower == "transfer-encoding" and value:lower() == "chunked" then self.chunked = true
     end
@@ -144,6 +146,10 @@ function Response.prototype:flush_head(callback)
   if not has_server and self.auto_server then
     length = length + 1
     head[length] = "Server: " .. self.auto_server .. "\r\n"
+  end
+  if not has_content_type and self.auto_content_type then
+    length = length + 1
+    head[length] = "Content-Type: " .. self.auto_content_type .. "\r\n"
   end
   if not has_content_length and self.auto_chunked then
     length = length + 1
@@ -167,6 +173,9 @@ function Response.prototype:write_head(code, headers, callback)
 
   self.code = code
   for field, value in pairs(headers) do
+    if type(field) == "number" then
+      field = #self.headers + 1
+    end
     self.headers[field] = value
   end
 
