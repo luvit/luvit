@@ -121,7 +121,7 @@ function Response.prototype:write(chunk)
   if self.chunked then
     userdata:write(String.format("%x\r\n", #chunk))
     userdata:write(chunk)
-    userdata:write("\r\n")
+    return userdata:write("\r\n")
   end
   return self.userdata:write(chunk)
 end

@@ -19,8 +19,7 @@ HTTP.create_server("0.0.0.0", 8080, function (req, res)
       ["Content-Type"] = "text/plain",
       ["Content-Length"] = #body
     })
-    res:write(body)
-    res:close()
+    res:finish(body)
   end)
     
 end)

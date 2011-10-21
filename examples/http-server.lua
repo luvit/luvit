@@ -5,10 +5,9 @@ HTTP.create_server("0.0.0.0", 8080, function (req, res)
   local body = Utils.dump({req=req,headers=req.headers}) .. "\n"
   res:write_head(200, {
     ["Content-Type"] = "text/plain",
-    ["Content-Length"] = #body
+--    ["Content-Length"] = #body
   })
-  res:write(body)
-  res:close()
+  res:finish(body)
 end)
 
 print("Server listening at http://localhost:8080/")
