@@ -1,5 +1,8 @@
 local user_meta = require('utils').user_meta
 local TCP = require('tcp')
+local OS = require('os')
+local Table = require('table')
+local String = require('string')
 local Response = {}
 
 local status_codes_table = {
@@ -73,16 +76,65 @@ function Response.prototype:write_head(code, headers, callback)
 
   local reason = status_codes_table[code]
   if not reason then error("Invalue response code " .. tostring(code)) end
-  local head = "HTTP/1.1 " .. code .. " " .. reason .. "\r\n"
+
+  local head = {"HTTP/1.1 " .. code .. " " .. reason .. "\r\n"}
+  local length = 1
+  local has_server, has_content_length, has_date
+
   for field, value in pairs(headers) do
-    head = head .. field .. ": " .. value .. "\r\n"
+    local lower = field:lower()
+    if lower == "server" then has_server = true
+    elseif lower == "content-length" then has_content_length = true
+    elseif lower == "date" then has_date = true
+    elseif lower == "transfer-encoding" and value:lower() == "chunked" then self.chunked = true
+    end
+    length = length + 1
+    head[length] = field .. ": " .. value .. "\r\n"
   end
-  head = head .. "\r\n"
-  self:write(head, callback)
+  if not has_server then
+    length = length + 1
+    head[length] = "Server: Luvit\r\n"
+  end
+  if not has_content_length then
+    length = length + 1
+    self.chunked = true
+    head[length] = "Transfer-Encoding: chunked\r\n"
+  end
+  if not has_date then
+    -- This should be RFC 1123 date format
+    -- IE: Tue, 15 Nov 1994 08:12:31 GMT
+    length = length + 1
+    head[length] = OS.date("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
+  end
+
+
+  head = Table.concat(head, "") .. "\r\n"
+  self.userdata:write(head, callback)
 end
 
 function Response.prototype:write_continue()
-  self:write('HTTP/1.1 100 Continue\r\n\r\n')
+  self.userdata:write('HTTP/1.1 100 Continue\r\n\r\n')
 end
+
+function Response.prototype:write(chunk)
+  local userdata = self.userdata
+  if self.chunked then
+    userdata:write(String.format("%x\r\n", #chunk))
+    userdata:write(chunk)
+    userdata:write("\r\n")
+  end
+  return self.userdata:write(chunk)
+end
+
+function Response.prototype:finish(chunk)
+  if chunk then
+    self:write(chunk)
+  end
+  if self.chunked then
+    self.userdata:write('0\r\n\r\n')
+  end
+  self:close()
+end
+
 
 return Response
