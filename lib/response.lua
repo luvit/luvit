@@ -72,9 +72,9 @@ function Response.new(client)
   return response
 end
 
-Response.auto_date = true
-Response.auto_server = "Luvit"
-Response.auto_chunked = true
+Response.prototype.auto_date = true
+Response.prototype.auto_server = "Luvit"
+Response.prototype.auto_chunked = true
 
 function Response.prototype:write_head(code, headers, callback)
 
@@ -95,16 +95,16 @@ function Response.prototype:write_head(code, headers, callback)
     length = length + 1
     head[length] = field .. ": " .. value .. "\r\n"
   end
-  if not has_server and Response.auto_server then
+  if not has_server and self.auto_server then
     length = length + 1
-    head[length] = "Server: " .. Response.auto_server .. "\r\n"
+    head[length] = "Server: " .. self.auto_server .. "\r\n"
   end
-  if not has_content_length and Response.auto_chunked then
+  if not has_content_length and self.auto_chunked then
     length = length + 1
     self.chunked = true
     head[length] = "Transfer-Encoding: chunked\r\n"
   end
-  if not has_date and Response.auto_date then
+  if not has_date and self.auto_date then
     -- This should be RFC 1123 date format
     -- IE: Tue, 15 Nov 1994 08:12:31 GMT
     length = length + 1
