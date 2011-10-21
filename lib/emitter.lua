@@ -58,7 +58,7 @@ function emitter_prototype:remove_listener(name, callback)
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then return end
-  handlers_for_type[name][callback] = nil
+  handlers_for_type[callback] = nil
 end
 
 local emitter_meta = {__index=emitter_prototype}
