@@ -39,34 +39,69 @@ function HTTP.create_server(host, port, on_connection)
         headers[current_field:lower()] = value
       end,
       on_headers_complete = function (info)
+
         request.method = info.method
+        request.upgrade = info.upgrade
+
         request.version_major = info.version_major
         request.version_minor = info.version_minor
-        request.upgrade = info.upgrade
-        request.should_keep_alive = info.should_keep_alive
-        if not request.upgrade then
+
+        -- Handle 100-continue requests
+        if request.headers.expect and info.version_major == 1 and info.version_minor == 1 and request.headers.expect:lower() == "100-continue" then
+          if server.handlers and server.handlers.check_continue then
+            server:emit("check_continue", request, response)
+          else
+            response:write_continue()
+            on_connection(request, response)
+          end
+        else
           on_connection(request, response)
         end
+
+        -- We're done with the parser once we hit an upgrade
+        if request.upgrade then
+          parser:finish()
+        end
+
       end,
       on_body = function (chunk)
-        request:emit('data', chunk)
+        request:emit('data', chunk, #chunk)
       end,
       on_message_complete = function ()
-        parser:finish()
         request:emit('end')
       end
     })
 
+
     client:on("data", function (chunk, len)
+
+      -- Ignore empty chunks
       if len == 0 then return end
+
+      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+      -- shouldn't send data to the HTTP parser
+      if request.upgrade then
+        request:emit("data", chunk, len)
+        return
+      end
+
+      -- Parse the chunk of HTTP, this will syncronously emit several of the
+      -- above events and return how many chunks were parsed.
       local nparsed = parser:execute(chunk, 0, len)
+
+      -- If it wasn't all parsed then there was an error parsing
       if nparsed < len then
+        -- If the error was caused by non-http protocol like in websockets
+        -- then that's ok, just emit the rest directly to the request object
         if request.upgrade then
-          request:emit("upgrade", request, client, chunk:sub(nparsed + 1))
+          len = len - nparsed
+          chunk = chunk:sub(nparsed + 1)
+          request:emit("data", chunk, len)
         else
           request:emit("error", "parse error")
         end
       end
+
     end)
 
     client:on("end", function ()
