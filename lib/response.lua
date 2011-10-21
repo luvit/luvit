@@ -123,7 +123,7 @@ function Response.prototype:write(chunk)
     userdata:write(chunk)
     return userdata:write("\r\n")
   end
-  return self.userdata:write(chunk)
+  return userdata:write(chunk)
 end
 
 function Response.prototype:finish(chunk)
