@@ -1,8 +1,8 @@
 local user_meta = require('utils').user_meta
-local TCP = require('tcp')
-local OS = require('os')
-local Table = require('table')
-local String = require('string')
+local tcp_meta = require('tcp').meta
+local os_date = require('os').date
+local table_concat = require('table').concat
+local string_format = require('string').format
 local Response = {}
 
 local status_codes_table = {
@@ -61,7 +61,7 @@ local status_codes_table = {
 }
 
 Response.prototype = {}
-setmetatable(Response.prototype, TCP.meta)
+setmetatable(Response.prototype, tcp_meta)
 
 function Response.new(client)
   local response = {
@@ -108,11 +108,11 @@ function Response.prototype:write_head(code, headers, callback)
     -- This should be RFC 1123 date format
     -- IE: Tue, 15 Nov 1994 08:12:31 GMT
     length = length + 1
-    head[length] = OS.date("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
+    head[length] = os_date("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
   end
 
 
-  head = Table.concat(head, "") .. "\r\n"
+  head = table_concat(head, "") .. "\r\n"
   self.userdata:write(head, callback)
 end
 
@@ -123,7 +123,7 @@ end
 function Response.prototype:write(chunk)
   local userdata = self.userdata
   if self.chunked then
-    userdata:write(String.format("%x\r\n", #chunk))
+    userdata:write(string_format("%x\r\n", #chunk))
     userdata:write(chunk)
     return userdata:write("\r\n")
   end
