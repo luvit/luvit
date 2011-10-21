@@ -46,6 +46,11 @@ function HTTP.create_server(host, port, on_connection)
         request.version_major = info.version_major
         request.version_minor = info.version_minor
 
+        -- Give upgrade requests access to the raw client if they want it
+        if info.upgrade then
+          request.client = client
+        end
+
         -- Handle 100-continue requests
         if request.headers.expect and info.version_major == 1 and info.version_minor == 1 and request.headers.expect:lower() == "100-continue" then
           if server.handlers and server.handlers.check_continue then
