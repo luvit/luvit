@@ -86,7 +86,7 @@ function HTTP.create_server(host, port, on_connection)
       end
 
       -- Parse the chunk of HTTP, this will syncronously emit several of the
-      -- above events and return how many chunks were parsed.
+      -- above events and return how many bytes were parsed.
       local nparsed = parser:execute(chunk, 0, len)
 
       -- If it wasn't all parsed then there was an error parsing
