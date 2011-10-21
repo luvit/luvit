@@ -65,6 +65,10 @@ setmetatable(Response.prototype, tcp_meta)
 
 function Response.new(client)
   local response = {
+    code = 200,
+    headers = {},
+    headers_names = {},
+    headers_sent = false,
     userdata = client.userdata,
     prototype = Response.prototype
   }
@@ -76,16 +80,56 @@ Response.prototype.auto_date = true
 Response.prototype.auto_server = "Luvit"
 Response.prototype.auto_chunked = true
 
-function Response.prototype:write_head(code, headers, callback)
+function Response.prototype:set_code(code)
+  if self.headers_sent then error("Headers already sent") end
+  self.code = code
+end
 
-  local reason = status_codes_table[code]
-  if not reason then error("Invalue response code " .. tostring(code)) end
+-- This sets a header, replacing any header with the same name (case insensitive)
+function Response.prototype:set_header(name, value)
+  if self.headers_sent then error("Headers already sent") end
+  local lower = name:lower()
+  local old_name = self.header_names[lower]
+  if old_name then
+    headers[old_name] = nil
+  end
+  self.header_names[lower] = name
+  self.headers[name] = value
+  return name
+end
 
-  local head = {"HTTP/1.1 " .. code .. " " .. reason .. "\r\n"}
+-- Adds a header line.  This does not replace any header by the same name and
+-- allows duplicate headers.  Returns the index it was inserted at
+function Response.prototype:add_header(name, value)
+  if self.headers_sent then error("Headers already sent") end
+  self.headers[#self.headers + 1] = name .. ": " .. value
+  return #self.headers
+end
+
+-- Removes a set header.  Cannot remove headers added with :add_header
+function Response.prototype:unset_header(name)
+  if self.headers_sent then error("Headers already sent") end
+  local lower = name:lower()
+  local name = self.header_names[lower]
+  if not name then return end
+  self.headers[name] = nil
+  self.header_names[lower] = nil
+end
+
+function Response.prototype:flush_head(callback)
+  if self.headers_sent then error("Headers already sent") end
+
+  local reason = status_codes_table[self.code]
+  if not reason then error("Invalid response code " .. tostring(self.code)) end
+
+  local head = {"HTTP/1.1 " .. self.code .. " " .. reason .. "\r\n"}
   local length = 1
   local has_server, has_content_length, has_date
 
-  for field, value in pairs(headers) do
+  for field, value in pairs(self.headers) do
+    if type(field) == "number" then
+      field, value = value:match("^ *([^ :]+): *([^ ]+) *$")
+    end
     local lower = field:lower()
     if lower == "server" then has_server = true
     elseif lower == "content-length" then has_content_length = true
@@ -95,6 +139,8 @@ function Response.prototype:write_head(code, headers, callback)
     length = length + 1
     head[length] = field .. ": " .. value .. "\r\n"
   end
+
+  -- Implement auto headers so people's http server are more spec compliant
   if not has_server and self.auto_server then
     length = length + 1
     head[length] = "Server: " .. self.auto_server .. "\r\n"
@@ -111,9 +157,20 @@ function Response.prototype:write_head(code, headers, callback)
     head[length] = os_date("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
   end
 
-
   head = table_concat(head, "") .. "\r\n"
   self.userdata:write(head, callback)
+  self.headers_sent = true
+end
+
+function Response.prototype:write_head(code, headers, callback)
+  if self.headers_sent then error("Headers already sent") end
+
+  self.code = code
+  for field, value in pairs(headers) do
+    self.headers[field] = value
+  end
+
+  self:flush_head(callback)
 end
 
 function Response.prototype:write_continue(callback)
@@ -121,6 +178,7 @@ function Response.prototype:write_continue(callback)
 end
 
 function Response.prototype:write(chunk, callback)
+  if not self.headers_sent then self:flush_head() end
   local userdata = self.userdata
   if self.chunked then
     userdata:write(string_format("%x\r\n", #chunk))
@@ -131,6 +189,7 @@ function Response.prototype:write(chunk, callback)
 end
 
 function Response.prototype:finish(chunk, callback)
+  if not self.headers_sent then self:flush_head() end
   if type(chunk) == "function" and callback == nil then
     callback = chunk
     chunk = nil
