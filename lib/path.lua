@@ -64,6 +64,13 @@ function Path.join(...)
   return Path.normalize(Table.concat({...}, "/"))
 end
 
+function Path.resolve(root, path)
+  if path:sub(1, 1) == "/" then
+    return Path.normalize(path)
+  end
+  return Path.join(root, path)
+end
+
 function Path.dirname(path)
   local root, dir = split_path(path)
 

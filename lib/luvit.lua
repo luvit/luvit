@@ -245,9 +245,7 @@ end
 
 -- Load the file given or start the interactive repl
 if process.argv[1] then
-  return assert(xpcall(function ()
-    dofile(process.argv[1])
-  end, Debug.traceback))
+  dofile(process.argv[1])
 else
   require('repl')
 end
