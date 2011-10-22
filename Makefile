@@ -2,6 +2,7 @@ LUADIR=deps/luajit
 UVDIR=deps/uv
 HTTPDIR=deps/http-parser
 BUILDDIR=build
+BUILDDIR_LIBLUV=build/libluv
 GENDIR=${BUILDDIR}/generated
 
 LUALIBS=${GENDIR}/luvit.o    \
@@ -24,25 +25,25 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/path.o     \
         ${GENDIR}/utils.o
 
-LUVLIBS=${BUILDDIR}/utils.o          \
-        ${BUILDDIR}/luv_fs.o         \
-        ${BUILDDIR}/luv_handle.o     \
-        ${BUILDDIR}/luv_udp.o        \
-        ${BUILDDIR}/luv_fs_watcher.o \
-        ${BUILDDIR}/luv_timer.o      \
-        ${BUILDDIR}/luv_process.o    \
-        ${BUILDDIR}/luv_stream.o     \
-        ${BUILDDIR}/luv_tcp.o        \
-        ${BUILDDIR}/luv_pipe.o       \
-        ${BUILDDIR}/luv_tty.o        \
-        ${BUILDDIR}/luv_misc.o       \
-        ${BUILDDIR}/lconstants.o     \
-        ${BUILDDIR}/lenv.o           \
-        ${BUILDDIR}/lhttp_parser.o
+LUVLIBS=${BUILDDIR_LIBLUV}/utils.o          \
+        ${BUILDDIR_LIBLUV}/luv.o         \
+        ${BUILDDIR_LIBLUV}/luv_fs.o         \
+        ${BUILDDIR_LIBLUV}/luv_handle.o     \
+        ${BUILDDIR_LIBLUV}/luv_udp.o        \
+        ${BUILDDIR_LIBLUV}/luv_fs_watcher.o \
+        ${BUILDDIR_LIBLUV}/luv_timer.o      \
+        ${BUILDDIR_LIBLUV}/luv_process.o    \
+        ${BUILDDIR_LIBLUV}/luv_stream.o     \
+        ${BUILDDIR_LIBLUV}/luv_tcp.o        \
+        ${BUILDDIR_LIBLUV}/luv_pipe.o       \
+        ${BUILDDIR_LIBLUV}/luv_tty.o        \
+        ${BUILDDIR_LIBLUV}/luv_misc.o       \
+        ${BUILDDIR_LIBLUV}/lconstants.o     \
+        ${BUILDDIR_LIBLUV}/lenv.o           \
+        ${BUILDDIR_LIBLUV}/lhttp_parser.o
 
 ALLLIBS=${BUILDDIR}/luvit.o       \
-        ${LUVLIBS}                \
-        ${BUILDDIR}/luv.o         \
+        ${BUILDDIR_LIBLUV}/libluv.a         \
         ${LUADIR}/src/libluajit.a \
         ${UVDIR}/uv.a             \
         ${HTTPDIR}/http_parser.o  \
@@ -50,10 +51,10 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 
 all: ${BUILDDIR}/luvit
 
-deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${BUILDDIR_LIBLUV}/libluv.a 
 
 ${GENDIR}:
-	mkdir -p ${GENDIR}
+	mkdir -p ${GENDIR}/libluv
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
@@ -75,9 +76,16 @@ ${GENDIR}/%.c: lib/%.lua deps
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -Wall -c $< -o $@
 
+${BUILDDIR_LIBLUV}/%.o: libluv/%.c libluv/%.h deps
+	mkdir -p ${BUILDDIR_LIBLUV}
+	$(CC) -Wall -Werror -c $< -o $@ -Ilibluv -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+
+${BUILDDIR_LIBLUV}/libluv.a: ${LUVLIBS}
+	$(AR) rvs ${BUILDDIR_LIBLUV}/libluv.a ${BUILDDIR_LIBLUV}/*.o
+
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+	$(CC) -Wall -Werror -c $< -o $@ -Ilibluv -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
 	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lrt -lpthread -Wl,-E
