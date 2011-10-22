@@ -211,8 +211,13 @@ _G.module = nil
 -- Write our own loader that does proper relative requires of both lua scripts
 -- and binary addons
 package.loaders[2] = function (path)
-  local errors = {}
   local first = path:sub(1, 1)
+
+  -- Absolute requires
+  if first == "/" then
+    path = Path.normalize(path)
+    return load_module(path)
+  end
 
   -- Relative requires
   if first == "." then
@@ -222,10 +227,10 @@ package.loaders[2] = function (path)
     else
       path = Path.join(base_path, Path.dirname(source:sub(2)), path)
     end
-    local fn, error_message = load_module(path)
-    return fn, error_message
+    return load_module(path)
   end
-  error("TODO: Implement the rest of the load path styles")
+
+  error("TODO: Implement 'module' folder style path search")
 end
 
 -- Load the file given or start the interactive repl
