@@ -1,0 +1,2 @@
+p('MODULE2 MODULE12 LOADED')
+return {bar = 456456}

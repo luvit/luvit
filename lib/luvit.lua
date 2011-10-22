@@ -161,10 +161,17 @@ function event_source(name, fn, ...)
   end, Debug.traceback))
 end
 
+local _loadfile = loadfile
+loadfile = function(path)
+p('TRY', path)
+  return _loadfile(path)
+end
+
 -- tries to load a module at a specified absolute path
 -- TODO: make these error messages a little prettier
 local function load_module(path, verbose)
 
+p('LOAD_MODULE', path)
   local cname = "luaopen_" .. Path.basename(path)
 
   -- Try the exact match first
@@ -216,7 +223,7 @@ package.loaders[2] = function (path)
   if first == "." then
     local source = Debug.getinfo(3, "S").source
     if source:sub(1, 1) == "@" then
-      path = Path.join(base_path, Path.dirname(source:sub(2)), path)
+      path = Path.join(source:sub(2, 2) ~= '/' and base_path or '', Path.dirname(source:sub(2)), path)
     else
       path = Path.join(base_path, path)
     end
@@ -228,7 +235,7 @@ package.loaders[2] = function (path)
   local source = Debug.getinfo(3, "S").source
   local dir
   if source:sub(1, 1) == "@" then
-    dir = Path.join(base_path, Path.dirname(source:sub(2)), '@')
+    dir = Path.join(source:sub(2, 2) ~= '/' and base_path or '', Path.dirname(source:sub(2)), '@')
   else
     dir = Path.join(base_path, '@')
   end

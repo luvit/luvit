@@ -1,0 +1,6 @@
+require('./module1')
+print(foo, bar)
+require('./module2')
+print(foo, bar)
+assert(foo == 123123)
+assert(bar == 456456)
