@@ -216,7 +216,7 @@ package.loaders[2] = function (path)
   if first == "." then
     local source = Debug.getinfo(3, "S").source
     if source:sub(1, 1) == "@" then
-      path = Path.join(base_path, Path.dirname(source:sub(2)), path)
+      path = Path.join(Path.dirname(source:sub(2)), path)
     else
       path = Path.join(base_path, path)
     end
