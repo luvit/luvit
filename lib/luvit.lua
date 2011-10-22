@@ -1,5 +1,6 @@
 -- clear some globals
 -- This will break lua code written for other lua runtimes
+local IO = _G.io -- TODO: implement sync File I/O using libuv
 _G.io = nil
 _G.os = nil
 _G.math = nil
@@ -9,9 +10,7 @@ _G.jit = nil
 _G.bit = nil
 _G.debug = nil
 _G.table = nil
-local loadfile = _G.loadfile
 _G.loadfile = nil
-local dofile = _G.dofile
 _G.dofile = nil
 _G.print = nil
 
@@ -61,23 +60,7 @@ local base_path = process.cwd()
 
 -- Hide some stuff behind a metatable
 local hidden = {}
-setmetatable(_G, {__index=function(table, key)
-  if key == "__dirname" then
-    local source = Debug.getinfo(2, "S").source
-    if source:sub(1,1) == "@" then
-      return Path.join(base_path, Path.dirname(source:sub(2)))
-    end
-    return
-  elseif key == "__filename" then
-    local source = Debug.getinfo(2, "S").source
-    if source:sub(1,1) == "@" then
-      return Path.join(base_path, source:sub(2))
-    end
-    return
-  else
-    return hidden[key]
-  end
-end})
+setmetatable(_G, {__index=hidden})
 local function hide(name)
   hidden[name] = _G[name]
   _G[name] = nil
@@ -161,6 +144,24 @@ function event_source(name, fn, ...)
   end, Debug.traceback))
 end
 
+local global_meta = {__index=_G}
+
+-- TODO: Implement sync I/O using libuv so we don't use this library
+function myloadfile(path)
+  local file, error = IO.open(path, "rb")
+  if error then return nil, error end
+  local code = assert(file:read("*all"))
+  assert(file:close())
+  local fn = assert(loadstring(code, '@' .. path))
+  setfenv(fn, setmetatable({
+    __filename = path,
+    __dirname = Path.dirname(path)
+  }, global_meta))
+  return fn
+end
+
+
+
 -- tries to load a module at a specified absolute path
 -- TODO: make these error messages a little prettier
 local function load_module(path, verbose)
@@ -168,11 +169,11 @@ local function load_module(path, verbose)
   local cname = "luaopen_" .. Path.basename(path)
 
   -- Try the exact match first
-  local fn = loadfile(path)
+  local fn = myloadfile(path)
   if fn then return fn end
 
   -- Then try with lua appended
-  fn = loadfile(path .. ".lua")
+  fn = myloadfile(path .. ".lua")
   if fn then return fn end
 
   -- Then try C addon with luvit appended
@@ -180,7 +181,7 @@ local function load_module(path, verbose)
   if fn then return fn end
 
   -- Then Try a folder with init.lua in it
-  fn = loadfile(path .. "/init.lua")
+  fn = myloadfile(path .. "/init.lua")
   if fn then return fn end
 
   -- Finally try the same for a C addon
@@ -216,7 +217,7 @@ package.loaders[2] = function (path)
   if first == "." then
     local source = Debug.getinfo(3, "S").source
     if source:sub(1, 1) == "@" then
-      path = Path.join(base_path, Path.dirname(source:sub(2)), path)
+      path = Path.join(Path.dirname(source:sub(2)), path)
     else
       path = Path.join(base_path, path)
     end
@@ -228,9 +229,9 @@ package.loaders[2] = function (path)
   local source = Debug.getinfo(3, "S").source
   local dir
   if source:sub(1, 1) == "@" then
-    dir = Path.join(base_path, Path.dirname(source:sub(2)), '@')
+    dir = Path.dirname(source:sub(2)) .. "/@"
   else
-    dir = Path.join(base_path, '@')
+    dir = base_path .. '/@'
   end
   repeat
     dir = dir:sub(1, dir:find("/[^/]+$") - 1)
@@ -245,7 +246,9 @@ end
 
 -- Load the file given or start the interactive repl
 if process.argv[1] then
-  dofile(process.argv[1])
+  return assert(xpcall(function ()
+    assert(myloadfile(Path.resolve(base_path, process.argv[1])))()
+  end, Debug.traceback))
 else
   require('repl')
 end
