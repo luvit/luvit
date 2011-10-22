@@ -65,12 +65,8 @@ int luv_string_to_flags(lua_State* L, const char* string) {
   return luaL_error(L, "Unknown file open flag'%s'", string);
 }
 
-void luv_after_fs(uv_fs_t* req) {
+int luv_process_fs_result(lua_State* L, uv_fs_t* req) {
   luv_fs_ref_t* ref = req->data;
-  lua_State *L = ref->L;
-  int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
   int argc = 0;
   if (req->result == -1) {
@@ -151,6 +147,19 @@ void luv_after_fs(uv_fs_t* req) {
 
   }
 
+  return argc;
+
+}
+
+void luv_after_fs(uv_fs_t* req) {
+  luv_fs_ref_t* ref = req->data;
+  lua_State *L = ref->L;
+  int before = lua_gettop(L);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+
+  int argc = luv_process_fs_result(L, req);
+
   luv_acall(L, argc + 1, 0, "fs_after");
 
   uv_fs_req_cleanup(req);
@@ -162,395 +171,210 @@ void luv_after_fs(uv_fs_t* req) {
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
   int before = lua_gettop(L);
 
-  luaL_checktype(L, index, LUA_TFUNCTION);
-
   luv_fs_ref_t* ref = malloc(sizeof(luv_fs_ref_t));
   ref->L = L;
-  lua_pushvalue(L, index); // Store the callback
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  if (lua_isfunction(L, index)) {
+    lua_pushvalue(L, index); // Store the callback
+    ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  }
   ref->fs_req.data = ref;
   assert(lua_gettop(L) == before);
   return &ref->fs_req;
 }
 
+#define FS_CALL(func, cb_index, ...)                                       \
+  if (lua_isfunction(L, cb_index)) {                                       \
+    if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, luv_after_fs)) { \
+      uv_err_t err = uv_last_error(uv_default_loop());                     \
+      return luaL_error(L, "fs_%s: %s", #func, uv_strerror(err));          \
+    }                                                                      \
+    return 0;                                                              \
+  }                                                                        \
+  if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, NULL) < 0) {       \
+    uv_err_t err = uv_last_error(uv_default_loop());                       \
+    return luaL_error(L, "fs_%s: %s", #func, uv_strerror(err));            \
+  }                                                                        \
+  int argc = luv_process_fs_result(L, req);                                \
+  lua_remove(L, -argc - 1);                                                \
+  return argc
+
+
 int luv_fs_open(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
   int mode = strtoul(luaL_checkstring(L, 3), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_open(uv_default_loop(), req, path, flags, mode, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_open: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(open, 4, path, flags, mode);
 }
 
 int luv_fs_close(lua_State* L) {
-  int before = lua_gettop(L);
-  int fd = luaL_checkint(L, 1);
+  uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_close(uv_default_loop(), req, (uv_file)fd, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_close: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(close, 2, file);
 }
 
 int luv_fs_read(lua_State* L) {
-  int before = lua_gettop(L);
-  int fd = luaL_checkint(L, 1);
+  uv_file file = luaL_checkint(L, 1);
   int offset = luaL_checkint(L, 2);
   int length = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
   void* buf = malloc(length);
   ((luv_fs_ref_t*)req->data)->buf = buf;
-
-  if (uv_fs_read(uv_default_loop(), req, (uv_file)fd, buf, length, offset, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_read: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(read, 4, file, buf, length, offset);
 }
 
 int luv_fs_write(lua_State* L) {
-  int before = lua_gettop(L);
-  int fd = luaL_checkint(L, 1);
+  uv_file file = luaL_checkint(L, 1);
   off_t offset = luaL_checkint(L, 2);
   size_t length;
-  const char* chunk = luaL_checklstring(L, 3, &length);
+  void* chunk = (void*)luaL_checklstring(L, 3, &length);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_write(uv_default_loop(), req, (uv_file)fd, (void*)chunk, length, offset, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_write: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(write, 4, file, chunk, length, offset);
 }
 
 int luv_fs_unlink(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_unlink(uv_default_loop(), req, path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_unlink: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(unlink, 2, path);
 }
 
 int luv_fs_mkdir(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
-  int mode = luaL_checkint(L, 2);
+  int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-
-  if (uv_fs_mkdir(uv_default_loop(), req, path, mode, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_mkdir: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(mkdir, 3, path, mode);
 }
 
 int luv_fs_rmdir(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_rmdir(uv_default_loop(), req, path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_rmdir: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(rmdir, 2, path);
 }
 
 int luv_fs_readdir(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_readdir(uv_default_loop(), req, path, 0, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_readdir: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(readdir, 2, path, 0);
 }
 
 
 int luv_fs_stat(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_stat(uv_default_loop(), req, path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_stat: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(stat, 2, path);
 }
 
 int luv_fs_fstat(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_fstat(uv_default_loop(), req, file, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_fstat: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(fstat, 2, file);
 }
 
 int luv_fs_rename(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   const char* new_path = luaL_checkstring(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-
-  if (uv_fs_rename(uv_default_loop(), req, path, new_path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_rename: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(rename, 3, path, new_path);
 }
 
 int luv_fs_fsync(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_fsync(uv_default_loop(), req, file, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_fsync: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(fsync, 2, file);
 }
 
-
 int luv_fs_fdatasync(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_fdatasync(uv_default_loop(), req, file, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_fdatasync: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(fdatasync, 2, file);
 }
 
 int luv_fs_ftruncate(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   off_t offset = luaL_checkint(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-
-  if (uv_fs_ftruncate(uv_default_loop(), req, file, offset, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_ftruncate: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(ftruncate, 3, file, offset);
 }
 
 int luv_fs_sendfile(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file out_fd = luaL_checkint(L, 1);
   uv_file in_fd = luaL_checkint(L, 2);
   off_t in_offset = luaL_checkint(L, 3);
   size_t length = luaL_checkint(L, 4);
   uv_fs_t* req = luv_fs_store_callback(L, 5);
-
-  if (uv_fs_sendfile(uv_default_loop(), req, out_fd, in_fd, in_offset, length, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_sendfile: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(sendfile, 5, out_fd, in_fd, in_offset, length);
 }
 
 int luv_fs_chmod(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-
-  if (uv_fs_chmod(uv_default_loop(), req, path, mode, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_chmod: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(chmod, 3, path, mode);
 }
 
 int luv_fs_utime(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   double atime = luaL_checknumber(L, 2);
   double mtime = luaL_checknumber(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_utime(uv_default_loop(), req, path, atime, mtime, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_utime: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(utime, 4, path, atime, mtime);
 }
 
 int luv_fs_futime(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   double atime = luaL_checknumber(L, 2);
   double mtime = luaL_checknumber(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_futime(uv_default_loop(), req, file, atime, mtime, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_futime: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(futime, 4, file, atime, mtime);
 }
 
 int luv_fs_lstat(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_lstat(uv_default_loop(), req, path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_lstat: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(lstat, 2, path);
 }
 
 int luv_fs_link(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   const char* new_path = luaL_checkstring(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-
-  if (uv_fs_link(uv_default_loop(), req, path, new_path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_link: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(link, 3, path, new_path);
 }
 
 int luv_fs_symlink(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   const char* new_path = luaL_checkstring(L, 2);
-  int flags  = luaL_checkint(L, 3);
+  int flags = luv_string_to_flags(L, luaL_checkstring(L, 3));
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_symlink(uv_default_loop(), req, path, new_path, flags, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_symlink: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(symlink, 4, path, new_path, flags);
 }
 
 int luv_fs_readlink(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-
-  if (uv_fs_readlink(uv_default_loop(), req, path, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_readlink: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(readlink, 2, path);
 }
 
 int luv_fs_fchmod(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-
-  if (uv_fs_fchmod(uv_default_loop(), req, file, mode, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_fchmod: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(fchmod, 3, file, mode);
 }
 
 int luv_fs_chown(lua_State* L) {
-  int before = lua_gettop(L);
   const char* path = luaL_checkstring(L, 1);
   int uid = luaL_checkint(L, 2);
   int gid = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_chown(uv_default_loop(), req, path, uid, gid, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_chown: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(chown, 4, path, uid, gid);
 }
 
 int luv_fs_fchown(lua_State* L) {
-  int before = lua_gettop(L);
   uv_file file = luaL_checkint(L, 1);
   int uid = luaL_checkint(L, 2);
   int gid = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-
-  if (uv_fs_fchown(uv_default_loop(), req, file, uid, gid, luv_after_fs)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "fs_fchown: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
+  FS_CALL(fchown, 4, file, uid, gid);
 }
 
