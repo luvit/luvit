@@ -163,38 +163,31 @@ end
 
 -- tries to load a module at a specified absolute path
 -- TODO: make these error messages a little prettier
-local function load_module(path)
-  local errors = {}
+local function load_module(path, verbose)
+
   local cname = "luaopen_" .. Path.basename(path)
 
-  local fn, error_message
-
   -- Try the exact match first
-  fn, error_message = loadfile(path)
+  local fn = loadfile(path)
   if fn then return fn end
-  errors[#errors + 1] = "\n\t" .. error_message
 
   -- Then try with lua appended
-  fn, error_message = loadfile(path .. ".lua")
+  fn = loadfile(path .. ".lua")
   if fn then return fn end
-  errors[#errors + 1] = "\n\t" .. error_message
 
   -- Then try C addon with luvit appended
-  fn, error_message = package.loadlib(path .. ".luvit", cname)
+  fn = package.loadlib(path .. ".luvit", cname)
   if fn then return fn end
-  errors[#errors + 1] = "\n\t" .. error_message
 
   -- Then Try a folder with init.lua in it
-  fn, error_message = loadfile(path .. "/init.lua")
+  fn = loadfile(path .. "/init.lua")
   if fn then return fn end
-  errors[#errors + 1] = "\n\t" .. error_message
 
   -- Finally try the same for a C addon
-  fn, error_message = package.loadlib(path .. "/init.luvit", cname)
+  fn = package.loadlib(path .. "/init.luvit", cname)
   if fn then return fn end
-  errors[#errors + 1] = "\n\t" .. error_message
 
-  return Table.concat(errors, "")
+  return "\n\tCannot find module " .. path
 end
 
 -- Remove the cwd based loaders, we don't want them
@@ -222,15 +215,32 @@ package.loaders[2] = function (path)
   -- Relative requires
   if first == "." then
     local source = Debug.getinfo(3, "S").source
-    if not source:sub(1, 1) == "@" then
-      path = Path.join(base_path, path)
-    else
+    if source:sub(1, 1) == "@" then
       path = Path.join(base_path, Path.dirname(source:sub(2)), path)
+    else
+      path = Path.join(base_path, path)
     end
     return load_module(path)
   end
 
-  error("TODO: Implement 'module' folder style path search")
+  -- Bundled module search path
+  local errors = {}
+  local source = Debug.getinfo(3, "S").source
+  local dir
+  if source:sub(1, 1) == "@" then
+    dir = Path.join(base_path, Path.dirname(source:sub(2)), '@')
+  else
+    dir = Path.join(base_path, '@')
+  end
+  repeat
+    dir = dir:sub(1, dir:find("/[^/]+$") - 1)
+    local ret = load_module(dir .. "/modules/" .. path)
+    if type(ret) == "function" then return ret end
+    errors[#errors + 1] = ret
+  until #dir == 0
+
+  return Table.concat(errors, "")
+
 end
 
 -- Load the file given or start the interactive repl
