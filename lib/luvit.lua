@@ -176,17 +176,26 @@ local function load_module(path, verbose)
   fn = myloadfile(path .. ".lua")
   if fn then return fn end
 
+  local error_message
   -- Then try C addon with luvit appended
-  fn = package.loadlib(path .. ".luvit", cname)
+  fn, error_message = package.loadlib(path .. ".luvit", cname)
   if fn then return fn end
+  -- TODO: find a less fragile way to tell a not found error from other errors
+  if not (error_message == path .. ".luvit: cannot open shared object file: No such file or directory") then
+    error(error_message)
+  end
 
   -- Then Try a folder with init.lua in it
   fn = myloadfile(path .. "/init.lua")
   if fn then return fn end
 
   -- Finally try the same for a C addon
-  fn = package.loadlib(path .. "/init.luvit", cname)
+  fn, error_message = package.loadlib(path .. "/init.luvit", cname)
   if fn then return fn end
+  -- TODO: find a less fragile way to tell a not found error from other errors
+  if not (error_message == path .. "/init.luvit: cannot open shared object file: No such file or directory") then
+    error(error_message)
+  end
 
   return "\n\tCannot find module " .. path
 end
