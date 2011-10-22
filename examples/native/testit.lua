@@ -7,3 +7,5 @@ p({TopCube=TopCube})
 -- Call a function in the library
 TopCube.create_window("http://github.com/creationix/luvit", 1024, 768)
 
+print("Yay!, we're unblocked")
+process.exit()

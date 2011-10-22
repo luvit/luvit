@@ -1,6 +1,5 @@
 // This is a port of https://github.com/creationix/topcube to luvit
 
-#include <stdlib.h>
 #include <gtk/gtk.h>
 #include <webkit/webkitwebview.h>
 
@@ -12,7 +11,6 @@ static GtkWidget* web_view;
 
 static void destroy(void) {
   gtk_main_quit ();
-  exit(0);
 }
 
 static void title_change(void) {
