@@ -1,34 +1,76 @@
 local UV = require('uv')
 local Table = require('table')
 local Stream = require('stream')
-
-local FS = {
-  open = UV.fs_open,
-  close = UV.fs_close,
-  read = UV.fs_read,
-  write = UV.fs_write,
-  unlink = UV.fs_unlink,
-  mkdir = UV.fs_mkdir,
-  rmdir = UV.fs_rmdir,
-  readdir = UV.fs_readdir,
-  stat = UV.fs_stat,
-  fstat = UV.fs_fstat,
-  rename = UV.fs_rename,
-  fsync = UV.fs_fsync,
-  fdatasync = UV.fs_fdatasync,
-  ftruncate = UV.fs_ftruncate,
-  sendfile = UV.fs_sendfile,
-  chmod = UV.fs_chmod,
-  utime = UV.fs_utime,
-  futime = UV.fs_futime,
-  lstat = UV.fs_lstat,
-  link = UV.fs_link,
-  symlink = UV.fs_symlink,
-  readlink = UV.fs_readlink,
-  fchmod = UV.fs_fchmod,
-  chown = UV.fs_chown,
-  fchown = UV.fs_fchown,
+local FS = {}
+local sizes = {
+  open = 3,
+  close = 1,
+  read = 3,
+  write = 3,
+  unlink = 1,
+  mkdir = 2,
+  rmdir = 1,
+  readdir = 1,
+  stat = 1,
+  fstat = 1,
+  rename = 1,
+  fsync = 1,
+  fdatasync = 1,
+  ftruncate = 2,
+  sendfile = 4,
+  chmod = 2,
+  utime = 3,
+  futime = 3,
+  lstat = 1,
+  link = 2,
+  symlink = 3,
+  readlink = 1,
+  fchmod = 2,
+  chown = 3,
+  fchown = 3,
 }
+
+-- Default callback if one isn't given for async operations
+local function default(err, ...)
+  if err then error(err) end
+end
+
+-- Wrap the core fs functions in forced sync and async versions
+for name, arity in pairs(sizes) do
+  local sync, async
+  local real = UV["fs_" .. name]
+  if arity == 1 then
+    async = function (arg, callback)
+      return real(arg, callback or default)
+    end
+    sync = function (arg)
+      return real(arg)
+    end
+  elseif arity == 2 then
+    async = function (arg1, arg2, callback)
+      return real(arg1, arg2, callback or default)
+    end
+    sync = function (arg1, arg2)
+      return real(arg1, arg2)
+    end
+  elseif arity == 3 then
+    async = function (arg1, arg2, arg3, callback)
+      return real(arg1, arg2, arg3, callback or default)
+    end
+    sync = function (arg1, arg2, arg3)
+      return real(arg1, arg2, arg3)
+    end
+  elseif arity == 4 then
+    async = function (arg1, arg2, arg3, arg4, callback)
+      return real(arg1, arg2, arg3, arg4, callback or default)
+    end
+    sync = function (arg1, arg2, arg3, arg4)
+      return real(arg1, arg2, arg3, arg4)
+    end
+  end
+  FS[name] = async
+  FS[name .. "_sync"] = sync
+end
 
 local CHUNK_SIZE = 65536
 
