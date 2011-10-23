@@ -16,15 +16,21 @@
 #include "lenv.h"
 
 
-int luvit_exit(lua_State* L) {
+static int luvit_exit(lua_State* L) {
   int exit_code = luaL_checkint(L, 1);
   exit(exit_code);
   return 0;
 }
 
+static int luvit_print_stderr(lua_State* L) {
+  const char* line = luaL_checkstring(L, 1);
+  fprintf(stderr, "%s", line);
+  return 0;
+}
+
 static char getbuf[PATH_MAX + 1];
 
-int luvit_getcwd(lua_State* L) {
+static int luvit_getcwd(lua_State* L) {
   char *r = getcwd(getbuf, ARRAY_SIZE(getbuf) - 1);
   if (r == NULL) {
     return luaL_error(L, "luvit_getcwd: %s\n", strerror(errno));
@@ -73,6 +79,9 @@ int main(int argc, char *argv[])
 
   lua_pushcfunction(L, luvit_exit);
   lua_setglobal(L, "exit_process");
+
+  lua_pushcfunction(L, luvit_print_stderr);
+  lua_setglobal(L, "print_stderr");
 
   lua_pushcfunction(L, luvit_getcwd);
   lua_setglobal(L, "getcwd");

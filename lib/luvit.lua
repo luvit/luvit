@@ -108,6 +108,18 @@ function p(...)
   stdout:write(Table.concat(arguments, "\t") .. "\n")
 end
 
+-- Like p, but prints to stderr using blocking I/O for better debugging
+function debug(...)
+  local n = select('#', ...)
+  local arguments = { ... }
+
+  for i = 1, n do
+    arguments[i] = Utils.dump(arguments[i])
+  end
+
+  print_stderr(Table.concat(arguments, "\t") .. "\n")
+end
+
 
 -- Add global access to the environment variables using a dynamic table
 process.env = setmetatable({}, {
@@ -255,7 +267,7 @@ end
 
 -- Load the file given or start the interactive repl
 if process.argv[1] then
-  return assert(xpcall(function ()
+  assert(xpcall(function ()
     assert(myloadfile(Path.resolve(base_path, process.argv[1])))()
   end, Debug.traceback))
 else
