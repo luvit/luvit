@@ -281,7 +281,7 @@ assert(xpcall(function ()
   for i, value in ipairs(process.argv) do
     if state == "BEGIN" then
       if value == "-h" or value == "--help" then
-        print("Usage: " .. process.argv[0] .. "[options] script.lua [arguments]")
+        print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]")
         print("")
         print("Options:")
         print("  -h, --help          Print this help screen.")
@@ -306,6 +306,7 @@ assert(xpcall(function ()
       end
     elseif state == "-e" then
       to_eval[#to_eval + 1] = value
+      state = "BEGIN"
     elseif state == "USERSPACE" then
       args[#args + 1] = value
     end
