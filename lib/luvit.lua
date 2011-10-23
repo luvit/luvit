@@ -149,10 +149,10 @@ local global_meta = {__index=_G}
 
 -- TODO: Implement sync I/O using libuv so we don't use this library
 function myloadfile(path)
-  local file, error = IO.open(path, "rb")
-  if error then return nil, error end
-  local code = assert(file:read("*all"))
-  assert(file:close())
+  local success, code = pcall(function ()
+    return FS.read_file_sync(path)
+  end)
+  if not success then return nil, code end
   local fn = assert(loadstring(code, '@' .. path))
   setfenv(fn, setmetatable({
     __filename = path,
