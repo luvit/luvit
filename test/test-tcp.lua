@@ -1,3 +1,5 @@
+require("helper")
+
 local TCP = require('tcp')
 
 local PORT = 8080

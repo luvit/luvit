@@ -1,3 +1,5 @@
+require("helper")
+
 _G.num_loaded = 0
 local m1 = require("module1")
 local m1_m2 = require("module1/module2")
