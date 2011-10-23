@@ -270,6 +270,18 @@ end
 
 local Repl = require('repl')
 
+local function usage()
+  print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]")
+  print("")
+  print("Options:")
+  print("  -h, --help          Print this help screen.")
+  print("  -v, --version       Print the version.")
+  print("  -e code_chunk       Evaluate code chunk and print result.")
+  print("  -i, --interactive   Enter interactive repl after executing script.")
+  print("                      (Note, if no script is provided, a repl is run instead.)")
+  print("")
+end
+
 assert(xpcall(function ()
 
   local interactive
@@ -277,19 +289,11 @@ assert(xpcall(function ()
   local file
   local state = "BEGIN"
   local to_eval = {}
-  local args = {process.argv[0]}
+  local args = {[0]=process.argv[0]}
   for i, value in ipairs(process.argv) do
     if state == "BEGIN" then
       if value == "-h" or value == "--help" then
-        print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]")
-        print("")
-        print("Options:")
-        print("  -h, --help          Print this help screen.")
-        print("  -v, --version       Print the version.")
-        print("  -e code_chunk       Evaluate code chunk and print result.")
-        print("  -i, --interactive   Enter interactive repl after executing script.")
-        print("                      (Note, if no script is provided, a repl is run instead.)")
-        print("")
+        usage()
         repl = false
       elseif value == "-v" or value == "--version" then
         print(Repl.colored_name .. " version " .. VERSION)
@@ -299,6 +303,9 @@ assert(xpcall(function ()
         repl = false
       elseif value == "-i" or value == "--interactive" then
         interactive = true
+      elseif value:sub(1, 1) == "-" then
+        usage()
+        process.exit(1)
       else
         file = value
         repl = false
@@ -311,6 +318,12 @@ assert(xpcall(function ()
       args[#args + 1] = value
     end
   end
+
+  if not (state == "BEGIN" or state == "USERSPACE") then
+    usage()
+    process.exit(1)
+  end
+
   process.argv = args
 
   for i, value in ipairs(to_eval) do
