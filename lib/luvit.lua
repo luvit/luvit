@@ -216,9 +216,8 @@ local function load_module(path, verbose)
 end
 
 -- Remove the cwd based loaders, we don't want them
-package.loaders[2] = nil
-package.loaders[3] = nil
-package.loaders[4] = nil
+local builtin_loader = package.loaders[1]
+package.loaders = nil
 package.path = nil
 package.cpath = nil
 package.searchpath = nil
@@ -226,32 +225,51 @@ package.seeall = nil
 package.config = nil
 _G.module = nil
 
--- Write our own loader that does proper relative requires of both lua scripts
--- and binary addons
-package.loaders[2] = function (path)
+function require(path)
+
+  -- Absolute and relative required modules
   local first = path:sub(1, 1)
-
-  -- Absolute requires
+  local absolute_path
   if first == "/" then
-    path = Path.normalize(path)
-    return load_module(path)
-  end
-
-  -- Relative requires
-  if first == "." then
-    local source = Debug.getinfo(3, "S").source
+    absolute_path = Path.normalize(path)
+  elseif first == "." then
+    local source = Debug.getinfo(2, "S").source
     if source:sub(1, 1) == "@" then
-      path = Path.join(Path.dirname(source:sub(2)), path)
+      absolute_path = Path.join(Path.dirname(source:sub(2)), path)
     else
-      path = Path.join(base_path, path)
+      absolute_path = Path.join(base_path, path)
     end
-    return load_module(path)
+  end
+  if absolute_path then
+    module = package.loaded[absolute_path]
+    if module then return module end
+    loader = load_module(absolute_path)
+    if type(loader) == "function" then
+      module = loader()
+      package.loaded[absolute_path] = module
+      return module
+    else
+      error("Failed to find module '" .. path .."'" .. loader)
+    end
   end
 
-  -- Bundled module search path
   local errors = {}
-  local source = Debug.getinfo(3, "S").source
+
+  -- Builtin modules
+  local module = package.loaded[path]
+  if module then return module end
+  local loader = builtin_loader(path)
+  if type(loader) == "function" then
+    module = loader()
+    package.loaded[path] = module
+    return module
+  else
+    errors[#errors + 1] = loader
+  end
+
+  -- Bundled path modules
   local dir
+  local source = Debug.getinfo(2, "S").source
   if source:sub(1, 1) == "@" then
     dir = Path.dirname(source:sub(2)) .. "/@"
   else
@@ -259,12 +277,19 @@ package.loaders[2] = function (path)
   end
   repeat
     dir = dir:sub(1, dir:find("/[^/]+$") - 1)
-    local ret = load_module(dir .. "/modules/" .. path)
-    if type(ret) == "function" then return ret end
-    errors[#errors + 1] = ret
+    local full_path = dir .. "/modules/" .. path
+    if package.loaded[full_path] then return package.loaded[full_path] end
+    local loader = load_module(dir .. "/modules/" .. path)
+    if type(loader) == "function" then
+      local module = loader()
+      package.loaded[full_path] = module
+      return module
+    else
+      errors[#errors + 1] = loader
+    end
   until #dir == 0
 
-  return Table.concat(errors, "")
+  error("Failed to find module '" .. path .."'" .. Table.concat(errors, ""))
 
 end
 
