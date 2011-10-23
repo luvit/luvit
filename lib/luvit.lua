@@ -109,8 +109,7 @@ function p(...)
   stdout:write(Table.concat(arguments, "\t") .. "\n")
 end
 
-local print_stderr = _G.print_stderr
-_G.print_stderr = nil
+hide("print_stderr")
 -- Like p, but prints to stderr using blocking I/O for better debugging
 function debug(...)
   local n = select('#', ...)

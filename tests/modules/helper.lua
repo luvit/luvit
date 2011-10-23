@@ -1,5 +1,7 @@
 local Debug = require('debug')
-debug(Debug.getinfo(3, "S").source)
+local Utils = require('utils')
+local source = Debug.getinfo(3, "S").source:sub(2)
+print_stderr("Running " .. Utils.color("Bblue") .. source .. Utils.color() .. "... ")
 
 local table_concat = require('table').concat
 local expectations = {}
@@ -24,12 +26,16 @@ process:on('exit', function (code, signal)
   local errors = {}
   for name, value in pairs(expectations) do
     if value then
-      errors[#errors + 1] = "\n\tExpectation " .. name .. " was never fulfilled"
+      errors[#errors + 1] = "\n\tExpectation '" .. name .. "' was never fulfilled." 
     end
   end
   if #errors > 0 then
-    error("Failed Expectations:" .. table_concat(errors, ""))
+    print_stderr(Utils.color("Bred") .. "FAIL" .. Utils.color() .. "\n")
+
+    error("\n" .. source .. ":on_exit:" .. table_concat(errors, ""))
   end
+  print_stderr(Utils.color("Bgreen") .. "PASS" .. Utils.color() .. "\n")
+
 end)
     
 
