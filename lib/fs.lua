@@ -89,7 +89,7 @@ function FS.exists_sync(path)
     UV.fs_stat(path)
   end)
   if not err then return true end
-  if err:find("No such file or directory$") then
+  if err.code == "ENOENT" then
     return false
   end
   error(err)
@@ -160,6 +160,23 @@ function FS.create_write_stream(path, options)
   end
 
   error("TODO: Implement write_stream")
+end
+
+function FS.read_file_sync(path)
+  local fd = FS.open_sync(path, "r", "0666")
+  local parts = {}
+  local length = 0
+  local offset = 0
+  repeat
+    local chunk, len = FS.read_sync(fd, offset, CHUNK_SIZE)
+    if len > 0 then
+      offset = offset + len
+      length = length + 1
+      parts[length] = chunk
+    end
+  until len == 0
+  FS.close_sync(fd)
+  return Table.concat(parts)
 end
 
 function FS.read_file(path, callback)

@@ -182,17 +182,19 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
   return &ref->fs_req;
 }
 
-#define FS_CALL(func, cb_index, ...)                                       \
+#define FS_CALL(func, cb_index, path, ...)                                 \
   if (lua_isfunction(L, cb_index)) {                                       \
     if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, luv_after_fs)) { \
       uv_err_t err = uv_last_error(uv_default_loop());                     \
-      return luaL_error(L, "fs_%s: %s", #func, uv_strerror(err));          \
+      luv_push_async_error(L, err, #func, path);                           \
+      return lua_error(L);                                                 \
     }                                                                      \
     return 0;                                                              \
   }                                                                        \
   if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, NULL) < 0) {       \
     uv_err_t err = uv_last_error(uv_default_loop());                       \
-    return luaL_error(L, "fs_%s: %s", #func, uv_strerror(err));            \
+    luv_push_async_error(L, err, #func, path);                             \
+    return lua_error(L);                                                   \
   }                                                                        \
   int argc = luv_process_fs_result(L, req);                                \
   lua_remove(L, -argc - 1);                                                \
@@ -204,13 +206,13 @@ int luv_fs_open(lua_State* L) {
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
   int mode = strtoul(luaL_checkstring(L, 3), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(open, 4, path, flags, mode);
+  FS_CALL(open, 4, path, path, flags, mode);
 }
 
 int luv_fs_close(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(close, 2, file);
+  FS_CALL(close, 2, NULL, file);
 }
 
 int luv_fs_read(lua_State* L) {
@@ -220,7 +222,7 @@ int luv_fs_read(lua_State* L) {
   uv_fs_t* req = luv_fs_store_callback(L, 4);
   void* buf = malloc(length);
   ((luv_fs_ref_t*)req->data)->buf = buf;
-  FS_CALL(read, 4, file, buf, length, offset);
+  FS_CALL(read, 4, NULL, file, buf, length, offset);
 }
 
 int luv_fs_write(lua_State* L) {
@@ -229,71 +231,71 @@ int luv_fs_write(lua_State* L) {
   size_t length;
   void* chunk = (void*)luaL_checklstring(L, 3, &length);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(write, 4, file, chunk, length, offset);
+  FS_CALL(write, 4, NULL, file, chunk, length, offset);
 }
 
 int luv_fs_unlink(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(unlink, 2, path);
+  FS_CALL(unlink, 2, path, path);
 }
 
 int luv_fs_mkdir(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-  FS_CALL(mkdir, 3, path, mode);
+  FS_CALL(mkdir, 3, path, path, mode);
 }
 
 int luv_fs_rmdir(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(rmdir, 2, path);
+  FS_CALL(rmdir, 2, path, path);
 }
 
 int luv_fs_readdir(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(readdir, 2, path, 0);
+  FS_CALL(readdir, 2, path, path, 0);
 }
 
 
 int luv_fs_stat(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(stat, 2, path);
+  FS_CALL(stat, 2, path, path);
 }
 
 int luv_fs_fstat(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(fstat, 2, file);
+  FS_CALL(fstat, 2, NULL, file);
 }
 
 int luv_fs_rename(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   const char* new_path = luaL_checkstring(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-  FS_CALL(rename, 3, path, new_path);
+  FS_CALL(rename, 3, path, path, new_path);
 }
 
 int luv_fs_fsync(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(fsync, 2, file);
+  FS_CALL(fsync, 2, NULL, file);
 }
 
 int luv_fs_fdatasync(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(fdatasync, 2, file);
+  FS_CALL(fdatasync, 2, NULL, file);
 }
 
 int luv_fs_ftruncate(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   off_t offset = luaL_checkint(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-  FS_CALL(ftruncate, 3, file, offset);
+  FS_CALL(ftruncate, 3, NULL, file, offset);
 }
 
 int luv_fs_sendfile(lua_State* L) {
@@ -302,14 +304,14 @@ int luv_fs_sendfile(lua_State* L) {
   off_t in_offset = luaL_checkint(L, 3);
   size_t length = luaL_checkint(L, 4);
   uv_fs_t* req = luv_fs_store_callback(L, 5);
-  FS_CALL(sendfile, 5, out_fd, in_fd, in_offset, length);
+  FS_CALL(sendfile, 5, NULL, out_fd, in_fd, in_offset, length);
 }
 
 int luv_fs_chmod(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-  FS_CALL(chmod, 3, path, mode);
+  FS_CALL(chmod, 3, path, path, mode);
 }
 
 int luv_fs_utime(lua_State* L) {
@@ -317,7 +319,7 @@ int luv_fs_utime(lua_State* L) {
   double atime = luaL_checknumber(L, 2);
   double mtime = luaL_checknumber(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(utime, 4, path, atime, mtime);
+  FS_CALL(utime, 4, path, path, atime, mtime);
 }
 
 int luv_fs_futime(lua_State* L) {
@@ -325,20 +327,20 @@ int luv_fs_futime(lua_State* L) {
   double atime = luaL_checknumber(L, 2);
   double mtime = luaL_checknumber(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(futime, 4, file, atime, mtime);
+  FS_CALL(futime, 4, NULL, file, atime, mtime);
 }
 
 int luv_fs_lstat(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(lstat, 2, path);
+  FS_CALL(lstat, 2, path, path);
 }
 
 int luv_fs_link(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   const char* new_path = luaL_checkstring(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-  FS_CALL(link, 3, path, new_path);
+  FS_CALL(link, 3, path, path, new_path);
 }
 
 int luv_fs_symlink(lua_State* L) {
@@ -346,20 +348,20 @@ int luv_fs_symlink(lua_State* L) {
   const char* new_path = luaL_checkstring(L, 2);
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 3));
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(symlink, 4, path, new_path, flags);
+  FS_CALL(symlink, 4, new_path, path, new_path, flags);
 }
 
 int luv_fs_readlink(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   uv_fs_t* req = luv_fs_store_callback(L, 2);
-  FS_CALL(readlink, 2, path);
+  FS_CALL(readlink, 2, path, path);
 }
 
 int luv_fs_fchmod(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
-  FS_CALL(fchmod, 3, file, mode);
+  FS_CALL(fchmod, 3, NULL, file, mode);
 }
 
 int luv_fs_chown(lua_State* L) {
@@ -367,7 +369,7 @@ int luv_fs_chown(lua_State* L) {
   int uid = luaL_checkint(L, 2);
   int gid = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(chown, 4, path, uid, gid);
+  FS_CALL(chown, 4, path, path, uid, gid);
 }
 
 int luv_fs_fchown(lua_State* L) {
@@ -375,6 +377,6 @@ int luv_fs_fchown(lua_State* L) {
   int uid = luaL_checkint(L, 2);
   int gid = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
-  FS_CALL(fchown, 4, file, uid, gid);
+  FS_CALL(fchown, 4, NULL, file, uid, gid);
 }
 

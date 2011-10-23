@@ -144,6 +144,8 @@ function event_source(name, fn, ...)
   end, Debug.traceback))
 end
 
+error_meta = {__tostring=function(table) return table.message end}
+
 local global_meta = {__index=_G}
 
 -- TODO: Implement sync I/O using libuv so we don't use this library

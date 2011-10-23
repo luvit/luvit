@@ -43,6 +43,8 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
   const char* msg = uv_strerror(err);
 
   lua_newtable(L);
+  lua_getglobal(L, "error_meta");
+  lua_setmetatable(L, -2);
 
   if (path) {
     lua_pushstring(L, path);
