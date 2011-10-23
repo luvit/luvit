@@ -72,6 +72,29 @@ for name, arity in pairs(sizes) do
   FS[name .. "_sync"] = sync
 end
 
+function FS.exists(path, callback)
+  UV.fs_stat(path, function (err)
+    if not err then
+      return callback(nil, true)
+    end
+    if err.code == "ENOENT" then
+      return callback(nil, false)
+    end
+    callback(err)
+  end)
+end
+
+function FS.exists_sync(path)
+  local success, err = pcall(function ()
+    UV.fs_stat(path)
+  end)
+  if not err then return true end
+  if err:find("No such file or directory$") then
+    return false
+  end
+  error(err)
+end
+
 local CHUNK_SIZE = 65536
 
 local read_options = {
