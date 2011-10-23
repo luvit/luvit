@@ -1,6 +1,5 @@
 -- clear some globals
 -- This will break lua code written for other lua runtimes
-local IO = _G.io -- TODO: implement sync File I/O using libuv
 _G.io = nil
 _G.os = nil
 _G.math = nil
@@ -165,7 +164,6 @@ end
 
 
 -- tries to load a module at a specified absolute path
--- TODO: make these error messages a little prettier
 local function load_module(path, verbose)
 
   local cname = "luaopen_" .. Path.basename(path)
