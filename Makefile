@@ -92,7 +92,7 @@ install: ${BUILDDIR}/luvit
 	install ${BUILDDIR}/luvit -s -v /usr/local/bin/luvit
 
 test: ${BUILDDIR}/luvit
-	find tests -name "test-*.lua" | xargs -l ./build/luvit > test/results.log && rm test/results.log || cat test/results.log
+	find tests -name "test-*.lua" | xargs -l ${BUILDDIR}/luvit > tests/results.log && rm tests/results.log || cat tests/results.log
 
 .PHONY: test
 
