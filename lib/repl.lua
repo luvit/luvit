@@ -59,7 +59,7 @@ end
 
 local c = Utils.color
 
-print("\n" .. c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c("Bwhite") .. " repl" .. c())
+print(c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c("Bwhite") .. " repl" .. c())
 
 display_prompt '>'
 
