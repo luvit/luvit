@@ -1,3 +1,4 @@
+VERSION = "Prelease"
 -- clear some globals
 -- This will break lua code written for other lua runtimes
 _G.io = nil
@@ -108,6 +109,8 @@ function p(...)
   stdout:write(Table.concat(arguments, "\t") .. "\n")
 end
 
+local print_stderr = _G.print_stderr
+_G.print_stderr = nil
 -- Like p, but prints to stderr using blocking I/O for better debugging
 function debug(...)
   local n = select('#', ...)
@@ -265,14 +268,63 @@ package.loaders[2] = function (path)
 
 end
 
--- Load the file given or start the interactive repl
-if process.argv[1] then
-  assert(xpcall(function ()
-    assert(myloadfile(Path.resolve(base_path, process.argv[1])))()
-  end, Debug.traceback))
-else
-  require('repl')
-end
+local Repl = require('repl')
+
+assert(xpcall(function ()
+
+  local interactive
+  local repl = true
+  local file
+  local state = "BEGIN"
+  local to_eval = {}
+  local args = {process.argv[0]}
+  for i, value in ipairs(process.argv) do
+    if state == "BEGIN" then
+      if value == "-h" or value == "--help" then
+        print("Usage: " .. process.argv[0] .. "[options] script.lua [arguments]")
+        print("")
+        print("Options:")
+        print("  -h, --help          Print this help screen.")
+        print("  -v, --version       Print the version.")
+        print("  -e code_chunk       Evaluate code chunk and print result.")
+        print("  -i, --interactive   Enter interactive repl after executing script.")
+        print("                      (Note, if no script is provided, a repl is run instead.)")
+        print("")
+        repl = false
+      elseif value == "-v" or value == "--version" then
+        print(Repl.colored_name .. " version " .. VERSION)
+        repl = false
+      elseif value == "-e" or value == "--eval" then
+        state = "-e"
+        repl = false
+      elseif value == "-i" or value == "--interactive" then
+        interactive = true
+      else
+        file = value
+        repl = false
+        state = "USERSPACE"
+      end
+    elseif state == "-e" then
+      to_eval[#to_eval + 1] = value
+    elseif state == "USERSPACE" then
+      args[#args + 1] = value
+    end
+  end
+  process.argv = args
+
+  for i, value in ipairs(to_eval) do
+    Repl.evaluate_line(value)
+  end
+
+  if file then
+    assert(myloadfile(Path.resolve(base_path, file)))()
+  end
+  if interactive or repl then
+    Repl.start()
+  end
+
+end, Debug.traceback))
+
 
 -- Start the event loop
 UV.run()

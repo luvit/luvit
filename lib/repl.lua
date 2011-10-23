@@ -2,6 +2,7 @@ local Debug = require('debug')
 local UV = require('uv')
 local Utils = require('utils')
 local Table = require('table')
+local Repl = {}
 
 local function gather_results(success, ...)
   local n = select('#', ...)
@@ -17,7 +18,7 @@ end
 
 local buffer = ''
 
-local function evaluate_line(line)
+function Repl.evaluate_line(line)
   local chunk  = buffer .. line
   local f, err = loadstring('return ' .. chunk, 'REPL') -- first we prefix return
 
@@ -52,27 +53,31 @@ local function evaluate_line(line)
   return '>'
 end
 
+local c = Utils.color
+Repl.colored_name = c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c()
 
-local function display_prompt(prompt)
-  process.stdout:write(prompt .. ' ', noop)
+function Repl.start()
+  local function display_prompt(prompt)
+    process.stdout:write(prompt .. ' ', noop)
+  end
+
+
+  print(c("Bwhite") .. "Welcome to the " .. Repl.colored_name .. c("Bwhite") .. " repl" .. c())
+
+  display_prompt '>'
+
+
+  process.stdin:on('data', function (line)
+    local prompt = Repl.evaluate_line(line)
+    display_prompt(prompt)
+  end)
+
+  process.stdin:on('end', function ()
+    print(Utils.colorize("Bblue", "\nBye!"))
+    process.exit()
+  end)
+
+  process.stdin:read_start()
 end
 
-local c = Utils.color
-
-print(c("Bwhite") .. "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c("Bwhite") .. " repl" .. c())
-
-display_prompt '>'
-
-
-process.stdin:on('data', function (line)
-  local prompt = evaluate_line(line)
-  display_prompt(prompt)
-end)
-
-process.stdin:on('end', function ()
-  print(Utils.colorize("Bblue", "\nBye!"))
-  process.exit()
-end)
-
-process.stdin:read_start()
-
+return Repl
