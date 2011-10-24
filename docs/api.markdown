@@ -10,39 +10,39 @@ These are the various modules you can require and use from your Luvit program.
 
 Emitter is an event emitter for loosely coupled pub-sub style programming.  It's the root of most types in Luvit.
 
-### `Emitter.new()`
+### Emitter.new()
 
 Create a new emitter table and returns it
 
-### `Emitter.prototype`
+### Emitter.prototype
 
 This table is the prototype that holds emitter instance methods.
 
-### `Emitter.meta`
+### Emitter.meta
 
 This meta-table is can be used for any table that wants to inherit from `Emitter.prototype`.
 
-### `emitter:on(name, callback)`
+### emitter:on(name, callback)
 
 Attach an event listener to the emitter instance.  Name can be any value and callback is a function that gets called when the named event gets emitted.
 
-### `emitter:once(name, callback)`
+### emitter:once(name, callback)
 
 This is just like `emitter:on(...)` except it automatically removes itself after the first time it's fired.  Thus is happens once.
 
-### `emitter:emit(name, ...)`
+### emitter:emit(name, ...)
 
 Emit an event named by `name` to all the listeners.  The extra args `...` get passed as arguments to the attached listeners.
 
-### `emitter:remove_listener(name, callback)`
+### emitter:remove_listener(name, callback)
 
 Remove a single listener from the emitter.  The arguments `name` and `callback` need to be the same ones used when setting up the listener.
 
-### `emitter:missing_handler_type(name, ...)`
+### emitter:missing_handler_type(name, ...)
 
 This is a hook for emitters that want to be notified when an event is emitted but there is no listener for it.  By default the behavior is to check if `name` is `error` and throw the error.
 
-### `emitter:add_handler_type(name)`
+### emitter:add_handler_type(name)
 
 This is another hook for emitters that want to be notified the first time a handler is added for a specific `name`.  This is used internally for emitters that are backed by real OS level sources and need to register low-level listeners on the first listener they get.
 
