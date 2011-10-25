@@ -255,15 +255,17 @@ function require(path)
   local errors = {}
 
   -- Builtin modules
-  local module = package.loaded[path]
-  if module then return module end
-  local loader = builtin_loader(path)
-  if type(loader) == "function" then
-    module = loader()
-    package.loaded[path] = module
-    return module
-  else
-    errors[#errors + 1] = loader
+  if path:find("^[a-z]+$") then
+    local module = package.loaded[path]
+    if module then return module end
+    local loader = builtin_loader(path)
+    if type(loader) == "function" then
+      module = loader()
+      package.loaded[path] = module
+      return module
+    else
+      errors[#errors + 1] = loader
+    end
   end
 
   -- Bundled path modules
