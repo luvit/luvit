@@ -1,11 +1,9 @@
 -- Load our native module
-local TopCube = require('./topcube')
+local Vector = require('./vector')
 
--- Show it's a normal lua table
-p({TopCube=TopCube})
+p(Vector)
 
--- Call a function in the library
-TopCube.create_window("http://github.com/creationix/luvit", 1024, 768)
+local v = Vector.new(20, 10)
 
-print("Yay!, we're unblocked")
-process.exit()
+p({x=v.x,y=v.y,angle=v.angle})
+
