@@ -269,9 +269,9 @@ function require(path, dirname)
   end
 
   -- Bundled path modules
-  local dir = dirname .. "/@"
+  local dir = dirname .. "/"
   repeat
-    dir = dir:sub(1, dir:find("/[^/]+$") - 1)
+    dir = dir:sub(1, dir:find("/[^/]*$") - 1)
     local full_path = dir .. "/modules/" .. path
     if package.loaded[full_path] then return package.loaded[full_path] end
     local loader = load_module(dir .. "/modules/" .. path)
