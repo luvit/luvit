@@ -257,7 +257,7 @@ function require(path)
   -- Builtin modules
   local module = package.loaded[path]
   if module then return module end
-  if path:find("^[a-z]+$") then
+  if path:find("^[a-z_]+$") then
     local loader = builtin_loader(path)
     if type(loader) == "function" then
       module = loader()
