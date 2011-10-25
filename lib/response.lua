@@ -258,10 +258,12 @@ function Response.prototype:finish(chunk, callback)
   if self.chunked then
     self.userdata:write('0\r\n\r\n')
   end
-  self:close()
-  if callback then
-    self:on("closed", callback)
-  end
+  self:shutdown(function ()
+    self:close()
+    if callback then
+      self:on("closed", callback)
+    end
+  end)
 end
 
 
