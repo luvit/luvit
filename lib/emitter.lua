@@ -35,7 +35,6 @@ function emitter_prototype:on(name, callback)
   end
   handlers_for_type[callback] = true
 end
-emitter_prototype.add_listener = emitter_prototype.on
 
 function emitter_prototype:emit(name, ...)
   local handlers = rawget(self, "handlers")
