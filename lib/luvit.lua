@@ -161,16 +161,20 @@ error_meta = {__tostring=function(table) return table.message end}
 
 local global_meta = {__index=_G}
 
--- TODO: Implement sync I/O using libuv so we don't use this library
 function myloadfile(path)
   local success, code = pcall(function ()
     return FS.read_file_sync(path)
   end)
   if not success then return nil, code end
   local fn = assert(loadstring(code, '@' .. path))
+  local dirname = Path.dirname(path)
+  local real_require = require
   setfenv(fn, setmetatable({
-    __filename = path,
-    __dirname = Path.dirname(path)
+    __filename = filename,
+    __dirname = dirname,
+    require = function (path)
+      return real_require(path, dirname)
+    end,
   }, global_meta))
   return fn
 end
@@ -224,7 +228,8 @@ package.seeall = nil
 package.config = nil
 _G.module = nil
 
-function require(path)
+function require(path, dirname)
+  if not dirname then dirname = base_path end
 
   -- Absolute and relative required modules
   local first = path:sub(1, 1)
@@ -232,12 +237,7 @@ function require(path)
   if first == "/" then
     absolute_path = Path.normalize(path)
   elseif first == "." then
-    local source = Debug.getinfo(2, "S").source
-    if source:sub(1, 1) == "@" then
-      absolute_path = Path.join(Path.dirname(source:sub(2)), path)
-    else
-      absolute_path = Path.join(base_path, path)
-    end
+    absolute_path = Path.join(dirname, path)
   end
   if absolute_path then
     module = package.loaded[absolute_path]
@@ -269,13 +269,7 @@ function require(path)
   end
 
   -- Bundled path modules
-  local dir
-  local source = Debug.getinfo(2, "S").source
-  if source:sub(1, 1) == "@" then
-    dir = Path.dirname(source:sub(2)) .. "/@"
-  else
-    dir = base_path .. '/@'
-  end
+  local dir = dirname .. "/@"
   repeat
     dir = dir:sub(1, dir:find("/[^/]+$") - 1)
     local full_path = dir .. "/modules/" .. path
