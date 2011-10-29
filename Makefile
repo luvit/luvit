@@ -58,8 +58,8 @@ ${GENDIR}:
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
-	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" -i deps/luajit/src/Makefile
-	sed -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" -i deps/luajit/src/Makefile
+	perl -i -wpe 's/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/' deps/luajit/src/Makefile
+	perl -i -wpe 's/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/' deps/luajit/src/Makefile
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
@@ -80,8 +80,14 @@ ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
 	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
+ifeq ($(shell uname),Darwin)
+    LIBS=-lm -ldl -lpthread -framework Carbon -framework CoreServices
+else
+    LIBS=-lm -ldl -lrt -lpthread -Wl,-E
+endif
+
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lrt -lpthread -Wl,-E
+	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall ${LIBS}
 
 clean:
 	make -C ${LUADIR} clean
