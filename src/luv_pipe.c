@@ -73,10 +73,7 @@ int luv_pipe_connect(lua_State* L) {
   // Give the connect_req access to this
   ref->connect_req.data = ref;
 
-  if (uv_pipe_connect(&ref->connect_req, handle, name, luv_after_connect)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "pipe_connect: %s", uv_strerror(err));
-  }
+  uv_pipe_connect(&ref->connect_req, handle, name, luv_after_connect);
 
   assert(lua_gettop(L) == before);
   return 0;
