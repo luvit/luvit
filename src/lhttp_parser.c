@@ -4,7 +4,7 @@
 #include "lhttp_parser.h"
 #include "http_parser.h"
 
-static inline const char* method_to_str(unsigned short m) {
+static const char* method_to_str(unsigned short m) {
   switch (m) {
     case HTTP_DELETE:     return "DELETE";
     case HTTP_GET:        return "GET";
@@ -223,9 +223,10 @@ static int lhttp_parser_on_headers_complete(http_parser *p) {
 static int lhttp_parser_new (lua_State *L) {
 
   const char *type = luaL_checkstring(L, 1);
+  http_parser* parser;
   luaL_checktype(L, 2, LUA_TTABLE);
 
-  http_parser* parser = (http_parser*)lua_newuserdata(L, sizeof(http_parser));
+  parser = (http_parser*)lua_newuserdata(L, sizeof(http_parser));
 
   if (0 == strcmp(type, "request")) {
     http_parser_init(parser, HTTP_REQUEST);
@@ -253,18 +254,22 @@ static int lhttp_parser_new (lua_State *L) {
 // execute(parser, buffer, offset, length)
 static int lhttp_parser_execute (lua_State *L) {
   http_parser* parser = (http_parser *)luaL_checkudata(L, 1, "lhttp_parser");
+  size_t chunk_len;
+  const char *chunk;
+  size_t offset;
+  size_t length;
+  size_t nparsed;
 
   luaL_checktype(L, 2, LUA_TSTRING);
-  size_t chunk_len;
-  const char *chunk = lua_tolstring(L, 2, &chunk_len);
+  chunk = lua_tolstring(L, 2, &chunk_len);
 
-  size_t offset = luaL_checkint(L, 3);
-  size_t length = luaL_checkint(L, 4);
+  offset = luaL_checkint(L, 3);
+  length = luaL_checkint(L, 4);
 
   luaL_argcheck(L, offset < chunk_len, 3, "Offset is out of bounds");
   luaL_argcheck(L, offset + length <= chunk_len, 4,  "Length extends beyond end of chunk");
 
-  size_t nparsed = http_parser_execute(parser, &lhttp_parser_settings, chunk + offset, length);
+  nparsed = http_parser_execute(parser, &lhttp_parser_settings, chunk + offset, length);
 
   lua_pushnumber(L, nparsed);
   return 1;

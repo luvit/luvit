@@ -3,8 +3,23 @@
 
 #include "luv_tcp.h"
 
+// Temporary hack: libuv should provide uv_inet_pton and uv_inet_ntop.
+// Clean this up in tcp_wrap.cc too.
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <inet_net_pton.h>
+#include <inet_ntop.h>
+# define uv_inet_pton ares_inet_pton
+# define uv_inet_ntop ares_inet_ntop
+#else // __POSIX__
+# include <arpa/inet.h>
+# define uv_inet_pton inet_pton
+# define uv_inet_ntop inet_ntop
+#endif
+
+
 int luv_new_tcp (lua_State* L) {
   int before = lua_gettop(L);
+  luv_ref_t* ref;
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
   uv_tcp_init(uv_default_loop(), handle);
@@ -18,7 +33,7 @@ int luv_new_tcp (lua_State* L) {
   lua_setfenv (L, -2);
 
   // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -68,7 +83,7 @@ int luv_tcp_nodelay(lua_State* L) {
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
   int value = lua_toboolean(L, 2);
 
-  int status = setsockopt(handle->fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(int));
+  int status = uv_tcp_nodelay(handle, value);
 
   if (status == -1) {
     uv_err_t err = uv_last_error(uv_default_loop());
@@ -82,6 +97,9 @@ int luv_tcp_nodelay(lua_State* L) {
 int luv_tcp_getsockname(lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
+  int port;
+  char ip[INET6_ADDRSTRLEN];
+  int family;
 
   struct sockaddr_storage address;
   int addrlen = sizeof(address);
@@ -91,9 +109,7 @@ int luv_tcp_getsockname(lua_State* L) {
     return luaL_error(L, "tcp_getsockname: %s", uv_strerror(err));
   }
 
-  int family = address.ss_family;
-  int port;
-  char ip[INET6_ADDRSTRLEN];
+  family = address.ss_family;
   if (family == AF_INET) {
     struct sockaddr_in* addrin = (struct sockaddr_in*)&address;
     uv_inet_ntop(AF_INET, &(addrin->sin_addr), ip, INET6_ADDRSTRLEN);
@@ -119,6 +135,9 @@ int luv_tcp_getsockname(lua_State* L) {
 int luv_tcp_getpeername(lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
+  int port;
+  char ip[INET6_ADDRSTRLEN];
+  int family;
 
   struct sockaddr_storage address;
   int addrlen = sizeof(address);
@@ -128,9 +147,7 @@ int luv_tcp_getpeername(lua_State* L) {
     return luaL_error(L, "tcp_getpeername: %s", uv_strerror(err));
   }
 
-  int family = address.ss_family;
-  int port;
-  char ip[INET6_ADDRSTRLEN];
+  family = address.ss_family;
   if (family == AF_INET) {
     struct sockaddr_in* addrin = (struct sockaddr_in*)&address;
     uv_inet_ntop(AF_INET, &(addrin->sin_addr), ip, INET6_ADDRSTRLEN);

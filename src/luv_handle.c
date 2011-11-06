@@ -90,8 +90,9 @@ int luv_close (lua_State* L) {
 
 int luv_set_handler(lua_State* L) {
   int before = lua_gettop(L);
+  const char* name;
   luv_checkudata(L, 1, "handle");
-  const char* name = luaL_checkstring(L, 2);
+  name = luaL_checkstring(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
   luv_register_event(L, 1, name, 3);

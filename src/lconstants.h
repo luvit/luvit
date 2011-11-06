@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 #if defined(__MINGW32__) || defined(_MSC_VER)
-# include <platform_win32.h>
+/* # include <platform_win32.h> */
 #endif
 
 #if HAVE_OPENSSL

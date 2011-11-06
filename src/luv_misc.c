@@ -3,6 +3,7 @@
 
 #include "luv_misc.h"
 
+#ifndef _WIN32
 
 const char *luv_signo_string(int signo) {
 #define SIGNO_CASE(e)  case e: return #e;
@@ -70,7 +71,9 @@ const char *luv_signo_string(int signo) {
   SIGNO_CASE(SIGALRM);
 #endif
 
+#ifdef SIGTERM
   SIGNO_CASE(SIGTERM);
+#endif
 
 #ifdef SIGCHLD
   SIGNO_CASE(SIGCHLD);
@@ -166,13 +169,17 @@ static void luv_on_signal(struct ev_loop *loop, struct ev_signal *w, int revents
   lua_call(L, 3, 0);
 }
 
+#endif
+
 int luv_activate_signal_handler(lua_State* L) {
+#ifndef _WIN32
   int signal = luaL_checkint(L, 1);
   struct ev_signal* signal_watcher = (struct ev_signal*)malloc(sizeof(struct ev_signal));
   signal_watcher->data = L;
   ev_signal_init (signal_watcher, luv_on_signal, signal);
   struct ev_loop* loop = uv_default_loop()->ev;
   ev_signal_start (loop, signal_watcher);
+#endif
   return 0;
 }
 
@@ -228,12 +235,16 @@ int luv_loadavg(lua_State* L) {
   return 3;
 }
 
+#ifndef PATH_MAX
+#define PATH_MAX (8096)
+#endif
+
 int luv_execpath(lua_State* L) {
   size_t size = 2*PATH_MAX;
-  char exec_path[size];
+  char exec_path[2*PATH_MAX];
   if (uv_exepath(exec_path, &size)) {
     uv_err_t err = uv_last_error(uv_default_loop());
-    return luaL_error(L, "tcp_bind6: %s", uv_strerror(err));
+    return luaL_error(L, "uv_exepath: %s", uv_strerror(err));
   }
   lua_pushlstring(L, exec_path, size);
   return 1;
