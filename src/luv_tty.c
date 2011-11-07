@@ -7,6 +7,7 @@ int luv_new_tty (lua_State* L) {
   int before = lua_gettop(L);
   uv_file fd = luaL_checkint(L, 1);
   int readable = lua_toboolean(L, 2);
+  luv_ref_t* ref;
 
   uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
   uv_tty_init(uv_default_loop(), handle, fd, readable);
@@ -20,7 +21,7 @@ int luv_new_tty (lua_State* L) {
   lua_setfenv (L, -2);
 
   // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);

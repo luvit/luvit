@@ -4,8 +4,9 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <unistd.h>
-
+#endif
 
 #include "luv_fs.h"
 
@@ -39,6 +40,7 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "mtime");
   lua_pushinteger(L, s->st_ctime);
   lua_setfield(L, -2, "ctime");
+#ifndef _WIN32
   lua_pushboolean(L, S_ISREG(s->st_mode));
   lua_setfield(L, -2, "is_file");
   lua_pushboolean(L, S_ISDIR(s->st_mode));
@@ -53,6 +55,7 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "is_symbolic_link");
   lua_pushboolean(L, S_ISSOCK(s->st_mode));
   lua_setfield(L, -2, "is_socket");
+#endif
 }
 
 int luv_string_to_flags(lua_State* L, const char* string) {
@@ -125,12 +128,12 @@ int luv_process_fs_result(lua_State* L, uv_fs_t* req) {
 
       case UV_FS_READDIR:
         {
+          int i;
           char* namebuf = (char*)req->ptr;
           int nnames = req->result;
 
           argc = 1;
           lua_createtable(L, nnames, 0);
-          int i;
           for (i = 0; i < nnames; i++) {
             lua_pushstring(L, namebuf);
             lua_rawseti(L, -2, i + 1);
@@ -155,10 +158,11 @@ void luv_after_fs(uv_fs_t* req) {
   luv_fs_ref_t* ref = req->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
+  int argc;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 
-  int argc = luv_process_fs_result(L, req);
+  argc = luv_process_fs_result(L, req);
 
   luv_acall(L, argc + 1, 0, "fs_after");
 
@@ -182,23 +186,27 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
   return &ref->fs_req;
 }
 
-#define FS_CALL(func, cb_index, path, ...)                                 \
-  if (lua_isfunction(L, cb_index)) {                                       \
-    if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, luv_after_fs)) { \
-      uv_err_t err = uv_last_error(uv_default_loop());                     \
-      luv_push_async_error(L, err, #func, path);                           \
-      return lua_error(L);                                                 \
-    }                                                                      \
-    return 0;                                                              \
-  }                                                                        \
-  if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, NULL) < 0) {       \
-    uv_err_t err = uv_last_error(uv_default_loop());                       \
-    luv_push_async_error(L, err, #func, path);                             \
-    return lua_error(L);                                                   \
-  }                                                                        \
-  int argc = luv_process_fs_result(L, req);                                \
-  lua_remove(L, -argc - 1);                                                \
-  return argc
+#define FS_CALL(func, cb_index, path, ...)                                    \
+  do {                                                                        \
+    uv_err_t err;                                                             \
+    int argc;                                                                 \
+    if (lua_isfunction(L, cb_index)) {                                        \
+      if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, luv_after_fs)) {  \
+        err = uv_last_error(uv_default_loop());                               \
+        luv_push_async_error(L, err, #func, path);                            \
+        return lua_error(L);                                                  \
+      }                                                                       \
+      return 0;                                                               \
+    }                                                                         \
+    if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, NULL) < 0) {        \
+      err = uv_last_error(uv_default_loop());                                 \
+      luv_push_async_error(L, err, #func, path);                              \
+      return lua_error(L);                                                    \
+    }                                                                         \
+    argc = luv_process_fs_result(L, req);                                 \
+    lua_remove(L, -argc - 1);                                                 \
+    return argc;                                                              \
+  } while (0)
 
 
 int luv_fs_open(lua_State* L) {

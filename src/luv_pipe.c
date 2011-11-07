@@ -6,6 +6,7 @@
 int luv_new_pipe (lua_State* L) {
   int before = lua_gettop(L);
   int ipc = luaL_checkint(L, 1);
+  luv_ref_t* ref;
 
   uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
   uv_pipe_init(uv_default_loop(), handle, ipc);
@@ -19,7 +20,7 @@ int luv_new_pipe (lua_State* L) {
   lua_setfenv (L, -2);
 
   // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
