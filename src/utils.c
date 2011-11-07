@@ -8,11 +8,13 @@
 // Uses the main loop and event source
 void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
   int beforeC = lua_gettop(C);
+  int beforeL;
+  lua_State* L;
 
   // Get the main thread without cheating
   lua_getfield(C, LUA_REGISTRYINDEX, "main_thread");
-  lua_State* L = lua_tothread(C, -1);
-  int beforeL = lua_gettop(L);
+  L = lua_tothread(C, -1);
+  beforeL = lua_gettop(L);
   lua_pop(C, 1);
 
   // If C is not main then move to main
@@ -66,6 +68,8 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
 // An alternative to luaL_checkudata that takes inheritance into account for polymorphism
 // Make sure to not call with long type strings or strcat will overflow
 void* luv_checkudata(lua_State* L, int index, const char* type) {
+  char key[32];
+
   // Check for table wrappers as well and replace it with the userdata it points to
   if (lua_istable (L, index)) {
     lua_getfield(L, index, "userdata");
@@ -74,7 +78,6 @@ void* luv_checkudata(lua_State* L, int index, const char* type) {
   luaL_checktype(L, index, LUA_TUSERDATA);
 
   // prefix with is_ before looking up property
-  char key[32];
   strcpy(key, "is_");
   strcat(key, type);
 

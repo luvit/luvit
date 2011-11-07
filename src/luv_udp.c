@@ -9,7 +9,8 @@ void luv_on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct socka
 
 int luv_new_udp (lua_State* L) {
   int before = lua_gettop(L);
-  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
+  luv_ref_t* ref;
+uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
   uv_udp_init(uv_default_loop(), handle);
 
   // Set metatable for type
@@ -21,7 +22,7 @@ int luv_new_udp (lua_State* L) {
   lua_setfenv (L, -2);
 
   // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -93,6 +94,9 @@ int luv_udp_set_membership(lua_State* L) {
 int luv_udp_getsockname(lua_State* L) {
   int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
+  int family;
+  int port;
+  char ip[INET6_ADDRSTRLEN];
 
   struct sockaddr_storage address;
   int addrlen = sizeof(address);
@@ -102,9 +106,7 @@ int luv_udp_getsockname(lua_State* L) {
     return luaL_error(L, "udp_getsockname: %s", uv_strerror(err));
   }
 
-  int family = address.ss_family;
-  int port;
-  char ip[INET6_ADDRSTRLEN];
+  family = address.ss_family;
   if (family == AF_INET) {
     struct sockaddr_in* addrin = (struct sockaddr_in*)&address;
     uv_inet_ntop(AF_INET, &(addrin->sin_addr), ip, INET6_ADDRSTRLEN);

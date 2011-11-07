@@ -41,7 +41,8 @@ void luv_on_fs_event(uv_fs_event_t* handle, const char* filename, int events, in
 int luv_new_fs_watcher (lua_State* L) {
   int before = lua_gettop(L);
   const char* filename = luaL_checkstring(L, 1);
-  
+  luv_ref_t* ref;
+
   uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
 
   uv_fs_event_init(uv_default_loop(), handle, filename, luv_on_fs_event, 0);
@@ -55,7 +56,7 @@ int luv_new_fs_watcher (lua_State* L) {
   lua_setfenv (L, -2);
 
   // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
