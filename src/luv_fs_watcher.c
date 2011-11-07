@@ -44,7 +44,7 @@ int luv_new_fs_watcher (lua_State* L) {
   
   uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
 
-  uv_fs_event_init(uv_default_loop(), handle, filename, luv_on_fs_event);
+  uv_fs_event_init(uv_default_loop(), handle, filename, luv_on_fs_event, 0);
     
   // Set metatable for type
   luaL_getmetatable(L, "luv_fs_watcher");

@@ -56,11 +56,17 @@ static int lenv_set(lua_State* L) {
 
 static int lenv_unset(lua_State* L) {
   const char* name = luaL_checkstring(L, 1);
+
+#ifdef __linux__
   if (unsetenv(name)) {
     if (errno == EINVAL)
       return luaL_error(L, "EINVAL: name contained an '=' character");
     return luaL_error(L, "unsetenv: Unknown error");
   }
+#else
+  unsetenv(name);
+#endif
+
   return 0;
 }
 
