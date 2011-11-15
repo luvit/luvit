@@ -1,11 +1,10 @@
 local FFI = require('ffi')
 local Emitter = require('emitter')
 local Timer = require('timer')
+local FS = require('fs')
 local UV = require('uv')
 
-p(require('io'))
--- Use blocking IO since this is startup stuff
-FFI.cdef(require('io').open(dirname() .. 'ffi_SDL.h', 'r'):read('*a'))
+FFI.cdef(FS.read_file_sync(__dirname .. '/ffi_SDL.h'))
 
 local SDL = {
 }
@@ -43,7 +42,8 @@ local events = false
 
 setmetatable(SDL, {
   __index = function (table, key)
-    if key == 'userdata' or key == "handlers" then return end
+    if key == 'add_handler_type' or key == 'userdata' or key == "handlers" then return end
+
     if lazy[key] then
       local value = lazy[key]
       if type(value) == "function" then
