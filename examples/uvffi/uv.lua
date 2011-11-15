@@ -13,7 +13,6 @@ local C = FFI.C
 local server = FFI.new("uv_stream_t")
 local settings = FFI.new("http_parser_settings")
 local refbuf = FFI.new("uv_buf_t")
-p({server=server,settings=settings,refbuf=refbuf})
 
 local RESPONSE = 
   "HTTP/1.1 200 OK\r\n" ..
@@ -29,20 +28,22 @@ typedef struct {
 } client_t;
 ]])
 
-local function on_close
+local function on_close(handle)
+  p("on_close", handle)
+  -- TODO: free the handle
+end
 
---void on_close(uv_handle_t* handle) {
---  free(handle);
---  // printf("disconnected\n");
---}
-
+local function on_alloc(handle, suggested_size)
+  p("on_alloc", handle, suggested_size)
 --uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
 --  uv_buf_t buf;
 --  buf.base = malloc(suggested_size);
 --  buf.len = suggested_size;
 --  return buf;
---}
+end
 
+local function on_read(stream, nread, buf)
+  p("on_read", stream, nread, buf)
 --void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
 --  client_t* client = stream->data;
 
@@ -66,9 +67,10 @@ local function on_close
 --  }
 
 --  free(buf.base);
---}
+end
 
---void on_connection(uv_stream_t* server_handle, int status) {
+local function on_connection(server_handle, status)
+  p("on_connection", server_handle, status)
 --  assert(server_handle == &server);
 --  // printf("connected\n");
 
@@ -89,15 +91,16 @@ local function on_close
 
 --  uv_read_start((uv_stream_t*)&client->handle, on_alloc, on_read);
 
---}
+end
 
---void after_write(uv_write_t* req, int status) {
+local function after_write(req, status)
+  p("after_write", req, status)
 --  //printf("after_write\n");
 --  uv_close((uv_handle_t*)req->handle, on_close);
---}
+end
 
-
---int on_headers_complete(http_parser* parser) {
+local function on_headers_complete(parser)
+  p("on_headers_complete", parser)
 --  client_t* client = parser->data;
 
 --  // printf("http message!\n");
@@ -105,15 +108,16 @@ local function on_close
 --  uv_write(&client->write_req, (uv_stream_t*)&client->handle, &refbuf, 1, after_write);
 
 --  return 1;
---}
+end
 
---int main() {
+refbuf.base = FFI.new("char[" .. (#RESPONSE + 1) .. "]")
+FFI.copy(refbuf.base, RESPONSE)
 
---  refbuf.base = RESPONSE;
---  refbuf.len = sizeof(RESPONSE);
+refbuf.len = #RESPONSE
 
---  settings.on_headers_complete = on_headers_complete;
+settings.on_headers_complete = on_headers_complete
 
+C.uv_tcp_init(C.uv_default_loop(), server)
 --  uv_tcp_init(uv_default_loop(), (uv_tcp_t*)&server);
 --  struct sockaddr_in address = uv_ip4_addr("0.0.0.0", 8080);
 --  int r = uv_tcp_bind((uv_tcp_t*)&server, address);
@@ -139,4 +143,5 @@ local function on_close
 --}
 
 
+p({server=server,settings=settings,refbuf=refbuf})
 
