@@ -8,6 +8,9 @@ local Path = require('path')
 -- Read the combined libuv and http_parser header file
 FFI.cdef(Fs.read_file_sync(Path.join(__dirname, "ffi_uv.h")))
 
+-- Use the built-in alloc_cb function
+FFI.cdef("uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size);")
+
 local C = FFI.C
 
 --------------------------------------------------------------------------------
@@ -38,12 +41,8 @@ function stream_prototype:accept(client)
   uv_assert(C.uv_accept(FFI.cast("uv_stream_t*", self), FFI.cast("uv_stream_t*", client)))
 end
 
-local function on_alloc(...)
-  p("on_alloc", ...)
-end
-
 function stream_prototype:read_start(on_read)
-  uv_assert(C.uv_read_start(FFI.cast("uv_stream_t*", self), on_alloc, on_read))
+  uv_assert(C.uv_read_start(FFI.cast("uv_stream_t*", self), C.luv_on_alloc, on_read))
 end
 
 function stream_prototype:write(strings, write_cb)
@@ -111,21 +110,19 @@ server:listen(function(server_handle, status)
     p("on_read", ...)
   end)
 
---[[
-  p("writing...")
-  client:write({"HTTP/1.1 200 Success\r\n",
-                "Server: Luvit FFI\r\n",
-                "Content-Length: 0\r\n",
-                "\r\n"}, function (req, status)
-    p("written", {req=req,status=status})
+--  p("writing...")
+--  client:write({"HTTP/1.1 200 Success\r\n",
+--                "Server: Luvit FFI\r\n",
+--                "Content-Length: 0\r\n",
+--                "\r\n"}, function (req, status)
+--    p("written", {req=req,status=status})
 
-    p("closing...")
-    client:close(function (handle)
-      p("closed", {handle=handle})
-    end)
+--    p("closing...")
+--    client:close(function (handle)
+--      p("closed", {handle=handle})
+--    end)
 
-  end)
-]]
+--  end)
 
 end)
 
