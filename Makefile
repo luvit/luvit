@@ -49,6 +49,15 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
         ${HTTPDIR}/http_parser.o  \
         ${LUALIBS}
 
+ifeq (,$(findstring Windows,$(OS)))
+PLATFORM=unix
+PLATFORMLIBS=-lm -ldl -lrt -lpthread
+
+else
+PLATFORM=windows
+PLATFORMLIBS=-lws2_32
+endif
+
 all: ${BUILDDIR}/luvit
 
 deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
@@ -60,6 +69,11 @@ ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
 	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" -i deps/luajit/src/Makefile
 	sed -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" -i deps/luajit/src/Makefile
+	# By default luajit builds a dll on Windows. Override this.
+	if [ "${PLATFORM}" == "windows" ]; then \
+	sed -e "s/#BUILDMODE= static/BUILDMODE= static/" -i deps/luajit/src/Makefile; \
+	sed -e "s/BUILDMODE= mixed/#BUILDMODE= mixed/" -i deps/luajit/src/Makefile; \
+	fi
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
@@ -82,7 +96,7 @@ ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${UVDIR}/src/ares -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lrt -lpthread -Wl,-E
+	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} ${PLATFORMLIBS} -Wall -Wl,-E
 
 clean:
 	make -C ${LUADIR} clean
