@@ -35,7 +35,7 @@ static int lenv_put(lua_State* L) {
   const char* string = luaL_checkstring(L, 1);
   int r = putenv((char*)string);
   if (r) {
-    if (r == ENOMEM)
+    if (errno == ENOMEM)
       return luaL_error(L, "Insufficient space to allocate new environment.");
     return luaL_error(L, "Unknown error putting new environment");
   }
