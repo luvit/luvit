@@ -49,6 +49,22 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
         ${HTTPDIR}/http_parser.o  \
         ${LUALIBS}
 
+ifeq (,$(findstring Windows,$(OS)))
+PLATFORM=unix
+ifeq ($(shell uname),Darwin)
+PLATFORMLIBS=-lm -ldl -lpthread -framework CoreServices
+else
+PLATFORMLIBS=-lm -ldl -lrt -lpthread
+endif
+
+NATIVETESTS=examples/native/vector.luvit
+
+else
+PLATFORM=windows
+PLATFORMLIBS=-lws2_32
+NATIVETESTS=
+endif
+
 all: ${BUILDDIR}/luvit
 
 deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
@@ -58,8 +74,15 @@ ${GENDIR}:
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
-	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" -i deps/luajit/src/Makefile
-	sed -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" -i deps/luajit/src/Makefile
+	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" deps/luajit/src/Makefile > deps/luajit/src/Makefile2
+	mv deps/luajit/src/Makefile2 deps/luajit/src/Makefile
+	sed -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" deps/luajit/src/Makefile > deps/luajit/src/Makefile2
+	mv deps/luajit/src/Makefile2 deps/luajit/src/Makefile
+	# By default luajit builds a dll on Windows. Override this.
+	if [ "${PLATFORM}" == "windows" ]; then \
+	sed -e "s/#BUILDMODE= static/BUILDMODE= static/" -i deps/luajit/src/Makefile; \
+	sed -e "s/BUILDMODE= mixed/#BUILDMODE= mixed/" -i deps/luajit/src/Makefile; \
+	fi
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
@@ -71,6 +94,7 @@ ${HTTPDIR}/http_parser.o:
 	make -C ${HTTPDIR} http_parser.o
 
 ${GENDIR}/%.c: lib/%.lua deps
+	@if [ ! -e jit ]; then ln -fs deps/luajit/lib jit; fi
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
@@ -78,10 +102,10 @@ ${GENDIR}/%.o: ${GENDIR}/%.c
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${UVDIR}/src/ares -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lrt -lpthread -Wl,-E
+	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} ${PLATFORMLIBS} -Wall
 
 clean:
 	make -C ${LUADIR} clean
@@ -95,7 +119,7 @@ install: ${BUILDDIR}/luvit
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	make -C examples/native
 
-test: ${BUILDDIR}/luvit examples/native/vector.luvit
+test: ${BUILDDIR}/luvit ${NATIVETESTS}
 	find tests -name "test-*.lua" | while read LINE; do ${BUILDDIR}/luvit $$LINE > tests/failed_test.log && rm tests/failed_test.log || cat tests/failed_test.log; done
 
 .PHONY: test
