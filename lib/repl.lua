@@ -61,6 +61,7 @@ function Repl.start()
     process.stdout:write(prompt .. ' ', noop)
   end
 
+  UV.ref()
 
   print(c("Bwhite") .. "Welcome to the " .. Repl.colored_name .. c("Bwhite") .. " repl" .. c())
 
