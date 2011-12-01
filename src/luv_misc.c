@@ -179,6 +179,8 @@ int luv_activate_signal_handler(lua_State* L) {
   ev_signal_init (signal_watcher, luv_on_signal, signal);
   struct ev_loop* loop = uv_default_loop()->ev;
   ev_signal_start (loop, signal_watcher);
+#else
+  uv_ref(uv_default_loop());
 #endif
   return 0;
 }

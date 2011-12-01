@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "uv-private/ev.h"
 
 #include "luv_fs.h"
 #include "luv_handle.h"
