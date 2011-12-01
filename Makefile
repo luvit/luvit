@@ -52,10 +52,12 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 ifeq (,$(findstring Windows,$(OS)))
 PLATFORM=unix
 PLATFORMLIBS=-lm -ldl -lrt -lpthread
+NATIVETESTS=examples/native/vector.luvit
 
 else
 PLATFORM=windows
 PLATFORMLIBS=-lws2_32
+NATIVETESTS=
 endif
 
 all: ${BUILDDIR}/luvit
@@ -110,7 +112,7 @@ install: ${BUILDDIR}/luvit
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	make -C examples/native
 
-test: ${BUILDDIR}/luvit examples/native/vector.luvit
+test: ${BUILDDIR}/luvit ${NATIVETESTS}
 	find tests -name "test-*.lua" | while read LINE; do ${BUILDDIR}/luvit $$LINE > tests/failed_test.log && rm tests/failed_test.log || cat tests/failed_test.log; done
 
 .PHONY: test
