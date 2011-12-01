@@ -47,9 +47,37 @@ static int lenv_set(lua_State* L) {
   const char* value = luaL_checkstring(L, 2);
   int overwrite = luaL_checkint(L, 3);
 
+#ifdef _WIN32
+  if (overwrite || getenv(name) == NULL) {
+    size_t name_len = strlen(name);
+    size_t value_len = strlen(value);
+
+    // Allocate space for "name=value\0"
+    char* buf = malloc(name_len + 1 + value_len + 1);
+    if (buf == NULL) {
+      free(buf);
+      return luaL_error(L, "Out of memory.");
+    }
+
+    memcpy(buf, name, name_len);
+    buf[name_len] = '=';
+    memcpy(buf + name_len + 1, value, value_len);
+    buf[name_len + 1 + value_len] = '\0';
+
+    if (putenv(buf)) {
+      free(buf);
+      if (errno == ENOMEM)
+        return luaL_error(L, "Insufficient space to allocate new environment.");
+      return luaL_error(L, "Unknown error updating environment.");
+    }
+
+    free(buf);
+  }
+#else
   if (setenv(name, value, overwrite)) {
     return luaL_error(L, "Insufficient space in environment.");
   }
+#endif
 
   return 0;
 }
@@ -63,6 +91,25 @@ static int lenv_unset(lua_State* L) {
       return luaL_error(L, "EINVAL: name contained an '=' character");
     return luaL_error(L, "unsetenv: Unknown error");
   }
+#elif defined(_WIN32)
+  size_t name_len = strlen(name);
+
+  // Allocate space for "name=\0"
+  char* buf = malloc(name_len + 2);
+  if (buf == NULL) {
+    free(buf);
+    return luaL_error(L, "Out of memory.");
+  }
+
+  memcpy(buf, name, name_len);
+  memcpy(buf + name_len, "=\0", 2);
+
+  if (putenv(buf)) {
+    free(buf);
+    return luaL_error(L, "Unknown error removing environment.");
+  }
+
+  free(buf);
 #else
   unsetenv(name);
 #endif
