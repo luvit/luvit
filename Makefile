@@ -71,6 +71,7 @@ ${HTTPDIR}/http_parser.o:
 	make -C ${HTTPDIR} http_parser.o
 
 ${GENDIR}/%.c: lib/%.lua deps
+	@if [ ! -e jit ]; then ln -fs deps/luajit/lib jit; fi
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
