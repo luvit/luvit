@@ -51,7 +51,12 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 
 ifeq (,$(findstring Windows,$(OS)))
 PLATFORM=unix
+ifeq ($(shell uname),Darwin)
+PLATFORMLIBS=-lm -ldl -lpthread -framework Carbon -framework CoreServices
+else
 PLATFORMLIBS=-lm -ldl -lrt -lpthread
+endif
+
 NATIVETESTS=examples/native/vector.luvit
 
 else
@@ -100,7 +105,7 @@ ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${UVDIR}/src/ares -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} ${PLATFORMLIBS} -Wall -Wl,-E
+	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} ${PLATFORMLIBS} -Wall
 
 clean:
 	make -C ${LUADIR} clean
