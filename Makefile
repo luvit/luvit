@@ -52,7 +52,7 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 ifeq (,$(findstring Windows,$(OS)))
 PLATFORM=unix
 ifeq ($(shell uname),Darwin)
-PLATFORMLIBS=-lm -ldl -lpthread -framework Carbon -framework CoreServices
+PLATFORMLIBS=-lm -ldl -lpthread -framework CoreServices
 else
 PLATFORMLIBS=-lm -ldl -lrt -lpthread
 endif
