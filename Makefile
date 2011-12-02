@@ -73,7 +73,7 @@ ${GENDIR}:
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
-	[ -e deps/luajit/src/Makefile.orig ] && \
+	-[ -e deps/luajit/src/Makefile.orig ] && \
 	mv deps/luajit/src/Makefile deps/luajit/src/Makefile.orig && \
 	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" \
 		-e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" \
