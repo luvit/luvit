@@ -10,7 +10,7 @@ BINDIR?=${PREFIX}/bin
 ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
 # force x86-32 on OSX-x86
 export CC=gcc -arch i386 
-LDFLAGS=-framework CoreFramework
+LDFLAGS=-framework CoreServices
 MAKEFLAGS+=-e
 else
 # linux
