@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 {
   lua_State *L = luaL_newstate();
   if (L == NULL) {
-    fprintf(stderr, "Error creating lua state!\n");
+    fprintf(stderr, "luaL_newstate has failed\n");
     return 1;
   }
 
