@@ -3,7 +3,6 @@ UVDIR=deps/uv
 HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
-INSTALL_PROGRAM=install -v
 DESTDIR?=/
 PREFIX?=/usr/local
 BINDIR?=${PREFIX}/bin
@@ -12,8 +11,11 @@ ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
 export CC=gcc -arch i386 
 LDFLAGS=-framework CoreServices
 MAKEFLAGS+=-e
+# strip is broken in OSX. do not strip it
+INSTALL_PROGRAM=install -v
 else
 # linux
+INSTALL_PROGRAM=install -v -s
 LDFLAGS=-Wl,-E -lrt
 endif
 
