@@ -1,4 +1,4 @@
-VERSION = "Prelease"
+VERSION = "0.1.1"
 -- clear some globals
 -- This will break lua code written for other lua runtimes
 _G.io = nil
@@ -316,7 +316,7 @@ assert(xpcall(function ()
         usage()
         repl = false
       elseif value == "-v" or value == "--version" then
-        print(Repl.colored_name .. " version " .. VERSION)
+        print(VERSION)
         repl = false
       elseif value == "-e" or value == "--eval" then
         state = "-e"

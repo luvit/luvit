@@ -73,11 +73,15 @@ ${GENDIR}:
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
+<<<<<<< HEAD
 	-[ -e deps/luajit/src/Makefile.orig ] && \
 	mv deps/luajit/src/Makefile deps/luajit/src/Makefile.orig && \
+=======
+>>>>>>> upstream/master
 	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" \
-		-e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" \
-		< deps/luajit/src/Makefile.orig > deps/luajit/src/Makefile
+	    -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" \
+	    < deps/luajit/src/Makefile > deps/luajit/src/Makefile2
+	mv deps/luajit/src/Makefile2 deps/luajit/src/Makefile
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
@@ -108,8 +112,8 @@ clean:
 	rm -rf build
 
 install: ${BUILDDIR}/luvit
-	mkdir -p ${DESTDIR}/${BINDIR}
-	${INSTALL_PROGRAM} ${BUILDDIR}/luvit ${DESTDIR}/${BINDIR}/luvit
+	mkdir -p ${BINDIR}
+	${INSTALL_PROGRAM} ${BUILDDIR}/luvit ${BINDIR}/luvit
 
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
