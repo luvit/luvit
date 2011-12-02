@@ -3,18 +3,30 @@ UVDIR=deps/uv
 HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
-INSTALL_PROGRAM=install -s -v
+DESTDIR?=/
 PREFIX?=/usr/local
 BINDIR?=${PREFIX}/bin
 ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
 # force x86-32 on OSX-x86
 export CC=gcc -arch i386 
 LDFLAGS=-framework CoreServices
-MAKEFLAGS+=-e
+# strip is broken in OSX. do not strip it
+INSTALL_PROGRAM=install -v
 else
 # linux
+INSTALL_PROGRAM=install -v -s
 LDFLAGS=-Wl,-E -lrt
 endif
+
+# LUAJIT CONFIGURATION #
+XCFLAGS=
+#XCFLAGS+=-DLUAJIT_DISABLE_JIT
+XCFLAGS+=-DLUAJIT_ENABLE_LUA52COMPAT
+XCFLAGS+=-DLUA_USE_APICHECK
+export XCFLAGS
+# verbose build
+export Q=
+MAKEFLAGS+=-e
 
 LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/http.o     \
@@ -70,10 +82,6 @@ ${GENDIR}:
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
-	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" \
-	    -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" \
-	    < deps/luajit/src/Makefile > deps/luajit/src/Makefile2
-	mv deps/luajit/src/Makefile2 deps/luajit/src/Makefile
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
