@@ -31,6 +31,7 @@ MAKEFLAGS+=-e
 LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/http.o     \
         ${GENDIR}/url.o      \
+        ${GENDIR}/querystring.o  \
         ${GENDIR}/request.o  \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
