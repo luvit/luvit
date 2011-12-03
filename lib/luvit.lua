@@ -305,7 +305,7 @@ end
 
 assert(xpcall(function ()
 
-  local interactive
+  local interactive = false
   local repl = true
   local file
   local state = "BEGIN"
@@ -353,13 +353,20 @@ assert(xpcall(function ()
 
   if file then
     assert(myloadfile(Path.resolve(base_path, file)))()
+  elseif not (UV.handle_type(0) == "TTY") then
+    process.stdin:on("data", function(line)
+      Repl.evaluate_line(line)
+    end)
+    process.stdin:read_start()
+    UV.run()
+    process.exit(0)
   end
+
   if interactive or repl then
     Repl.start()
   end
 
 end, Debug.traceback))
-
 
 -- Start the event loop
 UV.run()
