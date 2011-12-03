@@ -63,6 +63,7 @@ int luv_spawn(lua_State* L) {
     for (i = 0; i < argc; i++) {
       lua_rawgeti(L, -1, i + 1);
       env[i] = (char*)lua_tostring(L, -1);
+      printf("ENV %s\n", env[i]);
       lua_pop(L, 1);
     }
     env[argc] = NULL;
@@ -72,7 +73,8 @@ int luv_spawn(lua_State* L) {
   options.exit_cb = luv_process_on_exit;
   options.file = command;
   options.args = args;
-  options.env = env;
+  extern char**environ;
+  options.env = env ? env : environ;
   options.cwd = cwd;
   options.stdin_stream = stdin_stream;
   options.stdout_stream = stdout_stream;
