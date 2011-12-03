@@ -97,7 +97,7 @@ int luv_tcp_nodelay(lua_State* L) {
 int luv_tcp_getsockname(lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  int port;
+  int port = -1;
   char ip[INET6_ADDRSTRLEN];
   int family;
 
@@ -135,7 +135,7 @@ int luv_tcp_getsockname(lua_State* L) {
 int luv_tcp_getpeername(lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  int port;
+  int port = -1;
   char ip[INET6_ADDRSTRLEN];
   int family;
 

@@ -95,7 +95,7 @@ int luv_udp_getsockname(lua_State* L) {
   int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   int family;
-  int port;
+  int port = -1;
   char ip[INET6_ADDRSTRLEN];
 
   struct sockaddr_storage address;
