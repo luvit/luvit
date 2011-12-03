@@ -228,8 +228,24 @@ package.seeall = nil
 package.config = nil
 _G.module = nil
 
+local function check_module(load_path, path)
+  local module = package.loaded[load_path]
+  if module == "sentinel" then
+    error("loop or previous error loading module '" .. path .."'")
+  end
+  return module
+end
+
+local function init_module(loader, path)
+  package.loaded[path] = "sentinel"
+  local module = loader()
+  package.loaded[path] = module
+  return module
+end
+
 function require(path, dirname)
   if not dirname then dirname = base_path end
+  local module
 
   -- Absolute and relative required modules
   local first = path:sub(1, 1)
@@ -240,13 +256,11 @@ function require(path, dirname)
     absolute_path = Path.join(dirname, path)
   end
   if absolute_path then
-    module = package.loaded[absolute_path]
+    module = check_module(absolute_path, path)
     if module then return module end
     loader = load_module(absolute_path)
     if type(loader) == "function" then
-      module = loader()
-      package.loaded[absolute_path] = module
-      return module
+      return init_module(loader, absolute_path)
     else
       error("Failed to find module '" .. path .."'" .. loader)
     end
@@ -255,14 +269,12 @@ function require(path, dirname)
   local errors = {}
 
   -- Builtin modules
-  local module = package.loaded[path]
+  module = check_module(path, path)
   if module then return module end
   if path:find("^[a-z_]+$") then
     local loader = builtin_loader(path)
     if type(loader) == "function" then
-      module = loader()
-      package.loaded[path] = module
-      return module
+      return init_module(loader, path)
     else
       errors[#errors + 1] = loader
     end
@@ -273,12 +285,11 @@ function require(path, dirname)
   repeat
     dir = dir:sub(1, dir:find("/[^/]*$") - 1)
     local full_path = dir .. "/modules/" .. path
-    if package.loaded[full_path] then return package.loaded[full_path] end
+    module = check_module(full_path, path)
+    if module then return module end
     local loader = load_module(dir .. "/modules/" .. path)
     if type(loader) == "function" then
-      local module = loader()
-      package.loaded[full_path] = module
-      return module
+      return init_module(loader, full_path)
     else
       errors[#errors + 1] = loader
     end
