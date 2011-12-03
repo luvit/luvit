@@ -351,7 +351,12 @@ assert(xpcall(function ()
   end
 
   if file then
-    assert(myloadfile(Path.resolve(base_path, file)))()
+    local f = myloadfile(Path.resolve(base_path, file))
+    if not f then
+      print_stderr("No such file\n")
+      process.exit(1)
+    end
+    f()
   elseif not (UV.handle_type(0) == "TTY") then
     process.stdin:on("data", function(line)
       Repl.evaluate_line(line)
