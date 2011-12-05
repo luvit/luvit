@@ -63,7 +63,6 @@ int luv_spawn(lua_State* L) {
     for (i = 0; i < argc; i++) {
       lua_rawgeti(L, -1, i + 1);
       env[i] = (char*)lua_tostring(L, -1);
-      printf("ENV %s\n", env[i]);
       lua_pop(L, 1);
     }
     env[argc] = NULL;
