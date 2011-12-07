@@ -179,6 +179,12 @@ function myloadfile(path)
   return fn
 end
 
+local function loadlib(path,cname)
+	if FS.exists_sync(path) then
+		return package.loadlib(path,cname)
+	end
+	return nil,nil
+end
 
 
 -- tries to load a module at a specified absolute path
@@ -196,24 +202,22 @@ local function load_module(path, verbose)
 
   local error_message
   -- Then try C addon with luvit appended
-  fn, error_message = package.loadlib(path .. ".luvit", cname)
+  fn, error_message = loadlib (path .. ".luvit", cname)
   if fn then return fn end
---  -- TODO: find a less fragile way to tell a not found error from other errors
---  if not (error_message == path .. ".luvit: cannot open shared object file: No such file or directory") then
---    error(error_message)
---  end
+  if error_message then
+    error(error_message)
+  end
 
   -- Then Try a folder with init.lua in it
   fn = myloadfile(path .. "/init.lua")
   if fn then return fn end
 
---  -- Finally try the same for a C addon
-  fn, error_message = package.loadlib(path .. "/init.luvit", cname)
+  -- Finally try the same for a C addon
+  fn, error_message = loadlib(path .. "init.luvit", cname)
   if fn then return fn end
---  -- TODO: find a less fragile way to tell a not found error from other errors
---  if not (error_message == path .. "/init.luvit: cannot open shared object file: No such file or directory") then
---    error(error_message)
---  end
+  if error_message then
+    error(error_message)
+  end
 
   return "\n\tCannot find module " .. path
 end
@@ -304,7 +308,7 @@ end
 
 assert(xpcall(function ()
 
-  local interactive = false
+  local interactive
   local repl = true
   local file
   local state = "BEGIN"

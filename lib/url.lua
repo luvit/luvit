@@ -25,7 +25,6 @@ function Url.parse(url)
     search = search,
     query = query
   }
-
 end
 
 --p(Url.parse("http://creationix.com:8080/foo/bar?this=sdr"))
