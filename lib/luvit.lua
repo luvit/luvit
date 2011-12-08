@@ -162,10 +162,10 @@ error_meta = {__tostring=function(table) return table.message end}
 local global_meta = {__index=_G}
 
 local function myloadfile(path)
-  local success, code = pcall(function ()
-    return FS.read_file_sync(path)
-  end)
-  if not success then return nil, code end
+  if not FS.exists_sync(path) then return end
+
+  local code = FS.read_file_sync(path)
+
   local fn = assert(loadstring(code, '@' .. path))
   local dirname = Path.dirname(path)
   local real_require = require
@@ -181,10 +181,7 @@ end
 
 local function myloadlib(path, name)
   -- TODO: realpath path first
-  local success, stat = pcall(function ()
-    return FS.stat_sync(path)
-  end)
-  if not success then return end
+  if not FS.exists_sync(path) then return end
 
   local name = Path.basename(path)
   if name == "init.luvit" then
@@ -198,7 +195,22 @@ end
 -- tries to load a module at a specified absolute path
 local function load_module(path, verbose)
 
-  local cname = "luaopen_" .. Path.basename(path)
+  -- First, look for exact file match if the extension is given
+  local extension = Path.extname(path)
+  if extension == ".lua" then
+    return myloadfile(path)
+  end
+  if extension == ".luvit" then
+    return myloadlib(path)
+  end
+
+  -- Then, look for module/package.lua config file
+  if FS.exists_sync(path .. "/package.lua") then
+    local metadata = load_module(path .. "/package.lua")()
+    if metadata.main then
+      return load_module(Path.join(path, metadata.main))
+    end
+  end
 
   -- Then try with lua appended
   fn = myloadfile(path .. ".lua")
@@ -243,13 +255,13 @@ function require(path, dirname)
   if absolute_path then
     module = package.loaded[absolute_path]
     if module then return module end
-    loader = load_module(absolute_path)
+    local loader = load_module(absolute_path)
     if type(loader) == "function" then
       module = loader()
       package.loaded[absolute_path] = module
       return module
     else
-      error("Failed to find module '" .. path .."'" .. loader)
+      error("Failed to find module '" .. path .."'")
     end
   end
 
