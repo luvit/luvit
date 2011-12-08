@@ -108,6 +108,7 @@ clean:
 	${MAKE} -C ${LUADIR} clean
 	${MAKE} -C ${HTTPDIR} clean
 	${MAKE} -C ${UVDIR} distclean
+	${MAKE} -C examples/native clean
 	rm -rf build
 
 install: ${BUILDDIR}/luvit
