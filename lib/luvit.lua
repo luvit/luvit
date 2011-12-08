@@ -161,8 +161,26 @@ error_meta = {__tostring=function(table) return table.message end}
 
 local global_meta = {__index=_G}
 
+local function partial_realpath(path)
+  -- Do some minimal realpathing
+  local link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
+  while link do
+    path = Path.join(Path.dirname(path), link)
+    link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
+  end
+  return path
+end
+
 local function myloadfile(path)
   if not FS.exists_sync(path) then return end
+
+  path = partial_realpath(path)
+
+  if package.loaded[path] then
+    return function ()
+      return package.loaded[path]
+    end
+  end
 
   local code = FS.read_file_sync(path)
 
@@ -176,19 +194,32 @@ local function myloadfile(path)
       return real_require(path, dirname)
     end,
   }, global_meta))
-  return fn
+  local module = fn()
+  package.loaded[path] = module
+  return function() return module end
 end
 
 local function myloadlib(path, name)
-  -- TODO: realpath path first
   if not FS.exists_sync(path) then return end
+
+  path = partial_realpath(path)
+
+  if package.loaded[path] then
+    return function ()
+      return package.loaded[path]
+    end
+  end
 
   local name = Path.basename(path)
   if name == "init.luvit" then
     name = Path.basename(Path.dirname(path))
   end
   local fn, error_message = package.loadlib(path, "luaopen_" .. name:sub(1, #name - 6))
-  if fn then return fn end
+  if fn then
+    local module = fn()
+    package.loaded[path] = module
+    return function() return module end
+  end
   error(error_message)
 end
 
@@ -212,20 +243,9 @@ local function load_module(path, verbose)
     end
   end
 
-  -- Then try with lua appended
-  fn = myloadfile(path .. ".lua")
-  if fn then return fn end
-
-  -- Then try C addon with luvit appended
-  fn = myloadlib(path .. ".luvit")
-  if fn then return fn end
-
-  -- Then Try a folder with init.lua in it
-  fn = myloadfile(path .. "/init.lua")
-  if fn then return fn end
-
-  -- Finally try the same for a C addon
-  fn = myloadlib(path .. "/init.luvit")
+  -- Try to load as either lua script or binary extension
+  local fn = myloadfile(path .. ".lua") or myloadfile(path .. "/init.lua")
+          or myloadlib(path .. ".luvit") or myloadlib(path .. "/init.luvit")
   if fn then return fn end
 
   return "\n\tCannot find module " .. path
@@ -253,13 +273,9 @@ function require(path, dirname)
     absolute_path = Path.join(dirname, path)
   end
   if absolute_path then
-    module = package.loaded[absolute_path]
-    if module then return module end
     local loader = load_module(absolute_path)
     if type(loader) == "function" then
-      module = loader()
-      package.loaded[absolute_path] = module
-      return module
+      return loader()
     else
       error("Failed to find module '" .. path .."'")
     end
@@ -286,12 +302,9 @@ function require(path, dirname)
   repeat
     dir = dir:sub(1, dir:find("/[^/]*$") - 1)
     local full_path = dir .. "/modules/" .. path
-    if package.loaded[full_path] then return package.loaded[full_path] end
     local loader = load_module(dir .. "/modules/" .. path)
     if type(loader) == "function" then
-      local module = loader()
-      package.loaded[full_path] = module
-      return module
+      return loader()
     else
       errors[#errors + 1] = loader
     end
