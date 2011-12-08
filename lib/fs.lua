@@ -77,7 +77,7 @@ function FS.exists(path, callback)
     if not err then
       return callback(nil, true)
     end
-    if err.code == "ENOENT" then
+    if err.code == "ENOENT" or err.code == "ENOTDIR" then
       return callback(nil, false)
     end
     callback(err)
@@ -89,7 +89,7 @@ function FS.exists_sync(path)
     UV.fs_stat(path)
   end)
   if not err then return true end
-  if err.code == "ENOENT" then
+  if err.code == "ENOENT" or err.code == "ENOTDIR" then
     return false
   end
   error(err)
