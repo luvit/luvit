@@ -11,7 +11,7 @@ local rm2_m2 = require("./modules/module2/module2")
 p(m1, m1_m2, m2_m2)
 p(rm1, rm1_m2, rm2_m2)
 p({num_loaded=num_loaded})
-assert(num_loaded == 3, "There should be three modules loaded")
+assert(num_loaded == 3, "There should be exactly three modules loaded, there was " .. num_loaded)
 assert(m1 == rm1 and m1_m2 == rm1_m2 and m2_m2 == rm2_m2, "Modules are not caching correctly")
 
 -- Test native addons
@@ -26,5 +26,5 @@ local libluvits = {
   require('lib-luvit'),
   require('./modules/lib-luvit'),
 }
-assert(libluvits[1] == libluvits[3], "Module search and relative should share same cache")
+assert(libluvits[1] == libluvits[2], "Module search and relative should share same cache")
 
