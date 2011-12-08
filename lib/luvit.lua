@@ -186,10 +186,6 @@ local function load_module(path, verbose)
 
   local cname = "luaopen_" .. Path.basename(path)
 
-  -- Try the exact match first
-  local fn = myloadfile(path)
-  if fn then return fn end
-
   -- Then try with lua appended
   fn = myloadfile(path .. ".lua")
   if fn then return fn end
