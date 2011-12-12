@@ -9,4 +9,4 @@ vector.luvit: vector.o
 	$(CC) -shared -o vector.luvit vector.o -lm
 
 clean:
-	rm vector.o vector.luvit
+	rm -f vector.o vector.luvit
