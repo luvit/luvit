@@ -165,7 +165,7 @@ local function partial_realpath(path)
   -- Do some minimal realpathing
   local link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
   while link do
-    path = Path.join(Path.dirname(path), link)
+    path = Path.resolve(Path.dirname(path), link)
     link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
   end
   return path
@@ -328,7 +328,7 @@ local function usage()
   print("")
 end
 
-assert(xpcall(function ()
+local status, err = pcall(function ()
 
   local interactive = false
   local repl = true
@@ -391,7 +391,11 @@ assert(xpcall(function ()
     Repl.start()
   end
 
-end, Debug.traceback))
+end)
+if not status then
+  debug('ERROR', err)
+  Debug.traceback()
+end
 
 -- Start the event loop
 UV.run()
