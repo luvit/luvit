@@ -63,6 +63,9 @@ local status_codes_table = {
 Response.prototype = {}
 setmetatable(Response.prototype, tcp_meta)
 
+-- Don't register new event types with the userdata, this should be a plain lua emitter
+function Response.prototype.add_handler_type() end
+
 function Response.new(client)
   local response = {
     code = 200,
