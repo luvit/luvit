@@ -188,7 +188,7 @@ local function myloadfile(path)
   local dirname = Path.dirname(path)
   local real_require = require
   setfenv(fn, setmetatable({
-    __filename = filename,
+    __filename = path,
     __dirname = dirname,
     require = function (path)
       return real_require(path, dirname)
