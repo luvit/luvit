@@ -86,7 +86,7 @@ local function dump(o, depth)
     local lines = {}
     i = 1
     local estimated = 0
-    for k,v in pairs(o) do
+    for k,v in (is_array and ipairs or pairs)(o) do
       local s
       if is_array then
         s = ""
