@@ -79,16 +79,22 @@ deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
 ${GENDIR}:
 	mkdir -p ${GENDIR}
 
-${LUADIR}/src/libluajit.a:
+${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
+
+${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	$(MAKE) -C ${LUADIR}
 
-${UVDIR}/uv.a:
+${UVDIR}/Makefile:
 	git submodule update --init ${UVDIR}
+
+${UVDIR}/uv.a: ${UVDIR}/Makefile
 	$(MAKE) -C ${UVDIR} uv.a
 
-${HTTPDIR}/http_parser.o:
+${HTTPDIR}/Makefile:
 	git submodule update --init ${HTTPDIR}
+
+${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	${MAKE} -C ${HTTPDIR} http_parser.o
 
 ${GENDIR}/%.c: lib/%.lua deps
