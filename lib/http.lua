@@ -16,7 +16,6 @@ function HTTP.request(options, callback)
 
   local client = TCP.new()
 
-  local httpClient =
   client:connect(host, port)
   client:on("complete", function ()
     local response = Response.new(client)

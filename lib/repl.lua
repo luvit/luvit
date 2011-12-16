@@ -77,7 +77,6 @@ function Repl.start()
   end)
 
   process.stdin:on('end', function ()
-    print(Utils.colorize("Bblue", "\nBye!"))
     process.exit()
   end)
 
