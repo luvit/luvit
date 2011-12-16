@@ -3,6 +3,7 @@ local UV = require('uv')
 local Utils = require('utils')
 local Table = require('table')
 local Repl = {}
+local c = Utils.color
 
 local function gather_results(success, ...)
   local n = select('#', ...)
@@ -19,6 +20,10 @@ end
 local buffer = ''
 
 function Repl.evaluate_line(line)
+  if line == "<3\n" then
+    print("I " .. c("Bred") .. "♥" .. c() .. " you too!")
+    return '>'
+  end
   local chunk  = buffer .. line
   local f, err = loadstring('return ' .. chunk, 'REPL') -- first we prefix return
 
@@ -53,7 +58,6 @@ function Repl.evaluate_line(line)
   return '>'
 end
 
-local c = Utils.color
 Repl.colored_name = c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c()
 
 function Repl.start()

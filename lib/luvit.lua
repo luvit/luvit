@@ -1,4 +1,4 @@
-VERSION = "Prelease"
+VERSION = "0.1.2"
 -- clear some globals
 -- This will break lua code written for other lua runtimes
 _G.io = nil
@@ -161,59 +161,92 @@ error_meta = {__tostring=function(table) return table.message end}
 
 local global_meta = {__index=_G}
 
-function myloadfile(path)
-  local success, code = pcall(function ()
-    return FS.read_file_sync(path)
-  end)
-  if not success then return nil, code end
+local function partial_realpath(path)
+  -- Do some minimal realpathing
+  local link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
+  while link do
+    path = Path.resolve(Path.dirname(path), link)
+    link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
+  end
+  return path
+end
+
+local function myloadfile(path)
+  if not FS.exists_sync(path) then return end
+
+  path = partial_realpath(path)
+
+  if package.loaded[path] then
+    return function ()
+      return package.loaded[path]
+    end
+  end
+
+  local code = FS.read_file_sync(path)
+
   local fn = assert(loadstring(code, '@' .. path))
   local dirname = Path.dirname(path)
   local real_require = require
   setfenv(fn, setmetatable({
-    __filename = filename,
+    __filename = path,
     __dirname = dirname,
     require = function (path)
       return real_require(path, dirname)
     end,
   }, global_meta))
-  return fn
+  local module = fn()
+  package.loaded[path] = module
+  return function() return module end
 end
 
+local function myloadlib(path, name)
+  if not FS.exists_sync(path) then return end
 
+  path = partial_realpath(path)
+
+  if package.loaded[path] then
+    return function ()
+      return package.loaded[path]
+    end
+  end
+
+  local name = Path.basename(path)
+  if name == "init.luvit" then
+    name = Path.basename(Path.dirname(path))
+  end
+  local fn, error_message = package.loadlib(path, "luaopen_" .. name:sub(1, #name - 6))
+  if fn then
+    local module = fn()
+    package.loaded[path] = module
+    return function() return module end
+  end
+  error(error_message)
+end
 
 -- tries to load a module at a specified absolute path
 local function load_module(path, verbose)
 
-  local cname = "luaopen_" .. Path.basename(path)
-
-  -- Try the exact match first
-  local fn = myloadfile(path)
-  if fn then return fn end
-
-  -- Then try with lua appended
-  fn = myloadfile(path .. ".lua")
-  if fn then return fn end
-
-  local error_message
-  -- Then try C addon with luvit appended
-  fn, error_message = package.loadlib(path .. ".luvit", cname)
-  if fn then return fn end
-  -- TODO: find a less fragile way to tell a not found error from other errors
-  if not (error_message == path .. ".luvit: cannot open shared object file: No such file or directory") then
-    error(error_message)
+  -- First, look for exact file match if the extension is given
+  local extension = Path.extname(path)
+  if extension == ".lua" then
+    return myloadfile(path)
+  end
+  if extension == ".luvit" then
+    return myloadlib(path)
   end
 
-  -- Then Try a folder with init.lua in it
-  fn = myloadfile(path .. "/init.lua")
-  if fn then return fn end
-
-  -- Finally try the same for a C addon
-  fn, error_message = package.loadlib(path .. "/init.luvit", cname)
-  if fn then return fn end
-  -- TODO: find a less fragile way to tell a not found error from other errors
-  if not (error_message == path .. "/init.luvit: cannot open shared object file: No such file or directory") then
-    error(error_message)
+  -- Then, look for module/package.lua config file
+  if FS.exists_sync(path .. "/package.lua") then
+    local metadata = load_module(path .. "/package.lua")()
+    if metadata.main then
+      return load_module(Path.join(path, metadata.main))
+    end
   end
+
+  -- Try to load as either lua script or binary extension
+  local fn = myloadfile(path .. ".lua") or myloadfile(path .. "/init.lua")
+          or myloadlib(path .. ".luvit") or myloadlib(path .. "/init.luvit")
+  if fn then return fn end
 
   return "\n\tCannot find module " .. path
 end
@@ -240,15 +273,11 @@ function require(path, dirname)
     absolute_path = Path.join(dirname, path)
   end
   if absolute_path then
-    module = package.loaded[absolute_path]
-    if module then return module end
-    loader = load_module(absolute_path)
+    local loader = load_module(absolute_path)
     if type(loader) == "function" then
-      module = loader()
-      package.loaded[absolute_path] = module
-      return module
+      return loader()
     else
-      error("Failed to find module '" .. path .."'" .. loader)
+      error("Failed to find module '" .. path .."'")
     end
   end
 
@@ -273,12 +302,9 @@ function require(path, dirname)
   repeat
     dir = dir:sub(1, dir:find("/[^/]*$") - 1)
     local full_path = dir .. "/modules/" .. path
-    if package.loaded[full_path] then return package.loaded[full_path] end
     local loader = load_module(dir .. "/modules/" .. path)
     if type(loader) == "function" then
-      local module = loader()
-      package.loaded[full_path] = module
-      return module
+      return loader()
     else
       errors[#errors + 1] = loader
     end
@@ -302,9 +328,9 @@ local function usage()
   print("")
 end
 
-assert(xpcall(function ()
+local status, err = pcall(function ()
 
-  local interactive
+  local interactive = false
   local repl = true
   local file
   local state = "BEGIN"
@@ -316,7 +342,7 @@ assert(xpcall(function ()
         usage()
         repl = false
       elseif value == "-v" or value == "--version" then
-        print(Repl.colored_name .. " version " .. VERSION)
+        print(VERSION)
         repl = false
       elseif value == "-e" or value == "--eval" then
         state = "-e"
@@ -352,13 +378,24 @@ assert(xpcall(function ()
 
   if file then
     assert(myloadfile(Path.resolve(base_path, file)))()
+  elseif not (UV.handle_type(0) == "TTY") then
+    process.stdin:on("data", function(line)
+      Repl.evaluate_line(line)
+    end)
+    process.stdin:read_start()
+    UV.run()
+    process.exit(0)
   end
+
   if interactive or repl then
     Repl.start()
   end
 
-end, Debug.traceback))
-
+end)
+if not status then
+  debug('ERROR', err)
+  Debug.traceback()
+end
 
 -- Start the event loop
 UV.run()

@@ -2,8 +2,80 @@ local TCP = require('tcp')
 local Request = require('request')
 local Response = require('response')
 local HTTP_Parser = require('http_parser')
+local Table = require('table')
 local HTTP = {}
 
+function HTTP.request(options, callback)
+  -- Load options into local variables.  Assume defaults
+  local host = options.host or "127.0.0.1"
+  local port = options.port or 80
+  local method = options.method or "GET"
+  local path = options.path or "/"
+  local headers = options.headers or {}
+  if not headers.host then headers.host = host end
+
+  local client = TCP.new()
+
+  local httpClient =
+  client:connect(host, port)
+  client:on("complete", function ()
+    local response = Response.new(client)
+    local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
+    for field, value in pairs(headers) do
+      request[#request + 1] = field .. ": " .. value .. "\r\n"
+    end
+    request[#request + 1] = "\r\n"
+    client:write(Table.concat(request))
+    client:read_start()
+
+    local headers
+    local current_field
+
+    local parser = HTTP_Parser.new("response", {
+      on_message_begin = function ()
+        headers = {}
+      end,
+      on_url = function (url)
+      end,
+      on_header_field = function (field)
+        current_field = field
+      end,
+      on_header_value = function (value)
+        headers[current_field:lower()] = value
+      end,
+      on_headers_complete = function (info)
+        response.headers = headers
+        response.status_code = info.status_code
+        response.version_minor = info.version_minor
+        response.version_major = info.version_major
+
+        callback(response)
+
+      end,
+      on_body = function (chunk)
+        response:emit('data', chunk)
+      end,
+      on_message_complete = function ()
+        response:emit('end')
+      end
+    });
+
+    client:on("data", function (chunk, len)
+      local nparsed = parser:execute(chunk, 0, len)
+
+      -- If it wasn't all parsed then there was an error parsing
+      if nparsed < len then
+        error("Parse error in server response")
+      end
+
+    end)
+
+    client:on("end", function ()
+      parser:finish()
+    end)
+
+  end)
+end
 
 function HTTP.create_server(host, port, on_connection)
   local server = TCP.new()

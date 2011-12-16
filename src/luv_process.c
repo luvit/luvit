@@ -25,14 +25,23 @@ int luv_spawn(lua_State* L) {
   uv_pipe_t* stdout_stream = (uv_pipe_t*)luv_checkudata(L, 2, "pipe");
   uv_pipe_t* stderr_stream = (uv_pipe_t*)luv_checkudata(L, 3, "pipe");
   const char* command = luaL_checkstring(L, 4);
+  size_t argc;
+  char** args;
+  int i;
+  char* cwd;
+  char** env;
+  uv_process_options_t options;
+  uv_process_t* handle;
+  int r;
+  luv_ref_t* ref;
+
   luaL_checktype(L, 5, LUA_TTABLE); // args
   luaL_checktype(L, 6, LUA_TTABLE); // options
 
   // Parse the args array
-  size_t argc = lua_objlen(L, 5) + 1;
-  char** args = malloc(argc + 1);
+  argc = lua_objlen(L, 5) + 1;
+  args = malloc((argc + 1) * sizeof(char*));
   args[0] = (char*)command;
-  int i;
   for (i = 1; i < argc; i++) {
     lua_rawgeti(L, 5, i);
     args[i] = (char*)lua_tostring(L, -1);
@@ -42,15 +51,15 @@ int luv_spawn(lua_State* L) {
 
   // Get the cwd
   lua_getfield(L, 6, "cwd");
-  char* cwd = (char*)lua_tostring(L, -1);
+  cwd = (char*)lua_tostring(L, -1);
   lua_pop(L, 1);
 
   // Get the env
   lua_getfield(L, 6, "env");
-  char** env = NULL;
+  env = NULL;
   if (lua_type(L, -1) == LUA_TTABLE) {
     argc = lua_objlen(L, -1);
-    env = malloc(argc + 1);
+    env = malloc((argc + 1) * sizeof(char*));
     for (i = 0; i < argc; i++) {
       lua_rawgeti(L, -1, i + 1);
       env[i] = (char*)lua_tostring(L, -1);
@@ -60,19 +69,19 @@ int luv_spawn(lua_State* L) {
   }
   lua_pop(L, 1);
 
-  uv_process_options_t options;
   options.exit_cb = luv_process_on_exit;
   options.file = command;
   options.args = args;
-  options.env = env;
+  extern char**environ;
+  options.env = env ? env : environ;
   options.cwd = cwd;
   options.stdin_stream = stdin_stream;
   options.stdout_stream = stdout_stream;
   options.stderr_stream = stderr_stream;
 
   // Create the userdata
-  uv_process_t* handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
-  int r = uv_spawn(uv_default_loop(), handle, options);
+  handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
+  r = uv_spawn(uv_default_loop(), handle, options);
   free(args);
   if (env) free(env);
   if (r) {
@@ -89,7 +98,7 @@ int luv_spawn(lua_State* L) {
   lua_setfenv (L, -2);
 
   // Store a reference to the userdata in the handle
-  luv_ref_t* ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
   lua_pushvalue(L, -1); // duplicate so we can _ref it
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);

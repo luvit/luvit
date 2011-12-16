@@ -5,14 +5,16 @@
 
 
 
+
+
 typedef signed char int8_t;
 typedef short int int16_t;
 typedef int int32_t;
 
+typedef long int int64_t;
 
 
-__extension__
-typedef long long int int64_t;
+
 
 
 
@@ -24,24 +26,15 @@ typedef unsigned int uint32_t;
 
 
 
-
-
-__extension__
-typedef unsigned long long int uint64_t;
-
-
-
-
-
-
+typedef unsigned long int uint64_t;
 typedef signed char int_least8_t;
 typedef short int int_least16_t;
 typedef int int_least32_t;
 
+typedef long int int_least64_t;
 
 
-__extension__
-typedef long long int int_least64_t;
+
 
 
 
@@ -49,47 +42,23 @@ typedef unsigned char uint_least8_t;
 typedef unsigned short int uint_least16_t;
 typedef unsigned int uint_least32_t;
 
-
-
-__extension__
-typedef unsigned long long int uint_least64_t;
-
-
-
-
-
-
+typedef unsigned long int uint_least64_t;
 typedef signed char int_fast8_t;
 
-
-
-
-
-typedef int int_fast16_t;
-typedef int int_fast32_t;
-__extension__
-typedef long long int int_fast64_t;
-
-
-
+typedef long int int_fast16_t;
+typedef long int int_fast32_t;
+typedef long int int_fast64_t;
 typedef unsigned char uint_fast8_t;
 
+typedef unsigned long int uint_fast16_t;
+typedef unsigned long int uint_fast32_t;
+typedef unsigned long int uint_fast64_t;
+typedef long int intptr_t;
 
 
-
-
-typedef unsigned int uint_fast16_t;
-typedef unsigned int uint_fast32_t;
-__extension__
-typedef unsigned long long int uint_fast64_t;
-typedef int intptr_t;
-
-
-typedef unsigned int uintptr_t;
-__extension__
-typedef long long int intmax_t;
-__extension__
-typedef unsigned long long int uintmax_t;
+typedef unsigned long int uintptr_t;
+typedef long int intmax_t;
+typedef unsigned long int uintmax_t;
 
 
 
@@ -107,11 +76,8 @@ typedef unsigned short int __uint16_t;
 typedef signed int __int32_t;
 typedef unsigned int __uint32_t;
 
-
-
-
-__extension__ typedef signed long long int __int64_t;
-__extension__ typedef unsigned long long int __uint64_t;
+typedef signed long int __int64_t;
+typedef unsigned long int __uint64_t;
 
 
 
@@ -119,57 +85,57 @@ __extension__ typedef unsigned long long int __uint64_t;
 
 
 
-__extension__ typedef long long int __quad_t;
-__extension__ typedef unsigned long long int __u_quad_t;
+typedef long int __quad_t;
+typedef unsigned long int __u_quad_t;
 
 
-__extension__ typedef __u_quad_t __dev_t;
-__extension__ typedef unsigned int __uid_t;
-__extension__ typedef unsigned int __gid_t;
-__extension__ typedef unsigned long int __ino_t;
-__extension__ typedef __u_quad_t __ino64_t;
-__extension__ typedef unsigned int __mode_t;
-__extension__ typedef unsigned int __nlink_t;
-__extension__ typedef long int __off_t;
-__extension__ typedef __quad_t __off64_t;
-__extension__ typedef int __pid_t;
-__extension__ typedef struct { int __val[2]; } __fsid_t;
-__extension__ typedef long int __clock_t;
-__extension__ typedef unsigned long int __rlim_t;
-__extension__ typedef __u_quad_t __rlim64_t;
-__extension__ typedef unsigned int __id_t;
-__extension__ typedef long int __time_t;
-__extension__ typedef unsigned int __useconds_t;
-__extension__ typedef long int __suseconds_t;
+typedef unsigned long int __dev_t;
+typedef unsigned int __uid_t;
+typedef unsigned int __gid_t;
+typedef unsigned long int __ino_t;
+typedef unsigned long int __ino64_t;
+typedef unsigned int __mode_t;
+typedef unsigned long int __nlink_t;
+typedef long int __off_t;
+typedef long int __off64_t;
+typedef int __pid_t;
+typedef struct { int __val[2]; } __fsid_t;
+typedef long int __clock_t;
+typedef unsigned long int __rlim_t;
+typedef unsigned long int __rlim64_t;
+typedef unsigned int __id_t;
+typedef long int __time_t;
+typedef unsigned int __useconds_t;
+typedef long int __suseconds_t;
 
-__extension__ typedef int __daddr_t;
-__extension__ typedef long int __swblk_t;
-__extension__ typedef int __key_t;
-
-
-__extension__ typedef int __clockid_t;
+typedef int __daddr_t;
+typedef long int __swblk_t;
+typedef int __key_t;
 
 
-__extension__ typedef void * __timer_t;
+typedef int __clockid_t;
 
 
-__extension__ typedef long int __blksize_t;
+typedef void * __timer_t;
+
+
+typedef long int __blksize_t;
 
 
 
 
-__extension__ typedef long int __blkcnt_t;
-__extension__ typedef __quad_t __blkcnt64_t;
+typedef long int __blkcnt_t;
+typedef long int __blkcnt64_t;
 
 
-__extension__ typedef unsigned long int __fsblkcnt_t;
-__extension__ typedef __u_quad_t __fsblkcnt64_t;
+typedef unsigned long int __fsblkcnt_t;
+typedef unsigned long int __fsblkcnt64_t;
 
 
-__extension__ typedef unsigned long int __fsfilcnt_t;
-__extension__ typedef __u_quad_t __fsfilcnt64_t;
+typedef unsigned long int __fsfilcnt_t;
+typedef unsigned long int __fsfilcnt64_t;
 
-__extension__ typedef int __ssize_t;
+typedef long int __ssize_t;
 
 
 
@@ -178,10 +144,10 @@ typedef __quad_t *__qaddr_t;
 typedef char *__caddr_t;
 
 
-__extension__ typedef int __intptr_t;
+typedef long int __intptr_t;
 
 
-__extension__ typedef unsigned int __socklen_t;
+typedef unsigned int __socklen_t;
 
 
 
@@ -267,7 +233,7 @@ typedef __time_t time_t;
 
 typedef __clockid_t clockid_t;
 typedef __timer_t timer_t;
-typedef unsigned int size_t;
+typedef long unsigned int size_t;
 
 
 
@@ -392,18 +358,17 @@ typedef unsigned long int pthread_t;
 
 typedef union
 {
-  char __size[36];
+  char __size[56];
   long int __align;
 } pthread_attr_t;
-typedef struct __pthread_internal_slist
+
+
+
+typedef struct __pthread_internal_list
 {
-  struct __pthread_internal_slist *__next;
-} __pthread_slist_t;
-
-
-
-
-
+  struct __pthread_internal_list *__prev;
+  struct __pthread_internal_list *__next;
+} __pthread_list_t;
 typedef union
 {
   struct __pthread_mutex_s
@@ -412,25 +377,16 @@ typedef union
     unsigned int __count;
     int __owner;
 
-
+    unsigned int __nusers;
 
 
 
     int __kind;
 
-
-
-
-
-    unsigned int __nusers;
-    __extension__ union
-    {
-      int __spins;
-      __pthread_slist_t __list;
-    };
-
+    int __spins;
+    __pthread_list_t __list;
   } __data;
-  char __size[24];
+  char __size[40];
   long int __align;
 } pthread_mutex_t;
 
@@ -480,6 +436,7 @@ typedef int pthread_once_t;
 
 typedef union
 {
+
   struct
   {
     int __lock;
@@ -488,16 +445,15 @@ typedef union
     unsigned int __writer_wakeup;
     unsigned int __nr_readers_queued;
     unsigned int __nr_writers_queued;
-
-
-    unsigned char __flags;
-    unsigned char __shared;
-    unsigned char __pad1;
-    unsigned char __pad2;
     int __writer;
-  } __data;
+    int __shared;
+    unsigned long int __pad1;
+    unsigned long int __pad2;
 
-  char __size[32];
+
+    unsigned int __flags;
+  } __data;
+  char __size[56];
   long int __align;
 } pthread_rwlock_t;
 
@@ -518,7 +474,7 @@ typedef volatile int pthread_spinlock_t;
 
 typedef union
 {
-  char __size[20];
+  char __size[32];
   long int __align;
 } pthread_barrier_t;
 
@@ -1569,7 +1525,7 @@ typedef struct siginfo
 
     union
       {
- int _pad[((128 / sizeof (int)) - 3)];
+ int _pad[((128 / sizeof (int)) - 4)];
 
 
  struct
@@ -1753,7 +1709,7 @@ typedef struct sigevent
 
     union
       {
- int _pad[((64 / sizeof (int)) - 3)];
+ int _pad[((64 / sizeof (int)) - 4)];
 
 
 
@@ -1969,57 +1925,52 @@ struct _xmmreg
 {
   __uint32_t element[4];
 };
-
-
-
-
-
 struct _fpstate
 {
 
-  __uint32_t cw;
-  __uint32_t sw;
-  __uint32_t tag;
-  __uint32_t ipoff;
-  __uint32_t cssel;
-  __uint32_t dataoff;
-  __uint32_t datasel;
-  struct _fpreg _st[8];
-  unsigned short status;
-  unsigned short magic;
-
-
-  __uint32_t _fxsr_env[6];
+  __uint16_t cwd;
+  __uint16_t swd;
+  __uint16_t ftw;
+  __uint16_t fop;
+  __uint64_t rip;
+  __uint64_t rdp;
   __uint32_t mxcsr;
-  __uint32_t reserved;
-  struct _fpxreg _fxsr_st[8];
-  struct _xmmreg _xmm[8];
-  __uint32_t padding[56];
+  __uint32_t mxcr_mask;
+  struct _fpxreg _st[8];
+  struct _xmmreg _xmm[16];
+  __uint32_t padding[24];
 };
+
 struct sigcontext
 {
-  unsigned short gs, __gsh;
-  unsigned short fs, __fsh;
-  unsigned short es, __esh;
-  unsigned short ds, __dsh;
-  unsigned long edi;
-  unsigned long esi;
-  unsigned long ebp;
-  unsigned long esp;
-  unsigned long ebx;
-  unsigned long edx;
-  unsigned long ecx;
-  unsigned long eax;
-  unsigned long trapno;
-  unsigned long err;
-  unsigned long eip;
-  unsigned short cs, __csh;
+  unsigned long r8;
+  unsigned long r9;
+  unsigned long r10;
+  unsigned long r11;
+  unsigned long r12;
+  unsigned long r13;
+  unsigned long r14;
+  unsigned long r15;
+  unsigned long rdi;
+  unsigned long rsi;
+  unsigned long rbp;
+  unsigned long rbx;
+  unsigned long rdx;
+  unsigned long rax;
+  unsigned long rcx;
+  unsigned long rsp;
+  unsigned long rip;
   unsigned long eflags;
-  unsigned long esp_at_signal;
-  unsigned short ss, __ssh;
-  struct _fpstate * fpstate;
+  unsigned short cs;
+  unsigned short gs;
+  unsigned short fs;
+  unsigned short __pad0;
+  unsigned long err;
+  unsigned long trapno;
   unsigned long oldmask;
   unsigned long cr2;
+  struct _fpstate * fpstate;
+  unsigned long __reserved1 [8];
 };
 
 
@@ -2059,30 +2010,39 @@ typedef struct sigaltstack
   } stack_t;
 
 
-typedef int greg_t;
+typedef long int greg_t;
 
 
 
 
 
-typedef greg_t gregset_t[19];
-struct _libc_fpreg
+typedef greg_t gregset_t[23];
+struct _libc_fpxreg
 {
   unsigned short int significand[4];
   unsigned short int exponent;
+  unsigned short int padding[3];
+};
+
+struct _libc_xmmreg
+{
+  __uint32_t element[4];
 };
 
 struct _libc_fpstate
 {
-  unsigned long int cw;
-  unsigned long int sw;
-  unsigned long int tag;
-  unsigned long int ipoff;
-  unsigned long int cssel;
-  unsigned long int dataoff;
-  unsigned long int datasel;
-  struct _libc_fpreg _st[8];
-  unsigned long int status;
+
+  __uint16_t cwd;
+  __uint16_t swd;
+  __uint16_t ftw;
+  __uint16_t fop;
+  __uint64_t rip;
+  __uint64_t rdp;
+  __uint32_t mxcsr;
+  __uint32_t mxcr_mask;
+  struct _libc_fpxreg _st[8];
+  struct _libc_xmmreg _xmm[16];
+  __uint32_t padding[24];
 };
 
 
@@ -2093,11 +2053,9 @@ typedef struct
   {
     gregset_t gregs;
 
-
     fpregset_t fpregs;
-    unsigned long int oldmask;
-    unsigned long int cr2;
-  } mcontext_t;
+    unsigned long __reserved1 [8];
+} mcontext_t;
 
 
 typedef struct ucontext
@@ -2146,7 +2104,7 @@ struct stat
   {
     __dev_t st_dev;
 
-    unsigned short int __pad1;
+
 
 
     __ino_t st_ino;
@@ -2154,20 +2112,20 @@ struct stat
 
 
 
-    __mode_t st_mode;
+
+
+
     __nlink_t st_nlink;
-
-
-
+    __mode_t st_mode;
 
     __uid_t st_uid;
     __gid_t st_gid;
 
-
+    int __pad0;
 
     __dev_t st_rdev;
 
-    unsigned short int __pad2;
+
 
 
     __off_t st_size;
@@ -2180,12 +2138,7 @@ struct stat
     struct timespec st_atim;
     struct timespec st_mtim;
     struct timespec st_ctim;
-    unsigned long int __unused4;
-    unsigned long int __unused5;
-
-
-
-
+    long int __unused[3];
   };
 extern int stat (__const char *__restrict __file,
    struct stat *__restrict __buf) __attribute__ ((__nothrow__)) __attribute__ ((__nonnull__ (1, 2)));
@@ -2756,7 +2709,7 @@ void ev_async_send (struct ev_loop *loop, ev_async *w);
       static unsigned int __attribute__ ((unused)) ev_loop_depth (struct ev_loop *loop) { return ev_depth (loop); }
       static void __attribute__ ((unused)) ev_loop_verify (struct ev_loop *loop) { ev_verify (loop); }
 
-typedef int ptrdiff_t;
+typedef long int ptrdiff_t;
 typedef int wchar_t;
 
 
@@ -3652,61 +3605,11 @@ typedef int uv_file;
 
 
 typedef void* uv_lib_t;
-
-
-
-
-
 typedef enum {
-  UV_UNKNOWN = -1,
-  UV_OK = 0,
-  UV_EOF,
-  UV_EADDRINFO,
-  UV_EACCESS,
-  UV_EAGAIN,
-  UV_EADDRINUSE,
-  UV_EADDRNOTAVAIL,
-  UV_EAFNOSUPPORT,
-  UV_EALREADY,
-  UV_EBADF,
-  UV_EBUSY,
-  UV_ECONNABORTED,
-  UV_ECONNREFUSED,
-  UV_ECONNRESET,
-  UV_EDESTADDRREQ,
-  UV_EFAULT,
-  UV_EHOSTUNREACH,
-  UV_EINTR,
-  UV_EINVAL,
-  UV_EISCONN,
-  UV_EMFILE,
-  UV_EMSGSIZE,
-  UV_ENETDOWN,
-  UV_ENETUNREACH,
-  UV_ENFILE,
-  UV_ENOBUFS,
-  UV_ENOMEM,
-  UV_ENOTDIR,
-  UV_ENONET,
-  UV_ENOPROTOOPT,
-  UV_ENOTCONN,
-  UV_ENOTSOCK,
-  UV_ENOTSUP,
-  UV_ENOENT,
-  UV_ENOSYS,
-  UV_EPIPE,
-  UV_EPROTO,
-  UV_EPROTONOSUPPORT,
-  UV_EPROTOTYPE,
-  UV_ETIMEDOUT,
-  UV_ECHARSET,
-  UV_EAIFAMNOSUPPORT,
-  UV_EAINONAME,
-  UV_EAISERVICE,
-  UV_EAISOCKTYPE,
-  UV_ESHUTDOWN,
-  UV_EEXIST
+  UV_UNKNOWN = -1, UV_OK = 0, UV_EOF = 1, UV_EADDRINFO = 2, UV_EACCES = 3, UV_EAGAIN = 4, UV_EADDRINUSE = 5, UV_EADDRNOTAVAIL = 6, UV_EAFNOSUPPORT = 7, UV_EALREADY = 8, UV_EBADF = 9, UV_EBUSY = 10, UV_ECONNABORTED = 11, UV_ECONNREFUSED = 12, UV_ECONNRESET = 13, UV_EDESTADDRREQ = 14, UV_EFAULT = 15, UV_EHOSTUNREACH = 16, UV_EINTR = 17, UV_EINVAL = 18, UV_EISCONN = 19, UV_EMFILE = 20, UV_EMSGSIZE = 21, UV_ENETDOWN = 22, UV_ENETUNREACH = 23, UV_ENFILE = 24, UV_ENOBUFS = 25, UV_ENOMEM = 26, UV_ENOTDIR = 27, UV_EISDIR = 28, UV_ENONET = 29, UV_ENOTCONN = 31, UV_ENOTSOCK = 32, UV_ENOTSUP = 33, UV_ENOENT = 34, UV_ENOSYS = 35, UV_EPIPE = 36, UV_EPROTO = 37, UV_EPROTONOSUPPORT = 38, UV_EPROTOTYPE = 39, UV_ETIMEDOUT = 40, UV_ECHARSET = 41, UV_EAIFAMNOSUPPORT = 42, UV_EAINONAME = 43, UV_EAISERVICE = 44, UV_EAISOCKTYPE = 45, UV_ESHUTDOWN = 46, UV_EEXIST = 47, UV_ESRCH = 48,
+  UV_MAX_ERRORS
 } uv_err_code;
+
 
 typedef enum {
   UV_UNKNOWN_HANDLE = 0,
@@ -3770,14 +3673,14 @@ typedef struct uv_fs_s uv_fs_t;
 
 typedef struct uv_fs_event_s uv_fs_event_t;
 typedef struct uv_work_s uv_work_t;
- uv_loop_t* uv_loop_new();
+ uv_loop_t* uv_loop_new(void);
  void uv_loop_delete(uv_loop_t*);
 
 
 
 
 
- uv_loop_t* uv_default_loop();
+ uv_loop_t* uv_default_loop(void);
 
 
 
@@ -3928,6 +3831,7 @@ struct uv_tcp_s {
 
  int uv_tcp_keepalive(uv_tcp_t* handle, int enable,
     unsigned int delay);
+ int uv_tcp_simultaneous_accepts(uv_tcp_t* handle, int enable);
 
  int uv_tcp_bind(uv_tcp_t* handle, struct sockaddr_in);
  int uv_tcp_bind6(uv_tcp_t* handle, struct sockaddr_in6);
@@ -4038,7 +3942,7 @@ struct uv_tty_s {
 
 
 
- void uv_tty_reset_mode();
+ void uv_tty_reset_mode(void);
 
 
 
@@ -4079,7 +3983,7 @@ struct uv_pipe_s {
 
  int uv_pipe_bind(uv_pipe_t* handle, const char* name);
 
- int uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
+ void uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
     const char* name, uv_connect_cb cb);
 struct uv_prepare_s {
   uv_loop_t* loop; uv_handle_type type; uv_close_cb close_cb; void* data; int fd; int flags; ev_idle next_watcher;
@@ -4236,6 +4140,10 @@ struct uv_process_s {
 
 
  int uv_process_kill(uv_process_t*, int signum);
+
+
+
+ uv_err_t uv_kill(int pid, int signum);
 
 
 
@@ -4403,9 +4311,21 @@ struct uv_fs_event_s {
 
 
 
+enum uv_fs_event_flags {
+
+
+
+
+
+
+
+ UV_FS_EVENT_WATCH_ENTRY = 1,
+  UV_FS_EVENT_STAT = 2
+};
+
 
  int uv_fs_event_init(uv_loop_t* loop, uv_fs_event_t* handle,
-    const char* filename, uv_fs_event_cb cb);
+    const char* filename, uv_fs_event_cb cb, int flags);
 
 
 

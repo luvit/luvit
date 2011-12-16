@@ -4,7 +4,7 @@ local Path = {}
 -- Split a filename into [root, dir, basename], unix version
 -- 'root' is just a slash, or nothing.
 local function split_path(filename)
-  local root, dit, basename
+  local root, dir, basename
   local i, j = filename:find("[^/]*$")
   if filename:sub(1, 1) == "/" then
     root = "/"

@@ -8,135 +8,123 @@ local Path = require('path')
 -- Read the combined libuv and http_parser header file
 FFI.cdef(Fs.read_file_sync(Path.join(__dirname, "ffi_uv.h")))
 
+-- Use the built-in alloc_cb function
+FFI.cdef("uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size);")
+
 local C = FFI.C
 
-local server = FFI.new("uv_stream_t")
-local settings = FFI.new("http_parser_settings")
-local refbuf = FFI.new("uv_buf_t")
-p({server=server,settings=settings,refbuf=refbuf})
+--------------------------------------------------------------------------------
+-- minimal libuv bindings using ffi
 
-local RESPONSE = 
-  "HTTP/1.1 200 OK\r\n" ..
-  "Content-Type: text/plain\r\n" ..
-  "Content-Length: 12\r\n" ..
-  "\r\n"
+local function uv_assert(r)
+  if r == -1 then
+    local err = C.uv_last_error(C.uv_default_loop())
+    local name = FFI.string(C.uv_err_name(err))
+    local message = FFI.string(C.uv_strerror(err))
+    error(name .. ": " .. message)
+  end
+end
 
-FFI.cdef([[
-typedef struct {
-  uv_tcp_t handle;
-  http_parser parser;
-  uv_write_t write_req;
-} client_t;
-]])
+local handle_prototype = {}
 
-local function on_close
+function handle_prototype:close(close_cb)
+  C.uv_close(FFI.cast("uv_handle_t*", self), close_cb)
+end
 
---void on_close(uv_handle_t* handle) {
---  free(handle);
---  // printf("disconnected\n");
---}
+local stream_prototype = setmetatable({}, {__index=handle_prototype})
 
---uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
---  uv_buf_t buf;
---  buf.base = malloc(suggested_size);
---  buf.len = suggested_size;
---  return buf;
---}
+function stream_prototype:listen(on_connection)
+  uv_assert(C.uv_listen(FFI.cast("uv_stream_t*", self), 128, on_connection))
+end
 
---void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
---  client_t* client = stream->data;
+function stream_prototype:accept(client)
+  uv_assert(C.uv_accept(FFI.cast("uv_stream_t*", self), FFI.cast("uv_stream_t*", client)))
+end
 
---  size_t parsed;
+function stream_prototype:read_start(on_read)
+  uv_assert(C.uv_read_start(FFI.cast("uv_stream_t*", self), C.luv_on_alloc, on_read))
+end
 
---  if (nread >= 0) {
---    parsed = http_parser_execute(&client->parser, &settings, buf.base, nread);
+function stream_prototype:write(strings, write_cb)
+  local bufs, length
+  if type(strings) == "table" then
+    length = #strings
+    bufs = FFI.new("uv_buf_t[" .. length .. "]")
+    for i = 1, length do
+      local string = strings[i]
+      local buf = bufs[i - 1]
+      buf.base = FFI.cast("char*", string)
+      buf.len = #string
+    end
+  else
+    length = 1
+    bufs = FFI.new("uv_buf_t[1]")
+    local string = strings
+    bufs[0].base = FFI.cast("char*", string)
+    bufs[0].len = #string
+  end
+  p({bufs=bufs})
 
---    if (parsed < nread) {
---      uv_close((uv_handle_t*)stream, on_close);
---      fprintf(stderr, "parse error\n");
---    }
+  local ref = FFI.new("uv_write_t")
 
---  } else {
---    uv_err_t err = uv_last_error(uv_default_loop());
---    if (err.code == UV_EOF) {
---      uv_close((uv_handle_t*)stream, on_close);
---    } else {
---      fprintf(stderr, "read: %s\n", uv_strerror(err));
---    }
---  }
+  uv_assert(C.uv_write(FFI.cast("uv_write_t*", ref), FFI.cast("uv_stream_t*", self), bufs, length, function (req, status)
+    uv_assert(status)
+    write_cb(req, status)
+  end))
+end
 
---  free(buf.base);
---}
+local tcp_prototype = setmetatable({}, {__index=stream_prototype})
+function tcp_prototype:bind(port, host)
+  local address = C.uv_ip4_addr(host or "0.0.0.0", port)
+  uv_assert(C.uv_tcp_bind(FFI.cast("uv_tcp_t*", self), address))
+end
+function tcp_prototype:init()
+  C.uv_tcp_init(C.uv_default_loop(), self)
+end
 
---void on_connection(uv_stream_t* server_handle, int status) {
---  assert(server_handle == &server);
---  // printf("connected\n");
+local Tcp = FFI.metatype("uv_tcp_t", {
+  __index = tcp_prototype
+})
 
---  client_t* client = malloc(sizeof(client_t));
---  uv_tcp_init(uv_default_loop(), &client->handle);
---  client->handle.data = client;
---  client->parser.data = client;
+local function new_tcp()
+  local handle = Tcp()
+  handle:init()
+  return handle
+end
 
---  int r = uv_accept(&server, (uv_stream_t*)&client->handle);
+--------------------------------------------------------------------------------
 
---  if (r) {
---    uv_err_t err = uv_last_error(uv_default_loop());
---    fprintf(stderr, "accept: %s\n", uv_strerror(err));
---    exit(-1);
---  }
+local server = new_tcp()
 
---  http_parser_init(&client->parser, HTTP_REQUEST);
+server:bind(8080)
 
---  uv_read_start((uv_stream_t*)&client->handle, on_alloc, on_read);
+server:listen(function(server_handle, status)
+  p("on_connection", {server_handle=server_handle, status=status})
 
---}
+  local client = new_tcp()
 
---void after_write(uv_write_t* req, int status) {
---  //printf("after_write\n");
---  uv_close((uv_handle_t*)req->handle, on_close);
---}
+  server:accept(client)
+  p("accepted", {server=server,client=client})
 
+  client:read_start(function (...)
+    p("on_read", ...)
+  end)
 
---int on_headers_complete(http_parser* parser) {
---  client_t* client = parser->data;
+--  p("writing...")
+--  client:write({"HTTP/1.1 200 Success\r\n",
+--                "Server: Luvit FFI\r\n",
+--                "Content-Length: 0\r\n",
+--                "\r\n"}, function (req, status)
+--    p("written", {req=req,status=status})
 
---  // printf("http message!\n");
+--    p("closing...")
+--    client:close(function (handle)
+--      p("closed", {handle=handle})
+--    end)
 
---  uv_write(&client->write_req, (uv_stream_t*)&client->handle, &refbuf, 1, after_write);
+--  end)
 
---  return 1;
---}
+end)
 
---int main() {
-
---  refbuf.base = RESPONSE;
---  refbuf.len = sizeof(RESPONSE);
-
---  settings.on_headers_complete = on_headers_complete;
-
---  uv_tcp_init(uv_default_loop(), (uv_tcp_t*)&server);
---  struct sockaddr_in address = uv_ip4_addr("0.0.0.0", 8080);
---  int r = uv_tcp_bind((uv_tcp_t*)&server, address);
-
---  if (r) {
---    uv_err_t err = uv_last_error(uv_default_loop());
---    fprintf(stderr, "bind: %s\n", uv_strerror(err));
---    return -1;
---  }
-
---  r = uv_listen(&server, 128, on_connection);
-
---  if (r) {
---    uv_err_t err = uv_last_error(uv_default_loop());
---    fprintf(stderr, "listen: %s\n", uv_strerror(err));
---    return -1;
---  }
-
---  // Block in the main loop
---  uv_run(uv_default_loop());
-
---  return 0;
---}
-
-
+print("server listening at http://localhost:8080/")
 

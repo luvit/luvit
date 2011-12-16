@@ -3,6 +3,29 @@ UVDIR=deps/uv
 HTTPDIR=deps/http-parser
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
+PREFIX?=/usr/local
+BINDIR?=${PREFIX}/bin
+ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
+# force x86-32 on OSX-x86
+export CC=gcc -arch i386 
+LDFLAGS=-framework CoreServices
+# strip is broken in OSX. do not strip it
+INSTALL_PROGRAM=install -v
+else
+# linux
+INSTALL_PROGRAM=install -v -s
+LDFLAGS=-Wl,-E -lrt
+endif
+
+# LUAJIT CONFIGURATION #
+XCFLAGS=
+#XCFLAGS+=-DLUAJIT_DISABLE_JIT
+XCFLAGS+=-DLUAJIT_ENABLE_LUA52COMPAT
+XCFLAGS+=-DLUA_USE_APICHECK
+export XCFLAGS
+# verbose build
+export Q=
+MAKEFLAGS+=-e
 
 LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/http.o     \
@@ -58,8 +81,6 @@ ${GENDIR}:
 
 ${LUADIR}/src/libluajit.a:
 	git submodule update --init ${LUADIR}
-	sed -e "s/#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/" -i deps/luajit/src/Makefile
-	sed -e "s/#XCFLAGS+= -DLUA_USE_APICHECK/XCFLAGS+= -DLUA_USE_APICHECK/" -i deps/luajit/src/Makefile
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/uv.a:
@@ -68,7 +89,7 @@ ${UVDIR}/uv.a:
 
 ${HTTPDIR}/http_parser.o:
 	git submodule update --init ${HTTPDIR}
-	make -C ${HTTPDIR} http_parser.o
+	${MAKE} -C ${HTTPDIR} http_parser.o
 
 ${GENDIR}/%.c: lib/%.lua deps
 	${LUADIR}/src/luajit -b $< $@
@@ -81,22 +102,26 @@ ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lrt -lpthread -Wl,-E
+	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
 
 clean:
-	make -C ${LUADIR} clean
-	make -C ${HTTPDIR} clean
-	make -C ${UVDIR} distclean
+	${MAKE} -C ${LUADIR} clean
+	${MAKE} -C ${HTTPDIR} clean
+	${MAKE} -C ${UVDIR} distclean
+	${MAKE} -C examples/native clean
 	rm -rf build
 
 install: ${BUILDDIR}/luvit
-	install ${BUILDDIR}/luvit -s -v /usr/local/bin/luvit
+	mkdir -p ${BINDIR}
+	${INSTALL_PROGRAM} ${BUILDDIR}/luvit ${DESTDIR}${BINDIR}/luvit
 
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
-	make -C examples/native
+	${MAKE} -C examples/native
 
 test: ${BUILDDIR}/luvit examples/native/vector.luvit
-	find tests -name "test-*.lua" | while read LINE; do ${BUILDDIR}/luvit $$LINE > tests/failed_test.log && rm tests/failed_test.log || cat tests/failed_test.log; done
+	find tests -name "test-*.lua" | while read LINE; do \
+		${BUILDDIR}/luvit $$LINE > tests/failed_test.log && \
+		rm tests/failed_test.log || cat tests/failed_test.log; \
+	done
 
-.PHONY: test
-
+.PHONY: test install all
