@@ -40,7 +40,7 @@ static int lenv_put(lua_State* L) {
   int r = putenv((char*)string);
 #ifdef _WIN32
   if (r) {
-	  return luaL_error(L, "Unknown error putting new environment");
+    return luaL_error(L, "Unknown error putting new environment");
   }
 #else
   if (r) {
@@ -59,7 +59,7 @@ static int lenv_set(lua_State* L) {
 
 #ifdef _WIN32
   if (SetEnvironmentVariable(name, value) != 0) {
-	return luaL_error(L, "Failed to set environment variable");
+    return luaL_error(L, "Failed to set environment variable");
   }
 #else
   if (setenv(name, value, overwrite)) {
