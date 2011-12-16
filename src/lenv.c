@@ -1,19 +1,23 @@
 #include <string.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#else
 #include <unistd.h>
 #include <errno.h>
+#endif
 
 #include "lenv.h"
 
 extern char **environ;
 
 static int lenv_keys(lua_State* L) {
-  int size = 0;
+  int size = 0, i;
   while (environ[size]) size++;
 
   lua_createtable(L, size, 0);
 
-  int i;
   for (i = 0; i < size; ++i) {
     const char* var = environ[i];
     const char* s = strchr(var, '=');
@@ -34,11 +38,17 @@ static int lenv_get(lua_State* L) {
 static int lenv_put(lua_State* L) {
   const char* string = luaL_checkstring(L, 1);
   int r = putenv((char*)string);
+#ifdef _WIN32
+  if (r) {
+	  return luaL_error(L, "Unknown error putting new environment");
+  }
+#else
   if (r) {
     if (r == ENOMEM)
       return luaL_error(L, "Insufficient space to allocate new environment.");
     return luaL_error(L, "Unknown error putting new environment");
   }
+#endif
   return 0;
 }
 
@@ -47,20 +57,34 @@ static int lenv_set(lua_State* L) {
   const char* value = luaL_checkstring(L, 2);
   int overwrite = luaL_checkint(L, 3);
 
+#ifdef _WIN32
+  if (SetEnvironmentVariable(name, value) != 0) {
+	return luaL_error(L, "Failed to set environment variable");
+  }
+#else
   if (setenv(name, value, overwrite)) {
     return luaL_error(L, "Insufficient space in environment.");
   }
+#endif
 
   return 0;
 }
 
 static int lenv_unset(lua_State* L) {
   const char* name = luaL_checkstring(L, 1);
+
+#ifdef __linux__
   if (unsetenv(name)) {
     if (errno == EINVAL)
       return luaL_error(L, "EINVAL: name contained an '=' character");
     return luaL_error(L, "unsetenv: Unknown error");
   }
+#elif defined(_WIN32)
+  SetEnvironmentVariable(name, NULL);
+#else
+  unsetenv(name);
+#endif
+
   return 0;
 }
 
