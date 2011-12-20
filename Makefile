@@ -83,6 +83,7 @@ ${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
 
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
+	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/Makefile:
