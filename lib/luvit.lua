@@ -29,6 +29,11 @@ local Constants = require('constants')
 local Path = require('path')
 
 process = Emitter.new()
+process.version = VERSION
+process.versions = {
+  luvit = VERSION,
+  uv = UV.VERSION_MAJOR .. "." .. UV.VERSION_MINOR,
+}
 
 function process.exit(exit_code)
   process:emit('exit', exit_code)
