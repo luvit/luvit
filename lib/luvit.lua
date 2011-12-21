@@ -1,4 +1,4 @@
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 -- clear some globals
 -- This will break lua code written for other lua runtimes
 _G.io = nil
