@@ -5,6 +5,7 @@ BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 PREFIX?=/usr/local
 BINDIR?=${PREFIX}/bin
+INCLUDEDIR?=${PREFIX}/include/luvit
 ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
 # force x86-32 on OSX-x86
 export CC=gcc -arch i386 
@@ -121,6 +122,19 @@ clean:
 install: ${BUILDDIR}/luvit
 	mkdir -p ${BINDIR}
 	${INSTALL_PROGRAM} ${BUILDDIR}/luvit ${DESTDIR}${BINDIR}/luvit
+	cp bin/luvit-config.lua ${DESTDIR}${BINDIR}/luvit-config
+	chmod +x ${DESTDIR}${BINDIR}/luvit-config
+	mkdir -p ${INCLUDEDIR}/luajit
+	cp ${LUADIR}/src/lua.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/lauxlib.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/luaconf.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/luajit.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/lualib.h ${INCLUDEDIR}/luajit/
+	mkdir -p ${INCLUDEDIR}/http_parser
+	cp ${HTTPDIR}/http_parser.h ${INCLUDEDIR}/http_parser/
+	mkdir -p ${INCLUDEDIR}/uv
+	cp ${UVDIR}/include/uv.h ${INCLUDEDIR}/uv/
+	cp src/*.h ${INCLUDEDIR}/
 
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
