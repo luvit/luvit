@@ -72,6 +72,10 @@ function Path.resolve(root, path)
 end
 
 function Path.dirname(path)
+  if path:sub(path:len()) == "/" then
+    path = path:sub(1, -2)
+  end
+
   local root, dir = split_path(path)
 
   if #dir > 0 then
