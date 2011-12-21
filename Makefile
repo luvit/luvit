@@ -18,7 +18,7 @@ LDFLAGS=-Wl,-E -lrt
 endif
 
 # LUAJIT CONFIGURATION #
-XCFLAGS=
+XCFLAGS=-g
 #XCFLAGS+=-DLUAJIT_DISABLE_JIT
 XCFLAGS+=-DLUAJIT_ENABLE_LUA52COMPAT
 XCFLAGS+=-DLUA_USE_APICHECK
@@ -83,6 +83,7 @@ ${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
 
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
+	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/Makefile:
@@ -101,14 +102,14 @@ ${GENDIR}/%.c: lib/%.lua deps
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
-	$(CC) -Wall -c $< -o $@
+	$(CC) -g -Wall -c $< -o $@
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
+	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
