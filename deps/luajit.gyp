@@ -19,9 +19,20 @@
   'defines': [
     'LUAJIT_ENABLE_LUA52COMPAT',
     'LUA_USE_APICHECK',
-    'LUAJIT_TARGET=LUAJIT_ARCH_x86',
   ],
   'conditions': [
+    ['target_arch=="x64"', {
+	'defines': [
+          'LUAJIT_TARGET=LUAJIT_ARCH_x64',
+         ],
+      }
+    ],
+    ['target_arch=="ia32"', {
+	'defines': [
+          'LUAJIT_TARGET=LUAJIT_ARCH_x32',
+         ],
+      }
+    ],
     ['OS != "win"', {
       'defines': [
         '_LARGEFILE_SOURCE',
@@ -32,8 +43,7 @@
     }],
     ['OS == "win"', {
       'defines': [
-      'LUA_BUILD_AS_DLL',
-      'LUAJIT_OS=LUAJIT_OS_WINDOWS',
+        'LUA_BUILD_AS_DLL',
     ],
     }],
        ['OS=="solaris"', {
@@ -50,6 +60,11 @@
       'dependencies': [
         'libluajit',
       ],
+      'conditions': [
+        ['OS == "linux"',
+          { 'libraries': ['-ldl'] },
+	],
+      ],
       'sources': [
         'luajit/src/luajit.c',
       ]
@@ -57,10 +72,11 @@
     {
       'target_name': 'libluajit',
       'conditions': [
-        ['OS == "win"',
-          { 'type': 'shared_library' },
-          { 'type': '<(library)'  },
-        ],        
+        ['OS == "win"', { 'type': 'shared_library' },
+          { 'type': 'static_library' } ],
+      ],
+      'dependencies': [
+	'buildvm#host',
       ],
       'variables': {
         'lj_sources': [
@@ -77,9 +93,6 @@
           'luajit/src/lib_ffi.c',
         ]
       },
-      'dependencies': [
-        'buildvm#host',
-      ],
       'include_dirs': [
         '<(INTERMEDIATE_DIR)',
         'luajit/src',
@@ -91,7 +104,7 @@
         ]
       },
       'sources': [
-		'<(lj_vm)',
+	'<(lj_vm)',
         'luajit/src/lib_aux.c',
         'luajit/src/lib_init.c',
         'luajit/src/lib_base.c',
@@ -219,8 +232,6 @@
     {
       'target_name': 'buildvm',
       'type': 'executable',
-      'dependencies': [
-      ],
       'toolsets': ['host'],
       'sources': [
         'luajit/src/buildvm.c',

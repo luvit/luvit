@@ -12,6 +12,7 @@
     # chrome normally links using the C++ compiler, but all of our code
     # is pure C, and we don't want to link in libstdc++.
     ['LINK', '$(CC)'],
+    ['LINK.host', '$(CC)'],
   ],
 
   'target_defaults': {
@@ -119,6 +120,10 @@
         'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
         'ldflags': [ '-pthread', ],
         'conditions': [
+          [ 'target_arch=="x64"', {
+            'cflags': [ '-fPIC', '-Wl,-E' ],
+            'ldflags': [ '-fPIC', '-Wl,-E' ],
+          }],
           [ 'target_arch=="ia32"', {
             'cflags': [ '-m32' ],
             'ldflags': [ '-m32' ],

@@ -28,7 +28,10 @@ static int luvit_print_stderr(lua_State* L) {
   return 0;
 }
 
+#ifndef PATH_MAX
 #define PATH_MAX 1024
+#endif
+
 static char getbuf[PATH_MAX + 1];
 
 static int luvit_getcwd(lua_State* L) {

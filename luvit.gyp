@@ -53,6 +53,12 @@
           'SubSystem': 1, # /subsystem:console
         },
       },
+
+      'conditions': [
+        ['OS == "linux"',
+          { 'libraries': ['-ldl'] },
+	],
+      ],
 	  
 	  'defines': [
 		'LUVIT_OS="<(OS)"',
