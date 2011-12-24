@@ -53,7 +53,7 @@ def host_arch():
   """Host architecture. One of arm, ia32 or x64."""
 
   if sys.platform == "win32":
-      return 'x64'
+      return 'ia32'
 
   arch = uname('-p')
 
