@@ -70,20 +70,25 @@ hide("exit_process")
 
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
 -- These shouldn't hold open the event loop
-UV.activate_signal_handler(Constants.SIGPIPE)
-UV.unref()
-UV.activate_signal_handler(Constants.SIGINT)
-UV.unref()
-UV.activate_signal_handler(Constants.SIGTERM)
-UV.unref()
+if luvit_os ~= "win" then
+  UV.activate_signal_handler(Constants.SIGPIPE)
+  UV.unref()
+  UV.activate_signal_handler(Constants.SIGINT)
+  UV.unref()
+  UV.activate_signal_handler(Constants.SIGTERM)
+  UV.unref()
+end
 
 -- Load the tty as a pair of pipes
 -- But don't hold the event loop open for them
 process.stdin = TTY.new(0)
-UV.unref()
 process.stdout = TTY.new(1)
-UV.unref()
 local stdout = process.stdout
+if luvit_os ~= "win" then
+  UV.unref()
+  UV.unref()
+end
+
 
 -- Replace print
 function print(...)

@@ -28,6 +28,7 @@ static int luvit_print_stderr(lua_State* L) {
   return 0;
 }
 
+#define PATH_MAX 1024
 static char getbuf[PATH_MAX + 1];
 
 static int luvit_getcwd(lua_State* L) {
@@ -43,6 +44,7 @@ static int luvit_getcwd(lua_State* L) {
 
 int main(int argc, char *argv[])
 {
+  int index;
   lua_State *L = luaL_newstate();
   if (L == NULL) {
     fprintf(stderr, "luaL_newstate has failed\n");
@@ -74,7 +76,6 @@ int main(int argc, char *argv[])
 
   // Get argv
   lua_createtable (L, argc, 0);
-  int index;
   for (index = 0; index < argc; index++) {
     lua_pushstring (L, argv[index]);
     lua_rawseti(L, -2, index);
@@ -89,6 +90,10 @@ int main(int argc, char *argv[])
 
   lua_pushcfunction(L, luvit_getcwd);
   lua_setglobal(L, "getcwd");
+
+  // Register OS
+  lua_pushstring(L, LUVIT_OS);
+  lua_setglobal(L, "luvit_os");
 
   // Hold a reference to the main thread in the registry
   assert(lua_pushthread(L) == 1);
