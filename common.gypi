@@ -118,11 +118,11 @@
       [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
         'cflags': [ '-Wall', '-pthread'],
         'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
-        'ldflags': [ '-pthread', ],
+        'ldflags': [ '-pthread', '-Wl,-E', ],
         'conditions': [
           [ 'target_arch=="x64"', {
-            'cflags': [ '-fPIC', '-Wl,-E' ],
-            'ldflags': [ '-fPIC', '-Wl,-E' ],
+            'cflags': [ '-fPIC' ],
+            'ldflags': [ '-fPIC' ],
           }],
           [ 'target_arch=="ia32"', {
             'cflags': [ '-m32' ],
