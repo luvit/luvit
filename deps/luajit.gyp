@@ -83,7 +83,6 @@
           '../deps/luajit/lib/dis_x64.lua',
           '../deps/luajit/lib/dump.lua',
           '../deps/luajit/lib/v.lua',
-          '../deps/luajit/lib/vmdef.lua',
       ]
     }],
   },
