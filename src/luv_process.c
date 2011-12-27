@@ -3,6 +3,8 @@
 
 #include "luv_process.h"
 
+extern char **environ;
+
 void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal) {
   // load the lua state and the userdata
   luv_ref_t* ref = handle->data;
@@ -72,7 +74,7 @@ int luv_spawn(lua_State* L) {
   options.exit_cb = luv_process_on_exit;
   options.file = command;
   options.args = args;
-  extern char**environ;
+  
   options.env = env ? env : environ;
   options.cwd = cwd;
   options.stdin_stream = stdin_stream;
