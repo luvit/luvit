@@ -71,10 +71,10 @@
   {
     'target_name': 'luajit-datafiles',
     'type': 'none',
-    'copies': [ 
+    'copies': [
      {
        'destination': '<(PRODUCT_DIR)/lua/jit',
-       'files': [ 
+       'files': [
           '../deps/luajit/lib/bc.lua',
           '../deps/luajit/lib/bcsave.lua',
           '../deps/luajit/lib/dis_arm.lua',
@@ -112,12 +112,12 @@
       },
       'include_dirs': [
         '<(INTERMEDIATE_DIR)',
-      'luajit/src',
+        'luajit/src',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
           '<(INTERMEDIATE_DIR)',
-        'luajit/src',
+          'luajit/src',
         ]
       },
       'sources': [
@@ -191,7 +191,7 @@
       {
         'action_name': 'generate_lj_libdef',
         'outputs': ['<(INTERMEDIATE_DIR)/lj_libdef.h'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', 'libdef', '-o', '<(INTERMEDIATE_DIR)/lj_libdef.h', '<@(lj_sources)'
           ]
@@ -199,7 +199,7 @@
       {
         'action_name': 'generate_lj_recdef',
         'outputs': ['<(INTERMEDIATE_DIR)/lj_recdef.h'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', 'recdef', '-o', '<(INTERMEDIATE_DIR)/lj_recdef.h', '<@(lj_sources)'
           ]
@@ -207,7 +207,7 @@
       {
         'action_name': 'generate_lj_folddef',
         'outputs': ['<(INTERMEDIATE_DIR)/lj_folddef.h'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', 'folddef', '-o', '<(INTERMEDIATE_DIR)/lj_folddef.h', 'luajit/src/lj_opt_fold.c'
           ]
@@ -215,7 +215,7 @@
       {
         'action_name': 'generate_lj_vmdef',
         'outputs': ['<(INTERMEDIATE_DIR)/vmdef.lua'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', 'vmdef', '-o', '<(INTERMEDIATE_DIR)/vmdef.lua', '<@(lj_sources)'
           ]
@@ -223,7 +223,7 @@
       {
         'action_name': 'generate_lj_ffdef',
         'outputs': ['<(INTERMEDIATE_DIR)/lj_ffdef.h'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', 'ffdef', '-o', '<(INTERMEDIATE_DIR)/lj_ffdef.h', '<@(lj_sources)'
           ]
@@ -231,7 +231,7 @@
       {
         'action_name': 'generate_lj_bcdef',
         'outputs': ['<(INTERMEDIATE_DIR)/lj_bcdef.h'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', 'bcdef', '-o', '<(INTERMEDIATE_DIR)/lj_bcdef.h', '<@(lj_sources)'
           ]
@@ -239,7 +239,7 @@
       {
         'action_name': 'generate_lj_vm',
         'outputs': ['<(lj_vm)'],
-        'inputs': [],
+        'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
         'action': [
           '<(PRODUCT_DIR)/buildvm', '-m', '<(asm_format)', '-o', '<(lj_vm)'
           ]
