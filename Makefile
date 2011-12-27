@@ -5,6 +5,7 @@ BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 PREFIX?=/usr/local
 BINDIR?=${PREFIX}/bin
+INCLUDEDIR?=${PREFIX}/include/luvit
 ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
 # force x86-32 on OSX-x86
 export CC=gcc -arch i386 
@@ -18,7 +19,7 @@ LDFLAGS=-Wl,-E -lrt
 endif
 
 # LUAJIT CONFIGURATION #
-XCFLAGS=
+XCFLAGS=-g
 #XCFLAGS+=-DLUAJIT_DISABLE_JIT
 XCFLAGS+=-DLUAJIT_ENABLE_LUA52COMPAT
 XCFLAGS+=-DLUA_USE_APICHECK
@@ -83,6 +84,7 @@ ${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
 
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
+	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
 ${UVDIR}/Makefile:
@@ -101,14 +103,14 @@ ${GENDIR}/%.c: lib/%.lua deps
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
-	$(CC) -Wall -c $< -o $@
+	$(CC) -g -Wall -c $< -o $@
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
+	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
@@ -120,6 +122,19 @@ clean:
 install: ${BUILDDIR}/luvit
 	mkdir -p ${BINDIR}
 	${INSTALL_PROGRAM} ${BUILDDIR}/luvit ${DESTDIR}${BINDIR}/luvit
+	cp bin/luvit-config.lua ${DESTDIR}${BINDIR}/luvit-config
+	chmod +x ${DESTDIR}${BINDIR}/luvit-config
+	mkdir -p ${INCLUDEDIR}/luajit
+	cp ${LUADIR}/src/lua.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/lauxlib.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/luaconf.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/luajit.h ${INCLUDEDIR}/luajit/
+	cp ${LUADIR}/src/lualib.h ${INCLUDEDIR}/luajit/
+	mkdir -p ${INCLUDEDIR}/http_parser
+	cp ${HTTPDIR}/http_parser.h ${INCLUDEDIR}/http_parser/
+	mkdir -p ${INCLUDEDIR}/uv
+	cp ${UVDIR}/include/uv.h ${INCLUDEDIR}/uv/
+	cp src/*.h ${INCLUDEDIR}/
 
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native

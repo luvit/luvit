@@ -1,4 +1,4 @@
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 -- clear some globals
 -- This will break lua code written for other lua runtimes
 _G.io = nil
@@ -29,6 +29,11 @@ local Constants = require('constants')
 local Path = require('path')
 
 process = Emitter.new()
+process.version = VERSION
+process.versions = {
+  luvit = VERSION,
+  uv = UV.VERSION_MAJOR .. "." .. UV.VERSION_MINOR,
+}
 
 function process.exit(exit_code)
   process:emit('exit', exit_code)

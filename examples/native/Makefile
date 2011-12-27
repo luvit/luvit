@@ -1,12 +1,13 @@
-LUADIR=../../deps/luajit
+CFLAGS=$(shell luvit-config --cflags)
+LIBS=$(shell luvit-config --libs)
 
 all: vector.luvit
 
 %.o: %.c %.h
-	$(CC) -Wall -Werror -fPIC -c $< -o $@ -I${LUADIR}/src
+	$(CC) -c $< -o $@ ${CFLAGS}
 
 vector.luvit: vector.o
-	$(CC) -shared -o vector.luvit vector.o -lm
+	$(CC) -o vector.luvit vector.o ${LIBS}
 
 clean:
 	rm -f vector.o vector.luvit
