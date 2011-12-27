@@ -57,6 +57,7 @@
       'type': 'executable',
       'dependencies': [
         'libluajit',
+		'luajit-datafiles',
       ],
       'conditions': [
         ['OS == "linux"',
@@ -67,6 +68,25 @@
         'luajit/src/luajit.c',
       ]
     },
+	{
+	  'target_name': 'luajit-datafiles',
+	  'type': 'none',
+	  'copies': [ 
+     {
+       'destination': '<(PRODUCT_DIR)/lua/jit',
+		   'files': [ 
+		      '../deps/luajit/lib/bc.lua',
+          '../deps/luajit/lib/bcsave.lua',
+			    '../deps/luajit/lib/dis_arm.lua',
+			    '../deps/luajit/lib/dis_ppc.lua',
+			    '../deps/luajit/lib/dis_x86.lua',
+			    '../deps/luajit/lib/dis_x64.lua',
+		      '../deps/luajit/lib/dump.lua',
+			    '../deps/luajit/lib/v.lua',
+			    '../deps/luajit/lib/vmdef.lua',
+			]
+		}],
+	},
     {
       'target_name': 'libluajit',
       'conditions': [
