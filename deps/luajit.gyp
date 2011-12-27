@@ -3,15 +3,15 @@
     'conditions': [
       ['OS == "win"', {
         'asm_format': 'peobj',
-          'lj_vm': 'luajit/src/lj_vm.obj',
+          'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.obj',
       }],
       ['OS == "mac"', {
         'asm_format': 'machasm',
-        'lj_vm': 'luajit/src/lj_vm.s',
+        'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
       }],
       ['OS == "linux"', {
         'asm_format': 'elfasm',
-        'lj_vm': 'luajit/src/lj_vm.s',
+        'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
       }]
     ]
   },
