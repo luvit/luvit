@@ -136,6 +136,6 @@ print ""
 if sys.platform == "win32":
     print "Now run `python build.py` to build!"
 else:
-    print "Now run `make` to build!"
+    print "Now run `make -C out` to build!"
 print ""
 
