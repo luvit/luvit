@@ -5,7 +5,8 @@ BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 PREFIX?=/usr/local
 BINDIR?=${PREFIX}/bin
-INCLUDEDIR?=${PREFIX}/include/luvit
+INCDIR?=${PREFIX}/include
+INCLUDEDIR?=${DESTDIR}${INCDIR}/luvit
 ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
 # force x86-32 on OSX-x86
 export CC=gcc -arch i386 
@@ -135,6 +136,10 @@ install: ${BUILDDIR}/luvit
 	mkdir -p ${INCLUDEDIR}/uv
 	cp ${UVDIR}/include/uv.h ${INCLUDEDIR}/uv/
 	cp src/*.h ${INCLUDEDIR}/
+
+uninstall deinstall:
+	rm -rf ${INCLUDEDIR}
+	rm -f ${DESTDIR}${BINDIR}/luvit ${DESTDIR}${BINDIR}/luvit-config
 
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
