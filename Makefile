@@ -35,6 +35,7 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
         ${GENDIR}/process.o  \
+        ${GENDIR}/error.o    \
         ${GENDIR}/emitter.o  \
         ${GENDIR}/udp.o      \
         ${GENDIR}/stream.o   \
