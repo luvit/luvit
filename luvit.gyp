@@ -30,6 +30,7 @@
         'lib/fiber.lua',
         'lib/fs.lua',
         'lib/http.lua',
+        'lib/error.lua',
         'lib/luvit.lua',
         'lib/mime.lua',
         'lib/path.lua',
