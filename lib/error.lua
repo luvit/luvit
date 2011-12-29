@@ -8,8 +8,7 @@ Error.meta = {__index=Error.prototype}
 
 function Error.new(message)
   local err = {
-    message = message,
-    prototype = error_prototype
+    message = message
   }
   setmetatable(err, error_prototype)
   return err
