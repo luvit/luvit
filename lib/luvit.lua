@@ -209,7 +209,7 @@ local function myloadfile(path)
   return function() return module end
 end
 
-local function myloadlib(path, name)
+local function myloadlib(path)
   if not FS.exists_sync(path) then return end
 
   path = partial_realpath(path)
@@ -224,7 +224,9 @@ local function myloadlib(path, name)
   if name == "init.luvit" then
     name = Path.basename(Path.dirname(path))
   end
-  local fn, error_message = package.loadlib(path, "luaopen_" .. name:sub(1, #name - 6))
+  local base_name = name:sub(1, #name - 6)
+  package.loaded[path] = base_name -- Hook to allow C modules to find their path
+  local fn, error_message = package.loadlib(path, "luaopen_" .. base_name)
   if fn then
     local module = fn()
     package.loaded[path] = module
