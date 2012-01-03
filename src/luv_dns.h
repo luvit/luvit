@@ -15,6 +15,7 @@ typedef struct {
 
 // Wrapped functions exposed to lua
 int luv_dns_queryA(lua_State* L);
+int luv_dns_queryAAAA(lua_State* L);
 
 void luv_dns_open(void);
 
