@@ -75,7 +75,7 @@ function Stack.mount(mountpoint, ...)
     if not req.real_url then req.real_url = url end
 
     req.url = url:sub(#mountpoint + 1)
-    if req.uri then req.uri = Url.parse(req.url) end
+    if not req.uri then req.uri = Url.parse(req.url) end
 
     stack(req, res, function (err)
       req.url = url
