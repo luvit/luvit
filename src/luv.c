@@ -333,6 +333,14 @@ LUALIB_API int luaopen_uv (lua_State* L) {
 
   // Create a new exports table with functions and constants
   lua_newtable (L);
+
+  lua_pushnumber(L, AF_UNSPEC);
+  lua_setfield(L, -2, "AF_UNSPEC");
+  lua_pushnumber(L, AF_INET);
+  lua_setfield(L, -2, "AF_INET");
+  lua_pushnumber(L, AF_INET6);
+  lua_setfield(L, -2, "AF_INET6");
+
   luaL_register(L, NULL, luv_f);
   lua_pushnumber(L, UV_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
