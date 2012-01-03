@@ -57,13 +57,18 @@ end
 -- Mounts a substack app at a url subtree
 function Stack.mount(mountpoint, ...)
 
-  local stack = Stack.compose(...)
-
   if mountpoint:sub(#mountpoint) == "/" then
     mountpoint = mountpoint:sub(1, #mountpoint - 1)
   end
 
   local matchpoint = mountpoint .. "/"
+
+  return Stack.translate(mountpoint, matchpoint, ...)
+
+end
+
+function Stack.translate(mountpoint, matchpoint, ...)
+  local stack = Stack.compose(...)
 
   return function(req, res, continue)
     local url = req.url
@@ -85,7 +90,6 @@ function Stack.mount(mountpoint, ...)
     end)
 
   end
-
 end
 
 local Debug = require('debug')
