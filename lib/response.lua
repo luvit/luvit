@@ -107,7 +107,7 @@ end
 -- allows duplicate headers.  Returns the index it was inserted at
 function Response.prototype:add_header(name, value)
   if self.headers_sent then error("Headers already sent") end
-  self.headers[#self.headers + 1] = name .. ": " .. value
+  self.headers[#self.headers + 1] = { name, value }
   return #self.headers
 end
 
@@ -153,8 +153,10 @@ function Response.prototype:flush_head(callback)
   local has_body = self.has_body
 
   for field, value in pairs(self.headers) do
+    -- handle headers added with `add_header`
     if type(field) == "number" then
-      field, value = value:match("^ *([^ :]+): *([^ ]+) *$")
+      field = value[1]
+      value = value[2]
     end
     local lower = field:lower()
     if lower == "server" then
