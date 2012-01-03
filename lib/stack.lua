@@ -75,6 +75,7 @@ function Stack.mount(mountpoint, ...)
     if not req.real_url then req.real_url = url end
 
     req.url = url:sub(#mountpoint + 1)
+    -- We only want to set the parsed uri if there was already one there
     if req.uri then req.uri = Url.parse(req.url) end
 
     stack(req, res, function (err)
