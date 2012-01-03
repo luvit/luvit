@@ -6,6 +6,7 @@ if command == "--libs" then
     "-shared",
     "-lm"
   }
+  -- -pagezero_size 10000 -image_base 100000000 (for OSX 64bit?)
   print(Table.concat(flags, " "))
 elseif command == "--cflags" then
   local Path = require('path')
@@ -26,4 +27,5 @@ elseif command == "--version" or command == "-v" then
   print(process.version)
 else
   print "Usage: luvit-config [--version] [--cflags] [--libs]"
+  -- Also note about rebase for OSX 64bit? <http://luajit.org/install.html#embed>
 end

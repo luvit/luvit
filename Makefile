@@ -7,18 +7,17 @@ PREFIX?=/usr/local
 BINDIR?=${PREFIX}/bin
 INCDIR?=${PREFIX}/include
 INCLUDEDIR?=${DESTDIR}${INCDIR}/luvit
-ifeq ($(shell uname -sm | sed -e s,x86_64,i386,),Darwin i386)
-# force x86-32 on OSX-x86
-export CC=gcc -arch i386 
-LDFLAGS=-framework CoreServices
-# strip is broken in OSX. do not strip it
-INSTALL_PROGRAM=install -v
+OS_NAME=$(shell uname -s)
+MH_NAME=$(shell uname -m)
+ifeq (${OS_NAME},Darwin)
+ifeq (${MH_NAME},x86_64)
+LDFLAGS=-framework CoreServices -pagezero_size 10000 -image_base 100000000
 else
-# linux
-INSTALL_PROGRAM=install -v -s
+LDFLAGS=-framework CoreServices
+endif
+else ifeq (${OS_NAME},Linux)
 LDFLAGS=-Wl,-E -lrt
 endif
-
 # LUAJIT CONFIGURATION #
 XCFLAGS=-g
 #XCFLAGS+=-DLUAJIT_DISABLE_JIT
@@ -123,7 +122,7 @@ clean:
 
 install: ${BUILDDIR}/luvit
 	mkdir -p ${BINDIR}
-	${INSTALL_PROGRAM} ${BUILDDIR}/luvit ${DESTDIR}${BINDIR}/luvit
+	install ${BUILDDIR}/luvit ${DESTDIR}${BINDIR}/luvit
 	cp bin/luvit-config.lua ${DESTDIR}${BINDIR}/luvit-config
 	chmod +x ${DESTDIR}${BINDIR}/luvit-config
 	mkdir -p ${INCLUDEDIR}/luajit
