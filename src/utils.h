@@ -16,6 +16,7 @@
 void luv_acall(lua_State *L, int nargs, int nresults, const char* source);
 
 void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path);
+void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, const char* source, const char* path);
 
 // An alternative to luaL_checkudata that takes inheritance into account for polymorphism
 // Make sure to not call with long type strings or strcat will overflow

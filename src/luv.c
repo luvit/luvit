@@ -6,6 +6,7 @@
 #include "uv-private/ev.h"
 
 #include "luv_fs.h"
+#include "luv_dns.h"
 #include "luv_handle.h"
 #include "luv_udp.h"
 #include "luv_fs_watcher.h"
@@ -80,6 +81,9 @@ static const luaL_reg luv_f[] = {
   {"tty_set_mode", luv_tty_set_mode},
   {"tty_reset_mode", luv_tty_reset_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
+
+  // DNS functions
+  {"dns_queryA", luv_dns_queryA},
 
   // FS functions
   {"fs_open", luv_fs_open},
@@ -202,8 +206,6 @@ static const luaL_reg luv_tty_m[] = {
 
 LUALIB_API int luaopen_uv (lua_State* L) {
   int before = lua_gettop(L);
-
-
 
   // metatable for handle userdata types
   // It is it's own __index table to save space

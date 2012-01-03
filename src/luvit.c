@@ -47,7 +47,12 @@ static int luvit_getcwd(lua_State* L) {
 
 int main(int argc, char *argv[])
 {
-  int index;
+  int index, rc;
+
+  rc = ares_library_init(ARES_LIB_INIT_ALL);
+  assert(rc == ARES_SUCCESS);
+  luv_dns_open();
+
   lua_State *L = luaL_newstate();
   if (L == NULL) {
     fprintf(stderr, "luaL_newstate has failed\n");

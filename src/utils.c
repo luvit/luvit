@@ -39,10 +39,7 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 }
 
 // Pushes an error object onto the stack
-void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path) {
-
-  const char* code = uv_err_name(err);
-  const char* msg = uv_strerror(err);
+void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, const char* source, const char* path) {
 
   lua_newtable(L);
   lua_getglobal(L, "error_meta");
@@ -63,6 +60,14 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
   lua_pushstring(L, source);
   lua_setfield(L, -2, "source");
 
+}
+
+// Pushes an error object onto the stack
+void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path) {
+
+  const char* code = uv_err_name(err);
+  const char* msg = uv_strerror(err);
+  luv_push_async_error_raw(L, code, msg, source, path);
 }
 
 // An alternative to luaL_checkudata that takes inheritance into account for polymorphism
