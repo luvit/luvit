@@ -395,7 +395,6 @@ static void getHostByAddr_callback(void *arg, int status,int timeouts,
                                    struct hostent *host)
 {
   luv_dns_ref_t *ref = arg;
-  char ip[INET6_ADDRSTRLEN];
   int i;
 
   luv_dns_get_callback(ref);
@@ -403,8 +402,7 @@ static void getHostByAddr_callback(void *arg, int status,int timeouts,
   lua_pushnil(ref->L);
   lua_newtable(ref->L);
   for (i=0; host->h_aliases[i]; ++i) {
-    uv_inet_ntop(host->h_addrtype, host->h_aliases[i], ip, sizeof(ip));
-    lua_pushstring(ref->L, ip);
+    lua_pushstring(ref->L, host->h_aliases[i]);
     lua_rawseti(ref->L, -2, i+1);
   }
 
