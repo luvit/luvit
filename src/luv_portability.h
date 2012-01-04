@@ -1,6 +1,10 @@
 #ifndef LUV_PORTABILITY
 #define LUV_PORTABILITY
 
+#if _MSC_VER
+#define snprintf _snprintf
+#endif
+
 #if defined(__OpenBSD__) || defined(__MINGW32__) || defined(_MSC_VER)
 # include <nameser.h>
 #else

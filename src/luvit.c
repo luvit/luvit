@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "luv.h"
 #include "luv_dns.h"
+#include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
 #include "lenv.h"
