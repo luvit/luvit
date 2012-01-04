@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "luv_portability.h"
 #include "luv_udp.h"
 
 void luv_on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {

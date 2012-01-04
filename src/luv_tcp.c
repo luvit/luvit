@@ -1,21 +1,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "luv_portability.h"
 #include "luv_tcp.h"
-
-// Temporary hack: libuv should provide uv_inet_pton and uv_inet_ntop.
-// Clean this up in tcp_wrap.cc too.
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#include <inet_net_pton.h>
-#include <inet_ntop.h>
-# define uv_inet_pton ares_inet_pton
-# define uv_inet_ntop ares_inet_ntop
-#else // __POSIX__
-# include <arpa/inet.h>
-# define uv_inet_pton inet_pton
-# define uv_inet_ntop inet_ntop
-#endif
-
 
 int luv_new_tcp (lua_State* L) {
   int before = lua_gettop(L);
