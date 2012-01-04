@@ -20,6 +20,7 @@ int luv_dns_queryCNAME(lua_State* L);
 int luv_dns_queryMX(lua_State* L);
 int luv_dns_queryNS(lua_State* L);
 int luv_dns_queryTXT(lua_State* L);
+int luv_dns_querySRV(lua_State* L);
 
 void luv_dns_open(void);
 
