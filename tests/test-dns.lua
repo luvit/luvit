@@ -36,7 +36,8 @@ dns.reverse('2001:4860:4860::8888', function(err, addresses)
 end)
 
 dns.reverse('bogus ip', function(err, addresses)
-  assert(false) -- never called
+  assert(type(err) ~= 'nil')
+  assert(type(addresses) == 'nil')
 end)
 
 dns.resolveMx('gmail.com', function(err, addresses)

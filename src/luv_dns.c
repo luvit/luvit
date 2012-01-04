@@ -446,18 +446,21 @@ int luv_dns_getHostByAddr(lua_State* L)
 {
   char address_buffer[sizeof(struct in6_addr)];
   int length, family;
-  const char* name = luaL_checkstring(L, 1);
+  const char* ip = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
 
-  if (uv_inet_pton(AF_INET, name, &address_buffer) == 1) {
+  if (uv_inet_pton(AF_INET, ip, &address_buffer) == 1) {
     length = sizeof(struct in_addr);
     family = AF_INET;
-  } else if (uv_inet_pton(AF_INET6, name, &address_buffer) == 1) {
+  } else if (uv_inet_pton(AF_INET6, ip, &address_buffer) == 1) {
     length = sizeof(struct in6_addr);
     family = AF_INET6;
   } else {
-    luv_push_ares_async_error(ref->L, ARES_ENOTIMP, "getHostByAddr");
-    return 1;
+    luv_dns_get_callback(ref);
+    luv_push_ares_async_error(ref->L, ARES_EBADSTR, "getHostByAddr");
+    luv_acall(ref->L, 1, 0, "dns_after");
+    luv_dns_ref_cleanup(ref);
+    return 0;
   }
 
   ares_gethostbyaddr(channel, address_buffer, length, family,
