@@ -215,7 +215,6 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
 {
   luv_dns_ref_t *ref = arg;
   struct hostent* host;
-  char ip[INET6_ADDRSTRLEN];
   int rc;
 
   luv_dns_get_callback(ref);
@@ -231,8 +230,7 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
 
   lua_pushnil(ref->L);
   lua_newtable(ref->L);
-  uv_inet_ntop(host->h_addrtype, host->h_name, ip, sizeof(ip));
-  lua_pushstring(ref->L, ip);
+  lua_pushstring(ref->L, host->h_name);
   lua_rawseti(ref->L, -2, 1);
   luv_acall(ref->L, 2, 0, "dns_after");
 
