@@ -1,4 +1,5 @@
 local UV = require('uv')
+local Constants = require('constants')
 local Error = require('error')
 local string = require('string')
 
@@ -54,19 +55,19 @@ end
 
 function DNS.lookup(domain, family, callback)
   local response_family = nil
-  
+
   if type(family) == 'function' then
     callback = family
     family = nil
   end
 
   if family == nil then
-    family = UV.AF_UNSPEC
+    family = Constants.AF_UNSPEC
   elseif family == 4 then
-    family = UV.AF_INET
+    family = Constants.AF_INET
     response_family = 4
   elseif family == 6 then
-    family = UV.AF_INET6
+    family = Constants.AF_INET6
     response_family = 6
   else
     callback(Error.new('Unknown family type ' .. family))
