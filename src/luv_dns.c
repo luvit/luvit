@@ -138,7 +138,7 @@ int luv_dns_queryA(lua_State* L)
 }
 
 static void queryAAAA_callback(void *arg, int status, int timeouts,
-                            unsigned char* buf, int len)
+                               unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
   struct hostent* host;
@@ -171,6 +171,41 @@ int luv_dns_queryAAAA(lua_State* L)
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
   ares_query(channel, name, ns_c_in, ns_t_aaaa, queryAAAA_callback, req);
+  return 0;
+}
+
+static void queryCNAME_callback(void *arg, int status, int timeouts,
+                               unsigned char* buf, int len)
+{
+  luv_dns_ref_t *ref = arg;
+  struct hostent* host;
+  char ip[INET6_ADDRSTRLEN];
+  int rc;
+
+  luv_dns_get_callback(ref);
+
+  rc = ares_parse_a_reply(buf, len, &host, NULL, NULL);
+  if (rc != ARES_SUCCESS) {
+    luv_push_ares_async_error(ref->L, rc, "queryAAAA");
+    luv_acall(ref->L, 1, 0, "dns_after");
+    return;
+  }
+
+  lua_pushnil(ref->L);
+  lua_newtable(ref->L);
+  uv_inet_ntop(host->h_addrtype, host->h_name, ip, sizeof(ip));
+  lua_pushstring(ref->L, ip);
+  lua_rawseti(ref->L, -2, 1);
+
+  luv_acall(ref->L, 2, 0, "dns_after");
+  luv_dns_ref_cleanup(ref);
+}
+
+int luv_dns_queryCNAME(lua_State* L)
+{
+  const char* name = luaL_checkstring(L, 1);
+  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_cname, queryCNAME_callback, req);
   return 0;
 }
 

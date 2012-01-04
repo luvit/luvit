@@ -11,6 +11,7 @@
 #include "uv.h"
 #include "utils.h"
 #include "luv.h"
+#include "luv_dns.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
 #include "lenv.h"
