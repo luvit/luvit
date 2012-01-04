@@ -229,9 +229,7 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
   }
 
   lua_pushnil(ref->L);
-  lua_newtable(ref->L);
   lua_pushstring(ref->L, host->h_name);
-  lua_rawseti(ref->L, -2, 1);
   luv_acall(ref->L, 2, 0, "dns_after");
 
   ares_free_hostent(host);
