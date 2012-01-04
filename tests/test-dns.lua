@@ -15,6 +15,5 @@ dns.resolve6('ipv6.google.com', function(err, addresses)
 end)
 
 dns.reverse('173.203.44.122', function(err, domains)
-  assert(type(err) == 'nil')
-  p(domains)
+  p(err)
 end)
