@@ -36,13 +36,15 @@ static int luvit_print_stderr(lua_State* L) {
 static char getbuf[PATH_MAX + 1];
 
 static int luvit_getcwd(lua_State* L) {
-  char *r = getcwd(getbuf, ARRAY_SIZE(getbuf) - 1);
-  if (r == NULL) {
+  uv_err_t rc;
+
+  rc = uv_cwd(getbuf, ARRAY_SIZE(getbuf) - 1);
+  if (rc.code != UV_OK) {
     return luaL_error(L, "luvit_getcwd: %s\n", strerror(errno));
   }
 
   getbuf[ARRAY_SIZE(getbuf) - 1] = '\0';
-  lua_pushstring(L, r);
+  lua_pushstring(L, getbuf);
   return 1;
 }
 
