@@ -271,7 +271,7 @@ static void queryNS_callback(void *arg, int status, int timeouts,
 
   rc = ares_parse_ns_reply(buf, len, &host);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "queryMX");
+    luv_push_ares_async_error(ref->L, rc, "queryNS");
     luv_acall(ref->L, 1, 0, "dns_after");
     return;
   }
@@ -294,6 +294,43 @@ int luv_dns_queryNS(lua_State* L)
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
   ares_query(channel, name, ns_c_in, ns_t_ns, queryNS_callback, req);
+  return 0;
+}
+
+static void queryTXT_callback(void *arg, int status, int timeouts,
+                              unsigned char* buf, int len)
+{
+  luv_dns_ref_t *ref = arg;
+  struct ares_txt_reply *start, *curr;
+  int rc, i;
+
+  luv_dns_get_callback(ref);
+
+  rc = ares_parse_txt_reply(buf, len, &start);
+  if (rc != ARES_SUCCESS) {
+    luv_push_ares_async_error(ref->L, rc, "queryTXT");
+    luv_acall(ref->L, 1, 0, "dns_after");
+    return;
+  }
+
+  lua_pushnil(ref->L);
+  lua_newtable(ref->L);
+  for (i=0, curr=start; curr; ++i, curr=curr->next) {
+    lua_pushstring(ref->L, (const char*)curr->txt);
+    lua_rawseti(ref->L, -2, i+1);
+  }
+
+  luv_acall(ref->L, 2, 0, "dns_after");
+  luv_dns_ref_cleanup(ref);
+  ares_free_data(start);
+}
+
+
+int luv_dns_queryTXT(lua_State* L)
+{
+  const char* name = luaL_checkstring(L, 1);
+  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_txt, queryTXT_callback, req);
   return 0;
 }
 
