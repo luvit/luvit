@@ -17,6 +17,7 @@ typedef struct {
 int luv_dns_queryA(lua_State* L);
 int luv_dns_queryAAAA(lua_State* L);
 int luv_dns_queryCNAME(lua_State* L);
+int luv_dns_queryMX(lua_State* L);
 
 void luv_dns_open(void);
 
