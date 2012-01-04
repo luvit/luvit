@@ -68,9 +68,10 @@ dns.resolveSrv('_jabber._tcp.google.com', function(err, addresses)
   end
 end)
 
-dns.resolveCname('www.google.com', function(err, address)
+dns.resolveCname('www.google.com', function(err, names)
   assert(type(err) == 'nil')
-  assert(type(address) == 'string')
+  assert(type(names) == 'table')
+  assert(#names == 1)
 end)
 
 dns.resolveTxt('google.com', function(err, records)
