@@ -10,7 +10,7 @@
 # include <arpa/nameser.h>
 #endif
 
-// Temporary hack: libuv should provide uv_inet_pton and uv_inet_ntop.
+/* Temporary hack: libuv should provide uv_inet_pton and uv_inet_ntop. */
 #if defined(__MINGW32__) || defined(_MSC_VER)
   extern "C" {
 #   include <inet_net_pton.h>
@@ -19,7 +19,7 @@
 # define uv_inet_pton ares_inet_pton
 # define uv_inet_ntop ares_inet_ntop
 
-#else // __POSIX__
+#else /* __POSIX__ */
 # include <arpa/inet.h>
 # define uv_inet_pton inet_pton
 # define uv_inet_ntop inet_ntop
@@ -34,7 +34,7 @@ typedef struct {
   uv_getaddrinfo_t handle;
 } luv_dns_ref_t;
 
-// Utility for storing the callback in the dns_req token
+/* Utility for storing the callback in the dns_req token */
 static luv_dns_ref_t* luv_dns_store_callback(lua_State* L, int index) {
   int before;
   luv_dns_ref_t* ref;
@@ -50,6 +50,15 @@ static luv_dns_ref_t* luv_dns_store_callback(lua_State* L, int index) {
   return ref;
 }
 
+#define ARES_CHECK_STATUS(status, func) \
+  do { \
+    if (status != ARES_SUCCESS) { \
+      luv_push_ares_async_error(ref->L, status, func); \
+      luv_acall(ref->L, 1, 0, "dns_after"); \
+      goto cleanup; \
+    } \
+ } while(0);
+
 static void luv_dns_ref_cleanup(luv_dns_ref_t *ref)
 {
   assert(ref != NULL);
@@ -63,44 +72,67 @@ static void luv_dns_get_callback(luv_dns_ref_t *ref)
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
 }
 
-/** From NodeJS */
-static const char* ares_errno_string(int errorno)
+static void luv_addresses_to_array(lua_State *L, struct hostent *host)
 {
-  switch (errorno) {
-#define ERRNO_CASE(e) case ARES_##e: return #e;
-    ERRNO_CASE(SUCCESS)
-      ERRNO_CASE(ENODATA)
-      ERRNO_CASE(EFORMERR)
-      ERRNO_CASE(ESERVFAIL)
-      ERRNO_CASE(ENOTFOUND)
-      ERRNO_CASE(ENOTIMP)
-      ERRNO_CASE(EREFUSED)
-      ERRNO_CASE(EBADQUERY)
-      ERRNO_CASE(EBADNAME)
-      ERRNO_CASE(EBADFAMILY)
-      ERRNO_CASE(EBADRESP)
-      ERRNO_CASE(ECONNREFUSED)
-      ERRNO_CASE(ETIMEOUT)
-      ERRNO_CASE(EOF)
-      ERRNO_CASE(EFILE)
-      ERRNO_CASE(ENOMEM)
-      ERRNO_CASE(EDESTRUCTION)
-      ERRNO_CASE(EBADSTR)
-      ERRNO_CASE(EBADFLAGS)
-      ERRNO_CASE(ENONAME)
-      ERRNO_CASE(EBADHINTS)
-      ERRNO_CASE(ENOTINITIALIZED)
-      ERRNO_CASE(ELOADIPHLPAPI)
-      ERRNO_CASE(EADDRGETNETWORKPARAMS)
-      ERRNO_CASE(ECANCELLED)
-#undef ERRNO_CASE
-  default:
-      assert(0 && "Unhandled c-ares error");
-      return "(UNKNOWN)";
+  char ip[INET6_ADDRSTRLEN];
+  int i;
+
+  lua_newtable(L);
+  for (i=0; host->h_addr_list[i]; ++i) {
+    uv_inet_ntop(host->h_addrtype, host->h_addr_list[i], ip, sizeof(ip));
+    lua_pushstring(L, ip);
+    lua_rawseti(L, -2, i+1);
   }
 }
 
-// Pushes an error object onto the stack
+static void luv_aliases_to_array(lua_State *L, struct hostent *host)
+{
+  int i;
+  lua_newtable(L);
+  for (i=0; host->h_aliases[i]; ++i) {
+    lua_pushstring(L, host->h_aliases[i]);
+    lua_rawseti(L, -2, i+1);
+  }
+}
+
+/* From NodeJS */
+static const char* ares_errno_string(int errorno)
+{
+  switch (errorno) {
+    #define ERRNO_CASE(e) case ARES_##e: return #e;
+    ERRNO_CASE(SUCCESS)
+    ERRNO_CASE(ENODATA)
+    ERRNO_CASE(EFORMERR)
+    ERRNO_CASE(ESERVFAIL)
+    ERRNO_CASE(ENOTFOUND)
+    ERRNO_CASE(ENOTIMP)
+    ERRNO_CASE(EREFUSED)
+    ERRNO_CASE(EBADQUERY)
+    ERRNO_CASE(EBADNAME)
+    ERRNO_CASE(EBADFAMILY)
+    ERRNO_CASE(EBADRESP)
+    ERRNO_CASE(ECONNREFUSED)
+    ERRNO_CASE(ETIMEOUT)
+    ERRNO_CASE(EOF)
+    ERRNO_CASE(EFILE)
+    ERRNO_CASE(ENOMEM)
+    ERRNO_CASE(EDESTRUCTION)
+    ERRNO_CASE(EBADSTR)
+    ERRNO_CASE(EBADFLAGS)
+    ERRNO_CASE(ENONAME)
+    ERRNO_CASE(EBADHINTS)
+    ERRNO_CASE(ENOTINITIALIZED)
+    ERRNO_CASE(ELOADIPHLPAPI)
+    ERRNO_CASE(EADDRGETNETWORKPARAMS)
+    ERRNO_CASE(ECANCELLED)
+    #undef ERRNO_CASE
+  default:
+    assert(0 && "Unhandled c-ares error");
+    return "(UNKNOWN)";
+  }
+}
+
+/* Pushes an error object onto the stack */
 static void luv_push_ares_async_error(lua_State* L, int rc, const char* source)
 {
   char code_str[32];
@@ -113,32 +145,21 @@ static void queryA_callback(void *arg, int status, int timeouts,
 {
   luv_dns_ref_t *ref = arg;
   struct hostent* host;
-  char ip[INET6_ADDRSTRLEN];
-  int rc, i;
+  int rc;
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryA");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "queryA");
 
   rc = ares_parse_a_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryA");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L);
-  lua_newtable(ref->L);
-  for (i = 0; host->h_addr_list[i]; ++i) {
-    uv_inet_ntop(host->h_addrtype, host->h_addr_list[i], ip, sizeof(ip));
-    lua_pushstring(ref->L, ip);
-    lua_rawseti(ref->L, -2, i+1);
-  }
-
+  luv_addresses_to_array(ref->L, host);
   luv_acall(ref->L, 2, 0, "dns_after");
   ares_free_hostent(host);
 
@@ -159,32 +180,21 @@ static void queryAAAA_callback(void *arg, int status, int timeouts,
 {
   luv_dns_ref_t *ref = arg;
   struct hostent* host;
-  char ip[INET6_ADDRSTRLEN];
-  int rc, i;
+  int rc;
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryAAAA");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "queryAAAA");
 
   rc = ares_parse_aaaa_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryAAAA");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L);
-  lua_newtable(ref->L);
-  for (i = 0; host->h_addr_list[i]; ++i) {
-    uv_inet_ntop(host->h_addrtype, host->h_addr_list[i], ip, sizeof(ip));
-    lua_pushstring(ref->L, ip);
-    lua_rawseti(ref->L, -2, i+1);
-  }
-
+  luv_addresses_to_array(ref->L, host);
   luv_acall(ref->L, 2, 0, "dns_after");
   ares_free_hostent(host);
 
@@ -210,17 +220,13 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryCNAME");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "queryCNAME");
 
   rc = ares_parse_a_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryCNAME");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L);
@@ -228,8 +234,8 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
   uv_inet_ntop(host->h_addrtype, host->h_name, ip, sizeof(ip));
   lua_pushstring(ref->L, ip);
   lua_rawseti(ref->L, -2, 1);
-
   luv_acall(ref->L, 2, 0, "dns_after");
+
   ares_free_hostent(host);
 
 cleanup:
@@ -254,17 +260,13 @@ static void queryMX_callback(void *arg, int status, int timeouts,
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryMX");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "queryMX");
 
   rc = ares_parse_mx_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryMX");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L); /* err */
@@ -303,32 +305,21 @@ static void queryNS_callback(void *arg, int status, int timeouts,
 {
   luv_dns_ref_t *ref = arg;
   struct hostent* host;
-  char ip[INET6_ADDRSTRLEN];
-  int rc, i;
+  int rc;
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryNS");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "queryNS");
 
   rc = ares_parse_ns_reply(buf, len, &host);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryNS");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L);
-  lua_newtable(ref->L);
-  for (i = 0; host->h_aliases[i]; ++i) {
-    uv_inet_ntop(host->h_addrtype, host->h_aliases[i], ip, sizeof(ip));
-    lua_pushstring(ref->L, ip);
-    lua_rawseti(ref->L, -2, i+1);
-  }
-
+  luv_aliases_to_array(ref->L, host);
   luv_acall(ref->L, 2, 0, "dns_after");
   ares_free_hostent(host);
 
@@ -353,17 +344,13 @@ static void queryTXT_callback(void *arg, int status, int timeouts,
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryTXT");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "queryTXT");
 
   rc = ares_parse_txt_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryTXT");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L);
@@ -397,17 +384,13 @@ static void querySRV_callback(void *arg, int status, int timeouts,
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "querySRV");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "querySRV");
 
   rc = ares_parse_srv_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "querySRV");
     luv_acall(ref->L, 1, 0, "dns_after");
-    return;
+    goto cleanup;
   }
 
   lua_pushnil(ref->L);
@@ -450,23 +433,13 @@ static void getHostByAddr_callback(void *arg, int status,int timeouts,
                                    struct hostent *host)
 {
   luv_dns_ref_t *ref = arg;
-  int i;
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "getHostByAddr");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "getHostByAddr");
 
   lua_pushnil(ref->L);
-  lua_newtable(ref->L);
-  for (i=0; host->h_aliases[i]; ++i) {
-    lua_pushstring(ref->L, host->h_aliases[i]);
-    lua_rawseti(ref->L, -2, i+1);
-  }
-
+  luv_aliases_to_array(ref->L, host);
   luv_acall(ref->L, 2, 0, "dns_after");
 
 cleanup:
@@ -507,11 +480,7 @@ static void luv_dns_getaddrinfo_callback(uv_getaddrinfo_t* res, int status,
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "getaddrinfo");
-    luv_acall(ref->L, 1, 0, "dns_after");
-    goto cleanup;
-  }
+  ARES_CHECK_STATUS(status, "getaddrinfo");
 
   lua_pushnil(ref->L);
   lua_newtable(ref->L);
@@ -534,10 +503,10 @@ cleanup:
 
 int luv_dns_getAddrInfo(lua_State* L)
 {
+  struct addrinfo hints;
   const char *hostname = luaL_checkstring(L, 1);
   int family = luaL_checknumber(L, 2);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 3);
-  struct addrinfo hints;
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = family;
