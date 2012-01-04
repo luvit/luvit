@@ -28,11 +28,18 @@
 static ares_channel channel;
 static struct ares_options options;
 
+typedef struct {
+  lua_State* L;
+  int r;
+  uv_getaddrinfo_t handle;
+} luv_dns_ref_t;
+
 // Utility for storing the callback in the dns_req token
-luv_dns_ref_t* luv_dns_store_callback(lua_State* L, int index) {
-  int before = lua_gettop(L);
+static luv_dns_ref_t* luv_dns_store_callback(lua_State* L, int index) {
+  int before;
   luv_dns_ref_t* ref;
 
+  before = lua_gettop(L);
   ref = calloc(1, sizeof(luv_dns_ref_t));
   ref->L = L;
   if (lua_isfunction(L, index)) {
@@ -57,7 +64,8 @@ static void luv_dns_get_callback(luv_dns_ref_t *ref)
 }
 
 /** From NodeJS */
-static const char* ares_errno_string(int errorno) {
+static const char* ares_errno_string(int errorno)
+{
   switch (errorno) {
 #define ERRNO_CASE(e) case ARES_##e: return #e;
     ERRNO_CASE(SUCCESS)
@@ -133,8 +141,8 @@ static void queryA_callback(void *arg, int status, int timeouts,
 int luv_dns_queryA(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_a, queryA_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_a, queryA_callback, ref);
   return 0;
 }
 
@@ -171,8 +179,8 @@ static void queryAAAA_callback(void *arg, int status, int timeouts,
 int luv_dns_queryAAAA(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_aaaa, queryAAAA_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_aaaa, queryAAAA_callback, ref);
   return 0;
 }
 
@@ -207,8 +215,8 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
 int luv_dns_queryCNAME(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_cname, queryCNAME_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_cname, queryCNAME_callback, ref);
   return 0;
 }
 
@@ -254,8 +262,8 @@ static void queryMX_callback(void *arg, int status, int timeouts,
 int luv_dns_queryMX(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_mx, queryMX_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_mx, queryMX_callback, ref);
   return 0;
 }
 
@@ -292,8 +300,8 @@ static void queryNS_callback(void *arg, int status, int timeouts,
 int luv_dns_queryNS(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_ns, queryNS_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_ns, queryNS_callback, ref);
   return 0;
 }
 
@@ -328,8 +336,8 @@ static void queryTXT_callback(void *arg, int status, int timeouts,
 int luv_dns_queryTXT(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_txt, queryTXT_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_txt, queryTXT_callback, ref);
   return 0;
 }
 
@@ -378,8 +386,8 @@ static void querySRV_callback(void *arg, int status, int timeouts,
 int luv_dns_querySRV(lua_State* L)
 {
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_srv, querySRV_callback, req);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
+  ares_query(channel, name, ns_c_in, ns_t_srv, querySRV_callback, ref);
   return 0;
 }
 
@@ -409,7 +417,7 @@ int luv_dns_getHostByAddr(lua_State* L)
   char address_buffer[sizeof(struct in6_addr)];
   int length, family;
   const char* name = luaL_checkstring(L, 1);
-  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
 
   if (uv_inet_pton(AF_INET, name, &address_buffer) == 1) {
     length = sizeof(struct in_addr);
@@ -418,12 +426,62 @@ int luv_dns_getHostByAddr(lua_State* L)
     length = sizeof(struct in6_addr);
     family = AF_INET6;
   } else {
-    luv_push_ares_async_error(req->L, ARES_ENOTIMP, "getHostByAddr");
+    luv_push_ares_async_error(ref->L, ARES_ENOTIMP, "getHostByAddr");
     return 1;
   }
 
   ares_gethostbyaddr(channel, address_buffer, length, family,
-                     getHostByAddr_callback, req);
+                     getHostByAddr_callback, ref);
+  return 0;
+}
+
+static void luv_dns_getaddrinfo_callback(uv_getaddrinfo_t* res, int status,
+                                         struct addrinfo* start)
+{
+  luv_dns_ref_t* ref = res->data;
+  struct addrinfo *curr;
+  char ip[INET6_ADDRSTRLEN];
+  const char *addr;
+  int n = 1;
+
+  luv_dns_get_callback(ref);
+
+  if (status) {
+    /* TODO */
+  }
+  else {
+    lua_pushnil(ref->L);
+    lua_newtable(ref->L);
+
+    for (curr=start; curr; curr=curr->ai_next) {
+      if (curr->ai_family == AF_INET || curr->ai_family == AF_INET6) {
+        addr = (char*) &((struct sockaddr_in*) curr->ai_addr)->sin_addr;
+        uv_inet_ntop(curr->ai_family, addr, ip, INET6_ADDRSTRLEN);
+        lua_pushstring(ref->L, ip);
+        lua_rawseti(ref->L, -2, n++);
+      }
+    }
+    luv_acall(ref->L, 2, 0, "dns_after");
+  }
+
+  uv_freeaddrinfo(start);
+  luv_dns_ref_cleanup(ref);
+}
+
+int luv_dns_getAddrInfo(lua_State* L)
+{
+  const char *hostname = luaL_checkstring(L, 1);
+  int family = luaL_checknumber(L, 2);
+  luv_dns_ref_t* ref = luv_dns_store_callback(L, 3);
+  struct addrinfo hints;
+
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = family;
+  hints.ai_socktype = SOCK_STREAM;
+
+  ref->handle.data = ref;
+  uv_getaddrinfo(uv_default_loop(), &ref->handle, luv_dns_getaddrinfo_callback,
+                 hostname, NULL, &hints);
   return 0;
 }
 
