@@ -90,6 +90,7 @@ static const luaL_reg luv_f[] = {
   {"dns_queryNS", luv_dns_queryNS},
   {"dns_queryTXT", luv_dns_queryTXT},
   {"dns_querySRV", luv_dns_querySRV},
+  {"dns_getHostByAddr", luv_dns_getHostByAddr},
 
   // FS functions
   {"fs_open", luv_fs_open},

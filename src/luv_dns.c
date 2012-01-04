@@ -383,6 +383,50 @@ int luv_dns_querySRV(lua_State* L)
   return 0;
 }
 
+static void getHostByAddr_callback(void *arg, int status,int timeouts,
+                                   struct hostent *host)
+{
+  luv_dns_ref_t *ref = arg;
+  char ip[INET6_ADDRSTRLEN];
+  int i;
+
+  luv_dns_get_callback(ref);
+
+  lua_pushnil(ref->L);
+  lua_newtable(ref->L);
+  for (i=0; host->h_aliases[i]; ++i) {
+    uv_inet_ntop(host->h_addrtype, host->h_aliases[i], ip, sizeof(ip));
+    lua_pushstring(ref->L, ip);
+    lua_rawseti(ref->L, -2, i+1);
+  }
+
+  luv_acall(ref->L, 2, 0, "dns_after");
+  luv_dns_ref_cleanup(ref);
+}
+
+int luv_dns_getHostByAddr(lua_State* L)
+{
+  char address_buffer[sizeof(struct in6_addr)];
+  int length, family;
+  const char* name = luaL_checkstring(L, 1);
+  luv_dns_ref_t* req = luv_dns_store_callback(L, 2);
+
+  if (uv_inet_pton(AF_INET, name, &address_buffer) == 1) {
+    length = sizeof(struct in_addr);
+    family = AF_INET;
+  } else if (uv_inet_pton(AF_INET6, name, &address_buffer) == 1) {
+    length = sizeof(struct in6_addr);
+    family = AF_INET6;
+  } else {
+    luv_push_ares_async_error(req->L, ARES_ENOTIMP, "getHostByAddr");
+    return 1;
+  }
+
+  ares_gethostbyaddr(channel, address_buffer, length, family,
+                     getHostByAddr_callback, req);
+  return 0;
+}
+
 void luv_dns_open(void)
 {
   memset(&options, 0, sizeof(options));
