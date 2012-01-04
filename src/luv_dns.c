@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "luv_dns.h"
+#include "utils.h"
 
 #if defined(__OpenBSD__) || defined(__MINGW32__) || defined(_MSC_VER)
 # include <nameser.h>

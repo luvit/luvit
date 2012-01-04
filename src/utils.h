@@ -13,6 +13,10 @@
 #define TRUE !FALSE
 #endif
 
+#if _MSC_VER
+#define snprintf _snprintf
+#endif
+
 void luv_acall(lua_State *L, int nargs, int nresults, const char* source);
 
 void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path);
