@@ -30,6 +30,7 @@
         'lib/emitter.lua',
         'lib/fiber.lua',
         'lib/fs.lua',
+        'lib/dns.lua',
         'lib/http.lua',
         'lib/error.lua',
         'lib/luvit.lua',
@@ -50,27 +51,21 @@
         'lib/utils.lua',
       ],
 
-	  'msvs-settings': {
+    'msvs-settings': {
         'VCLinkerTool': {
           'SubSystem': 1, # /subsystem:console
         },
       },
-
       'conditions': [
-        ['OS == "linux"',
-          { 'libraries': ['-ldl'] },
-	],
+        ['OS == "linux"', { 'libraries': ['-ldl'] } ],
       ],
-	  
-	  'defines': [
-		'LUVIT_OS="<(OS)"',
-	  ],
-	  
+      'defines': [
+        'LUVIT_OS="<(OS)"',
+      ],
       'include_dirs': [
         'src',
         'deps/uv/src/ares'
       ],
-
       'rules': [
         {
           'rule_name': 'jit_lua',
