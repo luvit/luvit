@@ -129,11 +129,19 @@ local user_meta = {
 }
 
 local inherits = function(ctor, super)
-  if super.meta then
-    for k, v in pairs(super.meta) do
-      ctor[k] = v
-    end
-    setmetatable(ctor, super.meta)
+  local new = { prototype = {} }
+  if ctor.prototype then
+    new.prototype = ctor.prototype
+  end
+
+  setmetatable(ctor.prototype, super.meta)
+
+  ctor.meta = new.prototype
+  ctor.new_obj = function()
+    local obj = {}
+    local obj_meta = {__index = ctor.prototype}
+    setmetatable(obj, obj_meta)
+    return obj
   end
   return ctor
 end
