@@ -37,5 +37,19 @@ process:on('exit', function (code, signal)
   print_stderr(Utils.color("Bgreen") .. "PASS" .. Utils.color() .. "\n")
 
 end)
-    
 
+_G.equal = function(a, b)
+  return a == b
+end
+
+_G.deep_equal = function(expected, actual)
+  if type(expected) == 'table' and type(actual) == 'table' then
+    if #expected ~= #actual then return false end
+    for k, v in pairs(expected) do
+      if not deep_equal(v, actual[k]) then return false end
+    end
+    return true
+  else
+    return equal(expected, actual)
+  end
+end
