@@ -34,7 +34,6 @@ end
 function Socket.prototype:close()
   if self._tcp then
     self._tcp:close()
-    self._tcp = nil
   end
 end
 
