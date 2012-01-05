@@ -20,9 +20,23 @@ local _connect = function(self, ip, port, addressType)
   end
 end
 
+local setTimeout = function(self, msecs, callback)
+  callback = callback or function() end
+  self._connectTimer:start(msecs, 0, function(status)
+    self._connectTimer:close()
+    callback()
+  end)
+end
+
 local connect = function(self, port, host, callback)
-  self._tcp:on('connect', callback)
-  self._tcp:on('error', callback)
+  self._tcp:on('connect', function()
+    timer.clear_timer(self._connectTimer)
+    callback()
+  end)
+  self._tcp:on('error', function()
+    timer.clear_timer(self._connectTimer)
+    callback()
+  end)
   dns.lookup(host, function(err, ip, addressType)
     if err then
       callback(err)
@@ -45,8 +59,10 @@ Socket.new = function(options)
   local sock = {}
   utils.inherits(sock, stream)
   sock._tcp = tcp.new()
+  sock._connectTimer = timer.new()
   sock.connect = connect
   sock.close = close
+  sock.setTimeout = setTimeout
   return sock
 end
 
