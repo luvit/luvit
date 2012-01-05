@@ -20,7 +20,7 @@ local _connect = function(self, ip, port, addressType)
   end
 end
 
-local Socket = { prototype = {} }
+local Socket = { }
 utils.inherits(Socket, Stream)
 
 function Socket.prototype:setTimeout(msecs, callback)

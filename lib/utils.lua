@@ -129,11 +129,13 @@ local user_meta = {
 }
 
 local inherits = function(ctor, super)
-  local new = { prototype = {} }
-  if ctor.prototype then
-    new.prototype = ctor.prototype
+  local new = { }
+
+  if not ctor.prototype then
+    ctor.prototype = {}
   end
 
+  new.prototype = ctor.prototype
   setmetatable(ctor.prototype, super.meta)
 
   ctor.meta = new.prototype
