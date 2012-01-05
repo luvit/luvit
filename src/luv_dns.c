@@ -107,10 +107,6 @@ static void luv_push_ares_async_error(lua_State* L, int rc, const char* source)
   char code_str[32];
   snprintf(code_str, sizeof(code_str), "%i", rc);
   luv_push_async_error_raw(L, code_str, ares_errno_string(rc), source, NULL);
-}
-
-static void ares_return_async_error(lua_State *L, int status, const char *func) {
-  luv_push_ares_async_error(L, status, func);
   luv_acall(L, 1, 0, "dns_after");
 }
 
@@ -124,14 +120,13 @@ static void queryA_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "queryA");
+    luv_push_ares_async_error(ref->L, status, "queryA");
     goto cleanup;
   }
 
   rc = ares_parse_a_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryA");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -163,14 +158,13 @@ static void queryAAAA_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "queryAAAA");
+    luv_push_ares_async_error(ref->L, status, "queryAAAA");
     goto cleanup;
   }
 
   rc = ares_parse_aaaa_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryAAAA");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -202,14 +196,13 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "queryCNAME");
+    luv_push_ares_async_error(ref->L, status, "queryCNAME");
     goto cleanup;
   }
 
   rc = ares_parse_a_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryCNAME");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -245,14 +238,13 @@ static void queryMX_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "queryMX");
+    luv_push_ares_async_error(ref->L, status, "queryMX");
     goto cleanup;
   }
 
   rc = ares_parse_mx_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryMX");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -298,14 +290,13 @@ static void queryNS_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "queryNS");
+    luv_push_ares_async_error(ref->L, status, "queryNS");
     goto cleanup;
   }
 
   rc = ares_parse_ns_reply(buf, len, &host);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryNS");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -337,14 +328,13 @@ static void queryTXT_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "queryTXT");
+    luv_push_ares_async_error(ref->L, status, "queryTXT");
     goto cleanup;
   }
 
   rc = ares_parse_txt_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "queryTXT");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -381,14 +371,13 @@ static void querySRV_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "querySRV");
+    luv_push_ares_async_error(ref->L, status, "querySRV");
     goto cleanup;
   }
 
   rc = ares_parse_srv_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
     luv_push_ares_async_error(ref->L, rc, "querySRV");
-    luv_acall(ref->L, 1, 0, "dns_after");
     goto cleanup;
   }
 
@@ -437,7 +426,7 @@ static void getHostByAddr_callback(void *arg, int status,int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "gethostbyaddr");
+    luv_push_ares_async_error(ref->L, status, "gethostbyaddr");
     goto cleanup;
   }
 
@@ -466,7 +455,6 @@ int luv_dns_getHostByAddr(lua_State* L)
   } else {
     luv_dns_get_callback(ref);
     luv_push_ares_async_error(ref->L, ARES_EBADSTR, "getHostByAddr");
-    luv_acall(ref->L, 1, 0, "dns_after");
     luv_dns_ref_cleanup(ref);
     return 0;
   }
@@ -488,7 +476,7 @@ static void luv_dns_getaddrinfo_callback(uv_getaddrinfo_t* res, int status,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    ares_return_async_error(ref->L, status, "getaddrinfo");
+    luv_push_ares_async_error(ref->L, status, "getaddrinfo");
     goto cleanup;
   }
 
