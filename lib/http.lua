@@ -16,7 +16,15 @@ function HTTP.request(options, callback)
 
   local client = TCP.new()
 
-  client:connect(host, port)
+  -- connect
+  local status, result = pcall(client.connect, client, host, port)
+  -- pass connection errors to callback
+  if not status then
+    callback(result)
+    -- close failed socket immediately
+    client:close()
+    return
+  end
   client:on("complete", function ()
     local response = Response.new(client)
     local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
@@ -48,7 +56,7 @@ function HTTP.request(options, callback)
         response.version_minor = info.version_minor
         response.version_major = info.version_major
 
-        callback(response)
+        callback(nil, response)
 
       end,
       on_body = function (chunk)
