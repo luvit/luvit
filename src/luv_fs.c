@@ -9,6 +9,7 @@
 #endif
 
 #include "luv_fs.h"
+#include "utils.h"
 
 void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_newtable(L);
@@ -191,15 +192,15 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
     uv_err_t err;                                                             \
     int argc;                                                                 \
     if (lua_isfunction(L, cb_index)) {                                        \
-      if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, luv_after_fs)) {  \
-        err = uv_last_error(uv_default_loop());                               \
+      if (uv_fs_##func(luv_get_loop(L), req, __VA_ARGS__, luv_after_fs)) {  \
+        err = uv_last_error(luv_get_loop(L));                                 \
         luv_push_async_error(L, err, #func, path);                            \
         return lua_error(L);                                                  \
       }                                                                       \
       return 0;                                                               \
     }                                                                         \
-    if (uv_fs_##func(uv_default_loop(), req, __VA_ARGS__, NULL) < 0) {        \
-      err = uv_last_error(uv_default_loop());                                 \
+    if (uv_fs_##func(luv_get_loop(L), req, __VA_ARGS__, NULL) < 0) {        \
+      err = uv_last_error(luv_get_loop(L));                                 \
       luv_push_async_error(L, err, #func, path);                              \
       return lua_error(L);                                                    \
     }                                                                         \

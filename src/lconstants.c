@@ -8,6 +8,10 @@ LUALIB_API int luaopen_constants(lua_State *L) {
 
   lua_newtable (L);
 
+  LUVIT_DEFINE_CONSTANT(AF_UNSPEC);
+  LUVIT_DEFINE_CONSTANT(AF_INET);
+  LUVIT_DEFINE_CONSTANT(AF_INET6);
+
   // file access modes
   LUVIT_DEFINE_CONSTANT(O_RDONLY);
   LUVIT_DEFINE_CONSTANT(O_WRONLY);

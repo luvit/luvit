@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "luv_process.h"
+#include "utils.h"
 
 extern char **environ;
 
@@ -83,11 +84,11 @@ int luv_spawn(lua_State* L) {
 
   // Create the userdata
   handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
-  r = uv_spawn(uv_default_loop(), handle, options);
+  r = uv_spawn(luv_get_loop(L), handle, options);
   free(args);
   if (env) free(env);
   if (r) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "spawn: %s", uv_strerror(err));
   }
 
@@ -118,7 +119,7 @@ int luv_process_kill(lua_State* L) {
   int signum = luaL_checkint(L, 2);
 
   if (uv_process_kill(handle, signum)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "process_kill: %s", uv_strerror(err));
   }
 
