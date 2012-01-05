@@ -42,7 +42,8 @@ end
 local Socket = {}
 
 Socket.new = function(options)
-  local sock = utils.inherits({}, stream.meta)
+  local sock = {}
+  utils.inherits(sock, stream)
   sock._tcp = tcp.new()
   sock.connect = connect
   sock.close = close
