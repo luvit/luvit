@@ -130,7 +130,7 @@ local user_meta = {
 
 local inherits = function(ctor, super)
   if super.meta then
-    for k, v in pairs(super) do
+    for k, v in pairs(super.meta) do
       ctor[k] = v
     end
     setmetatable(ctor, super.meta)
