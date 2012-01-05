@@ -4,9 +4,7 @@
 #include <string.h>
 #include "luv_portability.h"
 #include "luv_dns.h"
-
-static ares_channel channel;
-static struct ares_options options;
+#include "utils.h"
 
 typedef struct {
   lua_State* L;
@@ -149,9 +147,10 @@ cleanup:
 
 int luv_dns_queryA(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_a, queryA_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_a, queryA_callback, ref);
   return 0;
 }
 
@@ -184,9 +183,10 @@ cleanup:
 
 int luv_dns_queryAAAA(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_aaaa, queryAAAA_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_aaaa, queryAAAA_callback, ref);
   return 0;
 }
 
@@ -222,9 +222,10 @@ cleanup:
 
 int luv_dns_queryCNAME(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_cname, queryCNAME_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_cname, queryCNAME_callback, ref);
   return 0;
 }
 
@@ -272,9 +273,10 @@ cleanup:
 
 int luv_dns_queryMX(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_mx, queryMX_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_mx, queryMX_callback, ref);
   return 0;
 }
 
@@ -307,9 +309,10 @@ cleanup:
 
 int luv_dns_queryNS(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_ns, queryNS_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_ns, queryNS_callback, ref);
   return 0;
 }
 
@@ -347,9 +350,10 @@ cleanup:
 
 int luv_dns_queryTXT(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_txt, queryTXT_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_txt, queryTXT_callback, ref);
   return 0;
 }
 
@@ -401,9 +405,10 @@ cleanup:
 
 int luv_dns_querySRV(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_srv, querySRV_callback, ref);
+  ares_query(*channel, name, ns_c_in, ns_t_srv, querySRV_callback, ref);
   return 0;
 }
 
@@ -426,6 +431,7 @@ cleanup:
 
 int luv_dns_getHostByAddr(lua_State* L)
 {
+  ares_channel *channel = luv_get_ares_channel(L);
   char address_buffer[sizeof(struct in6_addr)];
   int length, family;
   const char* ip = luaL_checkstring(L, 1);
@@ -445,7 +451,7 @@ int luv_dns_getHostByAddr(lua_State* L)
     return 0;
   }
 
-  ares_gethostbyaddr(channel, address_buffer, length, family,
+  ares_gethostbyaddr(*channel, address_buffer, length, family,
                      getHostByAddr_callback, ref);
   return 0;
 }
@@ -494,13 +500,8 @@ int luv_dns_getAddrInfo(lua_State* L)
   hints.ai_socktype = SOCK_STREAM;
 
   ref->handle.data = ref;
-  uv_getaddrinfo(uv_default_loop(), &ref->handle, luv_dns_getaddrinfo_callback,
+  uv_getaddrinfo(luv_get_loop(L), &ref->handle, luv_dns_getaddrinfo_callback,
                  hostname, NULL, &hints);
   return 0;
 }
 
-void luv_dns_open(void)
-{
-  memset(&options, 0, sizeof(options));
-  uv_ares_init_options(uv_default_loop(), &channel, &options, 0);
-}

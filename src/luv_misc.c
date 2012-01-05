@@ -185,27 +185,27 @@ int luv_activate_signal_handler(lua_State* L) {
 
 
 int luv_run(lua_State* L) {
-  uv_run(uv_default_loop());
+  uv_run(luv_get_loop(L));
   return 0;
 }
 
 int luv_ref (lua_State* L) {
-  uv_ref(uv_default_loop());
+  uv_ref(luv_get_loop(L));
   return 0;
 }
 
 int luv_unref(lua_State* L) {
-  uv_unref(uv_default_loop());
+  uv_unref(luv_get_loop(L));
   return 0;
 }
 
 int luv_update_time(lua_State* L) {
-  uv_update_time(uv_default_loop());
+  uv_update_time(luv_get_loop(L));
   return 0;
 }
 
 int luv_now(lua_State* L) {
-  int64_t now = uv_now(uv_default_loop());
+  int64_t now = uv_now(luv_get_loop(L));
   lua_pushinteger(L, now);
   return 1;
 }

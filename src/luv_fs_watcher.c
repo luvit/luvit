@@ -13,7 +13,7 @@ void luv_on_fs_event(uv_fs_event_t* handle, const char* filename, int events, in
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
   if (status == -1) {
-    luv_push_async_error(L, uv_last_error(uv_default_loop()), "on_fs_event", NULL);
+    luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "on_fs_event", NULL);
     luv_emit_event(L, "error", 1);
   } else {
 
@@ -45,7 +45,7 @@ int luv_new_fs_watcher (lua_State* L) {
 
   uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
 
-  uv_fs_event_init(uv_default_loop(), handle, filename, luv_on_fs_event, 0);
+  uv_fs_event_init(luv_get_loop(L), handle, filename, luv_on_fs_event, 0);
     
   // Set metatable for type
   luaL_getmetatable(L, "luv_fs_watcher");

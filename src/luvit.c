@@ -52,11 +52,15 @@ static int luvit_getcwd(lua_State* L) {
 int main(int argc, char *argv[])
 {
   int index, rc;
+  ares_channel channel;
+  struct ares_options options;
   lua_State *L;
+  uv_loop_t *loop;
+
+  memset(&options, 0, sizeof(options));
 
   rc = ares_library_init(ARES_LIB_INIT_ALL);
   assert(rc == ARES_SUCCESS);
-  luv_dns_open();
 
   L = luaL_newstate();
   if (L == NULL) {
@@ -111,6 +115,14 @@ int main(int argc, char *argv[])
   // Hold a reference to the main thread in the registry
   assert(lua_pushthread(L) == 1);
   lua_setfield(L, LUA_REGISTRYINDEX, "main_thread");
+
+  // Store the loop within the registry
+  loop = uv_default_loop();
+  luv_set_loop(L, loop);
+
+  // Store the ARES Channel
+  uv_ares_init_options(luv_get_loop(L), &channel, &options, 0);
+  luv_set_ares_channel(L, &channel);
 
   // Run the main lua script
   if (luaL_dostring(L, "assert(require('luvit'))")) {
