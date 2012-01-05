@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "luv_pipe.h"
+#include "utils.h"
 
 int luv_new_pipe (lua_State* L) {
   int before = lua_gettop(L);
@@ -9,7 +10,7 @@ int luv_new_pipe (lua_State* L) {
   luv_ref_t* ref;
 
   uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
-  uv_pipe_init(uv_default_loop(), handle, ipc);
+  uv_pipe_init(luv_get_loop(L), handle, ipc);
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_pipe");
@@ -48,7 +49,7 @@ int luv_pipe_bind(lua_State* L) {
   const char* name = luaL_checkstring(L, 2);
 
   if (uv_pipe_bind(handle, name)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "pipe_bind: %s", uv_strerror(err));
   }
 

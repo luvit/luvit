@@ -89,10 +89,8 @@ end
 process.stdin = TTY.new(0)
 process.stdout = TTY.new(1)
 local stdout = process.stdout
-if luvit_os ~= "win" then
-  UV.unref()
-  UV.unref()
-end
+UV.unref()
+UV.unref()
 
 
 -- Replace print

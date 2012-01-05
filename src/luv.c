@@ -6,6 +6,7 @@
 #include "uv-private/ev.h"
 
 #include "luv_fs.h"
+#include "luv_dns.h"
 #include "luv_handle.h"
 #include "luv_udp.h"
 #include "luv_fs_watcher.h"
@@ -80,6 +81,17 @@ static const luaL_reg luv_f[] = {
   {"tty_set_mode", luv_tty_set_mode},
   {"tty_reset_mode", luv_tty_reset_mode},
   {"tty_get_winsize", luv_tty_get_winsize},
+
+  // DNS functions
+  {"dns_queryA", luv_dns_queryA},
+  {"dns_queryAAAA", luv_dns_queryAAAA},
+  {"dns_queryCNAME", luv_dns_queryCNAME},
+  {"dns_queryMX", luv_dns_queryMX},
+  {"dns_queryNS", luv_dns_queryNS},
+  {"dns_queryTXT", luv_dns_queryTXT},
+  {"dns_querySRV", luv_dns_querySRV},
+  {"dns_getHostByAddr", luv_dns_getHostByAddr},
+  {"dns_getAddrInfo", luv_dns_getAddrInfo},
 
   // FS functions
   {"fs_open", luv_fs_open},
@@ -202,8 +214,6 @@ static const luaL_reg luv_tty_m[] = {
 
 LUALIB_API int luaopen_uv (lua_State* L) {
   int before = lua_gettop(L);
-
-
 
   // metatable for handle userdata types
   // It is it's own __index table to save space
@@ -330,6 +340,7 @@ LUALIB_API int luaopen_uv (lua_State* L) {
 
   // Create a new exports table with functions and constants
   lua_newtable (L);
+
   luaL_register(L, NULL, luv_f);
   lua_pushnumber(L, UV_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
