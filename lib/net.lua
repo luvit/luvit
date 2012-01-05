@@ -3,7 +3,7 @@ local UV = require('uv')
 local tcp = require('tcp')
 local timer = require('timer')
 local utils = require('utils')
-local stream = require('stream')
+local Stream = require('stream')
 
 local Net = {}
 
@@ -20,7 +20,10 @@ local _connect = function(self, ip, port, addressType)
   end
 end
 
-local setTimeout = function(self, msecs, callback)
+local Socket = { prototype = {} }
+utils.inherits(Socket, Stream)
+
+function Socket.prototype:setTimeout(msecs, callback)
   callback = callback or function() end
   self._connectTimer:start(msecs, 0, function(status)
     self._connectTimer:close()
@@ -28,7 +31,14 @@ local setTimeout = function(self, msecs, callback)
   end)
 end
 
-local connect = function(self, port, host, callback)
+function Socket.prototype:close()
+  if self._tcp then
+    self._tcp:close()
+    self._tcp = nil
+  end
+end
+
+function Socket.prototype:connect(port, host, callback)
   self._tcp:on('connect', function()
     timer.clear_timer(self._connectTimer)
     callback()
@@ -46,22 +56,11 @@ local connect = function(self, port, host, callback)
   end)
 end
 
-local close = function(self)
-  if self._tcp then
-    self._tcp:close()
-    self._tcp = nil
-  end
-end
-
-local Socket = {}
-
 Socket.new = function(options)
-  local sock = {}
-  utils.inherits(sock, stream)
+  local sock = Socket.new_obj()
   sock._tcp = tcp.new()
   sock._connectTimer = timer.new()
   sock.connect = connect
-  sock.close = close
   sock.setTimeout = setTimeout
   return sock
 end
