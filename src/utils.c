@@ -39,10 +39,7 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 }
 
 // Pushes an error object onto the stack
-void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path) {
-
-  const char* code = uv_err_name(err);
-  const char* msg = uv_strerror(err);
+void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, const char* source, const char* path) {
 
   lua_newtable(L);
   lua_getglobal(L, "error_meta");
@@ -63,6 +60,14 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
   lua_pushstring(L, source);
   lua_setfield(L, -2, "source");
 
+}
+
+// Pushes an error object onto the stack
+void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path) {
+
+  const char* code = uv_err_name(err);
+  const char* msg = uv_strerror(err);
+  luv_push_async_error_raw(L, code, msg, source, path);
 }
 
 // An alternative to luaL_checkudata that takes inheritance into account for polymorphism
@@ -111,3 +116,28 @@ const char* luv_handle_type_to_string(uv_handle_type type) {
   }
 }
 
+void luv_set_loop(lua_State *L, uv_loop_t *loop) {
+  lua_pushlightuserdata(L, loop);
+  lua_setfield(L, LUA_REGISTRYINDEX, "loop");
+}
+
+uv_loop_t* luv_get_loop(lua_State *L) {
+  uv_loop_t *loop;
+  lua_getfield(L, LUA_REGISTRYINDEX, "loop");
+  loop = lua_touserdata(L, -1);
+  lua_pop(L, 1);
+  return loop;
+}
+
+void luv_set_ares_channel(lua_State *L, ares_channel *channel) {
+  lua_pushlightuserdata(L, channel);
+  lua_setfield(L, LUA_REGISTRYINDEX, "ares_channel");
+}
+
+ares_channel* luv_get_ares_channel(lua_State *L) {
+  ares_channel *channel;
+  lua_getfield(L, LUA_REGISTRYINDEX, "ares_channel");
+  channel = lua_touserdata(L, -1);
+  lua_pop(L, 1);
+  return channel;
+}

@@ -47,7 +47,7 @@ void luv_after_connect(uv_connect_t* req, int status) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
   if (status == -1) {
-    luv_push_async_error(L, uv_last_error(uv_default_loop()), "after_connect", NULL);
+    luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "after_connect", NULL);
     luv_emit_event(L, "error", 1);
   } else {
     luv_emit_event(L, "complete", 0);
