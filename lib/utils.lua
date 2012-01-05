@@ -128,10 +128,34 @@ local user_meta = {
   __newindex = rawset
 }
 
+local clone
+clone = function(ctor, obj)
+  local copied = { }
+  copied[obj] = ctor
+  for k, v in pairs(obj) do
+    if type(v) ~= 'table' then
+      ctor[k] = v
+    elseif copied[v] then
+      ctor[k] = copied[v]
+    else
+      copied[v] = clone(ctor, v)
+      ctor[k] = setmetatable(copied[v], getmetatable(v))
+    end
+  end
+  setmetatable(ctor, obj)
+  ctor.prototype = obj
+  return ctor
+end
+
+local inherits = function(ctor, super)
+  return clone(ctor, super)
+end
+
 return {
   dump = dump,
   color = color,
   colorize = colorize,
+  inherits = inherits,
   user_meta = user_meta,
   user_proto = user_proto,
 }
