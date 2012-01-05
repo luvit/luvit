@@ -3,6 +3,7 @@
 --
 
 local String = require('string')
+local find = String.find
 local gsub = String.gsub
 local char = String.char
 local byte = String.byte
@@ -33,15 +34,21 @@ end
 --
 -- parse querystring into table. urldecode tokens
 --
-local function parse(str)
-  local allvars = {}
-  for pair in gmatch(tostring(str), '[^&]+') do
-    local key, value = match(pair, '([^=]*)=(.*)')
-    if key then
-      allvars[urldecode(key)] = urldecode(value)
+local function parse(str, sep, eq)
+  if not sep then sep = '&' end
+  if not eq then eq = '=' end
+  local vars = {}
+  for pair in gmatch(tostring(str), '[^' .. sep .. ']+') do
+    if not find(pair, eq) then
+      vars[urldecode(pair)] = ''
+    else
+      local key, value = match(pair, '([^' .. eq .. ']*)' .. eq .. '(.*)')
+      if key then
+        vars[urldecode(key)] = urldecode(value)
+      end
     end
   end
-  return allvars
+  return vars
 end
 
 -- module
