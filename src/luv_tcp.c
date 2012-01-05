@@ -3,13 +3,14 @@
 
 #include "luv_portability.h"
 #include "luv_tcp.h"
+#include "utils.h"
 
 int luv_new_tcp (lua_State* L) {
   int before = lua_gettop(L);
   luv_ref_t* ref;
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
-  uv_tcp_init(uv_default_loop(), handle);
+  uv_tcp_init(luv_get_loop(L), handle);
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_tcp");
@@ -40,7 +41,7 @@ int luv_tcp_bind (lua_State* L) {
   struct sockaddr_in address = uv_ip4_addr(host, port);
 
   if (uv_tcp_bind(handle, address)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_bind: %s", uv_strerror(err));
   }
 
@@ -57,7 +58,7 @@ int luv_tcp_bind6(lua_State* L) {
   struct sockaddr_in6 address = uv_ip6_addr(host, port);
 
   if (uv_tcp_bind6(handle, address)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_bind6: %s", uv_strerror(err));
   }
 
@@ -73,7 +74,7 @@ int luv_tcp_nodelay(lua_State* L) {
   int status = uv_tcp_nodelay(handle, value);
 
   if (status == -1) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err));
   }
 
@@ -92,7 +93,7 @@ int luv_tcp_getsockname(lua_State* L) {
   int addrlen = sizeof(address);
 
   if (uv_tcp_getsockname(handle, (struct sockaddr*)(&address), &addrlen)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_getsockname: %s", uv_strerror(err));
   }
 
@@ -130,7 +131,7 @@ int luv_tcp_getpeername(lua_State* L) {
   int addrlen = sizeof(address);
 
   if (uv_tcp_getpeername(handle, (struct sockaddr*)(&address), &addrlen)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_getpeername: %s", uv_strerror(err));
   }
 
@@ -177,7 +178,7 @@ int luv_tcp_connect(lua_State* L) {
   ref->connect_req.data = ref;
 
   if (uv_tcp_connect(&ref->connect_req, handle, address, luv_after_connect)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_connect: %s", uv_strerror(err));
   }
 
@@ -205,7 +206,7 @@ int luv_tcp_connect6(lua_State* L) {
   ref->connect_req.data = ref;
 
   if (uv_tcp_connect6(&ref->connect_req, handle, address, luv_after_connect)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_connect6: %s", uv_strerror(err));
   }
 

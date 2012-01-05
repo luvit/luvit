@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "luv_tty.h"
+#include "utils.h"
 
 int luv_new_tty (lua_State* L) {
   int before = lua_gettop(L);
@@ -10,7 +11,7 @@ int luv_new_tty (lua_State* L) {
   luv_ref_t* ref;
 
   uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
-  uv_tty_init(uv_default_loop(), handle, fd, readable);
+  uv_tty_init(luv_get_loop(L), handle, fd, readable);
 
   // Set metatable for type
   luaL_getmetatable(L, "luv_tty");
@@ -38,7 +39,7 @@ int luv_tty_set_mode(lua_State* L) {
   int mode = luaL_checkint(L, 2);
 
   if (uv_tty_set_mode(handle, mode)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_set_mode: %s", uv_strerror(err));
   }
 
@@ -58,7 +59,7 @@ int luv_tty_get_winsize(lua_State* L) {
   int width, height;
 
   if (uv_tty_get_winsize(handle, &width, &height)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_get_winsize: %s", uv_strerror(err));
   }
 

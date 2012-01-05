@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "luv_misc.h"
+#include "utils.h"
 
 #ifndef _WIN32
 
@@ -243,7 +244,7 @@ int luv_execpath(lua_State* L) {
   size_t size = 2*PATH_MAX;
   char exec_path[2*PATH_MAX];
   if (uv_exepath(exec_path, &size)) {
-    uv_err_t err = uv_last_error(uv_default_loop());
+    uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "uv_exepath: %s", uv_strerror(err));
   }
   lua_pushlstring(L, exec_path, size);
