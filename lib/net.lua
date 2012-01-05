@@ -60,8 +60,6 @@ Socket.new = function(options)
   local sock = Socket.new_obj()
   sock._tcp = tcp.new()
   sock._connectTimer = timer.new()
-  sock.connect = connect
-  sock.setTimeout = setTimeout
   return sock
 end
 
