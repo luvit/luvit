@@ -135,7 +135,6 @@ local inherits = function(ctor, super)
     end
     setmetatable(ctor, super.meta)
   end
-  ctor.prototype = meta
   return ctor
 end
 
