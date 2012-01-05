@@ -37,6 +37,7 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
         ${GENDIR}/dns.o       \
+        ${GENDIR}/net.o       \
         ${GENDIR}/process.o  \
         ${GENDIR}/error.o    \
         ${GENDIR}/emitter.o  \

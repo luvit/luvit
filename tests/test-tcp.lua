@@ -26,7 +26,7 @@ end)
 local client = TCP.new()
 client:connect("127.0.0.1", PORT)
 
-client:on("complete", function ()
+client:on("connect", function ()
   p('client:on("complete")')
   client:read_start()
 

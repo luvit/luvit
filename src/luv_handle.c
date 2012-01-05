@@ -50,7 +50,7 @@ void luv_after_connect(uv_connect_t* req, int status) {
     luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "after_connect", NULL);
     luv_emit_event(L, "error", 1);
   } else {
-    luv_emit_event(L, "complete", 0);
+    luv_emit_event(L, "connect", 0);
   }
 
   assert(lua_gettop(L) == before);
