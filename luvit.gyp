@@ -6,6 +6,7 @@
       'dependencies': [
         'deps/http-parser/http_parser.gyp:http_parser',
         'deps/luajit.gyp:*',
+        'deps/yajl.gyp:yajl',
         'deps/uv/uv.gyp:uv',
       ],
       'sources': [
