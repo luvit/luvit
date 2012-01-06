@@ -5,14 +5,13 @@ local HOST = '127.0.0.1'
 
 local server = net.createServer(function(client)
   client:on("data", function (chunk)
-    client:write(chunk, function (err)
+    client:write(chunk, function(err)
       assert(err == nil)
     end)
   end)
 
-  client:on("end", function ()
-    client:close(function ()
-    end)
+  client:on("end", function()
+    client:close()
   end)
 
 end)
@@ -34,6 +33,6 @@ server:listen(PORT, HOST, function(err)
   end)
 end)
 
-server:on("error", function (err)
+server:on("error", function(err)
   assert(err)
 end)
