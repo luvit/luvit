@@ -46,6 +46,10 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
   end)
 end
 
+function Server.prototype:close()
+  self._handle:close()
+end
+
 Server.new = function(...)
   local args = {...}
   local options
@@ -68,16 +72,16 @@ end
 local Socket = { }
 utils.inherits(Socket, Emitter)
 
-function Socket.prototype:_connect(ip, port, addressType)
+function Socket.prototype:_connect(address, port, addressType)
   if port then
     self.remotePort = port
   end
   self.remoteAddress = address
 
   if addressType == 4 then
-    self._handle:connect(ip, port)
+    self._handle:connect(address, port)
   elseif addressType == 6 then
-    self._handle:connect6(ip, port)
+    self._handle:connect6(address, port)
   end
 end
 
@@ -105,10 +109,6 @@ function Socket.prototype:write(data, callback)
 end
 
 function Socket.prototype:connect(port, host, callback)
-  if not self._handle then
-    self._handle = tcp.new()
-  end
-
   self._handle:on('connect', function()
     timer.clear_timer(self._connectTimer)
     self._handle:read_start()
@@ -145,6 +145,7 @@ end
 Socket.new = function()
   local sock = Socket.new_obj()
   sock._connectTimer = timer.new()
+  sock._handle = tcp.new()
   sock.bytesWritten = 0
   sock.bytesRead = 0
   return sock
