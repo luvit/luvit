@@ -31,10 +31,10 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
   end
 
   self._handle:bind(ip, port)
+  self._handle:on('listening', callback)
   self._handle:on('error', function(err)
     return self:emit("error", err)
   end)
-  self._handle:on('listening', callback)
   self._handle:listen(function(err)
     if (err) then
       return self:emit("error", err)
