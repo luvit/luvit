@@ -516,3 +516,45 @@ int luv_dns_getAddrInfo(lua_State* L)
   return 0;
 }
 
+static int luv_dns__isIP(lua_State *L, const char *ip, int v4v6) {
+  int family;
+  char address_buffer[sizeof(struct in6_addr)];
+
+  if (uv_inet_pton(AF_INET, ip, &address_buffer) == 1) {
+    family = AF_INET;
+  } else if (uv_inet_pton(AF_INET6, ip, &address_buffer) == 1) {
+    family = AF_INET6;
+  } else {
+    /* failure */
+    lua_pushnumber(L, 0);
+    return 1;
+  }
+
+  if (v4v6 == 0) {
+    lua_pushnumber(L, (family == AF_INET) ? 4 : 6);
+  }
+  else if (v4v6 == 4) {
+    lua_pushnumber(L, (family == AF_INET) ? 4 : 0);
+  }
+  else {
+    lua_pushnumber(L, (family == AF_INET6) ? 6 : 0);
+  }
+  return 1;
+}
+
+int luv_dns_isIP(lua_State* L)
+{
+  const char *ip = luaL_checkstring(L, 1);
+  return luv_dns__isIP(L, ip, 0);
+}
+
+int luv_dns_isIPv4(lua_State* L)
+{
+  const char *ip = luaL_checkstring(L, 1);
+  return luv_dns__isIP(L, ip, 4);
+}
+
+int luv_dns_isIPv6(lua_State* L) {
+  const char *ip = luaL_checkstring(L, 1);
+  return luv_dns__isIP(L, ip, 6);
+}
