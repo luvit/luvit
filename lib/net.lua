@@ -125,6 +125,7 @@ function Socket.prototype:connect(port, host, callback)
   end)
 
   self._handle:on('error', function(err)
+    self:close()
     self:emit('error', err)
   end)
 
