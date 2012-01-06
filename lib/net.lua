@@ -95,6 +95,10 @@ function Socket.prototype:close()
   end
 end
 
+function Socket.prototype:pipe(destination)
+  self._handle:pipe(destination)
+end
+
 function Socket.prototype:write(data, callback)
   self.bytesWritten = self.bytesWritten + #data
   self._handle:write(data)
@@ -122,6 +126,7 @@ function Socket.prototype:connect(port, host, callback)
 
   self._handle:on('error', function(err)
     timer.clear_timer(self._connectTimer)
+    self:close()
     callback(err)
   end)
 
