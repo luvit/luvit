@@ -75,17 +75,34 @@ function Socket.prototype:connect(port, host, callback)
     end
     self:_connect(ip, port, addressType)
   end)
+
+  return self
 end
 
-Socket.new = function(options)
+Socket.new = function()
   local sock = Socket.new_obj()
   sock._connectTimer = timer.new()
-  sock.destroy = false
   sock.bytesWritten = 0
   sock.bytesRead = 0
   return sock
 end
 
 Net.Socket = Socket
+
+Net.createConnection = function(port, ... --[[ [host], [cb] --]])
+  local args = {...}
+  local host
+  local callback
+  local s
+
+  -- future proof
+  host = args[1]
+  callback = args[2]
+
+  s = Socket.new()
+  return s:connect(port, host, callback)
+end
+
+Net.create = Net.createConnection
 
 return Net
