@@ -5,9 +5,10 @@ function Url.parse(url)
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
   local host = url:match("^([^/]+)")
+  local hostname, port
   if host then
-    local hostname = host:match("^([^:/]+)")
-    local port = host:match(":(%d+)$")
+    hostname = host:match("^([^:/]+)")
+    port = host:match(":(%d+)$")
   end
 
   url = url:sub((host and #host or 0) + 1)
