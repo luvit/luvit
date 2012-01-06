@@ -90,6 +90,7 @@ end)
 
 assert(dns.isIP('127.0.0.1') == 4)
 assert(dns.isIP('::1') == 6)
+assert(dns.isIP('bogus_ip') == 0)
 assert(dns.isIPv4('127.0.0.1') == 4)
 assert(dns.isIPv4('::1') == 0)
 assert(dns.isIPv6('127.0.0.1') == 0)
