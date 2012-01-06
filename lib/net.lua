@@ -125,9 +125,7 @@ function Socket.prototype:connect(port, host, callback)
   end)
 
   self._handle:on('error', function(err)
-    timer.clear_timer(self._connectTimer)
-    self:close()
-    callback(err)
+    self:emit('error', err)
   end)
 
   dns.lookup(host, function(err, ip, addressType)
