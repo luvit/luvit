@@ -13,6 +13,7 @@
         'src/lconstants.c',
         'src/lenv.c',
         'src/lhttp_parser.c',
+        'src/lyajl.c',
         'src/luv.c',
         'src/luv_fs.c',
         'src/luv_fs_watcher.c',
