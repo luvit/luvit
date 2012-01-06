@@ -1,6 +1,7 @@
 LUADIR=deps/luajit
 UVDIR=deps/uv
 HTTPDIR=deps/http-parser
+YAJLDIR=deps/yajl
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 PREFIX?=/usr/local
@@ -54,7 +55,7 @@ LUALIBS=${GENDIR}/luvit.o    \
 
 LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_fs.o         \
-        ${BUILDDIR}/luv_dns.o         \
+        ${BUILDDIR}/luv_dns.o        \
         ${BUILDDIR}/luv_handle.o     \
         ${BUILDDIR}/luv_udp.o        \
         ${BUILDDIR}/luv_fs_watcher.o \
@@ -67,6 +68,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_misc.o       \
         ${BUILDDIR}/lconstants.o     \
         ${BUILDDIR}/lenv.o           \
+        ${BUILDDIR}/lyajl.o          \
         ${BUILDDIR}/lhttp_parser.o
 
 ALLLIBS=${BUILDDIR}/luvit.o       \
@@ -74,6 +76,7 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
         ${BUILDDIR}/luv.o         \
         ${LUADIR}/src/libluajit.a \
         ${UVDIR}/uv.a             \
+        ${YAJLDIR}/yajl.a         \
         ${HTTPDIR}/http_parser.o  \
         ${LUALIBS}
 
@@ -90,6 +93,12 @@ ${LUADIR}/Makefile:
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
+
+${YAJLDIR}/Makefile: deps/Makefile.yajl
+	ln -s ../Makefile.yajl ${YAJLDIR}/Makefile
+
+${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
+	$(MAKE) -C ${YAJLDIR}
 
 ${UVDIR}/Makefile:
 	git submodule update --init ${UVDIR}
@@ -111,7 +120,7 @@ ${GENDIR}/%.o: ${GENDIR}/%.c
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
 	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
@@ -119,6 +128,7 @@ ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
 clean:
 	${MAKE} -C ${LUADIR} clean
 	${MAKE} -C ${HTTPDIR} clean
+	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
 	rm -rf build

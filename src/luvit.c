@@ -15,6 +15,7 @@
 #include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
+#include "lyajl.h"
 #include "lenv.h"
 
 
@@ -75,6 +76,9 @@ int main(int argc, char *argv[])
   lua_getfield(L, -1, "preload");
   lua_remove(L, -2);
 
+  // Register yajl
+  lua_pushcfunction(L, luaopen_yajl);
+  lua_setfield(L, -2, "yajl");
   // Register http_parser
   lua_pushcfunction(L, luaopen_http_parser);
   lua_setfield(L, -2, "http_parser");

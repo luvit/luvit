@@ -1,0 +1,40 @@
+# TODO: read values from CMakeLists.txt somehow instead of hard coding them here
+YAJL_MAJOR=2
+YAJL_MINOR=0
+YAJL_MICRO=5
+
+OBJECTS=build/yajl.o         \
+        build/yajl_lex.o     \
+        build/yajl_parser.o  \
+        build/yajl_buf.o     \
+        build/yajl_encode.o  \
+        build/yajl_gen.o     \
+        build/yajl_alloc.o   \
+        build/yajl_tree.o    \
+        build/yajl_version.o
+
+all: yajl.a
+
+# Special generated header
+src/api/yajl_version.h: src/api/yajl_version.h.cmake CMakeLists.txt
+	sed \
+		-e 's/.{YAJL_MAJOR}/${YAJL_MAJOR}/' \
+		-e 's/.{YAJL_MINOR}/${YAJL_MINOR}/' \
+		-e 's/.{YAJL_MICRO}/${YAJL_MICRO}/' < src/api/yajl_version.h.cmake > src/api/yajl_version.h
+
+clean: 
+	rm -f src/api/yajl_version.h src/api/yajl yajl.a
+	rm -fr build
+
+build:
+	mkdir -p build
+
+yajl.a: ${OBJECTS}
+	ar rcs yajl.a ${OBJECTS}
+
+src/api/yajl:
+	ln -s . src/api/yajl 
+
+build/%.o: src/%.c build src/api/yajl src/api/yajl_version.h
+	$(CC) -g -Wall -c $< -o $@ -I src/api
+
