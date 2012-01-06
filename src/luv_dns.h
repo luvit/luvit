@@ -18,6 +18,10 @@ int luv_dns_querySRV(lua_State* L);
 int luv_dns_getHostByAddr(lua_State* L);
 int luv_dns_getAddrInfo(lua_State* L);
 
+int luv_dns_isIP(lua_State* L);
+int luv_dns_isIPv4(lua_State* L);
+int luv_dns_isIPv6(lua_State* L);
+
 void luv_dns_open(void);
 
 #endif

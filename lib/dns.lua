@@ -87,4 +87,16 @@ function DNS.lookup(domain, family, callback)
   end)
 end
 
+function DNS.isIP(ip)
+  return UV.dns_isIP(ip)
+end
+
+function DNS.isIPv4(ip)
+  return UV.dns_isIPv4(ip)
+end
+
+function DNS.isIPv6(ip)
+  return UV.dns_isIPv6(ip)
+end
+
 return DNS
