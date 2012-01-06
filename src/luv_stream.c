@@ -120,6 +120,7 @@ int luv_shutdown(lua_State* L) {
 int luv_listen (lua_State* L) {
   int before = lua_gettop(L);
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
+  luv_ref_t* ref = handle->data;
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
   luv_register_event(L, 1, "connection", 2);
@@ -128,6 +129,9 @@ int luv_listen (lua_State* L) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     luaL_error(L, "listen: %s", uv_strerror(err));
   }
+
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  luv_emit_event(L, "listening", 0);
 
   assert(lua_gettop(L) == before);
   return 0;
