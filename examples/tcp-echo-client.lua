@@ -1,11 +1,14 @@
-local TCP = require('tcp')
+local net = require('net')
 
-local client = TCP.new()
-client:connect("127.0.0.1", 8080)
-client:on("complete", function ()
+local client
+client = net.createConnection(8080, '127.0.0.1', function(err)
+  if err then
+    p(err)
+    return
+  end
+
   print("Connected...")
 
-  client:read_start()
   process.stdin:read_start()
 
   process.stdin:pipe(client)
