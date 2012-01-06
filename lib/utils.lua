@@ -145,7 +145,6 @@ local inherits = function(ctor, super)
     setmetatable(obj, obj_meta)
     return obj
   end
-  return ctor
 end
 
 return {
