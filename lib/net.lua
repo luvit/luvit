@@ -17,9 +17,9 @@ function Socket.prototype:_connect(ip, port, addressType)
   self.remoteAddress = address
 
   if addressType == 4 then
-    self._tcp:connect(ip, port)
+    self._handle:connect(ip, port)
   elseif addressType == 6 then
-    self._tcp:connect6(ip, port)
+    self._handle:connect6(ip, port)
   end
 end
 
@@ -32,22 +32,44 @@ function Socket.prototype:setTimeout(msecs, callback)
 end
 
 function Socket.prototype:close()
-  if self._tcp then
-    self._tcp:close()
+  if self._handle then
+    self._handle:close()
   end
 end
 
+function Socket.prototype:write(data, callback)
+  self.bytesWritten = self.bytesWritten + #data
+  self._handle:write(data)
+end
+
 function Socket.prototype:connect(port, host, callback)
-  self._tcp:on('connect', function()
+  if not self._handle then
+    self._handle = tcp.new()
+  end
+
+  self._handle:on('connect', function()
     timer.clear_timer(self._connectTimer)
+    self._handle:read_start()
     callback()
   end)
-  self._tcp:on('error', function()
-    timer.clear_timer(self._connectTimer)
-    callback()
+
+  self._handle:on('end', function()
+    self:emit('end')
   end)
+
+  self._handle:on('data', function(data)
+    self.bytesRead = self.bytesRead + #data
+    self:emit('data', data)
+  end)
+
+  self._handle:on('error', function(err)
+    timer.clear_timer(self._connectTimer)
+    callback(err)
+  end)
+
   dns.lookup(host, function(err, ip, addressType)
     if err then
+      timer.clear_timer(self._connectTimer)
       callback(err)
       return
     end
@@ -57,8 +79,10 @@ end
 
 Socket.new = function(options)
   local sock = Socket.new_obj()
-  sock._tcp = tcp.new()
   sock._connectTimer = timer.new()
+  sock.destroy = false
+  sock.bytesWritten = 0
+  sock.bytesRead = 0
   return sock
 end
 
