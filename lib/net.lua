@@ -54,17 +54,17 @@ end
 Server.new = function(...)
   local args = {...}
   local options
-  local clientCallback
+  local connectionCallback
 
   if #args == 1 then
-    clientCallback = args[1]
+    connectionCallback = args[1]
   elseif #args == 2 then
     options = args[1]
-    clientCallback = args[2]
+    connectionCallback = args[2]
   end
 
   local server = Server.new_obj()
-  server:on('connection', clientCallback)
+  server:on('connection', connectionCallback)
   return server
 end
 
@@ -171,8 +171,8 @@ end
 
 Net.create = Net.createConnection
 
-Net.createServer = function(clientCallback)
-  local s = Server.new(clientCallback)
+Net.createServer = function(connectionCallback)
+  local s = Server.new(connectionCallback)
   return s
 end
 
