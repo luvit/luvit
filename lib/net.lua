@@ -47,6 +47,7 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
 end
 
 function Server.prototype:close()
+  timer.clear_timer(self._connectTimer)
   self._handle:close()
 end
 
@@ -125,13 +126,13 @@ function Socket.prototype:connect(port, host, callback)
   end)
 
   self._handle:on('error', function(err)
-    self:close()
     self:emit('error', err)
+    self:close()
   end)
 
   dns.lookup(host, function(err, ip, addressType)
     if err then
-      timer.clear_timer(self._connectTimer)
+      self:close()
       callback(err)
       return
     end
