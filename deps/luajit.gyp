@@ -57,12 +57,10 @@
       'type': 'executable',
       'dependencies': [
         'libluajit',
-    'luajit-datafiles',
+        'luajit-datafiles',
       ],
       'conditions': [
-        ['OS == "linux"',
-      { 'libraries': ['-ldl'] },
-      ],
+        ['OS == "linux"', { 'libraries': ['-ldl'] }, ],
       ],
       'sources': [
         'luajit/src/luajit.c',
@@ -98,16 +96,16 @@
       'variables': {
         'lj_sources': [
           'luajit/src/lib_base.c',
-        'luajit/src/lib_math.c',
-        'luajit/src/lib_bit.c',
-        'luajit/src/lib_string.c',
-        'luajit/src/lib_table.c',
-        'luajit/src/lib_io.c',
-        'luajit/src/lib_os.c',
-        'luajit/src/lib_package.c',
-        'luajit/src/lib_debug.c',
-        'luajit/src/lib_jit.c',
-        'luajit/src/lib_ffi.c',
+          'luajit/src/lib_math.c',
+          'luajit/src/lib_bit.c',
+          'luajit/src/lib_string.c',
+          'luajit/src/lib_table.c',
+          'luajit/src/lib_io.c',
+          'luajit/src/lib_os.c',
+          'luajit/src/lib_package.c',
+          'luajit/src/lib_debug.c',
+          'luajit/src/lib_jit.c',
+          'luajit/src/lib_ffi.c',
         ]
       },
       'include_dirs': [
