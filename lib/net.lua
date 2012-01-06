@@ -7,7 +7,10 @@ local Stream = require('stream')
 
 local Net = {}
 
-local _connect = function(self, ip, port, addressType)
+local Socket = { }
+utils.inherits(Socket, Stream)
+
+function Socket.prototype:_connect(ip, port, addressType)
   if port then
     self.remotePort = port
   end
@@ -19,9 +22,6 @@ local _connect = function(self, ip, port, addressType)
     self._tcp:connect6(ip, port)
   end
 end
-
-local Socket = { }
-utils.inherits(Socket, Stream)
 
 function Socket.prototype:setTimeout(msecs, callback)
   callback = callback or function() end
@@ -51,7 +51,7 @@ function Socket.prototype:connect(port, host, callback)
       callback(err)
       return
     end
-    _connect(self, ip, port, addressType)
+    self:_connect(ip, port, addressType)
   end)
 end
 
