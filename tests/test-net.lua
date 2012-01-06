@@ -1,3 +1,4 @@
+require("helper")
 local net = require('net')
 
 local PORT = 8080
