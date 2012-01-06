@@ -3,12 +3,70 @@ local UV = require('uv')
 local tcp = require('tcp')
 local timer = require('timer')
 local utils = require('utils')
-local Stream = require('stream')
+local Emitter = require('emitter')
 
 local Net = {}
 
+--[[ Server ]]--
+
+local Server = { }
+utils.inherits(Server, Emitter)
+
+function Server.prototype:listen(port, ... --[[ ip, callback --]] )
+  local args = {...}
+  local ip
+  local callback
+
+  if not self._handle then
+    self._handle = tcp.new()
+  end
+
+  -- Future proof
+  if type(args[1]) == 'function' then
+    ip = '0.0.0.0'
+    callback = args[1]
+  else
+    ip = args[1]
+    callback = args[2] or function() end
+  end
+
+  self._handle:bind(ip, port)
+  self._handle:on('error', function(err)
+    return self:emit("error", err)
+  end)
+  self._handle:on('listening', callback)
+  self._handle:listen(function(err)
+    if (err) then
+      return self:emit("error", err)
+    end
+    local client = tcp.new()
+    self._handle:accept(client)
+    client:read_start()
+    self:emit('connection', client)
+  end)
+end
+
+Server.new = function(...)
+  local args = {...}
+  local options
+  local clientCallback
+
+  if #args == 1 then
+    clientCallback = args[1]
+  elseif #args == 2 then
+    options = args[1]
+    clientCallback = args[2]
+  end
+
+  local server = Server.new_obj()
+  server:on('connection', clientCallback)
+  return server
+end
+
+--[[ Socket ]]--
+
 local Socket = { }
-utils.inherits(Socket, Stream)
+utils.inherits(Socket, Emitter)
 
 function Socket.prototype:_connect(ip, port, addressType)
   if port then
@@ -87,9 +145,11 @@ Socket.new = function()
   return sock
 end
 
+Net.Server = Server
+
 Net.Socket = Socket
 
-Net.createConnection = function(port, ... --[[ [host], [cb] --]])
+Net.createConnection = function(port, ... --[[ host, cb --]])
   local args = {...}
   local host
   local callback
@@ -104,5 +164,10 @@ Net.createConnection = function(port, ... --[[ [host], [cb] --]])
 end
 
 Net.create = Net.createConnection
+
+Net.createServer = function(clientCallback)
+  local s = Server.new(clientCallback)
+  return s
+end
 
 return Net
