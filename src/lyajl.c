@@ -443,8 +443,6 @@ static int lyajl_gen_config (lua_State *L) {
 
 
 static int lyajl_new_generator (lua_State *L) {
-  // options table
-  luaL_checktype(L, 1, LUA_TTABLE);
 
   lua_newtable(L);
 

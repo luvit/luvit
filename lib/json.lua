@@ -62,7 +62,7 @@ function JSON.parse(string, options)
 end
 
 function JSON.stringify(value, options)
-  local generator = Yajl.new_generator(options);
+  local generator = Yajl.new_generator();
   if options then
     for k,v in pairs(options) do
       generator:config(k, v)
