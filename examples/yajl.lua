@@ -1,7 +1,7 @@
 local Yajl = require('yajl')
 
 local parser = Yajl.new({
-  allow_comments = false,
+  allow_comments = true,
   on_null = function ()
     p("on_null")
   end,
@@ -34,6 +34,14 @@ local parser = Yajl.new({
   end
 })
 
-parser:write('{"name":"tim",values:')
-parser:write("[1,2,3]")
-parser:write("}")
+p(parser)
+
+parser:parse([[
+{
+  //hello?
+  "name":"tim",
+  "stuff": [null, true, false, 0, 0.1, -0.11, "foo", {}],
+  "values":
+]])
+parser:parse("[1,2,3]")
+parser:parse("}")

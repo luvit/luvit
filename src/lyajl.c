@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "lyajl.h"
 #include "utils.h"
@@ -9,28 +8,95 @@
 #include "yajl/yajl_version.h"
 
 static int lyajl_on_null (void * ctx) {
-  printf("on_null\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_null");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_call(L, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_boolean (void * ctx, int value) {
-  printf("on_boolean\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_boolean");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_pushboolean(L, value);
+    lua_call(L, 1, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_integer (void * ctx, long long value) {
-  printf("on_integer\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_number");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_pushnumber(L, value);
+    lua_call(L, 1, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_double (void * ctx, double value) {
-  printf("on_double\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_number");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_pushnumber(L, value);
+    lua_call(L, 1, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_string (void * ctx, const unsigned char* value, size_t len) {
-  printf("on_string\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_string");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_pushlstring(L, (const char*)value, len);
+    lua_call(L, 1, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_start_map (void * ctx) {
-  printf("on_start_map\n");
-  
   // Load the callback
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
@@ -38,35 +104,83 @@ static int lyajl_on_start_map (void * ctx) {
   lua_getfield(L, -1, "on_start_map");
   lua_remove(L, -2);
   
-  // See if it's a function
-  if (lua_isfunction (L, -1) == 0) {
-    printf("MISSING CALLBACK\n");
-    // no function defined
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_call(L, 0, 0);
+  } else {
     lua_pop(L, 1);
-    return 1;
-  };
-  printf("FOUND IT!\n");
-
-  lua_call(L, 0, 0);
-
+  }
 
   return 1;
 }
 
 static int lyajl_on_map_key (void * ctx, const unsigned char* key, size_t len) {
-  printf("on_map_key\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_map_key");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_pushlstring(L, (const char*)key, len);
+    lua_call(L, 1, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_end_map (void * ctx) {
-  printf("on_end_map\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_end_map");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_call(L, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_start_array (void * ctx) {
-  printf("on_start_array\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_start_array");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_call(L, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 static int lyajl_on_end_array (void * ctx) {
-  printf("on_end_array\n");
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_getfield(L, -1, "on_end_array");
+  lua_remove(L, -2);
+  
+  // If there is a callback, call it
+  if (lua_isfunction (L, -1)) {
+    lua_call(L, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+
   return 1;
 }
 
@@ -78,13 +192,11 @@ static yajl_callbacks lyajl_callbacks = {
   lyajl_on_start_array, lyajl_on_end_array
 };
 
-static int lyajl_write (lua_State *L) {
+static int lyajl_parse (lua_State *L) {
   // Process the args
   luaL_checktype(L, 1, LUA_TTABLE);
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
-
-  int before = lua_gettop(L);
 
   // Load the yajl_handle
   lua_getfield(L, 1, "handle");
@@ -95,12 +207,8 @@ static int lyajl_write (lua_State *L) {
   handle = (yajl_handle)lua_touserdata(L, -1);
   lua_pop(L, 1);
 
-  assert(lua_gettop(L) == before);
-
   yajl_status stat;
-  printf("Parsing: '%s' %d\n", chunk, (int)len);
   stat = yajl_parse(handle, (const unsigned char*)chunk, len);  
-  printf("Stat %d, %d\n", stat, yajl_status_ok);
 
   if (stat != yajl_status_ok) {
     unsigned char * str = yajl_get_error(handle, 1, (const unsigned char*)chunk, len);  
@@ -108,44 +216,43 @@ static int lyajl_write (lua_State *L) {
     yajl_free_error(handle, str); // This doesn't actually happen
   }
 
-  assert(lua_gettop(L) == before);
-
   return 0;
 }
+
 
 static int lyajl_new (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
 
-  int before = lua_gettop(L);
-  
   // Use the input as a new table
   lua_pushvalue(L, 1);
-
-  assert(lua_gettop(L) == before + 1);
   
   // Create a reference to the table
   lua_pushvalue(L, 1);
   luv_ref_t* ref;
   ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
-  ref->r = luaL_ref(L, -1);
 
-  assert(lua_gettop(L) == before + 1);
-  
+  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+
   // Allocate the handle and set as "handle"
   yajl_handle handle = yajl_alloc(&lyajl_callbacks, NULL, (void*)ref);
   lua_pushlightuserdata(L, handle);
   lua_setfield(L, -2, "handle");
   
-  // TODO: read config options that aren't callbacks and set them on the parser
-  assert(lua_gettop(L) == before + 1);
+  lua_getfield(L, -1, "allow_comments");
+  int allow_comments = lua_toboolean(L, -1);
+  lua_pop(L, 1);
+  yajl_config(handle, yajl_allow_comments, allow_comments);
+  
+  lua_getfield(L, -1, "dont_validate_strings");
+  int dont_validate_strings = lua_toboolean(L, -1);
+  lua_pop(L, 1);
+  yajl_config(handle, yajl_dont_validate_strings, dont_validate_strings);
 
   // Store a reference to the write method
-  lua_pushcfunction(L, lyajl_write);
-  lua_setfield(L, -2, "write");
+  lua_pushcfunction(L, lyajl_parse);
+  lua_setfield(L, -2, "parse");
 
-  assert(lua_gettop(L) == before + 1);
-  
   return 1;
 }
 
