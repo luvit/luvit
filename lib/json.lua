@@ -1,13 +1,16 @@
 local Yajl = require('yajl')
 local Table = require('table')
-local JSON = {}
+local JSON = {
+  null = Yajl.null
+}
 
-function JSON.parse(string)
+function JSON.parse(string, use_null)
   local root = {}
   local current = root
   local key
   local null = JSON.null
   local stack = {}
+  local null = use_null and JSON.null or nil
   local parser = Yajl.new({
     on_null = function ()
       current[key or #current + 1] = null
@@ -25,6 +28,7 @@ function JSON.parse(string)
       local new = {}
       Table.insert(stack, current)
       current[key or #current + 1] = new
+      key = nil
       current = new
     end,
     on_map_key = function (value)
@@ -38,6 +42,7 @@ function JSON.parse(string)
       local new = {}
       Table.insert(stack, current)
       current[key or #current + 1] = new
+      key = nil
       current = new
     end,
     on_end_array = function ()

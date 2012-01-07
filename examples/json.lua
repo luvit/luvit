@@ -1,6 +1,6 @@
 local JSON = require('json')
 
-p(JSON.parse([[
+local value = JSON.parse([[
 {
   "author": "Tim Caswell <tim@creationix.com>",
   "name": "kernel",
@@ -9,6 +9,7 @@ p(JSON.parse([[
   "repository": {
     "url": ""
   },
+  "null":[null,null,null,null],
   "main": "kernel.js",
   "engines": {
     "node": "~0.6"
@@ -16,4 +17,5 @@ p(JSON.parse([[
   "dependencies": {},
   "devDependencies": {}
 }
-]]))
+]], true)
+p(value)

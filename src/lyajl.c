@@ -7,6 +7,8 @@
 #include "yajl/yajl_parse.h"
 #include "yajl/yajl_version.h"
 
+static void* yjajl_js_null;
+
 static int lyajl_on_null (void * ctx) {
   // Load the callback
   luv_ref_t* ref = ctx;
@@ -271,6 +273,10 @@ LUALIB_API int luaopen_yajl (lua_State *L) {
   lua_setfield(L, -2, "VERSION_MINOR");
   lua_pushnumber(L, YAJL_MICRO);
   lua_setfield(L, -2, "VERSION_MICRO");
+  
+  // Add JS Null
+  lua_pushlightuserdata(L, yjajl_js_null);
+  lua_setfield(L, -2, "null");
 
   // Return the new module
   return 1;
