@@ -1,13 +1,13 @@
 local HTTP = require('http')
 
-local CREATIONIX_COM = "72.14.187.119"
+local DOMAIN = "creationix.com"
 HTTP.request({
-  host = CREATIONIX_COM,
+  host = DOMAIN ,
   path = "/wordle.jpg",
   headers = {
-    HOST = "creationix.com"
+    HOST = DOMAIN
   }
-}, function (res)
+}, function (err, res)
   p("on_connect", {status_code = res.status_code, headers = res.headers})
   res:on('data', function (chunk)
     p("on_data", #chunk)
