@@ -397,6 +397,16 @@ static int lyajl_gen_get_buf (lua_State *L) {
   return 1;
 }
 
+int lyajl_gen_on_print(void* ctx, const char* string, size_t len) {
+  // Load the callback
+  luv_ref_t* ref = ctx;
+  lua_State *L = ref->L;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_pushlstring(L, string, len);
+  lua_call(L, 1, 0);
+  return 1;
+}
+
 static int lyajl_gen_config (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   const char* option = luaL_checkstring(L, 2);
@@ -412,7 +422,15 @@ static int lyajl_gen_config (lua_State *L) {
   } else if (strcmp(option, "indent_string") == 0) {
     yajl_gen_config(generator, yajl_gen_indent_string, luaL_checkstring(L, 3));
   } else if (strcmp(option, "print_callback") == 0) {
-    luaL_error(L, "TODO: Implement this one");
+    if (lua_isfunction (L, 3) == 0) {
+      luaL_error(L, "Print callback config must be a function");
+    }
+    luv_ref_t* ref;
+    ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
+    ref->L = L;
+    lua_pushvalue(L, 3);
+    ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+    yajl_gen_config(generator, yajl_gen_print_callback, lyajl_gen_on_print, (void*)ref);
   } else if (strcmp(option, "validate_utf8") == 0) {
     yajl_gen_config(generator, yajl_gen_validate_utf8, lua_toboolean(L, 3));
   } else if (strcmp(option, "escape_solidus") == 0) {
