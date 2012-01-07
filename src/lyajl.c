@@ -222,6 +222,31 @@ static int lyajl_parse (lua_State *L) {
   return 0;
 }
 
+static int lyajl_complete_parse (lua_State *L) {
+  // Process the args
+  luaL_checktype(L, 1, LUA_TTABLE);
+
+  // Load the yajl_handle
+  lua_getfield(L, 1, "handle");
+  if (!lua_islightuserdata(L, -1)) {
+    luaL_error(L, "handle is not a proper light userdata");
+  }
+  yajl_handle handle;
+  handle = (yajl_handle)lua_touserdata(L, -1);
+  lua_pop(L, 1);
+
+  yajl_status stat;
+  stat = yajl_complete_parse(handle);
+
+  if (stat != yajl_status_ok) {
+    unsigned char * str = yajl_get_error(handle, 1, (const unsigned char*)0, 0);
+    luaL_error(L, (const char *) str);
+    yajl_free_error(handle, str); // This doesn't actually happen
+  }
+
+  return 0;
+}
+
 static int lyajl_config (lua_State *L) {
   // Process the args
   luaL_checktype(L, 1, LUA_TTABLE);
@@ -458,6 +483,7 @@ static int lyajl_new_generator (lua_State *L) {
 
 static const luaL_reg lyajl_parser_m[] = {
   {"parse", lyajl_parse},
+  {"complete", lyajl_complete_parse},
   {"config", lyajl_config},
   {NULL, NULL}
 };
