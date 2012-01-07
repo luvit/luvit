@@ -1,6 +1,8 @@
+local parse_query = require('querystring').parse
+
 local Url = {}
 
-function Url.parse(url)
+function Url.parse(url, parse_qs)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
@@ -15,6 +17,10 @@ function Url.parse(url)
   local pathname = url:match("^[^?]*")
   local search = url:sub((pathname and #pathname or 0) + 1)
   local query = search:sub(2)
+
+  if parse_qs then
+    query = parse_query(query)
+  end
   
   return {
     href = href,
