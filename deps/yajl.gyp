@@ -41,6 +41,13 @@
       ],
       'actions': [
         {
+          'variables': {
+            'replacements': [
+              '{YAJL_MAJOR}:<(YAJL_MAJOR)',
+              '{YAJL_MINOR}:<(YAJL_MINOR)',
+              '{YAJL_MICRO}:<(YAJL_MICRO)',
+            ]
+          },
           'action_name': 'version_header',
           'inputs': [
             'yajl/src/api/yajl_version.h.cmake'
@@ -49,12 +56,10 @@
             '<(SHARED_INTERMEDIATE_DIR)/yajl/yajl_version.h',
           ],
           'action': [
-            '../tools/sed.sh',
+            '../tools/lame_sed.py',
             '<@(_inputs)',
             '<@(_outputs)',
-            '-e', 's/.{YAJL_MAJOR}/<(YAJL_MAJOR)/',
-            '-e', 's/.{YAJL_MINOR}/<(YAJL_MINOR)/',
-            '-e', 's/.{YAJL_MICRO}/<(YAJL_MICRO)/',
+            '<@(replacements)',
           ],
         }
       ]
