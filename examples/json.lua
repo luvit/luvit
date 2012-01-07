@@ -2,6 +2,7 @@ local JSON = require('json')
 
 local value = JSON.parse([[
 {
+  // A comment!
   "author": "Tim Caswell <tim@creationix.com>",
   "name": "kernel",
   "description": "A simple async template language similair to dustjs and mustache",
@@ -17,5 +18,7 @@ local value = JSON.parse([[
   "dependencies": {},
   "devDependencies": {}
 }
-]], true)
+]], {use_null=true,allow_comments=true})
 p(value)
+local json = JSON.stringify(value, {beautify=true,indent_string="  "});
+print(json)
