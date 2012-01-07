@@ -84,7 +84,7 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 
 all: ${BUILDDIR}/luvit
 
-deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${YAJLDIR}/yajl.a
 
 ${GENDIR}:
 	mkdir -p ${GENDIR}
@@ -97,6 +97,7 @@ ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	$(MAKE) -C ${LUADIR}
 
 ${YAJLDIR}/Makefile: deps/Makefile.yajl
+	git submodule update --init ${YAJLDIR}
 	ln -s ../Makefile.yajl ${YAJLDIR}/Makefile
 
 ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
