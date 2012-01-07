@@ -4,14 +4,14 @@ import sys
 
 infile = sys.argv[1]
 outfile = sys.argv[2]
-params = sys.argv[2:]
+params = sys.argv[3:]
 
 fi = open(infile, 'r')
 fo = open(outfile, 'w')
 
 while fi:
   line = fi.readline()
-  if len(line) == 0:
+  if not line:
     break
   for param in params:
     terms = param.split(':')
