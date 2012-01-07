@@ -36,8 +36,8 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/request.o  \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
-        ${GENDIR}/dns.o       \
-        ${GENDIR}/net.o       \
+        ${GENDIR}/dns.o      \
+        ${GENDIR}/net.o      \
         ${GENDIR}/process.o  \
         ${GENDIR}/error.o    \
         ${GENDIR}/emitter.o  \
@@ -52,6 +52,7 @@ LUALIBS=${GENDIR}/luvit.o    \
         ${GENDIR}/mime.o     \
         ${GENDIR}/path.o     \
         ${GENDIR}/stack.o    \
+        ${GENDIR}/json.o     \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \

@@ -28,9 +28,6 @@ local parser = Yajl.new({
   end,
   on_end_array = function ()
     p("on_end_array")
-  end,
-  on_error = function (err)
-    error(err)
   end
 })
 
