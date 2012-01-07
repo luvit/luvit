@@ -26,6 +26,7 @@
         'src/luv_tty.c',
         'src/luv_udp.c',
         'src/luvit.c',
+        'src/lyajl.c',
         'src/utils.c',
         'lib/dns.lua',
         'lib/emitter.lua',
