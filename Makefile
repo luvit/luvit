@@ -162,7 +162,7 @@ uninstall deinstall:
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
 
-test: ${BUILDDIR}/luvit examples/native/vector.luvit
+test: examples/native/vector.luvit
 	find tests -name "test-*.lua" | while read LINE; do \
 		${BUILDDIR}/luvit $$LINE > tests/failed_test.log && \
 		rm tests/failed_test.log || cat tests/failed_test.log; \
