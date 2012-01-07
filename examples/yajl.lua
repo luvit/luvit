@@ -34,6 +34,6 @@ local parser = Yajl.new({
   end
 })
 
-parser.write("{")
-parser.write("[1,2,3]")
-parser.write("}")
+parser:write('{"name":"tim",values:')
+parser:write("[1,2,3]")
+parser:write("}")
