@@ -47,7 +47,10 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
 end
 
 function Server.prototype:close()
-  timer.clear_timer(self._connectTimer)
+  if self._connectTimer then
+    timer.clear_timer(self._connectTimer)
+    self._connectTimer = nil
+  end
   self._handle:close()
 end
 
@@ -88,6 +91,10 @@ end
 
 function Socket.prototype:setTimeout(msecs, callback)
   callback = callback or function() end
+  if not self._connectTimer then
+    self._connectTimer = timer.new()
+  end
+
   self._connectTimer:start(msecs, 0, function(status)
     self._connectTimer:close()
     callback()
@@ -111,7 +118,10 @@ end
 
 function Socket.prototype:connect(port, host, callback)
   self._handle:on('connect', function()
-    timer.clear_timer(self._connectTimer)
+    if self._connectTimer then
+      timer.clear_timer(self._connectTimer)
+      self._connectTimer = nil
+    end
     self._handle:read_start()
     callback()
   end)
