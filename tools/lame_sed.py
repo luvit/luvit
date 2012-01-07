@@ -16,7 +16,7 @@ while fi:
   for param in params:
     terms = param.split(':')
     # horribel hack
-    if terms[0].find('{') == 0 and terms[0].find('}') == len(terms[0]) - 1:
+    if terms[0].startswith('{') and terms[0].endswith('}'):
       terms[0] = '$' + terms[0]
     if line.find(terms[0]) >= 0:
       line = line.replace(terms[0], terms[1])
