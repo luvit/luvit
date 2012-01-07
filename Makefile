@@ -96,8 +96,10 @@ ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
-${YAJLDIR}/Makefile: deps/Makefile.yajl
+${YAJLDIR}/CMakeLists.txt: 
 	git submodule update --init ${YAJLDIR}
+
+${YAJLDIR}/Makefile: deps/Makefile.yajl ${YAJLDIR}/CMakeLists.txt
 	ln -s ../Makefile.yajl ${YAJLDIR}/Makefile
 
 ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
@@ -121,7 +123,7 @@ ${GENDIR}/%.c: lib/%.lua deps
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -g -Wall -c $< -o $@
 
-${BUILDDIR}/%.o: src/%.c src/%.h deps deps/yajl/yajl.a
+${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
 	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
 
