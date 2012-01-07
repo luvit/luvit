@@ -6,12 +6,14 @@
       'dependencies': [
         'deps/http-parser/http_parser.gyp:http_parser',
         'deps/luajit.gyp:*',
+        'deps/yajl.gyp:yajl',
         'deps/uv/uv.gyp:uv',
       ],
       'sources': [
         'src/lconstants.c',
         'src/lenv.c',
         'src/lhttp_parser.c',
+        'src/lyajl.c',
         'src/luv.c',
         'src/luv_fs.c',
         'src/luv_fs_watcher.c',
