@@ -58,6 +58,7 @@ function JSON.parse(string, options)
     end
   end
   parser:parse(string)
+  parser:complete()
   return root[1]
 end
 
