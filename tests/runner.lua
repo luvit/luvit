@@ -77,7 +77,7 @@ Fs.readdir('.', function(err, files)
         process.stdout:write(v.stderr_data)
       end
     end
-    p('Tests completed')
+    process.stdout:write('Done\n')
   end)
 end)
 
