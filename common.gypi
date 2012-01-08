@@ -34,7 +34,7 @@
             'MinimalRebuild': 'true',
             'OmitFramePointers': 'false',
             'BasicRuntimeChecks': 3, # /RTC1
-			'MultiProcessorCompilation': 'false',
+            'MultiProcessorCompilation': 'false',
           },
           'VCLinkerTool': {
             'LinkIncremental': 2, # enable incremental linking
@@ -60,7 +60,7 @@
             'OmitFramePointers': 'true',
             'EnableFunctionLevelLinking': 'true',
             'EnableIntrinsicFunctions': 'true',
-			'TargetMachine': 'x86',
+            'TargetMachine': 'x86',
           },
           'VCLibrarianTool': {
             'AdditionalOptions': [
@@ -138,6 +138,7 @@
       }],
       ['OS=="mac"', {
         'cflags': ['-arch i386'],
+        'ldflags': [ '-pthread', '-Wl,-E', ],
         'defines': [
           'DARWIN',
           'DARWIN_10',

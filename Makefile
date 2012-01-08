@@ -84,7 +84,7 @@ ALLLIBS=${BUILDDIR}/luvit.o       \
 
 all: ${BUILDDIR}/luvit
 
-deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o
+deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${YAJLDIR}/yajl.a
 
 ${GENDIR}:
 	mkdir -p ${GENDIR}
@@ -96,7 +96,10 @@ ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
-${YAJLDIR}/Makefile: deps/Makefile.yajl
+${YAJLDIR}/CMakeLists.txt: 
+	git submodule update --init ${YAJLDIR}
+
+${YAJLDIR}/Makefile: deps/Makefile.yajl ${YAJLDIR}/CMakeLists.txt
 	ln -s ../Makefile.yajl ${YAJLDIR}/Makefile
 
 ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
@@ -120,7 +123,7 @@ ${GENDIR}/%.c: lib/%.lua deps
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -g -Wall -c $< -o $@
 
-${BUILDDIR}/%.o: src/%.c src/%.h deps deps/yajl/yajl.a
+${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
 	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
 
@@ -159,7 +162,7 @@ uninstall deinstall:
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
 
-test: ${BUILDDIR}/luvit examples/native/vector.luvit
+test: examples/native/vector.luvit
 	find tests -name "test-*.lua" | while read LINE; do \
 		${BUILDDIR}/luvit $$LINE > tests/failed_test.log && \
 		rm tests/failed_test.log || cat tests/failed_test.log; \

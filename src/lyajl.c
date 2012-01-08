@@ -1,3 +1,20 @@
+/*
+ *  Copyright 2012 The Luvit Authors. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -215,6 +232,31 @@ static int lyajl_parse (lua_State *L) {
 
   if (stat != yajl_status_ok) {
     unsigned char * str = yajl_get_error(handle, 1, (const unsigned char*)chunk, len);
+    luaL_error(L, (const char *) str);
+    yajl_free_error(handle, str); // This doesn't actually happen
+  }
+
+  return 0;
+}
+
+static int lyajl_complete_parse (lua_State *L) {
+  // Process the args
+  luaL_checktype(L, 1, LUA_TTABLE);
+
+  // Load the yajl_handle
+  lua_getfield(L, 1, "handle");
+  if (!lua_islightuserdata(L, -1)) {
+    luaL_error(L, "handle is not a proper light userdata");
+  }
+  yajl_handle handle;
+  handle = (yajl_handle)lua_touserdata(L, -1);
+  lua_pop(L, 1);
+
+  yajl_status stat;
+  stat = yajl_complete_parse(handle);
+
+  if (stat != yajl_status_ok) {
+    unsigned char * str = yajl_get_error(handle, 1, (const unsigned char*)0, 0);
     luaL_error(L, (const char *) str);
     yajl_free_error(handle, str); // This doesn't actually happen
   }
@@ -443,8 +485,6 @@ static int lyajl_gen_config (lua_State *L) {
 
 
 static int lyajl_new_generator (lua_State *L) {
-  // options table
-  luaL_checktype(L, 1, LUA_TTABLE);
 
   lua_newtable(L);
 
@@ -460,6 +500,7 @@ static int lyajl_new_generator (lua_State *L) {
 
 static const luaL_reg lyajl_parser_m[] = {
   {"parse", lyajl_parse},
+  {"complete", lyajl_complete_parse},
   {"config", lyajl_config},
   {NULL, NULL}
 };
