@@ -81,11 +81,11 @@ function HTTP.request(options, callback)
       end
     });
 
-    client:on("data", function (chunk, len)
-      local nparsed = parser:execute(chunk, 0, len)
+    client:on("data", function (chunk)
+      local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
-      if nparsed < len then
+      if nparsed < #chunk then
         error("Parse error in server response")
       end
 
@@ -166,30 +166,29 @@ function HTTP.create_server(host, port, on_connection)
     })
 
 
-    client:on("data", function (chunk, len)
+    client:on("data", function (chunk)
 
       -- Ignore empty chunks
-      if len == 0 then return end
+      if #chunk == 0 then return end
 
       -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
       -- shouldn't send data to the HTTP parser
       if request.upgrade then
-        request:emit("data", chunk, len)
+        request:emit("data", chunk)
         return
       end
 
       -- Parse the chunk of HTTP, this will syncronously emit several of the
       -- above events and return how many bytes were parsed.
-      local nparsed = parser:execute(chunk, 0, len)
+      local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
-      if nparsed < len then
+      if nparsed < #chunk then
         -- If the error was caused by non-http protocol like in websockets
         -- then that's ok, just emit the rest directly to the request object
         if request.upgrade then
-          len = len - nparsed
           chunk = chunk:sub(nparsed + 1)
-          request:emit("data", chunk, len)
+          request:emit("data", chunk)
         else
           request:emit("error", "parse error")
         end
