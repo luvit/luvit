@@ -120,9 +120,9 @@ function Socket.prototype:connect(port, host, callback)
     self:emit('end')
   end)
 
-  self._handle:on('data', function(data, len)
-    self.bytesRead = self.bytesRead + len
-    self:emit('data', data, len)
+  self._handle:on('data', function(data)
+    self.bytesRead = self.bytesRead + #data
+    self:emit('data', data)
   end)
 
   self._handle:on('error', function(err)
