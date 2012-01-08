@@ -19,7 +19,6 @@ limitations under the License.
 local Debug = require('debug')
 local Utils = require('utils')
 local source = Debug.getinfo(3, "S").source:sub(2)
-print_stderr("Running " .. Utils.color("Bblue") .. source .. Utils.color() .. "... ")
 
 local table_concat = require('table').concat
 local expectations = {}
@@ -49,10 +48,11 @@ process:on('exit', function (code, signal)
   end
   if #errors > 0 then
     print_stderr(Utils.color("Bred") .. "FAIL" .. Utils.color() .. "\n")
-
     error("\n" .. source .. ":on_exit:" .. table_concat(errors, ""))
+    exit_process(1)
   end
   print_stderr(Utils.color("Bgreen") .. "PASS" .. Utils.color() .. "\n")
+  exit_process(0)
 
 end)
 
@@ -68,6 +68,10 @@ _G.deep_equal = function(expected, actual)
     end
     return true
   else
-    return equal(expected, actual)
+    local rv = equal(expected, actual)
+    if rv == false then
+      exit_process(1)
+    end
   end
 end
+
