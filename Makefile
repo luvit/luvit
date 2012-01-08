@@ -11,10 +11,10 @@ INCLUDEDIR?=${DESTDIR}${INCDIR}/luvit
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
-ifeq (${MH_NAME},x86_64)
-LDFLAGS=-framework CoreServices -pagezero_size 10000 -image_base 100000000
-else
-LDFLAGS=-framework CoreServices
+XLDFLAGS=-framework CoreServices
+ifeq (${MH_NAME},i386)
+CFLAGS=-arch i386
+LDFLAGS=-arch i386
 endif
 else ifeq (${OS_NAME},Linux)
 LDFLAGS=-Wl,-E -lrt
@@ -25,6 +25,8 @@ XCFLAGS=-g
 XCFLAGS+=-DLUAJIT_ENABLE_LUA52COMPAT
 XCFLAGS+=-DLUA_USE_APICHECK
 export XCFLAGS
+export CFLAGS
+export LDFLAGS
 # verbose build
 export Q=
 MAKEFLAGS+=-e
@@ -94,13 +96,13 @@ ${LUADIR}/Makefile:
 
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
-	$(MAKE) -C ${LUADIR}
+	$(MAKE) -C ${LUADIR} CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
 
 ${YAJLDIR}/CMakeLists.txt: 
 	git submodule update --init ${YAJLDIR}
 
 ${YAJLDIR}/Makefile: deps/Makefile.yajl ${YAJLDIR}/CMakeLists.txt
-	ln -s ../Makefile.yajl ${YAJLDIR}/Makefile
+	ln -fs ../Makefile.yajl ${YAJLDIR}/Makefile
 
 ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
 	$(MAKE) -C ${YAJLDIR}
@@ -121,14 +123,14 @@ ${GENDIR}/%.c: lib/%.lua deps
 	${LUADIR}/src/luajit -b $< $@
 
 ${GENDIR}/%.o: ${GENDIR}/%.c
-	$(CC) -g -Wall -c $< -o $@
+	$(CC) ${CFLAGS} -g -Wall -c $< -o $@
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
+	$(CC) -g ${CFLAGS} -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_OS=\"unix\"
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
+	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS} ${XLDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
