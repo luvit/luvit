@@ -36,9 +36,17 @@ local function run_test(filename, callback)
   results[filename].stdout_data = ''
   results[filename].stderr_data = ''
   results[filename].filename = filename
+
+  process.stdout:write(Utils.color("Bwhite") .. filename .. Utils.color())
+
   local child = Process.spawn(process.argv[0], {filename}, {})
   child:on('exit', function (exit_status, term_signal)
     results[filename].exit_status = exit_status
+    if exit_status ~= 0 then
+      process.stdout:write(' ' .. Utils.color("Bred") .. 'FAILED' .. Utils.color() .. '\n')
+    else
+      process.stdout:write(' ' .. Utils.color("Bgreen") .. 'SUCCESS' .. Utils.color() .. '\n')
+    end
     callback()
   end)
   child.stdout:on("data", function (chunk)
@@ -63,11 +71,10 @@ Fs.readdir('.', function(err, files)
   async.forEachSeries(test_files, run_test, function()
     for k, v in pairs(results) do
       if v.exit_status ~= 0 then
+        process.stdout:write('\n\n')
         process.stdout:write(Utils.color("Bred") .. "FAIL (" .. v.filename .. ')' .. Utils.color() .. "\n")
         process.stdout:write(v.stdout_data)
         process.stdout:write(v.stderr_data)
-      else
-        process.stdout:write(Utils.color("Bgreen") .. 'PASS (' .. v.filename .. ')\n')
       end
     end
     p('Tests completed')
