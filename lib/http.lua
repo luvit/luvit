@@ -70,7 +70,7 @@ function HTTP.request(options, callback)
         response.version_minor = info.version_minor
         response.version_major = info.version_major
 
-        callback(nil, response)
+        callback(response)
 
       end,
       on_body = function (chunk)
@@ -95,6 +95,8 @@ function HTTP.request(options, callback)
       parser:finish()
     end)
   end)
+
+  return client
 end
 
 function HTTP.create_server(host, port, on_connection)
