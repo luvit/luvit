@@ -1,0 +1,4 @@
+Luvit
+Copyright (c) 2012 The Luvit Authors.
+
+Portions of this software were based on Node.js, Copyright Joyent, Inc. and other Node contributors.
