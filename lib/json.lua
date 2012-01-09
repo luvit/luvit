@@ -77,7 +77,7 @@ function JSON.parse(string, options)
   end
   parser:parse(string)
   parser:complete()
-  return root[1]
+  return unpack(root)
 end
 
 function JSON.stringify(value, options)
