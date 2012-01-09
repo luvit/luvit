@@ -162,7 +162,7 @@ uninstall deinstall:
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
 
-test: 
+test: examples/native/vector.luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
 
 .PHONY: test install all
