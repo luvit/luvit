@@ -165,7 +165,23 @@ local inherits = function(ctor, super)
   end
 end
 
+local bind = function(self, fun, ...)
+  local bind_args = {...}
+  return function(...)
+    local args = {...}
+    if #bind_args > 0 then
+      for i=1,#args do
+        Table.insert(bind_args, args[i])
+      end
+      fun(self, unpack(bind_args))
+    else
+      fun(self, unpack(args))
+    end
+  end
+end
+
 return {
+  bind = bind,
   dump = dump,
   color = color,
   colorize = colorize,
