@@ -170,7 +170,10 @@ local bind = function(self, fun, ...)
   return function(...)
     local args = {...}
     if #bind_args > 0 then
-      fun(self, unpack(bind_args), unpack(args))
+      for i=1,#args do
+        Table.insert(bind_args, args[i])
+      end
+      fun(self, unpack(bind_args))
     else
       fun(self, unpack(args))
     end
