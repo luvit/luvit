@@ -17,6 +17,7 @@ limitations under the License.
 --]]
 
 local TCP = require('tcp')
+local net = require('net')
 local Request = require('request')
 local Response = require('response')
 local HTTP_Parser = require('http_parser')
@@ -32,15 +33,14 @@ function HTTP.request(options, callback)
   local headers = options.headers or {}
   if not headers.host then headers.host = host end
 
-  local client = TCP.new()
+  local client
+  client = net.create(port, host, function(err)
+    if err then
+      callback(err)
+      client:close()
+      return
+    end
 
-  local status, result = pcall(client.connect, client, host, port)
-  if not status then
-    callback(result)
-    client:close()
-    return
-  end
-  client:on("complete", function ()
     local response = Response.new(client)
     local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
     for field, value in pairs(headers) do
@@ -48,7 +48,6 @@ function HTTP.request(options, callback)
     end
     request[#request + 1] = "\r\n"
     client:write(Table.concat(request))
-    client:read_start()
 
     local headers
     local current_field
@@ -71,7 +70,7 @@ function HTTP.request(options, callback)
         response.version_minor = info.version_minor
         response.version_major = info.version_major
 
-        callback(nil, response)
+        callback(response)
 
       end,
       on_body = function (chunk)
@@ -82,11 +81,11 @@ function HTTP.request(options, callback)
       end
     });
 
-    client:on("data", function (chunk, len)
-      local nparsed = parser:execute(chunk, 0, len)
+    client:on("data", function (chunk)
+      local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
-      if nparsed < len then
+      if nparsed < #chunk then
         error("Parse error in server response")
       end
 
@@ -95,22 +94,19 @@ function HTTP.request(options, callback)
     client:on("end", function ()
       parser:finish()
     end)
-
   end)
+
+  return client
 end
 
 function HTTP.create_server(host, port, on_connection)
-  local server = TCP.new()
-  server:bind(host, port)
-  server:listen(function (err)
+  local server
+  server = net.createServer(function(client)
     if err then
       return server:emit("error", err)
     end
 
     -- Accept the client and build request and response objects
-    local client = TCP.new()
-    server:accept(client)
-    client:read_start()
     local request = Request.new(client)
     local response = Response.new(client)
 
@@ -172,30 +168,29 @@ function HTTP.create_server(host, port, on_connection)
     })
 
 
-    client:on("data", function (chunk, len)
+    client:on("data", function (chunk)
 
       -- Ignore empty chunks
-      if len == 0 then return end
+      if #chunk == 0 then return end
 
       -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
       -- shouldn't send data to the HTTP parser
       if request.upgrade then
-        request:emit("data", chunk, len)
+        request:emit("data", chunk)
         return
       end
 
       -- Parse the chunk of HTTP, this will syncronously emit several of the
       -- above events and return how many bytes were parsed.
-      local nparsed = parser:execute(chunk, 0, len)
+      local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
-      if nparsed < len then
+      if nparsed < #chunk then
         -- If the error was caused by non-http protocol like in websockets
         -- then that's ok, just emit the rest directly to the request object
         if request.upgrade then
-          len = len - nparsed
           chunk = chunk:sub(nparsed + 1)
-          request:emit("data", chunk, len)
+          request:emit("data", chunk)
         else
           request:emit("error", "parse error")
         end
@@ -208,6 +203,8 @@ function HTTP.create_server(host, port, on_connection)
     end)
 
   end)
+
+  server:listen(port, host)
 
   return server
 end
