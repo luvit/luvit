@@ -3,3 +3,6 @@ jit
 generated
 *.o
 *.luvit
+*.*~
+*.xcodeproj
+out/
