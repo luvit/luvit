@@ -165,7 +165,20 @@ local inherits = function(ctor, super)
   end
 end
 
+local bind = function(self, fun, ...)
+  local bind_args = {...}
+  return function(...)
+    local args = {...}
+    if #bind_args > 0 then
+      fun(self, unpack(bind_args), unpack(args))
+    else
+      fun(self, unpack(args))
+    end
+  end
+end
+
 return {
+  bind = bind,
   dump = dump,
   color = color,
   colorize = colorize,
