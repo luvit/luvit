@@ -100,7 +100,7 @@ ${YAJLDIR}/CMakeLists.txt:
 	git submodule update --init ${YAJLDIR}
 
 ${YAJLDIR}/Makefile: deps/Makefile.yajl ${YAJLDIR}/CMakeLists.txt
-	ln -s ../Makefile.yajl ${YAJLDIR}/Makefile
+	cp deps/Makefile.yajl ${YAJLDIR}/Makefile
 
 ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
 	$(MAKE) -C ${YAJLDIR}
