@@ -87,10 +87,5 @@
         }
       ],
     },
-    {
-      'target_name': 'test',
-      'type': 'none',
-      'dependencies': [ 'tests/test.gyp:*' ],
-    },
   ],
 }
