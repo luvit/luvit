@@ -34,12 +34,19 @@ commands = {
   'test': test,
 }
 
-if len(sys.argv) != 2:
+def usage():
   print('Usage: build.py [%s]' % ', '.join(commands.keys()))
   sys.exit(1)
 
+if len(sys.argv) != 2:
+  usage()
+
 ins = sys.argv[1]
-if commands.has_key(ins):
-  print('Running %s' % ins)
-  cmd = commands.get(ins)
-  cmd()
+if not commands.has_key(ins):
+  print('Invalid command: %s' % ins)
+  sys.exit(1)
+
+print('Running %s' % ins)
+cmd = commands.get(ins)
+cmd()
+
