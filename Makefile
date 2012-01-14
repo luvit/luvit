@@ -181,6 +181,6 @@ tarball:
 	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
 	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
-	# rm -rf ${DIST_FOLDER}
+	rm -rf ${DIST_FOLDER}
 
 .PHONY: test install all
