@@ -46,10 +46,11 @@ local Emitter = require('emitter')
 local Constants = require('constants')
 local Path = require('path')
 
-local OS_Date = require('os').date
+local OLD_OS = require('os')
 local OS_BINDING = require('os_binding')
 package.loaded.os = OS_BINDING
-OS_BINDING.date = OS_Date
+OS_BINDING.date = OLD_OS.date
+OS_BINDING.time = OLD_OS.time
 
 
 process = Emitter.new()
