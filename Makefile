@@ -137,7 +137,7 @@ clean:
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
-	rm -rf build
+	rm -rf build luvit-*.tar.gz
 
 install: ${BUILDDIR}/luvit
 	mkdir -p ${BINDIR}
@@ -165,5 +165,14 @@ examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 
 test: examples/native/vector.luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
+
+VERSION:=$(shell grep 'VERSION = "\(.*\)"' lib/luvit.lua -o | cut -c 11-)
+tarball:
+	rm -rf /tmp/luvit-${VERSION}
+	git clone .git /tmp/luvit-${VERSION}
+	cd /tmp/luvit-${VERSION} ; git submodule update --init
+	find /tmp/luvit-${VERSION} -name ".git*" | xargs rm -r
+	tar -czvf luvit-${VERSION}.tar.gz -C /tmp luvit-${VERSION}
+	rm -rf /tmp/luvit-${VERSION}
 
 .PHONY: test install all
