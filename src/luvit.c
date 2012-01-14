@@ -133,6 +133,9 @@ int main(int argc, char *argv[])
   lua_pushcfunction(L, luvit_getcwd);
   lua_setglobal(L, "getcwd");
 
+  lua_pushstring(L, LUVIT_VERSION);
+  lua_setglobal(L, "VERSION");
+
   // Register OS
   lua_pushstring(L, LUVIT_OS);
   lua_setglobal(L, "luvit_os");
