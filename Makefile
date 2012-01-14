@@ -71,6 +71,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/lconstants.o     \
         ${BUILDDIR}/lenv.o           \
         ${BUILDDIR}/lyajl.o          \
+        ${BUILDDIR}/los.o            \
         ${BUILDDIR}/lhttp_parser.o
 
 ALLLIBS=${BUILDDIR}/luvit.o       \

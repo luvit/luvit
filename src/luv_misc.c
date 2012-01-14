@@ -17,9 +17,14 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "luv_misc.h"
 #include "utils.h"
+
+#ifndef PATH_MAX
+#define PATH_MAX (8096)
+#endif
 
 #ifndef _WIN32
 
@@ -253,9 +258,94 @@ int luv_loadavg(lua_State* L) {
   return 3;
 }
 
-#ifndef PATH_MAX
-#define PATH_MAX (8096)
-#endif
+int luv_uptime(lua_State* L) {
+  double uptime;
+  uv_uptime(&uptime);
+  lua_pushnumber(L, uptime);
+  return 1;
+}
+
+int luv_cpu_info(lua_State* L) {
+  uv_cpu_info_t* cpu_infos;
+  int count;
+  uv_cpu_info(&cpu_infos, &count);
+  lua_newtable(L);
+  int i;
+  for (i = 0; i < count; i++) {
+    lua_newtable(L);
+    lua_pushstring(L, (cpu_infos[i]).model);
+    lua_setfield(L, -2, "model");
+    lua_pushnumber(L, (cpu_infos[i]).speed);
+    lua_setfield(L, -2, "speed");
+    lua_newtable(L);
+    lua_pushnumber(L, (cpu_infos[i]).cpu_times.user);
+    lua_setfield(L, -2, "user");
+    lua_pushnumber(L, (cpu_infos[i]).cpu_times.nice);
+    lua_setfield(L, -2, "nice");
+    lua_pushnumber(L, (cpu_infos[i]).cpu_times.sys);
+    lua_setfield(L, -2, "sys");
+    lua_pushnumber(L, (cpu_infos[i]).cpu_times.idle);
+    lua_setfield(L, -2, "idle");
+    lua_pushnumber(L, (cpu_infos[i]).cpu_times.irq);
+    lua_setfield(L, -2, "irq");
+    lua_setfield(L, -2, "times");
+    lua_rawseti(L, -2, i + 1);
+  }
+
+  uv_free_cpu_info(cpu_infos, count);
+  return 1;
+}
+
+// struct uv_interface_address_s {
+//   char* name;
+//   int is_internal;
+//   union {
+//     struct sockaddr_in address4;
+//     struct sockaddr_in6 address6;
+//   } address;
+// };
+
+int luv_interface_addresses(lua_State* L) {
+  uv_interface_address_t* interfaces;
+  int count;
+  char ip[INET6_ADDRSTRLEN];
+
+  uv_interface_addresses(&interfaces, &count);
+
+  lua_newtable(L);
+  int i;
+  for (i = 0; i < count; i++) {
+    lua_getfield(L, -1, interfaces[i].name);
+    if (!lua_istable(L, -1)) {
+      lua_pop(L, 1);
+      lua_newtable(L);
+      lua_pushvalue(L, -1);
+      lua_setfield(L, -3, interfaces[i].name);
+    }
+    lua_newtable(L);
+    lua_pushboolean(L, interfaces[i].is_internal);
+    lua_setfield(L, -2, "internal");
+    const char* family;
+    if (interfaces[i].address.address4.sin_family == AF_INET) {
+      uv_ip4_name(&interfaces[i].address.address4,ip, sizeof(ip));
+      family = "IPv4";
+    } else if (interfaces[i].address.address4.sin_family == AF_INET6) {
+      uv_ip6_name(&interfaces[i].address.address6, ip, sizeof(ip));
+      family = "IPv6";
+    } else {
+      strncpy(ip, "<unknown sa family>", INET6_ADDRSTRLEN);
+      family = "<unknown>";
+    }
+    lua_pushstring(L, ip);
+    lua_setfield(L, -2, "address");
+    lua_pushstring(L, family);
+    lua_setfield(L, -2, "family");
+    lua_rawseti(L, -2, lua_objlen (L, -2) + 1);
+    lua_pop(L, 1);
+  }
+  uv_free_interface_addresses(interfaces, count);
+  return 1;
+}
 
 int luv_execpath(lua_State* L) {
   size_t size = 2*PATH_MAX;

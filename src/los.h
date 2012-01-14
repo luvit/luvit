@@ -15,28 +15,12 @@
  *
  */
 
-#ifndef LUV_MISC
-#define LUV_MISC
+#ifndef LOS
+#define LOS
 
 #include "lua.h"
 #include "lauxlib.h"
-#include "uv.h"
-#include "utils.h"
 
-int luv_activate_signal_handler(lua_State* L);
-int luv_run(lua_State* L);
-int luv_ref (lua_State* L);
-int luv_unref(lua_State* L);
-int luv_update_time(lua_State* L);
-int luv_now(lua_State* L);
-int luv_hrtime(lua_State* L);
-int luv_get_free_memory(lua_State* L);
-int luv_get_total_memory(lua_State* L);
-int luv_loadavg(lua_State* L);
-int luv_uptime(lua_State* L);
-int luv_cpu_info(lua_State* L);
-int luv_interface_addresses(lua_State* L);
-int luv_execpath(lua_State* L);
-int luv_handle_type(lua_State* L);
+LUALIB_API int luaopen_os (lua_State *L);
 
 #endif

@@ -96,6 +96,9 @@ int main(int argc, char *argv[])
   // Register yajl
   lua_pushcfunction(L, luaopen_yajl);
   lua_setfield(L, -2, "yajl");
+  // Register os
+  lua_pushcfunction(L, luaopen_os);
+  lua_setfield(L, -2, "os");
   // Register http_parser
   lua_pushcfunction(L, luaopen_http_parser);
   lua_setfield(L, -2, "http_parser");
