@@ -21,6 +21,6 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-LUALIB_API int luaopen_os (lua_State *L);
+LUALIB_API int luaopen_os_binding (lua_State *L);
 
 #endif

@@ -58,7 +58,7 @@ static const luaL_reg los_f[] = {
   {NULL, NULL}
 };
 
-LUALIB_API int luaopen_os(lua_State *L) {
+LUALIB_API int luaopen_os_binding(lua_State *L) {
 
   lua_newtable (L);
   luaL_register(L, NULL, los_f);

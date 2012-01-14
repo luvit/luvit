@@ -27,6 +27,7 @@
 #include "luvit.h"
 #include "uv.h"
 #include "utils.h"
+#include "los.h"
 #include "luv.h"
 #include "luv_dns.h"
 #include "luv_portability.h"
@@ -97,8 +98,8 @@ int main(int argc, char *argv[])
   lua_pushcfunction(L, luaopen_yajl);
   lua_setfield(L, -2, "yajl");
   // Register os
-  lua_pushcfunction(L, luaopen_os);
-  lua_setfield(L, -2, "os");
+  lua_pushcfunction(L, luaopen_os_binding);
+  lua_setfield(L, -2, "os_binding");
   // Register http_parser
   lua_pushcfunction(L, luaopen_http_parser);
   lua_setfield(L, -2, "http_parser");

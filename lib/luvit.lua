@@ -46,6 +46,12 @@ local Emitter = require('emitter')
 local Constants = require('constants')
 local Path = require('path')
 
+local OS_Date = require('os').date
+local OS_BINDING = require('os_binding')
+package.loaded.os = OS_BINDING
+OS_BINDING.date = OS_Date
+
+
 process = Emitter.new()
 process.version = VERSION
 process.versions = {
