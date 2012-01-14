@@ -18,13 +18,20 @@ limitations under the License.
 --]]
 
 local Table = require('table')
+local OS = require('os')
 local command = process.argv[1]
 if command == "--libs" then
   local flags = {
     "-shared",
     "-lm"
   }
-  -- -pagezero_size 10000 -image_base 100000000 (for OSX 64bit?)
+  if OS.type() == "Darwin" then
+    if false then -- TODO: check if 64 bit
+      Table.insert(flags, "-pagezero_size 10000")
+      Table.insert(flags, "-image_base 100000000")
+    end
+    Table.insert(flags, "-undefined dynamic_lookup")
+  end
   print(Table.concat(flags, " "))
 elseif command == "--cflags" then
   local Path = require('path')
