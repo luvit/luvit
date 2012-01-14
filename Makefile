@@ -1,3 +1,4 @@
+VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
 UVDIR=deps/uv
 HTTPDIR=deps/http-parser
@@ -137,7 +138,7 @@ clean:
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
-	rm -rf build luvit-*.tar.gz
+	rm -rf build
 
 install: ${BUILDDIR}/luvit
 	mkdir -p ${BINDIR}
@@ -166,13 +167,20 @@ examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 test: examples/native/vector.luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
 
-VERSION:=$(shell grep 'VERSION = "\(.*\)"' lib/luvit.lua -o | cut -c 11-)
+DIST_DIR=${HOME}/luvit.io/dist
+DIST_NAME=luvit-${VERSION}
+DIST_FOLDER=${DIST_DIR}/${VERSION}/${DIST_NAME}
+DIST_FILE=${DIST_FOLDER}.tar.gz
 tarball:
-	rm -rf /tmp/luvit-${VERSION}
-	git clone .git /tmp/luvit-${VERSION}
-	cd /tmp/luvit-${VERSION} ; git submodule update --init
-	find /tmp/luvit-${VERSION} -name ".git*" | xargs rm -r
-	tar -czvf luvit-${VERSION}.tar.gz -C /tmp luvit-${VERSION}
-	rm -rf /tmp/luvit-${VERSION}
+	rm -rf ${DIST_FOLDER} ${DIST_FILE}
+	mkdir -p ${DIST_DIR}
+	git clone . ${DIST_FOLDER}
+	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
+	cd ${DIST_FOLDER} ; git submodule update --init
+	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
+	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
+	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
+	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
+	# rm -rf ${DIST_FOLDER}
 
 .PHONY: test install all

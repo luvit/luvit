@@ -1,0 +1,12 @@
+[submodule "deps/http-parser"]
+        path = deps/http-parser
+        url = ../deps/http-parser/.git
+[submodule "deps/uv"]
+        path = deps/uv
+        url = ../deps/uv/.git
+[submodule "deps/luajit"]
+        path = deps/luajit
+        url = ../deps/luajit/.git
+[submodule "deps/yajl"]
+        path = deps/yajl
+        url = ../deps/yajl/.git
