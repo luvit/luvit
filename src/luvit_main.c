@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
   loop = uv_default_loop();
 
-  if (luvit_init(loop, L, argc, argv)) {
+  if (luvit_init(L, loop, argc, argv)) {
     fprintf(stderr, "luvit_init has failed\n");
     return 1;
   }

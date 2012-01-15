@@ -68,7 +68,7 @@ static int luvit_getcwd(lua_State* L) {
   return 1;
 }
 
-int luvit_init(uv_loop_t* loop, lua_State *L, int argc, char *argv[])
+int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 {
   int index, rc;
   ares_channel channel;
