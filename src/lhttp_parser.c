@@ -340,6 +340,8 @@ static int lhttp_parser_parse_url (lua_State *L) {
   }
   if (u.field_set & (1 << UF_PORT)) {
     lua_pushlstring(L, url + u.field_data[UF_PORT].off, u.field_data[UF_PORT].len);
+    lua_setfield(L, -2, "port_string");
+    lua_pushnumber(L, u.port);
     lua_setfield(L, -2, "port");
   }
   if (u.field_set & (1 << UF_PATH)) {
