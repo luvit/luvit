@@ -209,9 +209,10 @@ static const luaL_reg luv_stream_m[] = {
 };
 
 static const luaL_reg luv_tcp_m[] = {
+  {"nodelay", luv_tcp_nodelay},
+  {"keepalive", luv_tcp_keepalive},
   {"bind", luv_tcp_bind},
   {"bind6", luv_tcp_bind6},
-  {"nodelay", luv_tcp_nodelay},
   {"getsockname", luv_tcp_getsockname},
   {"getpeername", luv_tcp_getpeername},
   {"connect", luv_tcp_connect},

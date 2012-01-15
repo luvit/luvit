@@ -49,6 +49,31 @@ int luv_new_tcp (lua_State* L) {
   return 1;
 }
 
+int luv_tcp_nodelay (lua_State* L) {
+  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
+  int enable = lua_toboolean(L, 2);
+
+  if (uv_tcp_nodelay(handle, enable)) {
+    uv_err_t err = uv_last_error(luv_get_loop(L));
+    return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err));
+  }
+  return 0;
+}
+
+int luv_tcp_keepalive (lua_State* L) {
+  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
+  int enable = lua_toboolean(L, 2);
+  int delay = lua_tointeger(L, 3);
+
+  if (uv_tcp_keepalive(handle, enable, delay)) {
+    uv_err_t err = uv_last_error(luv_get_loop(L));
+    return luaL_error(L, "tcp_keepalive: %s", uv_strerror(err));
+  }
+  return 0;
+
+}
+
+
 int luv_tcp_bind (lua_State* L) {
   int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
@@ -77,22 +102,6 @@ int luv_tcp_bind6(lua_State* L) {
   if (uv_tcp_bind6(handle, address)) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_bind6: %s", uv_strerror(err));
-  }
-
-  assert(lua_gettop(L) == before);
-  return 0;
-}
-
-int luv_tcp_nodelay(lua_State* L) {
-  int before = lua_gettop(L);
-  uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
-  int value = lua_toboolean(L, 2);
-
-  int status = uv_tcp_nodelay(handle, value);
-
-  if (status == -1) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err));
   }
 
   assert(lua_gettop(L) == before);
