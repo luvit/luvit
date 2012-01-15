@@ -25,6 +25,8 @@
 
 LUALIB_API int luaopen_uv (lua_State *L);
 
+int luvit_init(uv_loop_t* loop, lua_State *L, int argc, char *argv[]);
+int luvit_run(lua_State *L);
 
 #endif
 
