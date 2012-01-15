@@ -9,11 +9,13 @@
         'deps/yajl.gyp:yajl',
         'deps/uv/uv.gyp:uv',
       ],
+
       'sources': [
         'src/lconstants.c',
         'src/lenv.c',
         'src/lhttp_parser.c',
         'src/lyajl.c',
+        'src/los.c',
         'src/luv.c',
         'src/luv_fs.c',
         'src/luv_fs_watcher.c',
@@ -55,7 +57,7 @@
         'lib/utils.lua',
       ],
 
-    'msvs-settings': {
+      'msvs-settings': {
         'VCLinkerTool': {
           'SubSystem': 1, # /subsystem:console
         },
@@ -65,6 +67,11 @@
       ],
       'defines': [
         'LUVIT_OS="<(OS)"',
+        'LUVIT_VERSION="<!(git --git-dir .git describe --tags)"',
+        'HTTP_VERSION="<!(git --git-dir deps/http-parser/.git describe --tags)"',
+        'UV_VERSION="<!(git --git-dir deps/uv/.git describe --all --tags --always --long)"',
+        'LUAJIT_VERSION="<!(git --git-dir deps/luajit/.git describe --tags)"',
+        'YAJL_VERSIONISH="<!(git --git-dir deps/yajl/.git describe --tags)"',
       ],
       'include_dirs': [
         'src',
