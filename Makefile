@@ -129,7 +129,7 @@ ${GENDIR}/%.o: ${GENDIR}/%.c
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DYAJL_VERSION=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
 	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
