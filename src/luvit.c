@@ -136,6 +136,9 @@ int main(int argc, char *argv[])
   lua_pushstring(L, LUVIT_VERSION);
   lua_setglobal(L, "VERSION");
 
+  lua_pushstring(L, UV_VERSION);
+  lua_setglobal(L, "UV_VERSION");
+  
   lua_pushstring(L, LUAJIT_VERSION);
   lua_setglobal(L, "LUAJIT_VERSION");
 
