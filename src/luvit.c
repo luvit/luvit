@@ -136,9 +136,11 @@ int main(int argc, char *argv[])
   lua_pushstring(L, LUVIT_VERSION);
   lua_setglobal(L, "VERSION");
 
-  // Register OS
-  lua_pushstring(L, LUVIT_OS);
-  lua_setglobal(L, "luvit_os");
+  lua_pushstring(L, LUAJIT_VERSION);
+  lua_setglobal(L, "LUAJIT_VERSION");
+
+  lua_pushstring(L, YAJL_VERSION);
+  lua_setglobal(L, "YAJL_VERSION");
 
   // Hold a reference to the main thread in the registry
   assert(lua_pushthread(L) == 1);

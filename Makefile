@@ -1,8 +1,10 @@
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
+LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
+YAJLDIR=deps/yajl
+YAJL_VERSION=$(shell git --git-dir ${YAJLDIR}/.git describe --tags)
 UVDIR=deps/uv
 HTTPDIR=deps/http-parser
-YAJLDIR=deps/yajl
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 PREFIX?=/usr/local
@@ -127,7 +129,7 @@ ${GENDIR}/%.o: ${GENDIR}/%.c
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DLUVIT_VERSION=\"${VERSION}\" -DLUVIT_OS=\"unix\"
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DYAJL_VERSION=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
 	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
@@ -178,7 +180,9 @@ tarball:
 	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
 	cd ${DIST_FOLDER} ; git submodule update --init
 	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
-	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
+	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
+            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
+            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
 	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
