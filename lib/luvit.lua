@@ -59,12 +59,14 @@ process.versions = {
   luvit = VERSION,
   uv = UV.VERSION_MAJOR .. "." .. UV.VERSION_MINOR .. "-" .. UV_VERSION,
   luajit = LUAJIT_VERSION,
-  yajl = YAJL_VERSION
+  yajl = YAJL_VERSION,
+  http_parser = HTTP_VERSION,
 }
 _G.VERSION = nil
 _G.YAJL_VERSION = nil
 _G.LUAJIT_VERSION = nil
 _G.UV_VERSION = nil
+_G.HTTP_VERSION = nil
 
 function process.exit(exit_code)
   process:emit('exit', exit_code)

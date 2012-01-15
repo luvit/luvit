@@ -6,6 +6,7 @@ YAJL_VERSION=$(shell git --git-dir ${YAJLDIR}/.git describe --tags)
 UVDIR=deps/uv
 UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 -d -)
 HTTPDIR=deps/http-parser
+HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
 BUILDDIR=build
 GENDIR=${BUILDDIR}/generated
 PREFIX?=/usr/local
@@ -130,7 +131,7 @@ ${GENDIR}/%.o: ${GENDIR}/%.c
 
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
 	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
@@ -184,6 +185,7 @@ tarball:
 	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
             -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
             -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
+            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
             -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
 	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}

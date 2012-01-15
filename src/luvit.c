@@ -142,6 +142,9 @@ int main(int argc, char *argv[])
   lua_pushstring(L, LUAJIT_VERSION);
   lua_setglobal(L, "LUAJIT_VERSION");
 
+  lua_pushstring(L, HTTP_VERSION);
+  lua_setglobal(L, "HTTP_VERSION");
+
   lua_pushstring(L, YAJL_VERSIONISH);
   lua_setglobal(L, "YAJL_VERSION");
 
