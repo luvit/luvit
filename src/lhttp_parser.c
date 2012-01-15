@@ -320,6 +320,43 @@ static int lhttp_parser_reinitialize (lua_State *L) {
   return 0;
 }
 
+static int lhttp_parser_parse_url (lua_State *L) {
+  size_t len;
+  const char *url;
+  url = luaL_checklstring(L, 1, &len);
+  int is_connect = lua_tointeger(L, 2);
+  struct http_parser_url u;
+  if (http_parser_parse_url(url, len, is_connect, &u)) {
+    luaL_error(L, "Error parsing url %s", url);
+  }
+  lua_newtable(L);
+  if (u.field_set & (1 << UF_SCHEMA)) {
+    lua_pushlstring(L, url + u.field_data[UF_SCHEMA].off, u.field_data[UF_SCHEMA].len);
+    lua_setfield(L, -2, "schema");
+  }
+  if (u.field_set & (1 << UF_HOST)) {
+    lua_pushlstring(L, url + u.field_data[UF_HOST].off, u.field_data[UF_HOST].len);
+    lua_setfield(L, -2, "host");
+  }
+  if (u.field_set & (1 << UF_PORT)) {
+    lua_pushlstring(L, url + u.field_data[UF_PORT].off, u.field_data[UF_PORT].len);
+    lua_setfield(L, -2, "port");
+  }
+  if (u.field_set & (1 << UF_PATH)) {
+    lua_pushlstring(L, url + u.field_data[UF_PATH].off, u.field_data[UF_PATH].len);
+    lua_setfield(L, -2, "path");
+  }
+  if (u.field_set & (1 << UF_QUERY)) {
+    lua_pushlstring(L, url + u.field_data[UF_QUERY].off, u.field_data[UF_QUERY].len);
+    lua_setfield(L, -2, "query");
+  }
+  if (u.field_set & (1 << UF_FRAGMENT)) {
+    lua_pushlstring(L, url + u.field_data[UF_FRAGMENT].off, u.field_data[UF_FRAGMENT].len);
+    lua_setfield(L, -2, "fragment");
+  }
+  return 1;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -332,6 +369,7 @@ static const luaL_reg lhttp_parser_m[] = {
 
 static const luaL_reg lhttp_parser_f[] = {
   {"new", lhttp_parser_new},
+  {"parse_url", lhttp_parser_parse_url},
   {NULL, NULL}
 };
 
