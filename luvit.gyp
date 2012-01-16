@@ -1,7 +1,7 @@
 {
   'targets': [
     {'target_name': 'libluvit',
-     'type': 'static_library',
+     'type': 'shared_library',
      'dependencies': [
        'deps/http-parser/http_parser.gyp:http_parser',
        'deps/luajit.gyp:*',
