@@ -28,7 +28,7 @@ parser.add_option("--prefix",
 parser.add_option("--arch",
     action="store",
     dest="arch",
-    help="Select the default architecture")
+    help="Select the default architecture (ia32,x64,mac,arm)")
 
 (options, args) = parser.parse_args()
 
