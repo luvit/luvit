@@ -153,11 +153,6 @@ function HTTP.create_server(host, port, on_connection)
           on_connection(request, response)
         end
 
-        -- We're done with the parser once we hit an upgrade
-        if request.upgrade then
-          parser:finish()
-        end
-
       end,
       on_body = function (chunk)
         request:emit('data', chunk, #chunk)
