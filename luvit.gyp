@@ -88,6 +88,7 @@
       'type': 'executable',
       'dependencies': [
         'libluvit',
+        'deps/luajit.gyp:*',
         'deps/uv/uv.gyp:uv',
       ],
       'sources': [
