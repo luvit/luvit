@@ -27,16 +27,32 @@
 
 #include "lenv.h"
 
+#ifdef __APPLE__
+#include <crt_externs.h>
+/**
+ * If compiled as a shared library, you do not have access to the environ symbol,
+ * See man (7) environ for the fun details.
+ */
+char **luv_os_environ() { return *_NSGetEnviron(); }
+
+#else
+
 extern char **environ;
+
+char **luv_os_environ() { return environ; }
+
+#endif
+
 
 static int lenv_keys(lua_State* L) {
   int size = 0, i;
-  while (environ[size]) size++;
+  char **env = luv_os_environ();
+  while (env[size]) size++;
 
   lua_createtable(L, size, 0);
 
   for (i = 0; i < size; ++i) {
-    const char* var = environ[i];
+    const char* var = env[i];
     const char* s = strchr(var, '=');
     const int length = s ? s - var : strlen(var);
     lua_pushlstring(L, var, length);
