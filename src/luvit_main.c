@@ -28,10 +28,14 @@
 #include "uv.h"
 #include "luv.h"
 
+const void *suck_in_luvit(void);
+
 int main(int argc, char *argv[])
 {
   lua_State *L;
   uv_loop_t *loop;
+
+  suck_in_luvit();
 
   L = luaL_newstate();
   if (L == NULL) {

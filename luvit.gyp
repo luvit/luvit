@@ -1,7 +1,7 @@
 {
   'targets': [
     {'target_name': 'libluvit',
-     'type': 'shared_library',
+     'type': 'static_library',
      'dependencies': [
        'deps/http-parser/http_parser.gyp:http_parser',
        'deps/luajit.gyp:*',
@@ -93,6 +93,7 @@
       ],
       'sources': [
         'src/luvit_main.c',
+        'src/luvit_exports.c',
       ],
       'msvs-settings': {
         'VCLinkerTool': {
