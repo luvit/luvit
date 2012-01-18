@@ -168,7 +168,6 @@ end
 local bind = function(fun, self, ...)
   local bind_args = {...}
   return function(...)
-    p('BA', bind_args)
     local args = {...}
     for i=#bind_args,1,-1 do
       Table.insert(args, 1, bind_args[i])
