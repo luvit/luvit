@@ -1,6 +1,5 @@
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
-LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
 YAJLDIR=deps/yajl
 YAJL_VERSION=$(shell git --git-dir ${YAJLDIR}/.git describe --tags)
 UVDIR=deps/uv
@@ -34,7 +33,15 @@ export XCFLAGS
 export Q=
 MAKEFLAGS+=-e
 
-LUALIBS=${GENDIR}/luvit.o    \
+LDFLAGS+=-Wall -lm -ldl -lpthread
+LDFLAGS+=-L${BUILDDIR} -lluvit
+LDFLAGS+=${LUADIR}/src/libluajit.a
+LDFLAGS+=${UVDIR}/uv.a
+LDFLAGS+=${YAJLDIR}/yajl.a
+
+LUVITLIB=${BUILDDIR}/libluvit.a
+
+COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/http.o     \
         ${GENDIR}/url.o      \
         ${GENDIR}/querystring.o \
@@ -79,14 +86,14 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/los.o            \
         ${BUILDDIR}/lhttp_parser.o
 
-ALLLIBS=${BUILDDIR}/luvit.o       \
-        ${LUVLIBS}                \
+ALLOBJS=${LUVLIBS}                \
         ${BUILDDIR}/luv.o         \
-        ${LUADIR}/src/libluajit.a \
-        ${UVDIR}/uv.a             \
-        ${YAJLDIR}/yajl.a         \
         ${HTTPDIR}/http_parser.o  \
-        ${LUALIBS}
+        ${COREOBJS}
+
+LUVITOBJS=${BUILDDIR}/luvit_main.o \
+          ${BUILDDIR}/luvit_init.o  \
+          ${BUILDDIR}/luvit_exports.o
 
 all: ${BUILDDIR}/luvit
 
@@ -102,13 +109,15 @@ ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
-${YAJLDIR}/CMakeLists.txt: 
+${YAJLDIR}/CMakeLists.txt:
 	git submodule update --init ${YAJLDIR}
 
 ${YAJLDIR}/Makefile: deps/Makefile.yajl ${YAJLDIR}/CMakeLists.txt
 	cp deps/Makefile.yajl ${YAJLDIR}/Makefile
 
 ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
+	rm -rf ${YAJLDIR}/src/yajl
+	cp -r ${YAJLDIR}/src/api ${YAJLDIR}/src/yajl
 	$(MAKE) -C ${YAJLDIR}
 
 ${UVDIR}/Makefile:
@@ -129,12 +138,15 @@ ${GENDIR}/%.c: lib/%.lua deps
 ${GENDIR}/%.o: ${GENDIR}/%.c
 	$(CC) -g -Wall -c $< -o $@
 
+${BUILDDIR}/libluvit.a: ${GENDIR} ${ALLOBJS} deps
+	$(AR) rvs ${BUILDDIR}/libluvit.a ${ALLOBJS}
+
 ${BUILDDIR}/%.o: src/%.c src/%.h deps
 	mkdir -p ${BUILDDIR}
-	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
+	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
-${BUILDDIR}/luvit: ${GENDIR} ${ALLLIBS}
-	$(CC) -g -o ${BUILDDIR}/luvit ${ALLLIBS} -Wall -lm -ldl -lpthread ${LDFLAGS}
+${BUILDDIR}/luvit: ${LUVITOBJS} ${LUVITLIB}
+	$(CC) -g -o ${BUILDDIR}/luvit ${LUVITOBJS} ${LDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
