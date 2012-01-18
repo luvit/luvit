@@ -88,12 +88,12 @@ LUVLIBS=${BUILDDIR}/utils.o          \
 
 ALLOBJS=${LUVLIBS}                \
         ${BUILDDIR}/luv.o         \
+        ${BUILDDIR}/luvit_init.o  \
+        ${BUILDDIR}/luvit_exports.o \
         ${HTTPDIR}/http_parser.o  \
         ${COREOBJS}
 
-LUVITOBJS=${BUILDDIR}/luvit_main.o \
-          ${BUILDDIR}/luvit_init.o  \
-          ${BUILDDIR}/luvit_exports.o
+LUVITOBJS=${BUILDDIR}/luvit_main.o
 
 all: ${BUILDDIR}/luvit
 
@@ -141,7 +141,7 @@ ${GENDIR}/%.o: ${GENDIR}/%.c
 ${BUILDDIR}/libluvit.a: ${GENDIR} ${ALLOBJS} deps
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${ALLOBJS}
 
-${BUILDDIR}/%.o: src/%.c src/%.h deps
+${BUILDDIR}/%.o: src/%.c deps
 	mkdir -p ${BUILDDIR}
 	$(CC) -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
