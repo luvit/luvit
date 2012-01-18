@@ -80,6 +80,8 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_pipe.o       \
         ${BUILDDIR}/luv_tty.o        \
         ${BUILDDIR}/luv_misc.o       \
+        ${BUILDDIR}/luvit_init.o     \
+        ${BUILDDIR}/luvit_exports.o  \
         ${BUILDDIR}/lconstants.o     \
         ${BUILDDIR}/lenv.o           \
         ${BUILDDIR}/lyajl.o          \
@@ -91,9 +93,7 @@ ALLOBJS=${LUVLIBS}                \
         ${HTTPDIR}/http_parser.o  \
         ${COREOBJS}
 
-LUVITOBJS=${BUILDDIR}/luvit_main.o \
-          ${BUILDDIR}/luvit_init.o  \
-          ${BUILDDIR}/luvit_exports.o
+LUVITOBJS=${BUILDDIR}/luvit_main.o
 
 all: ${BUILDDIR}/luvit
 
