@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2012 The Luvit Authors. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 
 #include <string.h>
 #include "luvit.h"
@@ -30,11 +46,12 @@ extern const char **luaJIT_BC_udp;
 extern const char **luaJIT_BC_url;
 extern const char **luaJIT_BC_utils;
 
-const void *suck_in_luvit(void)
+const void *luvit__suck_in_symbols(void)
 {
   luvit_ugly_hack = (const void*)
     (size_t)(const void *)luaJIT_BC_dns +
     (size_t)(const void *)luaJIT_BC_emitter +
+    (size_t)(const void *)luaJIT_BC_error +
     (size_t)(const void *)luaJIT_BC_fiber +
     (size_t)(const void *)luaJIT_BC_fs +
     (size_t)(const void *)luaJIT_BC_http +
@@ -50,6 +67,7 @@ const void *suck_in_luvit(void)
     (size_t)(const void *)luaJIT_BC_stack +
     (size_t)(const void *)luaJIT_BC_stream +
     (size_t)(const void *)luaJIT_BC_tcp +
+    (size_t)(const void *)luaJIT_BC_timer +
     (size_t)(const void *)luaJIT_BC_tty +
     (size_t)(const void *)luaJIT_BC_udp +
     (size_t)(const void *)luaJIT_BC_url +

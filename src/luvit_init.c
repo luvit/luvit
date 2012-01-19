@@ -33,10 +33,9 @@
 #include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
+#include "luvit_exports.h"
 #include "lyajl.h"
 #include "lenv.h"
-
-const void *suck_in_luvit(void);
 
 static int luvit_exit(lua_State* L) {
   int exit_code = luaL_checkint(L, 1);
@@ -75,7 +74,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   ares_channel channel;
   struct ares_options options;
 
-  suck_in_luvit();
+  luvit__suck_in_symbols();
 
   memset(&options, 0, sizeof(options));
 
