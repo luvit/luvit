@@ -28,12 +28,14 @@ extern const char **luaJIT_BC_error;
 extern const char **luaJIT_BC_fiber;
 extern const char **luaJIT_BC_fs;
 extern const char **luaJIT_BC_http;
+extern const char **luaJIT_BC_json;
 extern const char **luaJIT_BC_luvit;
 extern const char **luaJIT_BC_mime;
 extern const char **luaJIT_BC_net;
 extern const char **luaJIT_BC_path;
 extern const char **luaJIT_BC_pipe;
 extern const char **luaJIT_BC_process;
+extern const char **luaJIT_BC_querystring;
 extern const char **luaJIT_BC_repl;
 extern const char **luaJIT_BC_request;
 extern const char **luaJIT_BC_response;
@@ -55,12 +57,14 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const void *)luaJIT_BC_fiber +
     (size_t)(const void *)luaJIT_BC_fs +
     (size_t)(const void *)luaJIT_BC_http +
+    (size_t)(const void *)luaJIT_BC_json +
     (size_t)(const void *)luaJIT_BC_luvit +
     (size_t)(const void *)luaJIT_BC_mime +
     (size_t)(const void *)luaJIT_BC_net +
     (size_t)(const void *)luaJIT_BC_path +
     (size_t)(const void *)luaJIT_BC_pipe +
     (size_t)(const void *)luaJIT_BC_process +
+    (size_t)(const void *)luaJIT_BC_querystring +
     (size_t)(const void *)luaJIT_BC_repl +
     (size_t)(const void *)luaJIT_BC_request +
     (size_t)(const void *)luaJIT_BC_response +
