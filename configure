@@ -134,16 +134,21 @@ def render_openssl_symlinks(src, dest):
 
 if sys.platform == "win32":
     render_openssl_symlinks('deps/openssl/include/openssl', 'deps/openssl-configs/realized/openssl')
-    os.system("python tools\gyp_luvit -f msvs -G msvs_version=2010")
+    code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=2010")
 else:
-    os.system("tools/gyp_luvit")
+    code = os.system("tools/gyp_luvit")
 
-print ""
-print "Done!"
-print ""
-if sys.platform == "win32":
-    print "Now run `python build.py` to build!"
+if code == 0:
+    print ""
+    print "Done!"
+    print ""
+    if sys.platform == "win32":
+        print "Now run `python build.py` to build!"
+    else:
+        print "Now run `make -C out` to build!"
+    print ""
 else:
-    print "Now run `make -C out` to build!"
-print ""
+    print ""
+    print "Error occured. Please investigate details above."
+    print ""
 
