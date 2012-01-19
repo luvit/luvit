@@ -16,14 +16,28 @@ limitations under the License.
 
 --]]
 
-local Constants = require('constants')
+local Constants = require("constants")
 
 local emitter_prototype = {}
 
--- By default, and error events that are not listened for should thow errors
+-- By default, and error events that are not listened for should throw errors
 function emitter_prototype:missing_handler_type(name, ...)
   if name == "error" then
-    error(...)
+    -- we define catchall error handler
+    if self ~= process then
+      -- if process has an error handler
+      local handlers = rawget(process, "handlers")
+      if handlers and handlers["error"] then
+        -- delegate to process error handler
+        process:emit("error", ...)
+      else
+        debug("UNHANDLED ERROR", ...)
+        error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
+      end
+    else
+      debug("UNHANDLED ERROR", ...)
+      error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
+    end
   end
 end
 
