@@ -37,7 +37,7 @@ LDFLAGS+=-L${BUILDDIR} -lluvit
 LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
-LDFLAGS+=-Wall -lm -ldl -lpthread -lrt
+LDFLAGS+=-Wall -lm -ldl -lpthread
 
 LUVITLIB=${BUILDDIR}/libluvit.a
 
