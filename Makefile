@@ -33,11 +33,11 @@ export XCFLAGS
 export Q=
 MAKEFLAGS+=-e
 
-LDFLAGS+=-Wall -lm -ldl -lpthread
 LDFLAGS+=-L${BUILDDIR} -lluvit
 LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
+LDFLAGS+=-Wall -lm -ldl -lpthread -lrt
 
 LUVITLIB=${BUILDDIR}/libluvit.a
 
