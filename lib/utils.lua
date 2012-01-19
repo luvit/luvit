@@ -165,18 +165,14 @@ local inherits = function(ctor, super)
   end
 end
 
-local bind = function(self, fun, ...)
+local bind = function(fun, self, ...)
   local bind_args = {...}
   return function(...)
     local args = {...}
-    if #bind_args > 0 then
-      for i=1,#args do
-        Table.insert(bind_args, args[i])
-      end
-      fun(self, unpack(bind_args))
-    else
-      fun(self, unpack(args))
+    for i=#bind_args,1,-1 do
+      Table.insert(args, 1, bind_args[i])
     end
+    fun(self, unpack(args))
   end
 end
 

@@ -33,9 +33,9 @@
 #include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
+#include "luvit_exports.h"
 #include "lyajl.h"
 #include "lenv.h"
-
 
 static int luvit_exit(lua_State* L) {
   int exit_code = luaL_checkint(L, 1);
@@ -68,26 +68,18 @@ static int luvit_getcwd(lua_State* L) {
   return 1;
 }
 
-int main(int argc, char *argv[])
+int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 {
   int index, rc;
   ares_channel channel;
   struct ares_options options;
-  lua_State *L;
-  uv_loop_t *loop;
+
+  luvit__suck_in_symbols();
 
   memset(&options, 0, sizeof(options));
 
   rc = ares_library_init(ARES_LIB_INIT_ALL);
   assert(rc == ARES_SUCCESS);
-
-  L = luaL_newstate();
-  if (L == NULL) {
-    fprintf(stderr, "luaL_newstate has failed\n");
-    return 1;
-  }
-
-  luaL_openlibs(L);
 
   // Pull up the preload table
   lua_getglobal(L, "package");
@@ -153,21 +145,16 @@ int main(int argc, char *argv[])
   lua_setfield(L, LUA_REGISTRYINDEX, "main_thread");
 
   // Store the loop within the registry
-  loop = uv_default_loop();
   luv_set_loop(L, loop);
 
   // Store the ARES Channel
   uv_ares_init_options(luv_get_loop(L), &channel, &options, 0);
   luv_set_ares_channel(L, &channel);
 
-  // Run the main lua script
-  if (luaL_dostring(L, "assert(require('luvit'))")) {
-    printf("%s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    lua_close(L);
-    return -1;
-  }
-
-  lua_close(L);
   return 0;
 }
+
+int luvit_run(lua_State *L) {
+  return luaL_dostring(L, "assert(require('luvit'))");
+}
+

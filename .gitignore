@@ -4,5 +4,6 @@ generated
 *.o
 *.luvit
 *.*~
+options.gypi
 *.xcodeproj
 out/
