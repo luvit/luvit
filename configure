@@ -25,6 +25,11 @@ parser.add_option("--prefix",
     dest="prefix",
     help="Select the install prefix (defaults to /usr/local)")
 
+parser.add_option("--arch",
+    action="store",
+    dest="arch",
+    help="Select the default architecture (ia32,x64,mac,arm)")
+
 (options, args) = parser.parse_args()
 
 
@@ -55,6 +60,9 @@ def host_arch():
   if sys.platform == "win32":
       return 'ia32'
 
+  if sys.platform == "darwin":
+      return 'mac'
+
   arch = uname('-p')
 
   if arch == 'unknown':
@@ -79,7 +87,7 @@ def configure_luvit(o):
   o['variables']['luvit_debug'] = 'true' if options.debug else 'false'
   o['variables']['luvit_prefix'] = options.prefix if options.prefix else ''
   o['variables']['host_arch'] = host_arch()
-  o['variables']['target_arch'] = target_arch()
+  o['variables']['target_arch'] = options.arch if options.arch else target_arch()
 
 print "configure options:", options
 

@@ -1,13 +1,4 @@
 {
-  'variables': {
-    'visibility%': 'hidden',         # V8's visibility setting
-    'target_arch%': 'ia32',          # set v8's target architecture
-    'host_arch%': 'ia32',            # set v8's host architecture
-    'library%': 'static_library',    # allow override to 'shared_library' for DLL/.so builds
-    'component%': 'static_library',  # NB. these names match with what V8 expects
-    'msvs_multi_core_compile': '0',  # we do enable multicore compiles, but not using the V8 way
-  },
-
   'make_global_settings': [
     # chrome normally links using the C++ compiler, but all of our code
     # is pure C, and we don't want to link in libstdc++.
@@ -137,8 +128,7 @@
         ],
       }],
       ['OS=="mac"', {
-        'cflags': ['-arch i386'],
-        'ldflags': [ '-pthread', '-Wl,-E', ],
+        'ldflags': [ '-pthread', '-Wl,-E' ],
         'defines': [
           'DARWIN',
           'DARWIN_10',
