@@ -15,18 +15,9 @@
  *
  */
 
-#ifndef LUV
-#define LUV
+#ifndef LUV_EXPORTS
+#define LUV_EXPORTS
 
-//#define LUA_LIB
-#include "lua.h"
-#include "lauxlib.h"
-#include "utils.h"
-
-LUALIB_API int luaopen_uv (lua_State *L);
-
-int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[]);
-int luvit_run(lua_State *L);
+const void *luvit__suck_in_symbols(void);
 
 #endif
-

@@ -19,9 +19,8 @@
 #include <assert.h>
 
 #include "luv_process.h"
+#include "luv_portability.h"
 #include "utils.h"
-
-extern char **environ;
 
 void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal) {
   // load the lua state and the userdata
@@ -93,7 +92,7 @@ int luv_spawn(lua_State* L) {
   options.file = command;
   options.args = args;
   
-  options.env = env ? env : environ;
+  options.env = env ? env : luv_os_environ();
   options.cwd = cwd;
   options.stdin_stream = stdin_stream;
   options.stdout_stream = stdout_stream;

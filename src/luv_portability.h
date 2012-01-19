@@ -41,4 +41,7 @@
 # define uv_inet_ntop inet_ntop
 #endif
 
+/* Portable method of getting the environment. */
+char **luv_os_environ();
+
 #endif
