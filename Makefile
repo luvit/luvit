@@ -21,7 +21,7 @@ else
 LDFLAGS=-framework CoreServices
 endif
 else ifeq (${OS_NAME},Linux)
-LDFLAGS=-Wl,-E -lrt
+LDFLAGS=-Wl,-E
 endif
 # LUAJIT CONFIGURATION #
 XCFLAGS=-g
@@ -38,6 +38,10 @@ LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
 LDFLAGS+=-Wall -lm -ldl -lpthread
+
+ifeq (${OS_NAME},Linux)
+LDFLAGS+= -lrt
+endif
 
 LUVITLIB=${BUILDDIR}/libluvit.a
 
