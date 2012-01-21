@@ -38,6 +38,9 @@ LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
 LDFLAGS+=-Wall -lm -ldl -lpthread
+ifeq (${OS_NAME},Linux)
+LDFLAGS+=-lrt
+endif
 
 ifeq (${OS_NAME},Linux)
 LDFLAGS+= -lrt
