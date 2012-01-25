@@ -20,17 +20,16 @@ local Constants = require('constants')
 local Object = require('object')
 
 local Emitter = Object:extend()
-local emitter_prototype = Emitter.prototype
 
 -- By default, and error events that are not listened for should thow errors
-function emitter_prototype:missing_handler_type(name, ...)
+function Emitter.prototype:missing_handler_type(name, ...)
   if name == "error" then
     error(...)
   end
 end
 
 -- Sugar for emitters you want to auto-remove themself after first event
-function emitter_prototype:once(name, callback)
+function Emitter.prototype:once(name, callback)
   local function wrapped(...)
     self:remove_listener(name, wrapped)
     callback(...)
@@ -39,7 +38,7 @@ function emitter_prototype:once(name, callback)
 end
 
 -- Add a new typed event emitter
-function emitter_prototype:on(name, callback)
+function Emitter.prototype:on(name, callback)
   local handlers = rawget(self, "handlers")
   if not handlers then
     handlers = {}
@@ -56,7 +55,7 @@ function emitter_prototype:on(name, callback)
   handlers_for_type[callback] = true
 end
 
-function emitter_prototype:emit(name, ...)
+function Emitter.prototype:emit(name, ...)
   local handlers = rawget(self, "handlers")
   if not handlers then
     self:missing_handler_type(name, ...)
@@ -72,7 +71,7 @@ function emitter_prototype:emit(name, ...)
   end
 end
 
-function emitter_prototype:remove_listener(name, callback)
+function Emitter.prototype:remove_listener(name, callback)
   local handlers = rawget(self, "handlers")
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)
