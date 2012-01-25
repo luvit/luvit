@@ -53,7 +53,7 @@ package.loaded.os_binding = nil
 OS_BINDING.date = OLD_OS.date
 OS_BINDING.time = OLD_OS.time
 
-process = Emitter.new()
+process = Emitter:new()
 local VERSION = _G.VERSION
 process.version = VERSION
 process.versions = {

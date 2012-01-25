@@ -15,22 +15,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
 local UV = require('uv')
+local Emitter = require('emitter')
 
-local Object = require('object')
 
-local Handle = Object:extend()
+local Handle = Emitter:extend()
 
-function Handle.methods:initialize()
+function Handle.prototype:initialize()
   error("Can't create instances of Handle, must subclass")
 end
 
-function Handle.methods:close()
+function Handle.prototype:close()
   return UV.close(self.userdata)
 end
 
-function Handle.methods:set_handler(name, callback)
+function Handle.prototype:set_handler(name, callback)
   return UV.set_handler(self.userdata, name, callback)
 end
 

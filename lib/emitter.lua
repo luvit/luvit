@@ -17,8 +17,10 @@ limitations under the License.
 --]]
 
 local Constants = require('constants')
+local Object = require('object')
 
-local emitter_prototype = {}
+local Emitter = Object:extend()
+local emitter_prototype = Emitter.prototype
 
 -- By default, and error events that are not listened for should thow errors
 function emitter_prototype:missing_handler_type(name, ...)
@@ -78,14 +80,5 @@ function emitter_prototype:remove_listener(name, callback)
   handlers_for_type[callback] = nil
 end
 
-local emitter_meta = {__index=emitter_prototype}
+return Emitter
 
-local function new()
-  return setmetatable({}, emitter_meta)
-end
-
-return {
-  new = new,
-  prototype = emitter_prototype,
-  meta = emitter_meta
-}
