@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 -- The base Class that provides the mini Luvit OOP system for Lua
-local Object = {methods = {}}
+local Object = {prototype = {}}
 Object.meta = {__index = Object.prototype}
 
 -- Create a new instance of the class. Call the initializer if there is one.
