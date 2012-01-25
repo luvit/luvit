@@ -130,41 +130,6 @@ local function dump(o, depth)
   return tostring(o)
 end
 
-local user_proto = {}
-
-function user_proto.add_handler_type(emitter, name)
-  emitter.userdata:set_handler(name, function (...)
-    emitter:emit(name, ...)
-  end)
-end
-
--- Shared metatable for all userdata type wrappers
-local user_meta = {
-  __index = function (table, key)
-    return table.prototype[key] or user_proto[key] or table.userdata[key]
-  end,
-  __newindex = rawset
-}
-
-local inherits = function(ctor, super)
-  local new = { }
-
-  if not ctor.prototype then
-    ctor.prototype = {}
-  end
-
-  new.prototype = ctor.prototype
-  setmetatable(ctor.prototype, super.meta)
-
-  ctor.meta = new.prototype
-  ctor.new_obj = function()
-    local obj = {}
-    local obj_meta = {__index = ctor.prototype}
-    setmetatable(obj, obj_meta)
-    return obj
-  end
-end
-
 local bind = function(fun, self, ...)
   local bind_args = {...}
   return function(...)
@@ -182,8 +147,6 @@ return {
   color = color,
   colorize = colorize,
   inherits = inherits,
-  user_meta = user_meta,
-  user_proto = user_proto,
 }
 
 --print("nil", dump(nil))

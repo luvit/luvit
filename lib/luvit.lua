@@ -29,6 +29,7 @@ _G.debug = nil
 _G.table = nil
 _G.loadfile = nil
 _G.dofile = nil
+_oldprint = _G.print
 _G.print = nil
 
 -- Load libraries used in this file
@@ -40,7 +41,7 @@ local Env = require('env')
 local Table = require('table')
 local Utils = require('utils')
 local FS = require('fs')
-local TTY = require('tty')
+local Tty = require('tty')
 local Emitter = require('emitter')
 local Constants = require('constants')
 local Path = require('path')
@@ -120,8 +121,8 @@ end
 
 -- Load the tty as a pair of pipes
 -- But don't hold the event loop open for them
-process.stdin = TTY.new(0)
-process.stdout = TTY.new(1)
+process.stdin = Tty:new(0)
+process.stdout = Tty:new(1)
 local stdout = process.stdout
 UV.unref()
 UV.unref()
@@ -372,7 +373,7 @@ local function usage()
   print("")
 end
 
-local status, err = pcall(function ()
+assert(xpcall(function ()
 
   local interactive = false
   local repl = true
@@ -422,7 +423,7 @@ local status, err = pcall(function ()
 
   if file then
     assert(myloadfile(Path.resolve(base_path, file)))()
-  elseif not (UV.handle_type(0) == "TTY") then
+  elseif not (UV.handle_type(0) == "Tty") then
     process.stdin:on("data", function(line)
       Repl.evaluate_line(line)
     end)
@@ -435,11 +436,7 @@ local status, err = pcall(function ()
     Repl.start()
   end
 
-end)
-if not status then
-  debug('ERROR', err)
-  Debug.traceback()
-end
+end, Debug.traceback))
 
 -- Start the event loop
 UV.run()

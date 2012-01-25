@@ -17,22 +17,15 @@ limitations under the License.
 --]]
 
 local UV = require('uv')
-local user_meta = require('utils').user_meta
-local stream_meta = require('stream').meta
-local PIPE = {}
+local Stream = require('stream')
 
-local pipe_prototype = {}
-setmetatable(pipe_prototype, stream_meta)
-PIPE.prototype = pipe_prototype
+local Pipe = Stream:extend()
 
-function PIPE.new(ipc)
-  local pipe = {
-    userdata = UV.new_pipe(ipc and 1 or 0),
-    prototype = pipe_prototype
-  }
-  setmetatable(pipe, user_meta)
-  return pipe
+-- TODO: wrap C functions here
+
+function Pipe.prototype:initialize(ipc)
+  self.userdata = UV.new_pipe(ipc and 1 or 0)
 end
 
-return PIPE
+return Pipe
 

@@ -15,23 +15,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
 local UV = require('uv')
-local user_meta = require('utils').user_meta
-local stream_meta = require('stream').meta
-local TTY = {}
+local Stream = require('stream')
 
-local tty_prototype = {}
-setmetatable(tty_prototype, stream_meta)
-TTY.prototype = tty_prototype
+local TTY = Stream:extend()
 
-function TTY.new(fd, readable)
-  local tty = {
-    userdata = UV.new_tty(fd, readable),
-    prototype = tty_prototype
-  }
-  setmetatable(tty, user_meta)
-  return tty
+function TTY.prototype:initialize(fd, readable)
+  _oldprint("TTY.prototype:initialize")
+  self.userdata = UV.new_tty(fd, readable)
+end
+
+function TTY.prototype:set_mode(mode)
+  _oldprint("TTY.prototype:set_mode")
+  return UV.tty_set_mode(self.userdata, mode)
+end
+
+function TTY:reset_mode()
+  _oldprint("TTY.reset_mode")
+  return UV.tty_reset_mode()
+end
+
+function TTY.prototype:get_winsize()
+  _oldprint("TTY.prototype:get_winsize")
+  return UV.tty_get_winsize(self.userdata)
 end
 
 return TTY
