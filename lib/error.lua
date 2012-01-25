@@ -15,21 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+local Object = require('object')
 
-local Error = {}
+local Error = Object:extend()
 
-local error_prototype = error_meta
-Error.prototype = error_prototype
-
--- Used by things inherited from Error
-Error.meta = {__index=Error.prototype}
-
-function Error.new(message)
-  local err = {
-    message = message
-  }
-  setmetatable(err, error_prototype)
-  return err
+function Error.prototype:initialize(message)
+  self.message = message
 end
 
 return Error

@@ -19,7 +19,7 @@ limitations under the License.
 local UV = require('uv')
 local Constants = require('constants')
 local Error = require('error')
-local string = require('string')
+local String = require('string')
 
 local DNS = {}
 
@@ -68,7 +68,7 @@ function DNS.resolve(domain, rrtype, callback)
   elseif rrtype == 'NS' then DNS.resolveNs(domain, callback)
   elseif rrtype == 'CNAME' then DNS.resolveCname(domain, callback)
   elseif rrtype == 'PTR' then DNS.reverse(domain, callback)
-  else callback(Error.new('Unknown Type ' .. rrtype)) end
+  else callback(Error:new('Unknown Type ' .. rrtype)) end
 end
 
 function DNS.lookup(domain, family, callback)
@@ -88,7 +88,7 @@ function DNS.lookup(domain, family, callback)
     family = Constants.AF_INET6
     response_family = 6
   else
-    callback(Error.new('Unknown family type ' .. family))
+    callback(Error:new('Unknown family type ' .. family))
     return
   end
 
@@ -100,7 +100,7 @@ function DNS.lookup(domain, family, callback)
     if response_family then
       callback(nil, addresses[1], family)
     else
-      callback(nil, addresses[1], string.find(addresses[1], ':') and 6 or 4)
+      callback(nil, addresses[1], String.find(addresses[1], ':') and 6 or 4)
     end
   end)
 end
