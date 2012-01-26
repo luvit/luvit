@@ -246,7 +246,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_timer");
   // Create table of timer methods
   lua_newtable(L); // timer_m
-  luaL_register(L, NULL, luv_timer_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_timer"); // Tag for polymorphic type checking
   // Load the parent metatable so we can inherit it's methods
