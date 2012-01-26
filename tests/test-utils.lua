@@ -1,8 +1,8 @@
 local utils = require('utils')
 require('helper')
 
-local BindHelper = {}
-utils.inherits(BindHelper, {})
+local Object = require('object')
+local BindHelper = Object:extend()
 
 function BindHelper.prototype:func1(arg1, callback)
   assert(self ~= nil)
@@ -19,7 +19,7 @@ function BindHelper.prototype:func3(arg1, arg2, arg3, callback)
   callback(arg1, arg2, arg3)
 end
 
-local testObj = BindHelper.new_obj()
+local testObj = BindHelper:new()
 local bound
 
 bound = utils.bind(BindHelper.prototype.func1, testObj)
