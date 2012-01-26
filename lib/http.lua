@@ -52,7 +52,7 @@ function HTTP.request(options, callback)
     local headers
     local current_field
 
-    local parser = HTTP_Parser:new("response", {
+    local parser = HTTP_Parser.new("response", {
       on_message_begin = function ()
         headers = {}
       end,
@@ -114,7 +114,7 @@ function HTTP.create_server(host, port, on_connection)
     local current_field
     local parser
     local headers
-    parser = HTTP_Parser:new("request", {
+    parser = HTTP_Parser.new("request", {
       on_message_begin = function ()
         headers = {}
         request.headers = headers
