@@ -159,50 +159,6 @@ static const luaL_reg luv_f[] = {
   {NULL, NULL}
 };
 
-static const luaL_reg luv_process_m[] = {
-  {"kill", luv_process_kill},
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_stream_m[] = {
-  {"shutdown", luv_shutdown},
-  {"listen", luv_listen},
-  {"accept", luv_accept},
-  {"read_start", luv_read_start},
-  {"read_start2", luv_read_start2},
-  {"read_stop", luv_read_stop},
-  {"write", luv_write},
-  {"write2", luv_write2},
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_tcp_m[] = {
-  {"nodelay", luv_tcp_nodelay},
-  {"keepalive", luv_tcp_keepalive},
-  {"bind", luv_tcp_bind},
-  {"bind6", luv_tcp_bind6},
-  {"getsockname", luv_tcp_getsockname},
-  {"getpeername", luv_tcp_getpeername},
-  {"connect", luv_tcp_connect},
-  {"connect6", luv_tcp_connect6},
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_pipe_m[] = {
-  {"open", luv_pipe_open},
-  {"bind", luv_pipe_bind},
-  {"connect", luv_pipe_connect},
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_tty_m[] = {
-  {"set_mode", luv_tty_set_mode},
-  {"reset_mode", luv_tty_reset_mode},
-  {"get_winsize", luv_tty_get_winsize},
-  {NULL, NULL}
-};
-
-
 
 LUALIB_API int luaopen_uv (lua_State* L) {
   int before = lua_gettop(L);
@@ -259,7 +215,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_process");
   // Create table of process methods
   lua_newtable(L); // process_m
-  luaL_register(L, NULL, luv_process_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_process"); // Tag for polymorphic type checking
   // Load the parent metatable so we can inherit it's methods
@@ -273,7 +228,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_stream");
   // Create table of stream methods
   lua_newtable(L); // stream_m
-  luaL_register(L, NULL, luv_stream_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_stream"); // Tag for polymorphic type checking
   // Load the parent metatable so we can inherit it's methods
@@ -287,7 +241,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_tcp");
   // table for methods
   lua_newtable(L); // tcp_m
-  luaL_register(L, NULL, luv_tcp_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_tcp"); // Tag for polymorphic type checking
   // Inherit from streams
@@ -301,7 +254,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_pipe");
   // table for methods
   lua_newtable(L); // pipe_m
-  luaL_register(L, NULL, luv_pipe_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_pipe"); // Tag for polymorphic type checking
   // Inherit from streams
@@ -315,7 +267,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_tty");
   // table for methods
   lua_newtable(L); // tty_m
-  luaL_register(L, NULL, luv_tty_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_tty"); // Tag for polymorphic type checking
   // Inherit from streams

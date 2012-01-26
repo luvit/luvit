@@ -68,7 +68,7 @@ function Tcp.prototype:connect6(ip_address, port)
   return UV.tcp_connect6(self.userdata, ip_address, port)
 end
 
-function Tcp.create_server(ip, port, on_connection)
+function Tcp:create_server(ip, port, on_connection)
   _oldprint("Tcp.create_server")
   local server = Tcp:new()
   server:bind(ip, port)

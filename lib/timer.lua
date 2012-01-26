@@ -44,7 +44,7 @@ function Timer.prototype:get_repeat()
   return UV.timer_get_repeat(self.userdata)
 end
 
-function Timer.set_timeout(duration, callback, ...)
+function Timer:set_timeout(duration, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(duration, 0, function (status)
@@ -54,7 +54,7 @@ function Timer.set_timeout(duration, callback, ...)
   return timer
 end
 
-function Timer.set_interval(period, callback, ...)
+function Timer:set_interval(period, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(period, period, function (status)
@@ -63,7 +63,7 @@ function Timer.set_interval(period, callback, ...)
   return timer
 end
 
-function Timer.clear_timer(timer)
+function Timer:clear_timer(timer)
   timer:stop()
   timer:close()
 end
