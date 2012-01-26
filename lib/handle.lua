@@ -23,6 +23,7 @@ local Handle = Emitter:extend()
 
 function Handle.prototype:close()
   --_oldprint("Handle.prototype:close")
+  if not self.userdata then error("Can't call :close() on non-userdata objects") end
   return UV.close(self.userdata)
 end
 
@@ -37,6 +38,7 @@ end
 
 function Handle.prototype:set_handler(name, callback)
   --_oldprint("Handle.prototype:set_handler")
+  if not self.userdata then error("Can't call :set_handler() on non-userdata objects") end
   return UV.set_handler(self.userdata, name, callback)
 end
 

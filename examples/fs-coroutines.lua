@@ -5,7 +5,7 @@ local Fiber = require('fiber')
 Fiber:new(function (resume, wait)
 
   print("opening...")
-  FS.open("license.txt", "r", "0644", resume)
+  FS.open("LICENSE.txt", "r", "0644", resume)
   local err, fd = wait()
   p("on_open", {err=err,fd=fd})
 
@@ -24,7 +24,7 @@ Fiber:new(function (resume, wait)
   until length == 0
 
   print("pausing...")
-  Timer.set_timeout(400, resume)
+  Timer:set_timeout(400, resume)
   wait()
 
   print("closing...")
