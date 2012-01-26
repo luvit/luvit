@@ -24,8 +24,8 @@ function Timer.prototype:initialize()
   self.userdata = UV.new_timer()
 end
 
-function Timer.prototype:start(timeout, interval)
-  return UV.timer_start(self.userdata, timeout, interval)
+function Timer.prototype:start(timeout, interval, callback)
+  return UV.timer_start(self.userdata, timeout, interval, callback)
 end
 
 function Timer.prototype:stop()
@@ -68,4 +68,4 @@ function Timer:clear_timer(timer)
   timer:close()
 end
 
-return Handle
+return Timer
