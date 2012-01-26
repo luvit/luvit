@@ -132,7 +132,7 @@ function FS.create_read_stream(path, options)
     setmetatable(options, read_meta)
   end
 
-  local stream = Stream.new()
+  local stream = Stream:new()
   FS.open(path, options.flags, options.mode, function (err, fd)
     if err then return stream:emit("error", err) end
     local offset = options.offset
