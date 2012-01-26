@@ -29,15 +29,13 @@ _G.debug = nil
 _G.table = nil
 _G.loadfile = nil
 _G.dofile = nil
-_oldprint = _G.print
+--_oldprint = print
 _G.print = nil
 
 -- Load libraries used in this file
 local Debug = require('debug')
-
 local UV = require('uv')
 local Env = require('env')
-
 local Table = require('table')
 local Utils = require('utils')
 local FS = require('fs')
@@ -46,6 +44,7 @@ local Emitter = require('emitter')
 local Constants = require('constants')
 local Path = require('path')
 
+-- Copy date and binding over from lua os module into luvit os module
 local OLD_OS = require('os')
 local OS_BINDING = require('os_binding')
 package.loaded.os = OS_BINDING
@@ -55,7 +54,7 @@ OS_BINDING.date = OLD_OS.date
 OS_BINDING.time = OLD_OS.time
 
 process = Emitter:new()
-local VERSION = _G.VERSION
+
 process.version = VERSION
 process.versions = {
   luvit = VERSION,
@@ -387,7 +386,7 @@ assert(xpcall(function ()
         usage()
         repl = false
       elseif value == "-v" or value == "--version" then
-        print(VERSION)
+        print(process.version)
         repl = false
       elseif value == "-e" or value == "--eval" then
         state = "-e"
@@ -423,7 +422,7 @@ assert(xpcall(function ()
 
   if file then
     assert(myloadfile(Path.resolve(base_path, file)))()
-  elseif not (UV.handle_type(0) == "Tty") then
+  elseif not (UV.handle_type(0) == "TTY") then
     process.stdin:on("data", function(line)
       Repl.evaluate_line(line)
     end)

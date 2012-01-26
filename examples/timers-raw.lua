@@ -1,7 +1,7 @@
 local Timer = require('timer')
 
-local timer = Timer.new()
-local timer2 = Timer.new()
+local timer = Timer:new()
+local timer2 = Timer:new()
 
 timer:start(2000, 0, function (...)
   p("on_timeout", ...)

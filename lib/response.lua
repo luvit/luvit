@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-local user_meta = require('utils').user_meta
-local tcp_meta = require('tcp').meta
+local Stream = require('stream')
 local os_date = require('os').date
 local table_concat = require('table').concat
 local string_format = require('string').format
-local Response = {}
+
+local Response = Stream:extend()
 
 local status_codes_table = {
   [100] = 'Continue',
@@ -78,23 +78,14 @@ local status_codes_table = {
   [510] = 'Not Extended'                -- RFC 2774
 }
 
-Response.prototype = {}
-setmetatable(Response.prototype, tcp_meta)
 
--- Don't register new event types with the userdata, this should be a plain lua emitter
-function Response.prototype.add_handler_type() end
 
-function Response.new(client)
-  local response = {
-    code = 200,
-    headers = {},
-    header_names = {},
-    headers_sent = false,
-    userdata = client.userdata,
-    prototype = Response.prototype
-  }
-  setmetatable(response, user_meta)
-  return response
+function Response.prototype:initialize(socket)
+  self.code = 200
+  self.headers = {}
+  self.header_names = {}
+  self.headers_sent = false
+  self.socket = socket
 end
 
 Response.prototype.auto_date = true

@@ -21,22 +21,22 @@ local Stream = require('stream')
 local TTY = Stream:extend()
 
 function TTY.prototype:initialize(fd, readable)
-  _oldprint("TTY.prototype:initialize")
+  --_oldprint("TTY.prototype:initialize")
   self.userdata = UV.new_tty(fd, readable)
 end
 
 function TTY.prototype:set_mode(mode)
-  _oldprint("TTY.prototype:set_mode")
+  --_oldprint("TTY.prototype:set_mode")
   return UV.tty_set_mode(self.userdata, mode)
 end
 
 function TTY:reset_mode()
-  _oldprint("TTY.reset_mode")
+  --_oldprint("TTY.reset_mode")
   return UV.tty_reset_mode()
 end
 
 function TTY.prototype:get_winsize()
-  _oldprint("TTY.prototype:get_winsize")
+  --_oldprint("TTY.prototype:get_winsize")
   return UV.tty_get_winsize(self.userdata)
 end
 

@@ -23,7 +23,7 @@ local Emitter = Object:extend()
 
 -- By default, and error events that are not listened for should thow errors
 function Emitter.prototype:missing_handler_type(name, ...)
-  _oldprint("Emitter.prototype:missing_handler_type")
+  --_oldprint("Emitter.prototype:missing_handler_type")
   if name == "error" then
     error(...)
   end
@@ -31,7 +31,7 @@ end
 
 -- Sugar for emitters you want to auto-remove themself after first event
 function Emitter.prototype:once(name, callback)
-  _oldprint("Emitter.prototype:once")
+  --_oldprint("Emitter.prototype:once")
   local function wrapped(...)
     self:remove_listener(name, wrapped)
     callback(...)
@@ -41,7 +41,7 @@ end
 
 -- Add a new typed event emitter
 function Emitter.prototype:on(name, callback)
-  _oldprint("Emitter.prototype:on")
+  --_oldprint("Emitter.prototype:on")
   local handlers = rawget(self, "handlers")
   if not handlers then
     handlers = {}
@@ -59,7 +59,7 @@ function Emitter.prototype:on(name, callback)
 end
 
 function Emitter.prototype:emit(name, ...)
-  _oldprint("Emitter.prototype:emit")
+  --_oldprint("Emitter.prototype:emit")
   local handlers = rawget(self, "handlers")
   if not handlers then
     self:missing_handler_type(name, ...)
@@ -76,7 +76,7 @@ function Emitter.prototype:emit(name, ...)
 end
 
 function Emitter.prototype:remove_listener(name, callback)
-  _oldprint("Emitter.prototype:remove_listener")
+  --_oldprint("Emitter.prototype:remove_listener")
   local handlers = rawget(self, "handlers")
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)

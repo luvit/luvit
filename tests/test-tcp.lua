@@ -41,7 +41,7 @@ server:on("error", function (err)
   assert(false)
 end)
 
-local client = TCP.new()
+local client = TCP:new()
 client:connect("127.0.0.1", PORT)
 
 client:on("connect", function ()

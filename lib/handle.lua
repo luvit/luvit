@@ -22,12 +22,12 @@ local Emitter = require('emitter')
 local Handle = Emitter:extend()
 
 function Handle.prototype:close()
-  _oldprint("Handle.prototype:close")
+  --_oldprint("Handle.prototype:close")
   return UV.close(self.userdata)
 end
 
 function Handle.prototype:add_handler_type(name)
-  _oldprint("Handle.prototype:add_handler_type")
+  --_oldprint("Handle.prototype:add_handler_type")
   self:set_handler(name, function (...)
     self:emit(name, ...)
   end)
@@ -35,7 +35,7 @@ end
 
 
 function Handle.prototype:set_handler(name, callback)
-  _oldprint("Handle.prototype:set_handler")
+  --_oldprint("Handle.prototype:set_handler")
   return UV.set_handler(self.userdata, name, callback)
 end
 

@@ -41,7 +41,7 @@ function HTTP.request(options, callback)
       return
     end
 
-    local response = Response.new(client)
+    local response = Response:new(client)
     local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
     for field, value in pairs(headers) do
       request[#request + 1] = field .. ": " .. value .. "\r\n"
@@ -52,7 +52,7 @@ function HTTP.request(options, callback)
     local headers
     local current_field
 
-    local parser = HTTP_Parser.new("response", {
+    local parser = HTTP_Parser:new("response", {
       on_message_begin = function ()
         headers = {}
       end,
@@ -107,14 +107,14 @@ function HTTP.create_server(host, port, on_connection)
     end
 
     -- Accept the client and build request and response objects
-    local request = Request.new(client)
-    local response = Response.new(client)
+    local request = Request:new(client)
+    local response = Response:new(client)
 
     -- Convert TCP stream to HTTP stream
     local current_field
     local parser
     local headers
-    parser = HTTP_Parser.new("request", {
+    parser = HTTP_Parser:new("request", {
       on_message_begin = function ()
         headers = {}
         request.headers = headers

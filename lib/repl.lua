@@ -79,7 +79,9 @@ end
 Repl.colored_name = c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c()
 
 function Repl.start()
+  --_oldprint("Repl.start")
   local function display_prompt(prompt)
+    --_oldprint("display_prompt " .. prompt)
     process.stdout:write(prompt .. ' ', noop)
   end
 

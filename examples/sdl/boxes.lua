@@ -79,8 +79,8 @@ local fade_color = SDL.MapRGBA(screen.format, 0, 0, 0, 1)
 local spin = 2
 local grow = 1.02
 
-local w = FFI.new("int[1]", screen.w)
-local h = FFI.new("int[1]", screen.h)
+local w = FFI:new("int[1]", screen.w)
+local h = FFI:new("int[1]", screen.h)
 SDL.GFX.rotozoomSurfaceSize(screen.w, screen.h, spin, grow, w, h)
 w = w[0]
 h = h[0]
@@ -90,8 +90,8 @@ SDL:on(SDL.VIDEORESIZE, function (evt)
   local old = screen
   screen = SDL.SetVideoMode(evt.resize.w, evt.resize.h, 0, SDL.RESIZABLE)
   SDL.FreeSurface(old)
-  local w = FFI.new("int[1]", screen.w)
-  local h = FFI.new("int[1]", screen.h)
+  local w = FFI:new("int[1]", screen.w)
+  local h = FFI:new("int[1]", screen.h)
   SDL.GFX.rotozoomSurfaceSize(screen.w, screen.h, spin, grow, w, h)
   w = w[0]
   h = h[0]

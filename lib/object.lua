@@ -23,7 +23,7 @@ Object.meta = {__index = Object.prototype}
 -- Create a new instance of the class. Call the initializer if there is one.
 function Object:new(...)
   if not type(self) == "table" then error("Make sure to call :new(...) not .new(...)\n" .. require('debug').traceback()) end
-  _oldprint("Object:new")
+  --_oldprint("Object:new")
   local object = setmetatable({}, self.meta)
   if object.initialize then
     object:initialize(...)
@@ -34,7 +34,7 @@ end
 -- Create a new subclass that inherits both Class methods and instance methods
 function Object:extend()
   if not type(self) == "table" then error("Make sure to call :extend() not .extend()\n" .. require('debug').traceback()) end
-  _oldprint("Object:extend")
+  --_oldprint("Object:extend")
   child = setmetatable({}, {__index = self})
   child.prototype = setmetatable({}, {__index = self.prototype})
   child.meta = {__index = child.prototype}

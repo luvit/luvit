@@ -1,6 +1,6 @@
 local Emitter = require('emitter')
 
-local emitter = Emitter.new()
+local emitter = Emitter:new()
 
 emitter:on("foo", function (...)
   p("on_foo", ...)

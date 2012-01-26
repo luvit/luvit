@@ -2,7 +2,7 @@ local FS = require('fs');
 local Timer = require('timer');
 local Fiber = require('fiber')
 
-Fiber.new(function (resume, wait)
+Fiber:new(function (resume, wait)
 
   print("opening...")
   FS.open("license.txt", "r", "0644", resume)
@@ -34,7 +34,7 @@ Fiber.new(function (resume, wait)
 
 end)
 
-Fiber.new(function (resume, wait)
+Fiber:new(function (resume, wait)
 
   print("scanning directory...")
   FS.readdir(".", resume)
