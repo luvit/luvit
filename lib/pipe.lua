@@ -21,10 +21,24 @@ local Stream = require('stream')
 
 local Pipe = Stream:extend()
 
--- TODO: wrap C functions here
-
 function Pipe.prototype:initialize(ipc)
+  _oldprint("Pipe.prototype:initialize")
   self.userdata = UV.new_pipe(ipc and 1 or 0)
+end
+
+function Pipe.prototype:open(fd)
+  _oldprint("Pipe.prototype:open")
+  return UV.pipe_open(self.userdata, fd)
+end
+
+function Pipe.prototype:bind(name)
+  _oldprint("Pipe.prototype:bind")
+  return UV.pipe_bind(self.userdata, name)
+end
+
+function Pipe.prototype:connect(name)
+  _oldprint("Pipe.prototype:connect")
+  return UV.pipe_connect(self.userdata, name)
 end
 
 return Pipe

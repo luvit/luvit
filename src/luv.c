@@ -159,38 +159,6 @@ static const luaL_reg luv_f[] = {
   {NULL, NULL}
 };
 
-static const luaL_reg luv_handle_m[] = {
-  {"close", luv_close},
-  {"set_handler", luv_set_handler},
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_udp_m[] = {
-  {"bind", luv_udp_bind},
-  {"bind6", luv_udp_bind6},
-  {"set_membership", luv_udp_set_membership},
-  {"getsockname", luv_udp_getsockname},
-  {"send", luv_udp_send},
-  {"send6", luv_udp_send6},
-  {"recv_start", luv_udp_recv_start},
-  {"recv_stop", luv_udp_recv_stop},
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_fs_watcher_m[] = {
-  {NULL, NULL}
-};
-
-static const luaL_reg luv_timer_m[] = {
-  {"start", luv_timer_start},
-  {"stop", luv_timer_stop},
-  {"again", luv_timer_again},
-  {"set_repeat", luv_timer_set_repeat},
-  {"get_repeat", luv_timer_get_repeat},
-  {NULL, NULL}
-};
-
-
 static const luaL_reg luv_process_m[] = {
   {"kill", luv_process_kill},
   {NULL, NULL}
@@ -242,7 +210,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   // metatable for handle userdata types
   // It is it's own __index table to save space
   luaL_newmetatable(L, "luv_handle");
-  luaL_register(L, NULL, luv_handle_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_handle"); // Tag for polymorphic type checking
   lua_pushvalue(L, -1); // copy the metatable/table so it's still on the stack
@@ -253,7 +220,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_udp");
   // Create table of udp methods
   lua_newtable(L); // udp_m
-  luaL_register(L, NULL, luv_udp_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_udp"); // Tag for polymorphic type checking
   // Load the parent metatable so we can inherit it's methods
@@ -267,7 +233,6 @@ LUALIB_API int luaopen_uv (lua_State* L) {
   luaL_newmetatable(L, "luv_fs_watcher");
   // Create table of fs_watcher methods
   lua_newtable(L); // fs_watcher_m
-  luaL_register(L, NULL, luv_fs_watcher_m);
   lua_pushboolean(L, TRUE);
   lua_setfield(L, -2, "is_fs_watcher"); // Tag for polymorphic type checking
   // Load the parent metatable so we can inherit it's methods

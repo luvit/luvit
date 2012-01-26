@@ -17,23 +17,44 @@ limitations under the License.
 --]]
 
 local UV = require('uv')
-local user_meta = require('utils').user_meta
-local emitter_meta = require('emitter').meta
+local Handle = require('handle')
 
-local udp_prototype = {}
-setmetatable(udp_prototype, emitter_meta)
+local UDP = Handle:extend()
 
-local function new_udp()
-  local udp = {
-    userdata = UV.new_udp(),
-    prototype = udp_prototype
-  }
-  setmetatable(udp, user_meta)
-  return udp
+function UDP.prototype:initialize()
+  self.userdata = UV.new_udp()
 end
 
-return {
-  new = new_udp,
-  prototype = udp_prototype,
-  meta = udp_meta
-}
+function UDP.prototype:bind(host, port)
+  return UV.udp_bind(self.userdata, host, port)
+end
+
+function UDP.prototype:bind6(host, port)
+  return UV.udp_bind6(self.userdata, host, port)
+end
+
+function UDP.prototype:set_membership(multicast_addr, interface_addr, option)
+  return UV.udp_set_membership(self.userdata, multicast_addr, interface_addr, option)
+end
+
+function UDP.prototype:getsockname()
+  return UV.udp_getsockname(self.userdata)
+end
+
+function UDP.prototype:send(...)
+  return UV.udp_send(self.userdata, ...)
+end
+
+function UDP.prototype:send6(...)
+  return UV.udp_send6(self.userdata, ...)
+end
+
+function UDP.prototype:recv_start()
+  return UV.udp_recv_start(self.userdata)
+end
+
+function UDP.prototype:recv_stop()
+  return UV.udp_recv_stop(self.userdata)
+end
+
+return UDP

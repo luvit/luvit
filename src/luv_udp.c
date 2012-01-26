@@ -29,7 +29,7 @@ void luv_on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct socka
 int luv_new_udp (lua_State* L) {
   int before = lua_gettop(L);
   luv_ref_t* ref;
-uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
+  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
   uv_udp_init(luv_get_loop(L), handle);
 
   // Set metatable for type
