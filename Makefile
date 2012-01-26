@@ -52,6 +52,7 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/request.o  \
         ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
+        ${GENDIR}/watcher.o  \
         ${GENDIR}/dns.o      \
         ${GENDIR}/net.o      \
         ${GENDIR}/process.o  \

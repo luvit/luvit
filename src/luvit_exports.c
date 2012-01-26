@@ -27,6 +27,7 @@ extern const char **luaJIT_BC_emitter;
 extern const char **luaJIT_BC_error;
 extern const char **luaJIT_BC_fiber;
 extern const char **luaJIT_BC_fs;
+extern const char **luaJIT_BC_watcher;
 extern const char **luaJIT_BC_http;
 extern const char **luaJIT_BC_json;
 extern const char **luaJIT_BC_luvit;
@@ -58,6 +59,7 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const void *)luaJIT_BC_error +
     (size_t)(const void *)luaJIT_BC_fiber +
     (size_t)(const void *)luaJIT_BC_fs +
+    (size_t)(const void *)luaJIT_BC_watcher +
     (size_t)(const void *)luaJIT_BC_http +
     (size_t)(const void *)luaJIT_BC_json +
     (size_t)(const void *)luaJIT_BC_luvit +
