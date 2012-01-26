@@ -226,7 +226,9 @@ local function myloadfile(path)
 
   local code = FS.read_file_sync(path)
 
-  local fn = assert(loadstring(code, '@' .. path))
+  -- TODO: find out why inlining assert here breaks the require test
+  local fn = loadstring(code, '@' .. path)
+  assert(fn)
   local dirname = Path.dirname(path)
   local real_require = require
   setfenv(fn, setmetatable({

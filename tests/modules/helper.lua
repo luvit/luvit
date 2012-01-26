@@ -84,6 +84,7 @@ _G.deep_equal = function(expected, actual, msg)
     if not rv then
       fail("deep_equal", msg, "deep_equal failed")
     end
+    return rv
   end
 end
 
