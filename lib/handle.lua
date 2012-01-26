@@ -28,6 +28,7 @@ end
 
 function Handle.prototype:add_handler_type(name)
   --_oldprint("Handle.prototype:add_handler_type")
+  if not self.userdata then return end
   self:set_handler(name, function (...)
     self:emit(name, ...)
   end)
