@@ -22,11 +22,13 @@ local Handle = require('handle')
 local Process = Handle:extend()
 
 function Process.prototype:initialize(command, args, options)
-  self.userdata = UV.spawn(stdin, stdout, stderr, command, args, options)
-
   self.stdin = Pipe:new(0)
   self.stdout = Pipe:new(0)
   self.stderr = Pipe:new(0)
+  args = args or {}
+  options = options or {}
+
+  self.userdata = UV.spawn(self.stdin, self.stdout, self.stderr, command, args, options)
 
   self.stdout:read_start()
   self.stderr:read_start()
@@ -43,13 +45,11 @@ function Process.prototype:initialize(command, args, options)
 
 end
 
-function Process.prototype.kill(signal)
+function Process.prototype:kill(signal)
   return UV.process_kill(self.userdata, signal)
 end
 
-function Process.spawn(command, args, options)
-  return Process:new(command, args, options)
-end
+Process.spawn = Process.new
 
 return Process
 

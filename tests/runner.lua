@@ -39,7 +39,7 @@ local function run_test(filename, callback)
 
   process.stdout:write(Utils.color("Bwhite") .. filename .. Utils.color())
 
-  local child = Process.spawn(process.argv[0], {filename}, {})
+  local child = Process:spawn(process.argv[0], {filename}, {})
   child:on('exit', function (exit_status, term_signal)
     results[filename].exit_status = exit_status
     if exit_status ~= 0 then
