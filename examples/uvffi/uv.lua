@@ -49,7 +49,7 @@ function stream_prototype:write(strings, write_cb)
   local bufs, length
   if type(strings) == "table" then
     length = #strings
-    bufs = FFI:new("uv_buf_t[" .. length .. "]")
+    bufs = FFI.new("uv_buf_t[" .. length .. "]")
     for i = 1, length do
       local string = strings[i]
       local buf = bufs[i - 1]
@@ -58,14 +58,14 @@ function stream_prototype:write(strings, write_cb)
     end
   else
     length = 1
-    bufs = FFI:new("uv_buf_t[1]")
+    bufs = FFI.new("uv_buf_t[1]")
     local string = strings
     bufs[0].base = FFI.cast("char*", string)
     bufs[0].len = #string
   end
   p({bufs=bufs})
 
-  local ref = FFI:new("uv_write_t")
+  local ref = FFI.new("uv_write_t")
 
   uv_assert(C.uv_write(FFI.cast("uv_write_t*", ref), FFI.cast("uv_stream_t*", self), bufs, length, function (req, status)
     uv_assert(status)

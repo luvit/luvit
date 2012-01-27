@@ -1,6 +1,6 @@
 local Process = require('process')
 
-local child = Process.spawn("ls", {"-l"}, {cwd="/etc"})
+local child = Process:spawn("ls", {"-l"}, {cwd="/etc"})
 --local child = Process.spawn("sh", {"env.sh"}, {env={"FOO=true","BAR=42"}})
 child:on('exit', function (exit_status, term_signal)
   p("on_exit", {exit_status=exit_status, term_signal=term_signal})
