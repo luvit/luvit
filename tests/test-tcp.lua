@@ -20,7 +20,7 @@ require("helper")
 
 local TCP = require('tcp')
 
-local PORT = 8080
+local PORT = 8082
 
 local server = TCP:create_server("127.0.0.1", PORT, function (client)
   client:on("data", function (chunk)
