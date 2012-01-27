@@ -1,5 +1,6 @@
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
+LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
 YAJLDIR=deps/yajl
 YAJL_VERSION=$(shell git --git-dir ${YAJLDIR}/.git describe --tags)
 UVDIR=deps/uv
