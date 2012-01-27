@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-local Stream = require('stream')
+local Emitter = require('emitter')
 local os_date = require('os').date
 local table_concat = require('table').concat
 local string_format = require('string').format
 
-local Response = Stream:extend()
+local Response = Emitter:extend()
 
 local status_codes_table = {
   [100] = 'Continue',
@@ -87,6 +87,12 @@ function Response.prototype:initialize(socket)
   self.headers_sent = false
   self.socket = socket
 end
+
+-- Fall back inheritance to the socket's methods
+function Response.meta:__index(key)
+  return Response.prototype[key] or self.socket[key]
+end
+
 
 Response.prototype.auto_date = true
 Response.prototype.auto_server = "Luvit"
@@ -208,7 +214,7 @@ function Response.prototype:flush_head(callback)
   end
 
   head = table_concat(head, "") .. "\r\n"
-  self.userdata:write(head, callback)
+  self.socket:write(head, callback)
   self.headers_sent = true
 end
 
@@ -227,7 +233,7 @@ function Response.prototype:write_head(code, headers, callback)
 end
 
 function Response.prototype:write_continue(callback)
-  self.userdata:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
+  self.socket:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
 end
 
 function Response.prototype:write(chunk, callback)
@@ -236,13 +242,12 @@ function Response.prototype:write(chunk, callback)
     self.has_body = true
     self:flush_head()
   end
-  local userdata = self.userdata
   if self.chunked then
-    userdata:write(string_format("%x\r\n", #chunk))
-    userdata:write(chunk)
-    return userdata:write("\r\n", callback)
+    self.socket:write(string_format("%x\r\n", #chunk))
+    self.socket:write(chunk)
+    return self.socket:write("\r\n", callback)
   end
-  return userdata:write(chunk, callback)
+  return self.socket:write(chunk, callback)
 end
 
 function Response.prototype:finish(chunk, callback)
@@ -270,7 +275,7 @@ function Response.prototype:finish(chunk, callback)
     self:write(chunk)
   end
   if self.chunked then
-    self.userdata:write('0\r\n\r\n')
+    self.socket:write('0\r\n\r\n')
   end
   self:shutdown(function ()
     self:close()
