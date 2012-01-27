@@ -66,10 +66,10 @@ setmetatable(SDL, {
 
 function init_events()
   events = true
-  local event = FFI:new("SDL_Event")
+  local event = FFI.new("SDL_Event")
   local alive = true
   local before = UV.now()
-  local interval = Timer.set_interval(1, function ()
+  local interval = Timer:set_interval(1, function ()
     local now = UV.now()
     local delta = now - before
     before = now
