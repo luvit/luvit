@@ -34,6 +34,7 @@
        'src/luv_tty.c',
        'src/luv_udp.c',
        'src/luvit_init.c',
+       'src/luvit_exports.c',
        'src/lyajl.c',
        'src/utils.c',
        'lib/dns.lua',
