@@ -4,10 +4,16 @@
      'type': 'static_library',
      'dependencies': [
        'deps/http-parser/http_parser.gyp:http_parser',
-       'deps/luajit.gyp:*',
+       'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/uv/uv.gyp:uv',
      ],
+     'export_dependent_settings': [
+       'deps/http-parser/http_parser.gyp:http_parser',
+       'deps/luajit.gyp:libluajit',
+       'deps/yajl.gyp:yajl',
+       'deps/uv/uv.gyp:uv',
+      ],
      'sources': [
        'src/lconstants.c',
        'src/lenv.c',
@@ -68,6 +74,12 @@
        'src',
        'deps/uv/src/ares'
      ],
+     'direct_dependent_settings': {
+       'include_dirs': [
+         'src',
+         'deps/uv/src/ares'
+       ]
+     },
      'rules': [
        {
          'rule_name': 'jit_lua',
