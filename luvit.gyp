@@ -8,6 +8,12 @@
        'deps/yajl.gyp:yajl',
        'deps/uv/uv.gyp:uv',
      ],
+     'export_dependent_settings': [
+       'deps/http-parser/http_parser.gyp:http_parser',
+       'deps/luajit.gyp:*',
+       'deps/yajl.gyp:yajl',
+       'deps/uv/uv.gyp:uv',
+      ],
      'sources': [
        'src/lconstants.c',
        'src/lenv.c',
@@ -28,6 +34,7 @@
        'src/luv_tty.c',
        'src/luv_udp.c',
        'src/luvit_init.c',
+       'src/luvit_exports.c',
        'src/lyajl.c',
        'src/utils.c',
        'lib/dns.lua',
@@ -35,11 +42,13 @@
        'lib/error.lua',
        'lib/fiber.lua',
        'lib/fs.lua',
+       'lib/handle.lua',
        'lib/http.lua',
        'lib/json.lua',
        'lib/luvit.lua',
        'lib/mime.lua',
        'lib/net.lua',
+       'lib/object.lua',
        'lib/path.lua',
        'lib/pipe.lua',
        'lib/process.lua',
@@ -55,6 +64,7 @@
        'lib/udp.lua',
        'lib/url.lua',
        'lib/utils.lua',
+       'lib/watcher.lua',
      ],
      'defines': [
        'LUVIT_OS="<(OS)"',
@@ -68,6 +78,12 @@
        'src',
        'deps/uv/src/ares'
      ],
+     'direct_dependent_settings': {
+       'include_dirs': [
+         'src',
+         'deps/uv/src/ares'
+       ]
+     },
      'rules': [
        {
          'rule_name': 'jit_lua',
