@@ -243,7 +243,10 @@ int luv_fs_close(lua_State* L) {
 
 int luv_fs_read(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
-  int offset = luaL_checkint(L, 2);
+  int offset;
+  if (!lua_isnil(L, 2)) {
+    offset = luaL_checkint(L, 2);
+  }
   int length = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
   void* buf = malloc(length);
