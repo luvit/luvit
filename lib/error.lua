@@ -19,6 +19,11 @@ local Object = require('object')
 
 local Error = Object:extend()
 
+-- Make errors tostringable
+function Error.meta.__tostring(table)
+  return table.message
+end
+
 function Error.prototype:initialize(message)
   self.message = message
 end
