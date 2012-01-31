@@ -25,7 +25,8 @@ local Emitter = Object:extend()
 function Emitter.prototype:missing_handler_type(name, ...)
   --_oldprint("Emitter.prototype:missing_handler_type")
   if name == "error" then
-    error(...)
+    local args = {...}
+    error(tostring(args[1]))
   end
 end
 
@@ -82,6 +83,15 @@ function Emitter.prototype:remove_listener(name, callback)
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then return end
   handlers_for_type[callback] = nil
+end
+
+-- Register a bound version of a method and route errors
+function Emitter.prototype:wrap(name)
+  local fn = self[name]
+  self[name] = function (err, ...)
+    if (err) then return self:emit("error", err) end
+    return fn(self, ...)
+  end
 end
 
 return Emitter
