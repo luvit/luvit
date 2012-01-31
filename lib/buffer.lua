@@ -40,6 +40,16 @@ function Buffer.prototype:initialize(length)
   end
 end
 
+function Buffer.meta:__ipairs()
+  local index = 0
+  return function (...)
+    index = index + 1
+    if index <= self.length then
+      return index, self[index]
+    end
+  end
+end
+
 function Buffer.meta:__tostring()
   return FFI.string(self.ctype)
 end
