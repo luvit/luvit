@@ -15,8 +15,10 @@
  *
  */
 
-#include <unistd.h> /* gethostname, sysconf */
+#ifndef WIN32
+#include <unistd.h> // gethostname, sysconf
 #include <sys/utsname.h>
+#endif
 #include "los.h"
 #include "luv_misc.h"
 
@@ -30,16 +32,24 @@ static int los_hostname(lua_State* L) {
 }
 
 static int los_type(lua_State* L) {
+#ifdef WIN32
+  lua_pushstring(L, "win32");
+#else
   struct utsname info;
   uname(&info);
   lua_pushstring(L, info.sysname);
+#endif
   return 1;
 }
 
 static int los_release(lua_State* L) {
+#ifdef WIN32
+  lua_pushstring(L, "Windows");
+#else
   struct utsname info;
   uname(&info);
   lua_pushstring(L, info.release);
+#endif
   return 1;
 }
 
