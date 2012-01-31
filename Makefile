@@ -72,6 +72,7 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/mime.o     \
         ${GENDIR}/path.o     \
         ${GENDIR}/stack.o    \
+        ${GENDIR}/buffer.o   \
         ${GENDIR}/json.o     \
         ${GENDIR}/utils.o
 
