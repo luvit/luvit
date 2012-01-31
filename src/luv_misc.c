@@ -317,7 +317,7 @@ int luv_interface_addresses(lua_State* L) {
   lua_newtable(L);
 
   for (i = 0; i < count; i++) {
-	const char* family;
+    const char* family;
 
     lua_getfield(L, -1, interfaces[i].name);
     if (!lua_istable(L, -1)) {
