@@ -210,7 +210,7 @@ local function partial_realpath(path)
     path = Path.resolve(Path.dirname(path), link)
     link = FS.lstat_sync(path).is_symbolic_link and FS.readlink_sync(path)
   end
-  return path
+  return Path.normalize(path)
 end
 
 local function myloadfile(path)
