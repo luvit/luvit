@@ -19,6 +19,7 @@ limitations under the License.
 local Table = require('table')
 local String = require('string')
 local Object = require('object')
+local Bit = require('bit')
 local FFI = require('ffi')
 FFI.cdef([[
   void *malloc (size_t __size);
@@ -43,8 +44,8 @@ end
 function Buffer.meta:__ipairs()
   local index = 0
   return function (...)
-    index = index + 1
-    if index <= self.length then
+    if index < self.length then
+      index = index + 1
       return index, self[index]
     end
   end
@@ -78,9 +79,41 @@ end
 function Buffer.prototype:inspect()
   local parts = {}
   for i = 1, tonumber(self.length) do
-    parts[i] = String.format("%X", self[i])
+    parts[i] = Bit.tohex(self[i], 2)
   end
   return "<Buffer " .. Table.concat(parts, " ") .. ">"
+end
+
+function Buffer.prototype:readUInt8(offset)
+  return self.ctype[offset - 1]
+end
+
+function Buffer.prototype:readInt8(offset)
+  return FFI.cast("char*", self.ctype)[offset - 1]
+end
+
+function Buffer.prototype:readUInt16LE(offset)
+  return Bit.lshift(self[offset + 1], 8) +
+                    self[offset]
+end
+
+function Buffer.prototype:readUInt16BE(offset)
+  return Bit.lshift(self[offset], 8) +
+                    self[offset + 1]
+end
+
+function Buffer.prototype:readUInt32LE(offset)
+  return self[offset + 3] * 0x1000000 +
+         Bit.lshift(self[offset + 2], 16) +
+         Bit.lshift(self[offset + 1], 8) +
+                    self[offset]
+end
+
+function Buffer.prototype:readUInt32BE(offset)
+  return self[offset] * 0x1000000 +
+         Bit.lshift(self[offset + 1], 16) +
+         Bit.lshift(self[offset + 2], 8) +
+                    self[offset + 3]
 end
 
 return Buffer
