@@ -29,23 +29,23 @@ int luv_new_tcp (lua_State* L) {
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
   uv_tcp_init(luv_get_loop(L), handle);
 
-  // Set metatable for type
+  /* Set metatable for type */
   luaL_getmetatable(L, "luv_tcp");
   lua_setmetatable(L, -2);
 
-  // Create a local environment for storing stuff
+  /* Create a local environment for storing stuff */
   lua_newtable(L);
   lua_setfenv (L, -2);
 
-  // Store a reference to the userdata in the handle
+  /* Store a reference to the userdata in the handle */
   ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
-  lua_pushvalue(L, -1); // duplicate so we can _ref it
+  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   handle->data = ref;
 
   assert(lua_gettop(L) == before + 1);
-  // return the userdata
+  /* return the userdata */
   return 1;
 }
 
@@ -195,12 +195,12 @@ int luv_tcp_connect(lua_State* L) {
 
   luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
 
-  // Store a reference to the userdata
+  /* Store a reference to the userdata */
   ref->L = L;
   lua_pushvalue(L, 1);
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
 
-  // Give the connect_req access to this
+  /* Give the connect_req access to this */
   ref->connect_req.data = ref;
 
   if (uv_tcp_connect(&ref->connect_req, handle, address, luv_after_connect)) {
@@ -223,12 +223,12 @@ int luv_tcp_connect6(lua_State* L) {
 
   luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
 
-  // Store a reference to the userdata
+  /* Store a reference to the userdata */
   ref->L = L;
   lua_pushvalue(L, 1);
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
 
-  // Give the connect_req access to this
+  /* Give the connect_req access to this */
   ref->connect_req.data = ref;
 
   if (uv_tcp_connect6(&ref->connect_req, handle, address, luv_after_connect)) {

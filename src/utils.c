@@ -21,20 +21,21 @@
 
 #include "utils.h"
 
-// Meant as a lua_call replace for use in async callbacks
-// Uses the main loop and event source
+/* Meant as a lua_call replace for use in async callbacks
+ * Uses the main loop and event source
+ */
 void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
   int beforeC = lua_gettop(C);
   int beforeL;
   lua_State* L;
 
-  // Get the main thread without cheating
+  /* Get the main thread without cheating */
   lua_getfield(C, LUA_REGISTRYINDEX, "main_thread");
   L = lua_tothread(C, -1);
   beforeL = lua_gettop(L);
   lua_pop(C, 1);
 
-  // If C is not main then move to main
+  /* If C is not main then move to main */
   if (C != L) {
     lua_getglobal(L, "event_source");
     lua_pushstring(L, source);
@@ -43,7 +44,7 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
     assert(lua_gettop(L) == beforeL);
   } else {
 
-    // Wrap the call with the event_source function
+    /* Wrap the call with the event_source function */
     int offset = nargs + 2;
     lua_getglobal(L, "event_source");
     lua_insert(L, -offset);
@@ -55,7 +56,7 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 
 }
 
-// Pushes an error object onto the stack
+/* Pushes an error object onto the stack */
 void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, const char* source, const char* path) {
 
   lua_newtable(L);
@@ -79,7 +80,7 @@ void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, c
 
 }
 
-// Pushes an error object onto the stack
+/* Pushes an error object onto the stack */
 void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path) {
 
   const char* code = uv_err_name(err);
@@ -87,19 +88,20 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
   luv_push_async_error_raw(L, code, msg, source, path);
 }
 
-// An alternative to luaL_checkudata that takes inheritance into account for polymorphism
-// Make sure to not call with long type strings or strcat will overflow
+/* An alternative to luaL_checkudata that takes inheritance into account for polymorphism
+ * Make sure to not call with long type strings or strcat will overflow
+ */
 void* luv_checkudata(lua_State* L, int index, const char* type) {
   char key[32];
 
-  // Check for table wrappers as well and replace it with the userdata it points to
+  /* Check for table wrappers as well and replace it with the userdata it points to */
   if (lua_istable (L, index)) {
     lua_getfield(L, index, "userdata");
     lua_replace(L, index);
   }
   luaL_checktype(L, index, LUA_TUSERDATA);
 
-  // prefix with is_ before looking up property
+  /* prefix with is_ before looking up property */
   strcpy(key, "is_");
   strcat(key, type);
 

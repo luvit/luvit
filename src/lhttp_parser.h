@@ -18,7 +18,6 @@
 #ifndef LHTTP_PARSER
 #define LHTTP_PARSER
 
-//#define LUA_LIB
 #include "lua.h"
 #include "lauxlib.h"
 #include "utils.h"

@@ -29,11 +29,12 @@ typedef struct {
   uv_connect_t connect_req;
 } luv_connect_ref_t;
 
-// Registers a callback, callback_index can't be negative
+/* Registers a callback, callback_index can't be negative */
 void luv_register_event(lua_State* L, int userdata_index, const char* name, int callback_index);
 
-// Emit an event of the current userdata consuming nargs
-// Assumes userdata is right below args
+/* Emit an event of the current userdata consuming nargs
+ * Assumes userdata is right below args
+ */
 void luv_emit_event(lua_State* L, const char* name, int nargs);
 
 void luv_after_connect(uv_connect_t* req, int status);

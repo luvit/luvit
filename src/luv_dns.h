@@ -24,7 +24,7 @@
 #include "ares.h"
 #include "utils.h"
 
-// Wrapped functions exposed to lua
+/* Wrapped functions exposed to lua */
 int luv_dns_queryA(lua_State* L);
 int luv_dns_queryAAAA(lua_State* L);
 int luv_dns_queryCNAME(lua_State* L);

@@ -15,7 +15,7 @@
  *
  */
 
-#include <unistd.h> // gethostname, sysconf
+#include <unistd.h> /* gethostname, sysconf */
 #include <sys/utsname.h>
 #include "los.h"
 #include "luv_misc.h"
@@ -43,7 +43,7 @@ static int los_release(lua_State* L) {
   return 1;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
 static const luaL_reg los_f[] = {
   {"hostname", los_hostname},
@@ -63,7 +63,7 @@ LUALIB_API int luaopen_os_binding(lua_State *L) {
   lua_newtable (L);
   luaL_register(L, NULL, los_f);
 
-  // Return the new module
+  /* Return the new module */
   return 1;
 }
 

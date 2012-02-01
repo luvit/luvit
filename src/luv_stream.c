@@ -21,7 +21,7 @@
 #include "luv_stream.h"
 
 void luv_on_connection(uv_stream_t* handle, int status) {
-  // load the lua state and the userdata
+  /* load the lua state and the userdata */
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -38,7 +38,7 @@ void luv_on_connection(uv_stream_t* handle, int status) {
 
 void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
-  // load the lua state and the userdata
+  /* load the lua state and the userdata */
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -68,7 +68,7 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
 void luv_after_shutdown(uv_shutdown_t* req, int status) {
 
-  // load the lua state and the callback
+  /* load the lua state and the callback */
   luv_shutdown_ref_t* ref = req->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -86,13 +86,13 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
     lua_pop(L, 1);
   }
 
-  free(ref);// We're done with the ref object, free it
+  free(ref);/* We're done with the ref object, free it */
   assert(lua_gettop(L) == before);
 }
 
 void luv_after_write(uv_write_t* req, int status) {
 
-  // load the lua state and the callback
+  /* load the lua state and the callback */
   luv_write_ref_t* ref = req->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -109,7 +109,7 @@ void luv_after_write(uv_write_t* req, int status) {
     lua_pop(L, 1);
   }
 
-  free(ref);// We're done with the ref object, free it
+  free(ref);/* We're done with the ref object, free it */
   assert(lua_gettop(L) == before);
 
 }
@@ -120,12 +120,12 @@ int luv_shutdown(lua_State* L) {
 
   luv_shutdown_ref_t* ref = (luv_shutdown_ref_t*)malloc(sizeof(luv_shutdown_ref_t));
 
-  // Store a reference to the callback
+  /* Store a reference to the callback */
   ref->L = L;
   lua_pushvalue(L, 2);
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
 
-  // Give the shutdown_req access to this
+  /* Give the shutdown_req access to this */
   ref->shutdown_req.data = ref;
 
   uv_shutdown(&ref->shutdown_req, handle, luv_after_shutdown);
@@ -195,16 +195,17 @@ int luv_write (lua_State* L) {
 
   luv_write_ref_t* ref = (luv_write_ref_t*)malloc(sizeof(luv_write_ref_t));
 
-  // Store a reference to the callback
+  /* Store a reference to the callback */
   ref->L = L;
   lua_pushvalue(L, 3);
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
 
-  // Give the write_req access to this
+  /* Give the write_req access to this */
   ref->write_req.data = ref;
 
-  // Store the chunk
-  // TODO: this is probably unsafe, should investigate
+  /* Store the chunk
+   * TODO: this is probably unsafe, should investigate
+   */
   ref->refbuf.base = (char*)chunk;
   ref->refbuf.len = len;
 
