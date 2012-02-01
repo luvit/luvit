@@ -32,23 +32,23 @@ int luv_new_udp (lua_State* L) {
   uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
   uv_udp_init(luv_get_loop(L), handle);
 
-  // Set metatable for type
+  /* Set metatable for type */
   luaL_getmetatable(L, "luv_udp");
   lua_setmetatable(L, -2);
 
-  // Create a local environment for storing stuff
+  /* Create a local environment for storing stuff */
   lua_newtable(L);
   lua_setfenv (L, -2);
 
-  // Store a reference to the userdata in the handle
+  /* Store a reference to the userdata in the handle */
   ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
-  lua_pushvalue(L, -1); // duplicate so we can _ref it
+  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   handle->data = ref;
 
   assert(lua_gettop(L) == before + 1);
-  // return the userdata
+  /* return the userdata */
   return 1;
 }
 
@@ -100,7 +100,7 @@ int luv_udp_set_membership(lua_State* L) {
   int option = luaL_checkoption (L, 4, "membership", luv_membership_options);
   uv_membership membership = option ? UV_LEAVE_GROUP : UV_JOIN_GROUP;
 
-  // TODO: don't use null, let user pass in
+  /* TODO: don't use null, let user pass in */
   if (uv_udp_set_membership(handle, NULL, interface_addr, membership)) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "udp_set_membership: %s", uv_strerror(err));

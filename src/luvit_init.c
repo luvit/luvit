@@ -81,34 +81,34 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   rc = ares_library_init(ARES_LIB_INIT_ALL);
   assert(rc == ARES_SUCCESS);
 
-  // Pull up the preload table
+  /* Pull up the preload table */
   lua_getglobal(L, "package");
   lua_getfield(L, -1, "preload");
   lua_remove(L, -2);
 
-  // Register yajl
+  /* Register yajl */
   lua_pushcfunction(L, luaopen_yajl);
   lua_setfield(L, -2, "yajl");
-  // Register os
+  /* Register os */
   lua_pushcfunction(L, luaopen_os_binding);
   lua_setfield(L, -2, "os_binding");
-  // Register http_parser
+  /* Register http_parser */
   lua_pushcfunction(L, luaopen_http_parser);
   lua_setfield(L, -2, "http_parser");
-  // Register uv
+  /* Register uv */
   lua_pushcfunction(L, luaopen_uv);
   lua_setfield(L, -2, "uv");
-  // Register env
+  /* Register env */
   lua_pushcfunction(L, luaopen_env);
   lua_setfield(L, -2, "env");
-  // Register constants
+  /* Register constants */
   lua_pushcfunction(L, luaopen_constants);
   lua_setfield(L, -2, "constants");
 
-  // We're done with preload, put it away
+  /* We're done with preload, put it away */
   lua_pop(L, 1);
 
-  // Get argv
+  /* Get argv */
   lua_createtable (L, argc, 0);
   for (index = 0; index < argc; index++) {
     lua_pushstring (L, argv[index]);
@@ -140,14 +140,14 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_pushstring(L, YAJL_VERSIONISH);
   lua_setglobal(L, "YAJL_VERSION");
 
-  // Hold a reference to the main thread in the registry
+  /* Hold a reference to the main thread in the registry */
   assert(lua_pushthread(L) == 1);
   lua_setfield(L, LUA_REGISTRYINDEX, "main_thread");
 
-  // Store the loop within the registry
+  /* Store the loop within the registry */
   luv_set_loop(L, loop);
 
-  // Store the ARES Channel
+  /* Store the ARES Channel */
   uv_ares_init_options(luv_get_loop(L), &channel, &options, 0);
   luv_set_ares_channel(L, channel);
 

@@ -29,7 +29,7 @@ LUALIB_API int luaopen_constants(lua_State *L) {
   LUVIT_DEFINE_CONSTANT(AF_INET);
   LUVIT_DEFINE_CONSTANT(AF_INET6);
 
-  // file access modes
+  /* file access modes */
   LUVIT_DEFINE_CONSTANT(O_RDONLY);
   LUVIT_DEFINE_CONSTANT(O_WRONLY);
   LUVIT_DEFINE_CONSTANT(O_RDWR);
@@ -835,7 +835,7 @@ LUALIB_API int luaopen_constants(lua_State *L) {
   LUVIT_DEFINE_CONSTANT(SIGUNUSED);
 #endif
 
-// OpenSSL SSL context options
+/* OpenSSL SSL context options */
 
 #ifdef SSL_OP_NO_QUERY_MTU
   LUVIT_DEFINE_CONSTANT(SSL_OP_NO_QUERY_MTU);

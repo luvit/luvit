@@ -121,8 +121,7 @@ static int lenv_unset(lua_State* L) {
   return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
+/******************************************************************************/
 
 static const luaL_reg lenv_f[] = {
   {"keys", lenv_keys},
@@ -138,7 +137,7 @@ LUALIB_API int luaopen_env(lua_State *L) {
   lua_newtable (L);
   luaL_register(L, NULL, lenv_f);
 
-  // Return the new module
+  /* Return the new module */
   return 1;
 }
 

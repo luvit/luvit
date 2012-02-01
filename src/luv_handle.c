@@ -20,7 +20,7 @@
 
 #include "luv_handle.h"
 
-// Registers a callback, callback_index can't be negative
+/* Registers a callback, callback_index can't be negative */
 void luv_register_event(lua_State* L, int userdata_index, const char* name, int callback_index) {
   int before = lua_gettop(L);
   lua_getfenv(L, userdata_index);
@@ -30,16 +30,17 @@ void luv_register_event(lua_State* L, int userdata_index, const char* name, int 
   assert(lua_gettop(L) == before);
 }
 
-// Emit an event of the current userdata consuming nargs
-// Assumes userdata is right below args
+/* Emit an event of the current userdata consuming nargs
+ * Assumes userdata is right below args
+ */
 void luv_emit_event(lua_State* L, const char* name, int nargs) {
   int before = lua_gettop(L);
-  // Load the connection callback
+  /* Load the connection callback */
   lua_getfenv(L, -nargs - 1);
   lua_getfield(L, -1, name);
-  // remove the userdata environment
+  /* remove the userdata environment */
   lua_remove(L, -2);
-  // Remove the userdata
+  /* Remove the userdata */
   lua_remove(L, -nargs - 2);
 
   if (lua_isfunction (L, -1) == 0) {
@@ -49,7 +50,7 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
   }
 
 
-  // move the function below the args
+  /* move the function below the args */
   lua_insert(L, -nargs - 1);
   luv_acall(L, nargs, 0, name);
 
@@ -57,7 +58,7 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
 }
 
 void luv_after_connect(uv_connect_t* req, int status) {
-  // load the lua state and the userdata
+  /* load the lua state and the userdata */
   luv_connect_ref_t* ref = req->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -82,7 +83,7 @@ uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size) {
 
 void luv_on_close(uv_handle_t* handle) {
 
-  // load the lua state and the userdata
+  /* load the lua state and the userdata */
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -90,7 +91,7 @@ void luv_on_close(uv_handle_t* handle) {
 
   luv_emit_event(L, "closed", 0);
 
-  // This handle is no longer valid, clean up memory
+  /* This handle is no longer valid, clean up memory */
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
   free(ref);
 

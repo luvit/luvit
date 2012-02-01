@@ -23,7 +23,7 @@
 #include "utils.h"
 
 void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal) {
-  // load the lua state and the userdata
+  /* load the lua state and the userdata */
   luv_ref_t* ref = handle->data;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
@@ -37,7 +37,7 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
 }
 
 
-// Initializes uv_process_t and starts the process.
+/* Initializes uv_process_t and starts the process. */
 int luv_spawn(lua_State* L) {
   int before = lua_gettop(L);
   uv_pipe_t* stdin_stream = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
@@ -54,10 +54,10 @@ int luv_spawn(lua_State* L) {
   int r;
   luv_ref_t* ref;
 
-  luaL_checktype(L, 5, LUA_TTABLE); // args
-  luaL_checktype(L, 6, LUA_TTABLE); // options
+  luaL_checktype(L, 5, LUA_TTABLE); /* args */
+  luaL_checktype(L, 6, LUA_TTABLE); /* options */
 
-  // Parse the args array
+  /* Parse the args array */
   argc = lua_objlen(L, 5) + 1;
   args = malloc((argc + 1) * sizeof(char*));
   args[0] = (char*)command;
@@ -68,12 +68,12 @@ int luv_spawn(lua_State* L) {
   }
   args[argc] = NULL;
 
-  // Get the cwd
+  /* Get the cwd */
   lua_getfield(L, 6, "cwd");
   cwd = (char*)lua_tostring(L, -1);
   lua_pop(L, 1);
 
-  // Get the env
+  /* Get the env */
   lua_getfield(L, 6, "env");
   env = NULL;
   if (lua_type(L, -1) == LUA_TTABLE) {
@@ -91,14 +91,14 @@ int luv_spawn(lua_State* L) {
   options.exit_cb = luv_process_on_exit;
   options.file = command;
   options.args = args;
-  
+
   options.env = env ? env : luv_os_environ();
   options.cwd = cwd;
   options.stdin_stream = stdin_stream;
   options.stdout_stream = stdout_stream;
   options.stderr_stream = stderr_stream;
 
-  // Create the userdata
+  /* Create the userdata */
   handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
   r = uv_spawn(luv_get_loop(L), handle, options);
   free(args);
@@ -108,28 +108,29 @@ int luv_spawn(lua_State* L) {
     return luaL_error(L, "spawn: %s", uv_strerror(err));
   }
 
-  // Set metatable for type
+  /* Set metatable for type */
   luaL_getmetatable(L, "luv_process");
   lua_setmetatable(L, -2);
 
-  // Create a local environment for storing stuff
+  /* Create a local environment for storing stuff */
   lua_newtable(L);
   lua_setfenv (L, -2);
 
-  // Store a reference to the userdata in the handle
+  /* Store a reference to the userdata in the handle */
   ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
-  lua_pushvalue(L, -1); // duplicate so we can _ref it
+  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   handle->data = ref;
 
   assert(lua_gettop(L) == before + 1);
-  // return the userdata
+  /* return the userdata */
   return 1;
 }
 
-// Kills the process with the specified signal. The user must still call close
-// on the process.
+/* Kills the process with the specified signal. The user must still call close
+ * on the process.
+ */
 int luv_process_kill(lua_State* L) {
   uv_process_t* handle = (uv_process_t*)luv_checkudata(L, 1, "process");
   int signum = luaL_checkint(L, 2);
