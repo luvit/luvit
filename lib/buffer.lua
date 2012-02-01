@@ -118,10 +118,6 @@ function Buffer.prototype:readInt16BE(offset)
   return compliment16(self:readUInt16BE(offset))
 end
 
-function compliment32(value)
-  return value < 0x80000000 and value or -0x100000000 + value
-end
-
 function Buffer.prototype:readUInt32LE(offset)
   return self[offset + 3] * 0x1000000 +
          Bit.lshift(self[offset + 2], 16) +
@@ -137,11 +133,11 @@ function Buffer.prototype:readUInt32BE(offset)
 end
 
 function Buffer.prototype:readInt32LE(offset)
-  return complement32(self:readUInt32LE(offset))
+  return Bit.tobit(self:readUInt32LE(offset))
 end
 
 function Buffer.prototype:readInt32BE(offset)
-  return complement32(self:readUINT32BE(offset))
+  return Bit.tobit(self:readUInt32BE(offset))
 end
 
 return Buffer

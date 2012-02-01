@@ -42,4 +42,6 @@ assert(buf:readUInt16BE(3) == 0x2342)
 assert(buf:readUInt16LE(3) == 0x4223)
 assert(buf:readUInt32BE(1) == 0xFB042342)
 assert(buf:readUInt32LE(1) == 0x422304FB)
+assert(buf:readInt32BE(1) == -0x04FBDCBE)
+assert(buf:readInt32LE(1) == 0x422304FB)
 
