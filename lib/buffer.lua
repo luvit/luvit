@@ -84,7 +84,7 @@ function Buffer.prototype:inspect()
   return "<Buffer " .. Table.concat(parts, " ") .. ">"
 end
 
-function compliment8(value)
+local function compliment8(value)
   return value < 0x80 and value or -0x100 + value
 end
 
@@ -96,7 +96,7 @@ function Buffer.prototype:readInt8(offset)
   return compliment8(self[offset])
 end
 
-function compliment16(value)
+local function compliment16(value)
   return value < 0x8000 and value or -0x10000 + value
 end
 
