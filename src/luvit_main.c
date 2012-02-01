@@ -24,7 +24,9 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+#ifndef WIN32
 #include <pthread.h>
+#endif
 #include <netdb.h>
 #include "uv.h"
 
