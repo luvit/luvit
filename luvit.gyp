@@ -14,6 +14,12 @@
        'deps/yajl.gyp:yajl',
        'deps/uv/uv.gyp:uv',
       ],
+      'conditions': [
+        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
+          'cflags': [ '--std=c89' ],
+          'defines': [ '_GNU_SOURCE' ]
+        }],
+      ],
      'sources': [
        'src/lconstants.c',
        'src/lenv.c',
@@ -119,7 +125,13 @@
         },
       },
       'conditions': [
-        ['OS == "linux"', { 'libraries': ['-ldl'] } ],
+        ['OS == "linux"', {
+          'libraries': ['-ldl'],
+        }],
+        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
+          'cflags': [ '--std=c89' ],
+          'defines': [ '_GNU_SOURCE' ]
+        }],
       ],
     },
   ],

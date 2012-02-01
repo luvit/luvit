@@ -29,23 +29,23 @@ int luv_new_pipe (lua_State* L) {
   uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
   uv_pipe_init(luv_get_loop(L), handle, ipc);
 
-  // Set metatable for type
+  /* Set metatable for type */
   luaL_getmetatable(L, "luv_pipe");
   lua_setmetatable(L, -2);
 
-  // Create a local environment for storing stuff
+  /* Create a local environment for storing stuff */
   lua_newtable(L);
   lua_setfenv (L, -2);
 
-  // Store a reference to the userdata in the handle
+  /* Store a reference to the userdata in the handle */
   ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
   ref->L = L;
-  lua_pushvalue(L, -1); // duplicate so we can _ref it
+  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   handle->data = ref;
 
   assert(lua_gettop(L) == before + 1);
-  // return the userdata
+  /* return the userdata */
   return 1;
 }
 
@@ -75,8 +75,9 @@ int luv_pipe_bind(lua_State* L) {
 }
 
 
-//int uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
-//    const char* name, uv_connect_cb cb);
+/*int uv_pipe_connect(uv_connect_t* req, uv_pipe_t* handle,
+ *    const char* name, uv_connect_cb cb);
+ */
 int luv_pipe_connect(lua_State* L) {
   int before = lua_gettop(L);
   uv_pipe_t* handle = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
@@ -84,12 +85,12 @@ int luv_pipe_connect(lua_State* L) {
 
   luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
 
-  // Store a reference to the userdata
+  /* Store a reference to the userdata */
   ref->L = L;
   lua_pushvalue(L, 1);
   ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
 
-  // Give the connect_req access to this
+  /* Give the connect_req access to this */
   ref->connect_req.data = ref;
 
   uv_pipe_connect(&ref->connect_req, handle, name, luv_after_connect);

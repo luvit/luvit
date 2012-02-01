@@ -27,13 +27,13 @@ void luv_push_stats_table(lua_State* L, struct stat* s);
 
 void luv_fs_error(lua_State* L, int errorno, const char *syscall, const char *msg, const char *path);
 
-// Utility to convert string flags to proper int flags
+/* Utility to convert string flags to proper int flags */
 int luv_string_to_flags(lua_State* L, const char* string);
 
-// Utility for storing the callback in the fs_req token
+/* Utility for storing the callback in the fs_req token */
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index);
 
-// Wrapped functions exposed to lua
+/* Wrapped functions exposed to lua */
 int luv_fs_open(lua_State* L);
 int luv_fs_close(lua_State* L);
 int luv_fs_read(lua_State* L);
