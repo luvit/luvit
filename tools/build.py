@@ -19,7 +19,11 @@ def build():
   sys.exit(subprocess.call(cmd, shell=True))
 
 def test():
-  luvit = os.path.join(root, 'out', 'Debug', 'luvit')
+  binext = ''
+  if sys.platform == "win32":
+    binext = '.exe'
+
+  luvit = os.path.join(root, 'out', 'Debug', 'luvit' + binext)
   test_dir = os.path.join(root, 'tests')
   old_cwd = os.getcwd()
   os.chdir(test_dir)
