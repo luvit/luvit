@@ -69,8 +69,13 @@ Fs.readdir('.', function(err, files)
   end
 
   async.forEachSeries(test_files, run_test, function()
+    local nerr = 0;
+    local nran = 0;
+
     for k, v in pairs(results) do
+      nran = nran + 1
       if v.exit_status ~= 0 then
+        nerr = nerr + 1
         process.stdout:write('\n\n')
         process.stdout:write(Utils.color("Bred") .. "FAIL (" .. v.filename .. ')' .. Utils.color() .. "\n")
         process.stdout:write(v.stdout_data)
@@ -78,6 +83,9 @@ Fs.readdir('.', function(err, files)
       end
     end
     process.stdout:write('Done\n')
+    if nerr ~= 0 then
+      process.exit(1)
+    end
   end)
 end)
 
