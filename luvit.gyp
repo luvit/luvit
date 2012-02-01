@@ -135,5 +135,39 @@
         }],
       ],
     },
+    {
+      'target_name': 'vector.luvit',
+      'product_name': 'vector',
+      'product_extension': 'luvit',
+      'product_prefix': '',
+      'type': 'shared_library',
+      'dependencies': [
+        'libluvit',
+      ],
+      'sources': [
+        'examples/native/vector.c'
+      ],
+      'conditions': [
+        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
+          'cflags': [ '--std=c89' ],
+          'defines': [ '_GNU_SOURCE' ]
+        }],
+      ],
+    },
+    {
+      'target_name': 'copy.vector.luvit',
+      'type': 'none',
+      'dependencies': [
+        'vector.luvit'
+      ],
+      'copies': [
+        {
+          'destination': 'examples/native/',
+          'files': [
+            '<(PRODUCT_DIR)/vector.luvit'
+          ]
+        }
+      ]
+    }
   ],
 }
