@@ -38,7 +38,7 @@ static luv_dns_ref_t* luv_dns_store_callback(lua_State* L, int index) {
   ref = calloc(1, sizeof(luv_dns_ref_t));
   ref->L = L;
   if (lua_isfunction(L, index)) {
-    lua_pushvalue(L, index); // Store the callback
+    lua_pushvalue(L, index); /* Store the callback */
     ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   }
   assert(lua_gettop(L) == before);

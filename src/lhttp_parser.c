@@ -52,46 +52,46 @@ static const char* method_to_str(unsigned short m) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************/
 
 static struct http_parser_settings lhttp_parser_settings;
 
 static int lhttp_parser_on_message_begin(http_parser *p) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_message_begin");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
   lua_call(L, 0, 1);
 
-  lua_pop(L, 1); // pop returned value
-  lua_pop(L, 1); // pop the userdata env
+  lua_pop(L, 1); /* pop returned value */
+  lua_pop(L, 1); /* pop the userdata env */
   return 0;
 }
 
 static int lhttp_parser_on_message_complete(http_parser *p) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_message_complete");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
   lua_call(L, 0, 1);
 
-  lua_pop(L, 2); // pop returned value and the userdata env
+  lua_pop(L, 2); /* pop returned value and the userdata env */
   return 0;
 }
 
@@ -99,121 +99,121 @@ static int lhttp_parser_on_message_complete(http_parser *p) {
 static int lhttp_parser_on_url(http_parser *p, const char *at, size_t length) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_url");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
-  // Push the string argument
+  /* Push the string argument */
   lua_pushlstring(L, at, length);
 
   lua_call(L, 1, 1);
 
-  lua_pop(L, 2); // pop returned value and the userdata env
+  lua_pop(L, 2); /* pop returned value and the userdata env */
   return 0;
 }
 
 static int lhttp_parser_on_header_field(http_parser *p, const char *at, size_t length) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_header_field");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
-  // Push the string argument
+  /* Push the string argument */
   lua_pushlstring(L, at, length);
 
   lua_call(L, 1, 1);
 
-  lua_pop(L, 2); // pop returned value and the userdata env
+  lua_pop(L, 2); /* pop returned value and the userdata env */
   return 0;
 }
 
 static int lhttp_parser_on_header_value(http_parser *p, const char *at, size_t length) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_header_value");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
-  // Push the string argument
+  /* Push the string argument */
   lua_pushlstring(L, at, length);
 
   lua_call(L, 1, 1);
 
-  lua_pop(L, 2); // pop returned value and the userdata env
+  lua_pop(L, 2); /* pop returned value and the userdata env */
   return 0;
 }
 
 static int lhttp_parser_on_body(http_parser *p, const char *at, size_t length) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_body");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
-  // Push the string argument
+  /* Push the string argument */
   lua_pushlstring(L, at, length);
 
   lua_call(L, 1, 1);
 
-  lua_pop(L, 2); // pop returned value and the userdata env
+  lua_pop(L, 2); /* pop returned value and the userdata env */
   return 0;
 }
 
 static int lhttp_parser_on_headers_complete(http_parser *p) {
   lua_State *L = p->data;
 
-  // Put the environment of the userdata on the top of the stack
+  /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  // Get the on_message_begin callback and put it on the stack
+  /* Get the on_message_begin callback and put it on the stack */
   lua_getfield(L, -1, "on_headers_complete");
-  // See if it's a function
+  /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
-    // no function defined
+    /* no function defined */
     lua_pop(L, 2);
     return 0;
   };
 
-  // Push a new table as the argument
+  /* Push a new table as the argument */
   lua_newtable (L);
 
-  // METHOD
+  /* METHOD */
   if (p->type == HTTP_REQUEST) {
     lua_pushstring(L, method_to_str(p->method));
     lua_setfield(L, -2, "method");
   }
 
-  // STATUS
+  /* STATUS */
   if (p->type == HTTP_RESPONSE) {
     lua_pushinteger(L, p->status_code);
     lua_setfield(L, -2, "status_code");
   }
 
-  // VERSION
+  /* VERSION */
   lua_pushinteger(L, p->http_major);
   lua_setfield(L, -2, "version_major");
   lua_pushinteger(L, p->http_minor);
@@ -229,14 +229,13 @@ static int lhttp_parser_on_headers_complete(http_parser *p) {
 
   lua_call(L, 1, 1);
 
-  lua_pop(L, 2); // pop returned value and the userdata env
+  lua_pop(L, 2); /* pop returned value and the userdata env */
   return 0;
 }
 
+/******************************************************************************/
 
-////////////////////////////////////////////////////////////////////////////////
-
-// Takes as arguments a string for type and a table for event callbacks
+/* Takes as arguments a string for type and a table for event callbacks */
 static int lhttp_parser_new (lua_State *L) {
 
   const char *type = luaL_checkstring(L, 1);
@@ -253,22 +252,22 @@ static int lhttp_parser_new (lua_State *L) {
     return luaL_argerror(L, 1, "type must be 'request' or 'response'");
   }
 
-  // Store the current lua state in the parser's data
+  /* Store the current lua state in the parser's data */
   parser->data = L;
 
-  // Set the callback table as the userdata's environment
+  /* Set the callback table as the userdata's environment */
   lua_pushvalue(L, 2);
   lua_setfenv (L, -2);
 
-  // Set the type of the userdata as an lhttp_parser instance
+  /* Set the type of the userdata as an lhttp_parser instance */
   luaL_getmetatable(L, "lhttp_parser");
   lua_setmetatable(L, -2);
 
-  // return the userdata
+  /* return the userdata */
   return 1;
 }
 
-// execute(parser, buffer, offset, length)
+/* execute(parser, buffer, offset, length) */
 static int lhttp_parser_execute (lua_State *L) {
   http_parser* parser = (http_parser *)luaL_checkudata(L, 1, "lhttp_parser");
   size_t chunk_len;
@@ -359,8 +358,7 @@ static int lhttp_parser_parse_url (lua_State *L) {
   return 1;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
+/******************************************************************************/
 
 static const luaL_reg lhttp_parser_m[] = {
   {"execute", lhttp_parser_execute},
@@ -377,7 +375,7 @@ static const luaL_reg lhttp_parser_f[] = {
 
 LUALIB_API int luaopen_http_parser (lua_State *L) {
 
-  // This needs to be done sometime?
+  /* This needs to be done sometime? */
   lhttp_parser_settings.on_message_begin    = lhttp_parser_on_message_begin;
   lhttp_parser_settings.on_url              = lhttp_parser_on_url;
   lhttp_parser_settings.on_header_field     = lhttp_parser_on_header_field;
@@ -386,23 +384,23 @@ LUALIB_API int luaopen_http_parser (lua_State *L) {
   lhttp_parser_settings.on_body             = lhttp_parser_on_body;
   lhttp_parser_settings.on_message_complete = lhttp_parser_on_message_complete;
 
-  // Create a metatable for the lhttp_parser userdata type
+  /* Create a metatable for the lhttp_parser userdata type */
   luaL_newmetatable(L, "lhttp_parser");
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
   luaL_register(L, NULL, lhttp_parser_m);
 
-  // Create a new exports table
+  /* Create a new exports table */
   lua_newtable (L);
-  // Put our one function on it
+  /* Put our one function on it */
   luaL_register(L, NULL, lhttp_parser_f);
-  // Stick version info on the http_parser table
+  /* Stick version info on the http_parser table */
   lua_pushnumber(L, HTTP_PARSER_VERSION_MAJOR);
   lua_setfield(L, -2, "VERSION_MAJOR");
   lua_pushnumber(L, HTTP_PARSER_VERSION_MINOR);
   lua_setfield(L, -2, "VERSION_MINOR");
 
-  // Return the new module
+  /* Return the new module */
   return 1;
 }
 

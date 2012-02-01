@@ -296,14 +296,16 @@ int luv_cpu_info(lua_State* L) {
   return 1;
 }
 
-// struct uv_interface_address_s {
-//   char* name;
-//   int is_internal;
-//   union {
-//     struct sockaddr_in address4;
-//     struct sockaddr_in6 address6;
-//   } address;
-// };
+#if 0
+ struct uv_interface_address_s {
+   char* name;
+   int is_internal;
+   union {
+     struct sockaddr_in address4;
+     struct sockaddr_in6 address6;
+   } address;
+ };
+#endif
 
 int luv_interface_addresses(lua_State* L) {
   uv_interface_address_t* interfaces;

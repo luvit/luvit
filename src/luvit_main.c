@@ -24,8 +24,11 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
-#include "luvit.h"
+#include <pthread.h>
+#include <netdb.h>
 #include "uv.h"
+
+#include "luvit.h"
 #include "luv.h"
 
 int main(int argc, char *argv[])
@@ -48,7 +51,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  // Run the main lua script
+  /* Run the main lua script */
   if (luvit_run(L)) {
     printf("%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);

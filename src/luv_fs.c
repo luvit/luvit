@@ -185,18 +185,18 @@ void luv_after_fs(uv_fs_t* req) {
   luv_acall(L, argc + 1, 0, "fs_after");
 
   uv_fs_req_cleanup(req);
-  free(ref);// We're done with the ref object, free it
+  free(ref); /* We're done with the ref object, free it */
   assert(lua_gettop(L) == before);
 }
 
-// Utility for storing the callback in the fs_req token
+/* Utility for storing the callback in the fs_req token */
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
   int before = lua_gettop(L);
 
   luv_fs_ref_t* ref = malloc(sizeof(luv_fs_ref_t));
   ref->L = L;
   if (lua_isfunction(L, index)) {
-    lua_pushvalue(L, index); // Store the callback
+    lua_pushvalue(L, index); /* Store the callback */
     ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   }
   ref->fs_req.data = ref;
