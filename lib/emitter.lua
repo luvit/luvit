@@ -16,8 +16,8 @@ limitations under the License.
 
 --]]
 
-local Constants = require('constants')
 local Object = require('object')
+local Table = require('table')
 
 local Emitter = Object:extend()
 
@@ -56,7 +56,7 @@ function Emitter.prototype:on(name, callback)
     handlers_for_type = {}
     rawset(handlers, name, handlers_for_type)
   end
-  handlers_for_type[callback] = true
+  Table.insert(handlers_for_type, callback)
 end
 
 function Emitter.prototype:emit(name, ...)
@@ -71,9 +71,15 @@ function Emitter.prototype:emit(name, ...)
     self:missing_handler_type(name, ...)
     return
   end
-  for k, v in pairs(handlers_for_type) do
-    k(...)
+  for i, callback in ipairs(handlers_for_type) do
+    callback(...)
   end
+  for i = #handlers_for_type, 1, -1 do
+    if not handlers_for_type[i] then
+      Table.remove(handlers_for_type, i)
+    end
+  end
+
 end
 
 function Emitter.prototype:remove_listener(name, callback)
@@ -82,7 +88,11 @@ function Emitter.prototype:remove_listener(name, callback)
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then return end
-  handlers_for_type[callback] = nil
+  for i = 1, #handlers_for_type do
+    if handlers_for_type[i] == callback then
+      handlers_for_type[i] = nil
+    end
+  end
 end
 
 -- Register a bound version of a method and route errors
