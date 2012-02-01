@@ -43,6 +43,7 @@
        'src/luvit_exports.c',
        'src/lyajl.c',
        'src/utils.c',
+       'lib/buffer.lua',
        'lib/dns.lua',
        'lib/emitter.lua',
        'lib/error.lua',

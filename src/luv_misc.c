@@ -267,10 +267,10 @@ int luv_uptime(lua_State* L) {
 
 int luv_cpu_info(lua_State* L) {
   uv_cpu_info_t* cpu_infos;
-  int count;
+  int count, i;
   uv_cpu_info(&cpu_infos, &count);
   lua_newtable(L);
-  int i;
+
   for (i = 0; i < count; i++) {
     lua_newtable(L);
     lua_pushstring(L, (cpu_infos[i]).model);
@@ -309,14 +309,16 @@ int luv_cpu_info(lua_State* L) {
 
 int luv_interface_addresses(lua_State* L) {
   uv_interface_address_t* interfaces;
-  int count;
+  int count, i;
   char ip[INET6_ADDRSTRLEN];
 
   uv_interface_addresses(&interfaces, &count);
 
   lua_newtable(L);
-  int i;
+
   for (i = 0; i < count; i++) {
+    const char* family;
+
     lua_getfield(L, -1, interfaces[i].name);
     if (!lua_istable(L, -1)) {
       lua_pop(L, 1);
@@ -327,7 +329,7 @@ int luv_interface_addresses(lua_State* L) {
     lua_newtable(L);
     lua_pushboolean(L, interfaces[i].is_internal);
     lua_setfield(L, -2, "internal");
-    const char* family;
+
     if (interfaces[i].address.address4.sin_family == AF_INET) {
       uv_ip4_name(&interfaces[i].address.address4,ip, sizeof(ip));
       family = "IPv4";
