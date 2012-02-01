@@ -84,12 +84,20 @@ function Buffer.prototype:inspect()
   return "<Buffer " .. Table.concat(parts, " ") .. ">"
 end
 
+function compliment8(value)
+  return value < 0x80 and value or -0x100 + value
+end
+
 function Buffer.prototype:readUInt8(offset)
-  return self.ctype[offset - 1]
+  return self[offset]
 end
 
 function Buffer.prototype:readInt8(offset)
-  return FFI.cast("char*", self.ctype)[offset - 1]
+  return compliment8(self[offset])
+end
+
+function compliment16(value)
+  return value < 0x8000 and value or -0x10000 + value
 end
 
 function Buffer.prototype:readUInt16LE(offset)
@@ -100,6 +108,18 @@ end
 function Buffer.prototype:readUInt16BE(offset)
   return Bit.lshift(self[offset], 8) +
                     self[offset + 1]
+end
+
+function Buffer.prototype:readInt16LE(offset)
+  return compliment16(self:readUInt16LE(offset))
+end
+
+function Buffer.prototype:readInt16BE(offset)
+  return compliment16(self:readUInt16BE(offset))
+end
+
+function compliment32(value)
+  return value < 0x80000000 and value or -0x100000000 + value
 end
 
 function Buffer.prototype:readUInt32LE(offset)
@@ -114,6 +134,14 @@ function Buffer.prototype:readUInt32BE(offset)
          Bit.lshift(self[offset + 1], 16) +
          Bit.lshift(self[offset + 2], 8) +
                     self[offset + 3]
+end
+
+function Buffer.prototype:readInt32LE(offset)
+  return complement32(self:readUInt32LE(offset))
+end
+
+function Buffer.prototype:readInt32BE(offset)
+  return complement32(self:readUINT32BE(offset))
 end
 
 return Buffer
