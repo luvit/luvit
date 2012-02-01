@@ -16,7 +16,7 @@
  */
 
 #ifndef WIN32
-#include <unistd.h> // gethostname, sysconf
+#include <unistd.h>
 #include <sys/utsname.h>
 #endif
 #include "los.h"
