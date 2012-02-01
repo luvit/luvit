@@ -27,7 +27,6 @@
 #ifndef WIN32
 #include <pthread.h>
 #endif
-#include <netdb.h>
 #include "uv.h"
 
 #include "luvit.h"
