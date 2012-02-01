@@ -10,3 +10,6 @@
 [submodule "deps/yajl"]
 	path = deps/yajl
 	url = https://github.com/lloyd/yajl.git
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/creationix/zlib.git
