@@ -1,4 +1,3 @@
-PATH:=$(shell pwd)/bin:$(PATH)
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
 LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
@@ -189,11 +188,9 @@ uninstall deinstall:
 	rm -rf ${INCLUDEDIR}
 	rm -f ${DESTDIR}${BINDIR}/luvit ${DESTDIR}${BINDIR}/luvit-config
 
-examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
-	${MAKE} -C examples/native
-
-test: ${BUILDDIR}/luvit examples/native/vector.luvit
+test: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
+
 
 DIST_DIR=${HOME}/luvit.io/dist
 DIST_NAME=luvit-${VERSION}
