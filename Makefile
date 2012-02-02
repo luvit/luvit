@@ -192,7 +192,7 @@ uninstall deinstall:
 examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
 	${MAKE} -C examples/native
 
-test: examples/native/vector.luvit
+test: install examples/native/vector.luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
 
 DIST_DIR=${HOME}/luvit.io/dist
