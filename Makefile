@@ -188,11 +188,9 @@ uninstall deinstall:
 	rm -rf ${INCLUDEDIR}
 	rm -f ${DESTDIR}${BINDIR}/luvit ${DESTDIR}${BINDIR}/luvit-config
 
-examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
-	${MAKE} -C examples/native
-
-test: examples/native/vector.luvit
+test:
 	cd tests && ../${BUILDDIR}/luvit runner.lua
+
 
 DIST_DIR=${HOME}/luvit.io/dist
 DIST_NAME=luvit-${VERSION}
