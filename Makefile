@@ -1,3 +1,4 @@
+PATH:=$(shell pwd)/bin:$(PATH)
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
 LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
