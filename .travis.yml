@@ -4,3 +4,4 @@ node_js:
 script: "make test"
 notifications:
   email: true
+  irc: "irc.freenode.org#luvit"
