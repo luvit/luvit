@@ -74,6 +74,7 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/stack.o    \
         ${GENDIR}/buffer.o   \
         ${GENDIR}/json.o     \
+        ${GENDIR}/core.o     \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \
