@@ -57,12 +57,7 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/dns.o      \
         ${GENDIR}/net.o      \
         ${GENDIR}/process.o  \
-        ${GENDIR}/error.o    \
-        ${GENDIR}/emitter.o  \
-        ${GENDIR}/object.o   \
-        ${GENDIR}/handle.o   \
         ${GENDIR}/udp.o      \
-        ${GENDIR}/stream.o   \
         ${GENDIR}/tcp.o      \
         ${GENDIR}/pipe.o     \
         ${GENDIR}/tty.o      \
