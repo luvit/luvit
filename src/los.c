@@ -64,7 +64,7 @@ static const luaL_reg los_f[] = {
   {"cpus", luv_cpu_info},
   {"type", los_type},
   {"release", los_release},
-  {"network_interfaces", luv_interface_addresses},
+  {"networkInterfaces", luv_interface_addresses},
   {NULL, NULL}
 };
 

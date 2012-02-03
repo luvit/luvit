@@ -117,10 +117,10 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_setglobal(L, "argv");
 
   lua_pushcfunction(L, luvit_exit);
-  lua_setglobal(L, "exit_process");
+  lua_setglobal(L, "exitProcess");
 
   lua_pushcfunction(L, luvit_print_stderr);
-  lua_setglobal(L, "print_stderr");
+  lua_setglobal(L, "printStderr");
 
   lua_pushcfunction(L, luvit_getcwd);
   lua_setglobal(L, "getcwd");

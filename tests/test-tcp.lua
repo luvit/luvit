@@ -22,7 +22,7 @@ local TCP = require('tcp')
 
 local PORT = 8080
 
-local server = TCP:create_server("127.0.0.1", PORT, function (client)
+local server = TCP:createServer("127.0.0.1", PORT, function (client)
   client:on("data", function (chunk)
     p('server:client:on("data")', chunk)
     assert(chunk == "ping")
@@ -46,7 +46,7 @@ client:connect("127.0.0.1", PORT)
 
 client:on("connect", function ()
   p('client:on("complete")')
-  client:read_start()
+  client:readStart()
 
   client:write("ping", function (err)
     p("client:write")

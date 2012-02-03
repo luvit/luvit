@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 local Emitter = require('emitter')
-local os_date = require('os').date
-local table_concat = require('table').concat
-local string_format = require('string').format
+local osDate = require('os').date
+local tableConcat = require('table').concat
+local stringFormat = require('string').format
 
 local Response = Emitter:extend()
 
@@ -100,13 +100,13 @@ Response.prototype.auto_chunked_encoding = true
 Response.prototype.auto_content_length = true
 Response.prototype.auto_content_type = "text/html"
 
-function Response.prototype:set_code(code)
+function Response.prototype:setCode(code)
   if self.headers_sent then error("Headers already sent") end
   self.code = code
 end
 
 -- This sets a header, replacing any header with the same name (case insensitive)
-function Response.prototype:set_header(name, value)
+function Response.prototype:setHeader(name, value)
   if self.headers_sent then error("Headers already sent") end
   local lower = name:lower()
   local old_name = self.header_names[lower]
@@ -120,14 +120,14 @@ end
 
 -- Adds a header line.  This does not replace any header by the same name and
 -- allows duplicate headers.  Returns the index it was inserted at
-function Response.prototype:add_header(name, value)
+function Response.prototype:addHeader(name, value)
   if self.headers_sent then error("Headers already sent") end
   self.headers[#self.headers + 1] = { name, value }
   return #self.headers
 end
 
--- Removes a set header.  Cannot remove headers added with :add_header
-function Response.prototype:unset_header(name)
+-- Removes a set header.  Cannot remove headers added with :addHeader
+function Response.prototype:unsetHeader(name)
   if self.headers_sent then error("Headers already sent") end
   local lower = name:lower()
   local name = self.header_names[lower]
@@ -136,7 +136,7 @@ function Response.prototype:unset_header(name)
   self.header_names[lower] = nil
 end
 
-function Response.prototype:flush_head(callback)
+function Response.prototype:flushHead(callback)
   if self.headers_sent then error("Headers already sent") end
 
   local reason = status_codes_table[self.code]
@@ -210,15 +210,15 @@ function Response.prototype:flush_head(callback)
     -- This should be RFC 1123 date format
     -- IE: Tue, 15 Nov 1994 08:12:31 GMT
     length = length + 1
-    head[length] = os_date("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
+    head[length] = osDate("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
   end
 
-  head = table_concat(head, "") .. "\r\n"
+  head = tableConcat(head, "") .. "\r\n"
   self.socket:write(head, callback)
   self.headers_sent = true
 end
 
-function Response.prototype:write_head(code, headers, callback)
+function Response.prototype:writeHead(code, headers, callback)
   if self.headers_sent then error("Headers already sent") end
 
   self.code = code
@@ -229,10 +229,10 @@ function Response.prototype:write_head(code, headers, callback)
     self.headers[field] = value
   end
 
-  self:flush_head(callback)
+  self:flushHead(callback)
 end
 
-function Response.prototype:write_continue(callback)
+function Response.prototype:writeContinue(callback)
   self.socket:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
 end
 
@@ -240,10 +240,10 @@ function Response.prototype:write(chunk, callback)
   if self.has_body == false then error("Body not allowed") end
   if not self.headers_sent then
     self.has_body = true
-    self:flush_head()
+    self:flushHead()
   end
   if self.chunked then
-    self.socket:write(string_format("%x\r\n", #chunk))
+    self.socket:write(stringFormat("%x\r\n", #chunk))
     self.socket:write(chunk)
     return self.socket:write("\r\n", callback)
   end
@@ -258,14 +258,14 @@ function Response.prototype:finish(chunk, callback)
         if self.auto_content_length and #self.headers == 0
          and (not self.header_names["content-length"])
          and (not self.header_names["transfer-encoding"]) then
-          self:set_header("Content-Length", #chunk)
+          self:setHeader("Content-Length", #chunk)
         end
         self.has_body = true
       else
         self.has_body = false
       end
     end
-    self:flush_head()
+    self:flushHead()
   end
   if type(chunk) == "function" and callback == nil then
     callback = chunk

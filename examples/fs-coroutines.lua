@@ -24,7 +24,7 @@ Fiber:new(function (resume, wait)
   until length == 0
 
   print("pausing...")
-  Timer:set_timeout(400, resume)
+  Timer:setTimeout(400, resume)
   wait()
 
   print("closing...")

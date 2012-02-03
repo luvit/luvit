@@ -16,15 +16,14 @@ limitations under the License.
 
 --]]
 
-local TCP = require('tcp')
 local net = require('net')
 local Request = require('request')
 local Response = require('response')
-local HTTP_Parser = require('http_parser')
-local Table = require('table')
-local HTTP = {}
+local HttpParser = require('http_parser')
+local table = require('table')
+local http = {}
 
-function HTTP.request(options, callback)
+function http.request(options, callback)
   -- Load options into local variables.  Assume defaults
   local host = options.host or "127.0.0.1"
   local port = options.port or 80
@@ -47,24 +46,24 @@ function HTTP.request(options, callback)
       request[#request + 1] = field .. ": " .. value .. "\r\n"
     end
     request[#request + 1] = "\r\n"
-    client:write(Table.concat(request))
+    client:write(table.concat(request))
 
     local headers
     local current_field
 
-    local parser = HTTP_Parser.new("response", {
-      on_message_begin = function ()
+    local parser = HttpParser.new("response", {
+      onMessageBegin = function ()
         headers = {}
       end,
-      on_url = function (url)
+      onUrl = function (url)
       end,
-      on_header_field = function (field)
+      onHeaderField = function (field)
         current_field = field
       end,
-      on_header_value = function (value)
+      onHeaderValue = function (value)
         headers[current_field:lower()] = value
       end,
-      on_headers_complete = function (info)
+      onHeadersComplete = function (info)
         response.headers = headers
         response.status_code = info.status_code
         response.version_minor = info.version_minor
@@ -73,10 +72,10 @@ function HTTP.request(options, callback)
         callback(response)
 
       end,
-      on_body = function (chunk)
+      onBody = function (chunk)
         response:emit('data', chunk)
       end,
-      on_message_complete = function ()
+      onMessageComplete = function ()
         response:emit('end')
       end
     });
@@ -99,7 +98,7 @@ function HTTP.request(options, callback)
   return client
 end
 
-function HTTP.create_server(host, port, on_connection)
+function http.createServer(host, port, onConnection)
   local server
   server = net.createServer(function(client)
     if err then
@@ -110,25 +109,25 @@ function HTTP.create_server(host, port, on_connection)
     local request = Request:new(client)
     local response = Response:new(client)
 
-    -- Convert TCP stream to HTTP stream
+    -- Convert tcp stream to HTTP stream
     local current_field
     local parser
     local headers
-    parser = HTTP_Parser.new("request", {
-      on_message_begin = function ()
+    parser = HttpParser.new("request", {
+      onMessageBegin = function ()
         headers = {}
         request.headers = headers
       end,
-      on_url = function (url)
+      onUrl = function (url)
         request.url = url
       end,
-      on_header_field = function (field)
+      onHeaderField = function (field)
         current_field = field
       end,
-      on_header_value = function (value)
+      onHeaderValue = function (value)
         headers[current_field:lower()] = value
       end,
-      on_headers_complete = function (info)
+      onHeadersComplete = function (info)
 
         request.method = info.method
         request.upgrade = info.upgrade
@@ -146,18 +145,18 @@ function HTTP.create_server(host, port, on_connection)
           if server.handlers and server.handlers.check_continue then
             server:emit("check_continue", request, response)
           else
-            response:write_continue()
-            on_connection(request, response)
+            response:writeContinue()
+            onConnection(request, response)
           end
         else
-          on_connection(request, response)
+          onConnection(request, response)
         end
 
       end,
-      on_body = function (chunk)
+      onBody = function (chunk)
         request:emit('data', chunk, #chunk)
       end,
-      on_message_complete = function ()
+      onMessageComplete = function ()
         request:emit('end')
       end
     })
@@ -204,5 +203,5 @@ function HTTP.create_server(host, port, on_connection)
   return server
 end
 
-return HTTP
+return http
 

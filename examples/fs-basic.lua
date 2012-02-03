@@ -43,10 +43,10 @@ FS.readdir(".", function (err, files)
   p("on_readdir", {err=err,files=files})
 end)
 
-FS.read_file("README.markdown", function (err, data)
+FS.readFile("README.markdown", function (err, data)
   p("on_read_file", {err=err,data=data})
   if (err) then return end
-  FS.write_file("test", data, function (err)
+  FS.writeFile("test", data, function (err)
     p("on_write_file", {err=err})
       if (err) then return end
       FS.unlink("test", function (err)

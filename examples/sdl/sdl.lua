@@ -4,7 +4,7 @@ local Timer = require('timer')
 local FS = require('fs')
 local UV = require('uv')
 
-FFI.cdef(FS.read_file_sync(__dirname .. '/ffi_SDL.h'))
+FFI.cdef(FS.readFileSync(__dirname .. '/ffi_SDL.h'))
 
 local SDL = {
 }
@@ -54,7 +54,7 @@ setmetatable(SDL, {
     end
     if Emitter.prototype[key] then
       if not events then
-        init_events()
+        initEvents()
       end
       local value = Emitter.prototype[key]
       rawset(table, key, value)
@@ -64,12 +64,12 @@ setmetatable(SDL, {
   end
 })
 
-function init_events()
+function initEvents()
   events = true
   local event = FFI.new("SDL_Event")
   local alive = true
   local before = UV.now()
-  local interval = Timer:set_interval(1, function ()
+  local interval = Timer:setInterval(1, function ()
     local now = UV.now()
     local delta = now - before
     before = now
@@ -85,8 +85,8 @@ function init_events()
     end
   end)
 
-  function SDL.stop_events()
-    Timer.clear_timer(interval)
+  function SDL.stopEvents()
+    Timer.clearTimer(interval)
     alive = false
   end
 

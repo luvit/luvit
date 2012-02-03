@@ -15,36 +15,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local UV = require('uv')
+local uv = require('uv')
 local Handle = require('handle')
 
 local Timer = Handle:extend()
 
 function Timer.prototype:initialize()
-  self.userdata = UV.new_timer()
+  self.userdata = uv.newTimer()
 end
 
 function Timer.prototype:start(timeout, interval, callback)
-  return UV.timer_start(self.userdata, timeout, interval, callback)
+  return uv.timerStart(self.userdata, timeout, interval, callback)
 end
 
 function Timer.prototype:stop()
-  return UV.timer_stop(self.userdata)
+  return uv.timerStop(self.userdata)
 end
 
 function Timer.prototype:again()
-  return UV.timer_again(self.userdata)
+  return uv.timerAgain(self.userdata)
 end
 
-function Timer.prototype:set_repeat(interval)
-  return UV.timer_set_repeat(self.userdata, interval)
+function Timer.prototype:setRepeat(interval)
+  return uv.timerSetRepeat(self.userdata, interval)
 end
 
-function Timer.prototype:get_repeat()
-  return UV.timer_get_repeat(self.userdata)
+function Timer.prototype:getRepeat()
+  return uv.timerGetRepeat(self.userdata)
 end
 
-function Timer:set_timeout(duration, callback, ...)
+function Timer:setTimeout(duration, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(duration, 0, function (status)
@@ -54,7 +54,7 @@ function Timer:set_timeout(duration, callback, ...)
   return timer
 end
 
-function Timer:set_interval(period, callback, ...)
+function Timer:setInterval(period, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(period, period, function (status)
@@ -63,7 +63,7 @@ function Timer:set_interval(period, callback, ...)
   return timer
 end
 
-function Timer:clear_timer(timer)
+function Timer:clearTimer(timer)
   timer:stop()
   timer:close()
 end

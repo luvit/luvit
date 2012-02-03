@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local Table = require('table')
+local table = require('table')
 
 local utils = {}
 
@@ -123,9 +123,9 @@ function utils.dump(o, depth)
       i = i + 1
     end
     if estimated > 200 then
-      return "{\n  " .. indent .. Table.concat(lines, ",\n  " .. indent) .. "\n" .. indent .. "}"
+      return "{\n  " .. indent .. table.concat(lines, ",\n  " .. indent) .. "\n" .. indent .. "}"
     else
-      return "{ " .. Table.concat(lines, ", ") .. " }"
+      return "{ " .. table.concat(lines, ", ") .. " }"
     end
   end
   -- This doesn't happen right?
@@ -137,7 +137,7 @@ function utils.bind(fun, self, ...)
   return function(...)
     local args = {...}
     for i=#bind_args,1,-1 do
-      Table.insert(args, 1, bind_args[i])
+      table.insert(args, 1, bind_args[i])
     end
     fun(self, unpack(args))
   end

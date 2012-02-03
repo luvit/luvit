@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local UV = require('uv')
+local uv = require('uv')
 local Stream = require('stream')
 
 
@@ -24,52 +24,52 @@ local Tcp = Stream:extend()
 
 function Tcp.prototype:initialize()
   --_oldprint("Tcp.prototype:initialize")
-  self.userdata = UV.new_tcp()
+  self.userdata = uv.newTcp()
 end
 
 function Tcp.prototype:nodelay(enable)
   --_oldprint("Tcp.prototype:nodelay")
-  return UV.tcp_nodelay(self.userdata, enable)
+  return uv.tcpNodelay(self.userdata, enable)
 end
 
 function Tcp.prototype:keepalive(enable, delay)
   --_oldprint("Tcp.prototype:keepalive")
-  return UV.tcp_keepalive(self.userdata, enable, delay)
+  return uv.tcpKeepalive(self.userdata, enable, delay)
 end
 
 --TODO: put port first, make host optional and possibly merge bind and bind6
 function Tcp.prototype:bind(host, port)
   --_oldprint("Tcp.prototype:bind")
-  return UV.tcp_bind(self.userdata, host, port)
+  return uv.tcpBind(self.userdata, host, port)
 end
 
 function Tcp.prototype:bind6(host, port)
   --_oldprint("Tcp.prototype:bind6")
-  return UV.tcp_bind6(self.userdata, host, port)
+  return uv.tcpBind6(self.userdata, host, port)
 end
 
 function Tcp.prototype:getsockname()
   --_oldprint("Tcp.prototype:getsockname")
-  return UV.tcp_getsockname(self.userdata)
+  return uv.tcpGetsockname(self.userdata)
 end
 
 function Tcp.prototype:getpeername()
   --_oldprint("Tcp.prototype:getpeername")
-  return UV.tcp_getpeername(self.userdata)
+  return uv.tcpGetpeername(self.userdata)
 end
 
 function Tcp.prototype:connect(ip_address, port)
   --_oldprint("Tcp.prototype:connect")
-  return UV.tcp_connect(self.userdata, ip_address, port)
+  return uv.tcpConnect(self.userdata, ip_address, port)
 end
 
 function Tcp.prototype:connect6(ip_address, port)
   --_oldprint("Tcp.prototype:connect6")
-  return UV.tcp_connect6(self.userdata, ip_address, port)
+  return uv.tcpConnect6(self.userdata, ip_address, port)
 end
 
-function Tcp:create_server(ip, port, on_connection)
-  --_oldprint("Tcp.create_server")
+function Tcp:createServer(ip, port, onConnection)
+  --_oldprint("Tcp.createServer")
   local server = Tcp:new()
   server:bind(ip, port)
 
@@ -79,8 +79,8 @@ function Tcp:create_server(ip, port, on_connection)
     end
     local client = Tcp:new()
     server:accept(client)
-    client:read_start()
-    on_connection(client)
+    client:readStart()
+    onConnection(client)
   end)
 
   return server

@@ -24,7 +24,7 @@ end
 p("Joysticks", joysticks)
 
 local function exit()
-  SDL.stop_events()
+  SDL.stopEvents()
   SDL.Quit();
   print("Thanks for Playing!");
 end

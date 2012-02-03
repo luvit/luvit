@@ -31,7 +31,7 @@ async.forEachSeries = function(arr, iterator, callback)
   iterate()
 end
 
-local function run_test(filename, callback)
+local function runTest(filename, callback)
   results[filename] = {}
   results[filename].stdout_data = ''
   results[filename].stderr_data = ''
@@ -68,7 +68,7 @@ Fs.readdir('.', function(err, files)
     end
   end
 
-  async.forEachSeries(test_files, run_test, function()
+  async.forEachSeries(test_files, runTest, function()
     local nerr = 0;
     local nran = 0;
 

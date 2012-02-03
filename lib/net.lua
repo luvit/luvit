@@ -17,7 +17,6 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
-local UV = require('uv')
 local tcp = require('tcp')
 local Timer = require('timer')
 local utils = require('utils')
@@ -58,14 +57,14 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
     end
     local client = tcp:new()
     self._handle:accept(client)
-    client:read_start()
+    client:readStart()
     self:emit('connection', client)
   end)
 end
 
 function Server.prototype:close()
   if self._connectTimer then
-    Timer:clear_timer(self._connectTimer)
+    Timer:clearTimer(self._connectTimer)
     self._connectTimer = nil
   end
   self._handle:close()
@@ -133,10 +132,10 @@ end
 function Socket.prototype:connect(port, host, callback)
   self._handle:on('connect', function()
     if self._connectTimer then
-      Timer:clear_timer(self._connectTimer)
+      Timer:clearTimer(self._connectTimer)
       self._connectTimer = nil
     end
-    self._handle:read_start()
+    self._handle:readStart()
     callback()
   end)
 

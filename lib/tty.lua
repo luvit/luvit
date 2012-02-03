@@ -15,29 +15,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local UV = require('uv')
+local uv = require('uv')
 local Stream = require('stream')
 
-local TTY = Stream:extend()
+local Tty = Stream:extend()
 
-function TTY.prototype:initialize(fd, readable)
-  --_oldprint("TTY.prototype:initialize")
-  self.userdata = UV.new_tty(fd, readable)
+function Tty.prototype:initialize(fd, readable)
+  --_oldprint("Tty.prototype:initialize")
+  self.userdata = uv.newTty(fd, readable)
 end
 
-function TTY.prototype:set_mode(mode)
-  --_oldprint("TTY.prototype:set_mode")
-  return UV.tty_set_mode(self.userdata, mode)
+function Tty.prototype:setMode(mode)
+  --_oldprint("Tty.prototype:setMode")
+  return uv.ttySetMode(self.userdata, mode)
 end
 
-function TTY:reset_mode()
-  --_oldprint("TTY.reset_mode")
-  return UV.tty_reset_mode()
+function Tty:resetMode()
+  --_oldprint("Tty.resetMode")
+  return uv.ttyResetMode()
 end
 
-function TTY.prototype:get_winsize()
-  --_oldprint("TTY.prototype:get_winsize")
-  return UV.tty_get_winsize(self.userdata)
+function Tty.prototype:getWinsize()
+  --_oldprint("Tty.prototype:getWinsize")
+  return uv.ttyGetWinsize(self.userdata)
 end
 
-return TTY
+return Tty

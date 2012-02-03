@@ -13,9 +13,9 @@ end)
 
 timer2:start(333, 333, function (...)
   p("on_interval", ...)
-  local period = timer2:get_repeat()
+  local period = timer2:getRepeat()
   p("period", period)
-  timer2:set_repeat(period / 1.2 + 1);
+  timer2:setRepeat(period / 1.2 + 1);
 end)
 
 p(timer, timer2)
