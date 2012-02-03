@@ -118,7 +118,7 @@ local function parse(file)
   for key in pairs(items) do
     if key == name or key:match("^" .. name .. "%.") then
       local item = items[key]
-      if item.doc or item.args or item.parent then
+      if key == name or item.doc or item.args or item.parent then
         Table.insert(keys, key)
       end
     end
