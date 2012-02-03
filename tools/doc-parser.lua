@@ -20,7 +20,7 @@ local function search(code, pattern)
 end
 
 local function parse(file)
-  local code = FS.read_file_sync(file)
+  local code = FS.readFileSync(file)
   local name = Path.basename(file)
   name = name:sub(1, #name - #(Path.extname(name)))
 
@@ -97,7 +97,7 @@ local function parse(file)
     elseif not (value:match("^[_%a][_%w]*%.[_%a][_%w]*$") or value:match("^[_%a][_%w]*$")) then
       items[resolve(ref)] = {
         doc = def[2],
-        default = value
+        default = not(value == "{}") and value
       }
     end
   end
@@ -110,9 +110,7 @@ local function parse(file)
     processRef(prop, def)
   end
 
-  if items[name] then
-    items[name].default = nil
-  end
+
 
   local keys = {}
   for key in pairs(items) do
