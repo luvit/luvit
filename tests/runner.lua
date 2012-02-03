@@ -1,6 +1,6 @@
 local Process = require('process')
-local Utils = require('utils')
-local Fs = require('fs')
+local utils = require('utils')
+local fs = require('fs')
 local string = require('string')
 local table = require('table')
 
@@ -31,21 +31,21 @@ async.forEachSeries = function(arr, iterator, callback)
   iterate()
 end
 
-local function run_test(filename, callback)
+local function runTest(filename, callback)
   results[filename] = {}
   results[filename].stdout_data = ''
   results[filename].stderr_data = ''
   results[filename].filename = filename
 
-  process.stdout:write(Utils.color("Bwhite") .. filename .. Utils.color())
+  process.stdout:write(utils.color("Bwhite") .. filename .. utils.color())
 
   local child = Process:spawn(process.argv[0], {filename}, {})
   child:on('exit', function (exit_status, term_signal)
     results[filename].exit_status = exit_status
     if exit_status ~= 0 then
-      process.stdout:write(' ' .. Utils.color("Bred") .. 'FAILED' .. Utils.color() .. '\n')
+      process.stdout:write(' ' .. utils.color("Bred") .. 'FAILED' .. utils.color() .. '\n')
     else
-      process.stdout:write(' ' .. Utils.color("Bgreen") .. 'SUCCESS' .. Utils.color() .. '\n')
+      process.stdout:write(' ' .. utils.color("Bgreen") .. 'SUCCESS' .. utils.color() .. '\n')
     end
     callback()
   end)
@@ -57,7 +57,7 @@ local function run_test(filename, callback)
   end)
 end
 
-Fs.readdir('.', function(err, files)
+fs.readdir('.', function(err, files)
   assert(err == nil)
   test_files = {}
 
@@ -68,7 +68,7 @@ Fs.readdir('.', function(err, files)
     end
   end
 
-  async.forEachSeries(test_files, run_test, function()
+  async.forEachSeries(test_files, runTest, function()
     local nerr = 0;
     local nran = 0;
 
@@ -77,7 +77,7 @@ Fs.readdir('.', function(err, files)
       if v.exit_status ~= 0 then
         nerr = nerr + 1
         process.stdout:write('\n\n')
-        process.stdout:write(Utils.color("Bred") .. "FAIL (" .. v.filename .. ')' .. Utils.color() .. "\n")
+        process.stdout:write(utils.color("Bred") .. "FAIL (" .. v.filename .. ')' .. utils.color() .. "\n")
         process.stdout:write(v.stdout_data)
         process.stdout:write(v.stderr_data)
       end

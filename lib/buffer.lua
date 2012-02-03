@@ -16,12 +16,11 @@ limitations under the License.
 
 --]]
 
-local Table = require('table')
-local String = require('string')
+local table = require('table')
 local Object = require('object')
-local Bit = require('bit')
-local FFI = require('ffi')
-FFI.cdef([[
+local bit = require('bit')
+local ffi = require('ffi')
+ffi.cdef([[
   void *malloc (size_t __size);
   void free (void *__ptr);
 ]])
@@ -31,11 +30,11 @@ local Buffer = Object:extend()
 function Buffer.prototype:initialize(length)
   if type(length) == "number" then
     self.length = length
-    self.ctype = FFI.gc(FFI.cast("unsigned char*", FFI.C.malloc(length)), FFI.C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", ffi.C.malloc(length)), ffi.C.free)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
-    self.ctype = FFI.cast("unsigned char*", string)
+    self.ctype = ffi.cast("unsigned char*", string)
   else
     error("Input must be a string or number")
   end
@@ -52,7 +51,7 @@ function Buffer.meta:__ipairs()
 end
 
 function Buffer.meta:__tostring()
-  return FFI.string(self.ctype)
+  return ffi.string(self.ctype)
 end
 
 function Buffer.meta:__concat(other)
@@ -79,9 +78,9 @@ end
 function Buffer.prototype:inspect()
   local parts = {}
   for i = 1, tonumber(self.length) do
-    parts[i] = Bit.tohex(self[i], 2)
+    parts[i] = bit.tohex(self[i], 2)
   end
-  return "<Buffer " .. Table.concat(parts, " ") .. ">"
+  return "<Buffer " .. table.concat(parts, " ") .. ">"
 end
 
 local function compliment8(value)
@@ -101,12 +100,12 @@ local function compliment16(value)
 end
 
 function Buffer.prototype:readUInt16LE(offset)
-  return Bit.lshift(self[offset + 1], 8) +
+  return bit.lshift(self[offset + 1], 8) +
                     self[offset]
 end
 
 function Buffer.prototype:readUInt16BE(offset)
-  return Bit.lshift(self[offset], 8) +
+  return bit.lshift(self[offset], 8) +
                     self[offset + 1]
 end
 
@@ -120,24 +119,24 @@ end
 
 function Buffer.prototype:readUInt32LE(offset)
   return self[offset + 3] * 0x1000000 +
-         Bit.lshift(self[offset + 2], 16) +
-         Bit.lshift(self[offset + 1], 8) +
+         bit.lshift(self[offset + 2], 16) +
+         bit.lshift(self[offset + 1], 8) +
                     self[offset]
 end
 
 function Buffer.prototype:readUInt32BE(offset)
   return self[offset] * 0x1000000 +
-         Bit.lshift(self[offset + 1], 16) +
-         Bit.lshift(self[offset + 2], 8) +
+         bit.lshift(self[offset + 1], 16) +
+         bit.lshift(self[offset + 2], 8) +
                     self[offset + 3]
 end
 
 function Buffer.prototype:readInt32LE(offset)
-  return Bit.tobit(self:readUInt32LE(offset))
+  return bit.tobit(self:readUInt32LE(offset))
 end
 
 function Buffer.prototype:readInt32BE(offset)
-  return Bit.tobit(self:readUInt32BE(offset))
+  return bit.tobit(self:readUInt32BE(offset))
 end
 
 return Buffer

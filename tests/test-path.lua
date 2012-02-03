@@ -18,10 +18,10 @@ limitations under the License.
 
 require("helper")
 
-local Path = require('path')
+local path = require('path')
 
--- test `Path.dirname`
-assert(Path.dirname('/usr/bin/vim') == '/usr/bin')
-assert(Path.dirname('/usr/bin/') == '/usr')
-assert(Path.dirname('/usr/bin') == '/usr')
+-- test `path.dirname`
+assert(path.dirname('/usr/bin/vim') == '/usr/bin')
+assert(path.dirname('/usr/bin/') == '/usr')
+assert(path.dirname('/usr/bin') == '/usr')
 

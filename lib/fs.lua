@@ -16,36 +16,36 @@ limitations under the License.
 
 --]]
 
-local UV = require('uv')
-local Table = require('table')
+local uv = require('uv')
+local table = require('table')
 local Stream = require('stream')
-local FS = {}
+local fs = {}
 local sizes = {
-  open = 3,
-  close = 1,
-  read = 3,
-  write = 3,
-  unlink = 1,
-  mkdir = 2,
-  rmdir = 1,
-  readdir = 1,
-  stat = 1,
-  fstat = 1,
-  rename = 2,
-  fsync = 1,
-  fdatasync = 1,
-  ftruncate = 2,
-  sendfile = 4,
-  chmod = 2,
-  utime = 3,
-  futime = 3,
-  lstat = 1,
-  link = 2,
-  symlink = 3,
-  readlink = 1,
-  fchmod = 2,
-  chown = 3,
-  fchown = 3,
+  Open = 3,
+  Close = 1,
+  Read = 3,
+  Write = 3,
+  Unlink = 1,
+  Mkdir = 2,
+  Rmdir = 1,
+  Readdir = 1,
+  Stat = 1,
+  Fstat = 1,
+  Rename = 2,
+  Fsync = 1,
+  Fdatasync = 1,
+  Ftruncate = 2,
+  Sendfile = 4,
+  Chmod = 2,
+  Utime = 3,
+  Futime = 3,
+  Lstat = 1,
+  Link = 2,
+  Symlink = 3,
+  Readlink = 1,
+  Fchmod = 2,
+  Chown = 3,
+  Fchown = 3,
 }
 
 -- Default callback if one isn't given for async operations
@@ -56,7 +56,7 @@ end
 -- Wrap the core fs functions in forced sync and async versions
 for name, arity in pairs(sizes) do
   local sync, async
-  local real = UV["fs_" .. name]
+  local real = uv["fs" .. name]
   if arity == 1 then
     async = function (arg, callback)
       return real(arg, callback or default)
@@ -86,12 +86,12 @@ for name, arity in pairs(sizes) do
       return real(arg1, arg2, arg3, arg4)
     end
   end
-  FS[name] = async
-  FS[name .. "_sync"] = sync
+  fs[name:lower()] = async
+  fs[name:lower() .. "Sync"] = sync
 end
 
-function FS.exists(path, callback)
-  UV.fs_stat(path, function (err)
+function fs.exists(path, callback)
+  uv.fsStat(path, function (err)
     if not err then
       return callback(nil, true)
     end
@@ -102,9 +102,9 @@ function FS.exists(path, callback)
   end)
 end
 
-function FS.exists_sync(path)
+function fs.existsSync(path)
   local success, err = pcall(function ()
-    UV.fs_stat(path)
+    uv.fsStat(path)
   end)
   if not err then return true end
   if err.code == "ENOENT" or err.code == "ENOTDIR" then
@@ -125,7 +125,7 @@ local read_options = {
 local read_meta = {__index=read_options}
 
 -- TODO: Implement backpressure here and in tcp streams
-function FS.create_read_stream(path, options)
+function fs.createReadStream(path, options)
   if not options then
     options = read_options
   else
@@ -133,17 +133,17 @@ function FS.create_read_stream(path, options)
   end
 
   local stream = Stream:new()
-  FS.open(path, options.flags, options.mode, function (err, fd)
+  fs.open(path, options.flags, options.mode, function (err, fd)
     if err then return stream:emit("error", err) end
     local offset = options.offset
     local last = options.length and offset + options.length
     local chunk_size = options.chunk_size
 
-    local function read_chunk()
+    local function readChunk()
       local to_read = (last and chunk_size + offset > last and last - offset) or chunk_size
-      FS.read(fd, offset, to_read, function (err, chunk, len)
+      fs.read(fd, offset, to_read, function (err, chunk, len)
         if err or len == 0 then
-          FS.close(fd, function (err)
+          fs.close(fd, function (err)
             if err then return stream:emit("error", err) end
             stream:emit("close")
           end)
@@ -153,11 +153,11 @@ function FS.create_read_stream(path, options)
         else
           stream:emit("data", chunk, len)
           offset = offset + len
-          read_chunk()
+          readChunk()
         end
       end)
     end
-    read_chunk()
+    readChunk()
   end)
   return stream
 end
@@ -170,7 +170,7 @@ local write_options = {
 }
 local write_meta = {__index=write_options}
 
-function FS.create_write_stream(path, options)
+function fs.createWriteStream(path, options)
   if not options then
     options = write_options
   else
@@ -180,25 +180,25 @@ function FS.create_write_stream(path, options)
   error("TODO: Implement write_stream")
 end
 
-function FS.read_file_sync(path)
-  local fd = FS.open_sync(path, "r", "0666")
+function fs.readFileSync(path)
+  local fd = fs.openSync(path, "r", "0666")
   local parts = {}
   local length = 0
   local offset = 0
   repeat
-    local chunk, len = FS.read_sync(fd, offset, CHUNK_SIZE)
+    local chunk, len = fs.readSync(fd, offset, CHUNK_SIZE)
     if len > 0 then
       offset = offset + len
       length = length + 1
       parts[length] = chunk
     end
   until len == 0
-  FS.close_sync(fd)
-  return Table.concat(parts)
+  fs.closeSync(fd)
+  return table.concat(parts)
 end
 
-function FS.read_file(path, callback)
-  local stream = FS.create_read_stream(path)
+function fs.readFile(path, callback)
+  local stream = fs.createReadStream(path)
   local parts = {}
   local num = 0
   stream:on("data", function (chunk, len)
@@ -206,24 +206,24 @@ function FS.read_file(path, callback)
     parts[num] = chunk
   end)
   stream:on("end", function ()
-    return callback(nil, Table.concat(parts, ""))
+    return callback(nil, table.concat(parts, ""))
   end)
   stream:on("error", callback)
 end
 
-function FS.write_file(path, data, callback)
-  FS.open(path, "w", "0666", function (err, fd)
+function fs.writeFile(path, data, callback)
+  fs.open(path, "w", "0666", function (err, fd)
     if err then return callback(err) end
     local offset = 0
     local length = #data
     local function writechunk()
-      FS.write(fd, offset, data:sub(offset + 1, CHUNK_SIZE + offset), function (err, bytes_written)
+      fs.write(fd, offset, data:sub(offset + 1, CHUNK_SIZE + offset), function (err, bytes_written)
         if err then return callback(err) end
         if bytes_written + offset < length then
           offset = offset + bytes_written
           writechunk()
         else
-          FS.close(fd, callback)
+          fs.close(fd, callback)
         end
       end)
     end
@@ -232,5 +232,5 @@ function FS.write_file(path, data, callback)
 end
 
 
-return FS
+return fs
 

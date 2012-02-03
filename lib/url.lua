@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-local Url = {}
+local url = {}
 
-function Url.parse(url)
+function url.parse(url)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
@@ -47,13 +47,13 @@ function Url.parse(url)
 
 end
 
---p(Url.parse("http://creationix.com:8080/foo/bar?this=sdr"))
---p(Url.parse("http://creationix.com/foo/bar?this=sdr"))
---p(Url.parse("http://creationix.com/foo/bar"))
---p(Url.parse("http://creationix.com/"))
---p(Url.parse("creationix.com/"))
---p(Url.parse("/"))
---p(Url.parse("/foobar"))
---p(Url.parse("/README.markdown"))
+--p(url.parse("http://creationix.com:8080/foo/bar?this=sdr"))
+--p(url.parse("http://creationix.com/foo/bar?this=sdr"))
+--p(url.parse("http://creationix.com/foo/bar"))
+--p(url.parse("http://creationix.com/"))
+--p(url.parse("creationix.com/"))
+--p(url.parse("/"))
+--p(url.parse("/foobar"))
+--p(url.parse("/README.markdown"))
 
-return Url
+return url
