@@ -191,8 +191,9 @@ uninstall deinstall:
 test: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
 
-api:
-	find lib -name "*.lua" | grep -v "luvit.lua" | sort | xargs -l luvit tools/doc-parser.lua > api.markdown
+api: api.markdown
+api.markdown: $(wildcard lib/*.lua)
+	find lib -name "*.lua" | grep -v "luvit.lua" | sort | xargs -l luvit tools/doc-parser.lua > $@
 
 DIST_DIR=${HOME}/luvit.io/dist
 DIST_NAME=luvit-${VERSION}
@@ -214,4 +215,4 @@ tarball:
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install all
+.PHONY: test install all api

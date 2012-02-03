@@ -8,3 +8,4 @@ options.gypi
 *.xcodeproj
 out/
 *.swp
+api.markdown
