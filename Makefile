@@ -188,7 +188,7 @@ uninstall deinstall:
 	rm -rf ${INCLUDEDIR}
 	rm -f ${DESTDIR}${BINDIR}/luvit ${DESTDIR}${BINDIR}/luvit-config
 
-test:
+test: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
 
 api:
