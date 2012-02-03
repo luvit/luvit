@@ -1,5 +1,7 @@
 # Luvit (Lua + libUV + jIT = pure awesomesauce)
 
+[![Build Status](https://secure.travis-ci.org/luvit/luvit.png)](http://travis-ci.org/luvit/luvit)
+
 Luvit is an attempt to do something crazy by taking nodeJS's awesome
 architecture and dependencies and seeing how it fits in the Lua language.
 
