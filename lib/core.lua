@@ -16,13 +16,12 @@ limitations under the License.
 
 --]]
 
+local UV = require('uv')
+
 --[[
 This module is for various classes and utilities that don't need their own
 module.
 ]]
-
-local UV = require('uv')
-
 local core = {}
 
 --[[
