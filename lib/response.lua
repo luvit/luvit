@@ -78,6 +78,8 @@ local status_codes_table = {
   [510] = 'Not Extended'                -- RFC 2774
 }
 
+-- expose status codes
+Response.status_codes = status_codes_table
 
 
 function Response.prototype:initialize(socket)
