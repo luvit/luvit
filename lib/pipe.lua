@@ -17,27 +17,26 @@ limitations under the License.
 --]]
 
 local uv = require('uv')
-local Stream = require('stream')
+local Stream = require('core').Stream
 
-local pipe = Stream:extend()
+local pipe = {}
 
-function pipe.prototype:initialize(ipc)
-  --_oldprint("pipe.prototype:initialize")
+local Pipe = Stream:extend()
+pipe.Pipe = Pipe
+
+function Pipe:initialize(ipc)
   self.userdata = uv.newPipe(ipc and 1 or 0)
 end
 
-function pipe.prototype:open(fd)
-  --_oldprint("pipe.prototype:open")
+function Pipe:open(fd)
   return uv.pipeOpen(self.userdata, fd)
 end
 
-function pipe.prototype:bind(name)
-  --_oldprint("pipe.prototype:bind")
+function Pipe:bind(name)
   return uv.pipeBind(self.userdata, name)
 end
 
-function pipe.prototype:connect(name)
-  --_oldprint("pipe.prototype:connect")
+function Pipe:connect(name)
   return uv.pipeConnect(self.userdata, name)
 end
 

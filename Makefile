@@ -50,13 +50,10 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/http.o     \
         ${GENDIR}/url.o      \
         ${GENDIR}/querystring.o \
-        ${GENDIR}/request.o  \
-        ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
-        ${GENDIR}/watcher.o  \
         ${GENDIR}/dns.o      \
         ${GENDIR}/net.o      \
-        ${GENDIR}/process.o  \
+        ${GENDIR}/childprocess.o  \
         ${GENDIR}/udp.o      \
         ${GENDIR}/tcp.o      \
         ${GENDIR}/pipe.o     \

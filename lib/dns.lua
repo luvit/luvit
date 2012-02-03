@@ -18,7 +18,7 @@ limitations under the License.
 
 local uv = require('uv')
 local constants = require('constants')
-local Error = require('error')
+local Error = require('core').Error
 local string = require('string')
 
 local dns = {}

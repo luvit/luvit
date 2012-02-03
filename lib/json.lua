@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 local Yajl = require('yajl')
-local Table = require('table')
+local table = require('table')
 local JSON = {
   null = Yajl.null
 }
@@ -60,7 +60,7 @@ function JSON.streamingParser(callback, options)
     onStartMap = function ()
       local new = {}
       open(new)
-      Table.insert(stack, current)
+      table.insert(stack, current)
       key = nil
       current = new
     end,
@@ -70,19 +70,19 @@ function JSON.streamingParser(callback, options)
     onEndMap = function ()
       key = nil
       local map = current
-      current = Table.remove(stack)
+      current = table.remove(stack)
       close(map)
     end,
     onStartArray = function ()
       local new = {}
       open(new)
-      Table.insert(stack, current)
+      table.insert(stack, current)
       key = nil
       current = new
     end,
     onEndArray = function ()
       local array = current
-      current = Table.remove(stack)
+      current = table.remove(stack)
       close(array)
     end
   })
@@ -101,7 +101,7 @@ end
 function JSON.parse(string, options)
   local values = {}
   local parser = JSON.streamingParser(function (value)
-    Table.insert(values, value)
+    table.insert(values, value)
   end, options)
   parser:parse(string)
   parser:complete()

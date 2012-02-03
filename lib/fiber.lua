@@ -17,13 +17,12 @@ limitations under the License.
 --]]
 
 local coroutine = require('coroutine')
-local Fiber = {}
+local fiber = {}
 
-function Fiber:new(fn)
+function fiber.new(fn)
   local resume = coroutine.wrap(fn)
   resume(resume, coroutine.yield)
 end
 
-
-return Fiber
+return fiber
 

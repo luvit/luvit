@@ -17,10 +17,10 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
-local tcp = require('tcp')
+local Tcp = require('tcp').Tcp
 local timer = require('timer')
 local utils = require('utils')
-local Emitter = require('emitter')
+local Emitter = require('core').Emitter
 
 local net = {}
 
@@ -28,13 +28,13 @@ local net = {}
 
 local Server = Emitter:extend()
 
-function Server.prototype:listen(port, ... --[[ ip, callback --]] )
+function Server:listen(port, ... --[[ ip, callback --]] )
   local args = {...}
   local ip
   local callback
 
   if not self._handle then
-    self._handle = tcp:new()
+    self._handle = Tcp:new()
   end
 
   -- Future proof
@@ -55,14 +55,14 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
     if (err) then
       return self:emit("error", err)
     end
-    local client = tcp:new()
+    local client = Tcp:new()
     self._handle:accept(client)
     client:readStart()
     self:emit('connection', client)
   end)
 end
 
-function Server.prototype:close()
+function Server:close()
   if self._connectTimer then
     timer.clearTimer(self._connectTimer)
     self._connectTimer = nil
@@ -70,7 +70,7 @@ function Server.prototype:close()
   self._handle:close()
 end
 
-function Server.prototype:initialize(...)
+function Server:initialize(...)
   local args = {...}
   local options
   local connectionCallback
@@ -89,7 +89,7 @@ end
 
 local Socket = Emitter:extend()
 
-function Socket.prototype:_connect(address, port, addressType)
+function Socket:_connect(address, port, addressType)
   if port then
     self.remotePort = port
   end
@@ -102,7 +102,7 @@ function Socket.prototype:_connect(address, port, addressType)
   end
 end
 
-function Socket.prototype:setTimeout(msecs, callback)
+function Socket:setTimeout(msecs, callback)
   callback = callback or function() end
   if not self._connectTimer then
     self._connectTimer = timer.Timer:new()
@@ -114,22 +114,22 @@ function Socket.prototype:setTimeout(msecs, callback)
   end)
 end
 
-function Socket.prototype:close()
+function Socket:close()
   if self._handle then
     self._handle:close()
   end
 end
 
-function Socket.prototype:pipe(destination)
+function Socket:pipe(destination)
   self._handle:pipe(destination)
 end
 
-function Socket.prototype:write(data, callback)
+function Socket:write(data, callback)
   self.bytesWritten = self.bytesWritten + #data
   self._handle:write(data)
 end
 
-function Socket.prototype:connect(port, host, callback)
+function Socket:connect(port, host, callback)
   self._handle:on('connect', function()
     if self._connectTimer then
       timer.clearTimer(self._connectTimer)
@@ -165,9 +165,9 @@ function Socket.prototype:connect(port, host, callback)
   return self
 end
 
-function Socket.prototype:initialize()
+function Socket:initialize()
   self._connectTimer = timer.Timer:new()
-  self._handle = tcp:new()
+  self._handle = Tcp:new()
   self.bytesWritten = 0
   self.bytesRead = 0
 end

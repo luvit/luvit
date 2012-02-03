@@ -18,7 +18,7 @@ limitations under the License.
 
 require("helper")
 
-local Tcp = require('tcp')
+local Tcp = require('tcp').Tcp
 local net = require('net')
 
 local PORT = 8080

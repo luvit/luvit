@@ -21,7 +21,7 @@ local utils = require('utils')
 local string = require('string')
 local source = debug.getinfo(3, "S").source:sub(1)
 
-local table_concat = require('table').concat
+local table = require('table')
 local expectations = {}
 
 local fail = function(name, msg, default_msg)
@@ -61,7 +61,7 @@ process:on('exit', function (code, signal)
   end
   if #errors > 0 then
     printStderr(utils.color("Bred") .. "FAIL" .. utils.color() .. "\n")
-    error("\n" .. source .. ":on_exit:" .. table_concat(errors, ""))
+    error("\n" .. source .. ":on_exit:" .. table.concat(errors, ""))
     exitProcess(1)
   end
   printStderr(utils.color("Bgreen") .. "PASS" .. utils.color() .. "\n")

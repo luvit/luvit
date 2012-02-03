@@ -17,55 +17,57 @@ limitations under the License.
 --]]
 
 local uv = require('uv')
-local Stream = require('stream')
+local Stream = require('core').Stream
 
+local tcp = {}
 
 local Tcp = Stream:extend()
+tcp.Tcp = Tcp
 
-function Tcp.prototype:initialize()
-  --_oldprint("Tcp.prototype:initialize")
+function Tcp:initialize()
+  --_oldprint("Tcp:initialize")
   self.userdata = uv.newTcp()
 end
 
-function Tcp.prototype:nodelay(enable)
-  --_oldprint("Tcp.prototype:nodelay")
+function Tcp:nodelay(enable)
+  --_oldprint("Tcp:nodelay")
   return uv.tcpNodelay(self.userdata, enable)
 end
 
-function Tcp.prototype:keepalive(enable, delay)
-  --_oldprint("Tcp.prototype:keepalive")
+function Tcp:keepalive(enable, delay)
+  --_oldprint("Tcp:keepalive")
   return uv.tcpKeepalive(self.userdata, enable, delay)
 end
 
 --TODO: put port first, make host optional and possibly merge bind and bind6
-function Tcp.prototype:bind(host, port)
-  --_oldprint("Tcp.prototype:bind")
+function Tcp:bind(host, port)
+  --_oldprint("Tcp:bind")
   return uv.tcpBind(self.userdata, host, port)
 end
 
-function Tcp.prototype:bind6(host, port)
-  --_oldprint("Tcp.prototype:bind6")
+function Tcp:bind6(host, port)
+  --_oldprint("Tcp:bind6")
   return uv.tcpBind6(self.userdata, host, port)
 end
 
-function Tcp.prototype:getsockname()
-  --_oldprint("Tcp.prototype:getsockname")
+function Tcp:getsockname()
+  --_oldprint("Tcp:getsockname")
   return uv.tcpGetsockname(self.userdata)
 end
 
-function Tcp.prototype:getpeername()
-  --_oldprint("Tcp.prototype:getpeername")
+function Tcp:getpeername()
+  --_oldprint("Tcp:getpeername")
   return uv.tcpGetpeername(self.userdata)
 end
 
-function Tcp.prototype:connect(ip_address, port)
-  --_oldprint("Tcp.prototype:connect")
+function Tcp:connect(ip_address, port)
+  --_oldprint("Tcp:connect")
   return uv.tcpConnect(self.userdata, ip_address, port)
 end
 
-function Tcp.prototype:connect6(ip_address, port)
-  --_oldprint("Tcp.prototype:connect6")
+function Tcp:connect6(ip_address, port)
+  --_oldprint("Tcp:connect6")
   return uv.tcpConnect6(self.userdata, ip_address, port)
 end
 
-return Tcp
+return tcp

@@ -17,44 +17,47 @@ limitations under the License.
 --]]
 
 local uv = require('uv')
-local Handle = require('handle')
+local Handle = require('core').Handle
+
+local udp = {}
 
 local Udp = Handle:extend()
+udp.Udp = Udp
 
-function Udp.prototype:initialize()
+function Udp:initialize()
   self.userdata = uv.newUdp()
 end
 
-function Udp.prototype:bind(host, port)
+function Udp:bind(host, port)
   return uv.udpBind(self.userdata, host, port)
 end
 
-function Udp.prototype:bind6(host, port)
+function Udp:bind6(host, port)
   return uv.udpBind6(self.userdata, host, port)
 end
 
-function Udp.prototype:setMembership(multicast_addr, interface_addr, option)
+function Udp:setMembership(multicast_addr, interface_addr, option)
   return uv.udpSetMembership(self.userdata, multicast_addr, interface_addr, option)
 end
 
-function Udp.prototype:getsockname()
+function Udp:getsockname()
   return uv.udpGetsockname(self.userdata)
 end
 
-function Udp.prototype:send(...)
+function Udp:send(...)
   return uv.udpSend(self.userdata, ...)
 end
 
-function Udp.prototype:send6(...)
+function Udp:send6(...)
   return uv.udpSend6(self.userdata, ...)
 end
 
-function Udp.prototype:recvStart()
+function Udp:recvStart()
   return uv.udpRecvStart(self.userdata)
 end
 
-function Udp.prototype:recvStop()
+function Udp:recvStop()
   return uv.udpRecvStop(self.userdata)
 end
 
-return Udp
+return udp

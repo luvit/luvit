@@ -39,8 +39,8 @@ local env = require('env')
 local table = require('table')
 local utils = require('utils')
 local fs = require('fs')
-local Tty = require('tty')
-local Emitter = require('emitter')
+local Tty = require('tty').Tty
+local Emitter = require('core').Emitter
 local constants = require('constants')
 local path = require('path')
 

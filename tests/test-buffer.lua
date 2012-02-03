@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 require("helper")
-local Buffer = require('buffer')
+local Buffer = require('buffer').Buffer
 
 local buf = Buffer:new(4)
 

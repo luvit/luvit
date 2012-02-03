@@ -17,6 +17,7 @@ limitations under the License.
 --]]
 
 local UV = require('uv')
+local table = require('table')
 
 --[[
 This module is for various classes and utilities that don't need their own
@@ -128,7 +129,7 @@ function Emitter:on(name, callback)
     handlers_for_type = {}
     rawset(handlers, name, handlers_for_type)
   end
-  Table.insert(handlers_for_type, callback)
+  table.insert(handlers_for_type, callback)
 end
 
 -- Emit a named event to all listeners with optional data argument(s).
@@ -148,7 +149,7 @@ function Emitter:emit(name, ...)
   end
   for i = #handlers_for_type, 1, -1 do
     if not handlers_for_type[i] then
-      Table.remove(handlers_for_type, i)
+      table.remove(handlers_for_type, i)
     end
   end
 

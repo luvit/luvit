@@ -1,4 +1,4 @@
-local Process = require('process')
+local childprocess = require('childprocess')
 local utils = require('utils')
 local fs = require('fs')
 local string = require('string')
@@ -39,7 +39,7 @@ local function runTest(filename, callback)
 
   process.stdout:write(utils.color("Bwhite") .. filename .. utils.color())
 
-  local child = Process:spawn(process.argv[0], {filename}, {})
+  local child = childprocess.spawn(process.argv[0], {filename}, {})
   child:on('exit', function (exit_status, term_signal)
     results[filename].exit_status = exit_status
     if exit_status ~= 0 then

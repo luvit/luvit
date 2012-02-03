@@ -16,12 +16,15 @@ limitations under the License.
 
 --]]
 local uv = require('uv')
-local Pipe = require('pipe')
-local Handle = require('handle')
+local Pipe = require('pipe').Pipe
+local Handle = require('core').Handle
+
+local process = {}
 
 local Process = Handle:extend()
+process.Process = Process
 
-function Process.prototype:initialize(command, args, options)
+function Process:initialize(command, args, options)
   self.stdin = Pipe:new(0)
   self.stdout = Pipe:new(0)
   self.stderr = Pipe:new(0)
@@ -45,11 +48,13 @@ function Process.prototype:initialize(command, args, options)
 
 end
 
-function Process.prototype:kill(signal)
+function Process:kill(signal)
   return uv.processKill(self.userdata, signal)
 end
 
-Process.spawn = Process.new
+function process.spawn(...)
+  return Process:new(...)
+end
 
-return Process
+return process
 

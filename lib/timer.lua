@@ -16,34 +16,34 @@ limitations under the License.
 
 --]]
 local uv = require('uv')
-local Handle = require('handle')
+local Handle = require('core').Handle
 local timer = {}
 
 local Timer = Handle:extend()
 
 timer.Timer = Timer
 
-function Timer.prototype:initialize()
+function Timer:initialize()
   self.userdata = uv.newTimer()
 end
 
-function Timer.prototype:start(timeout, interval, callback)
+function Timer:start(timeout, interval, callback)
   return uv.timerStart(self.userdata, timeout, interval, callback)
 end
 
-function Timer.prototype:stop()
+function Timer:stop()
   return uv.timerStop(self.userdata)
 end
 
-function Timer.prototype:again()
+function Timer:again()
   return uv.timerAgain(self.userdata)
 end
 
-function Timer.prototype:setRepeat(interval)
+function Timer:setRepeat(interval)
   return uv.timerSetRepeat(self.userdata, interval)
 end
 
-function Timer.prototype:getRepeat()
+function Timer:getRepeat()
   return uv.timerGetRepeat(self.userdata)
 end
 

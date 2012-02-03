@@ -18,7 +18,8 @@ limitations under the License.
 
 local uv = require('uv')
 local table = require('table')
-local Stream = require('stream')
+local Handle = require('core').Handle
+local Stream = require('core').Stream
 local fs = {}
 local sizes = {
   Open = 3,
@@ -231,6 +232,12 @@ function fs.writeFile(path, data, callback)
   end)
 end
 
+local Watcher = Handle:extend()
+fs.Watcher = Watcher
+
+function Watcher:initialize(path)
+  self.userdata = uv.newFsWatcher(path)
+end
 
 return fs
 
