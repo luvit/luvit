@@ -110,11 +110,13 @@ local function parse(file)
     processRef(prop, def)
   end
 
-  items[name].default = nil
+  if items[name] then
+    items[name].default = nil
+  end
 
-  local keys = {name}
+  local keys = {}
   for key in pairs(items) do
-    if key:match("^" .. name .. "%.") then
+    if key == name or key:match("^" .. name .. "%.") then
       local item = items[key]
       if item.doc or item.args or item.parent then
         Table.insert(keys, key)
