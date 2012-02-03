@@ -24,6 +24,8 @@ module.
 ]]
 local core = {}
 
+--------------------------------------------------------------------------------
+
 --[[
 This is the most basic object in Luvit. It provides simple prototypal
 inheritance and inheritable constructors. All other objects inherit from this.
@@ -222,6 +224,65 @@ function Handle:setHandler(name, callback)
   return UV.setHandler(self.userdata, name, callback)
 end
 
+--------------------------------------------------------------------------------
+
+--[[
+This is never used directly.  If you want to create a pure Lua stream, subclass
+or instantiate `core.iStream`.
+]]
+local Stream = Handle:extend()
+core.Stream = Stream
+
+function Stream:shutdown()
+  return UV.shutdown(self.userdata)
+end
+
+function Stream:listen(callback)
+  return UV.listen(self.userdata, callback)
+end
+
+
+function Stream:accept(other_stream)
+  return UV.accept(self.userdata, other_stream)
+end
+
+function Stream:readStart()
+  return UV.readStart(self.userdata)
+end
+
+function Stream:readStop()
+  return UV.readStop(self.userdata)
+end
+
+function Stream:write(chunk, callback)
+  return UV.write(self.userdata, chunk, callback)
+end
+
+function Stream:pipe(target)
+  self:on('data', function (chunk, len)
+    target:write(chunk)
+  end)
+  self:on('end', function ()
+    target:close()
+  end)
+end
+
+--------------------------------------------------------------------------------
+
+-- This is for code that wants structured error messages.
+local Error = Object:extend()
+core.Error = Error
+
+-- Make errors tostringable
+function Error.meta.__tostring(table)
+  return table.message
+end
+
+function Error:initialize(message)
+  self.message = message
+end
+
+--------------------------------------------------------------------------------
 
 return core
 
