@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
---
+
 -- querystring helpers
---
+local querystring = {}
 
 local String = require('string')
 local find = String.find
@@ -29,7 +29,7 @@ local format = String.format
 local match = String.match
 local gmatch = String.gmatch
 
-local function urldecode(str)
+function querystring.urldecode(str)
   str = gsub(str, '+', ' ')
   str = gsub(str, '%%(%x%x)', function(h)
     return char(tonumber(h, 16))
@@ -38,7 +38,7 @@ local function urldecode(str)
   return str
 end
 
-local function urlencode(str)
+function querystring.urlencode(str)
   if str then
     str = gsub(str, '\n', '\r\n')
     str = gsub(str, '([^%w ])', function(c)
@@ -49,20 +49,18 @@ local function urlencode(str)
   return str
 end
 
---
 -- parse querystring into table. urldecode tokens
---
-local function parse(str, sep, eq)
+function querystring.parse(str, sep, eq)
   if not sep then sep = '&' end
   if not eq then eq = '=' end
   local vars = {}
   for pair in gmatch(tostring(str), '[^' .. sep .. ']+') do
     if not find(pair, eq) then
-      vars[urldecode(pair)] = ''
+      vars[querystring.urldecode(pair)] = ''
     else
       local key, value = match(pair, '([^' .. eq .. ']*)' .. eq .. '(.*)')
       if key then
-        vars[urldecode(key)] = urldecode(value)
+        vars[querystring.urldecode(key)] = querystring.urldecode(value)
       end
     end
   end
@@ -70,8 +68,4 @@ local function parse(str, sep, eq)
 end
 
 -- module
-return {
-  urlencode = urlencode,
-  urldecode = urldecode,
-  parse = parse,
-}
+return querystring
