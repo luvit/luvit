@@ -16,36 +16,51 @@ limitations under the License.
 
 --]]
 
-local yajl = require('yajl')
-local table = require('table')
+local Yajl = require('yajl')
+local Table = require('table')
 local JSON = {
-  null = yajl.null
+  null = Yajl.null
 }
 
-function JSON.parse(string, options)
-  local root = {}
-  local current = root
+function JSON.streamingParser(callback, options)
+  local current
   local key
-  local null = JSON.null
   local stack = {}
-  local null = options and options.use_null and JSON.null
-  local parser = yajl.newParser({
+  local null = options.use_null and Yajl.null
+  local function emit(value, open, close)
+    if current then
+      current[key or #current + 1] = value
+    else
+      callback(value)
+    end
+  end
+  function open(value)
+    if current then
+      current[key or #current + 1] = value
+    end
+  end
+  function close(value)
+    if not current then
+      callback(value)
+    end
+  end
+  local parser = Yajl.newParser({
     onNull = function ()
-      current[key or #current + 1] = null
+      emit(null)
     end,
     onBoolean = function (value)
-      current[key or #current + 1] = value
+      emit(value)
     end,
     onNumber = function (value)
-      current[key or #current + 1] = value
+      emit(value)
     end,
     onString = function (value)
-      current[key or #current + 1] = value
+      emit(value)
     end,
     onStartMap = function ()
       local new = {}
-      table.insert(stack, current)
-      current[key or #current + 1] = new
+      open(new)
+      Table.insert(stack, current)
       key = nil
       current = new
     end,
@@ -54,17 +69,21 @@ function JSON.parse(string, options)
     end,
     onEndMap = function ()
       key = nil
-      current = table.remove(stack)
+      local map = current
+      current = Table.remove(stack)
+      close(map)
     end,
     onStartArray = function ()
       local new = {}
-      table.insert(stack, current)
-      current[key or #current + 1] = new
+      open(new)
+      Table.insert(stack, current)
       key = nil
       current = new
     end,
     onEndArray = function ()
-      current = table.remove(stack)
+      local array = current
+      current = Table.remove(stack)
+      close(array)
     end
   })
   if options then
@@ -75,13 +94,22 @@ function JSON.parse(string, options)
       end
     end
   end
+  return parser
+end
+
+
+function JSON.parse(string, options)
+  local values = {}
+  local parser = JSON.streamingParser(function (value)
+    Table.insert(values, value)
+  end, options)
   parser:parse(string)
   parser:complete()
-  return unpack(root)
+  return unpack(values)
 end
 
 function JSON.stringify(value, options)
-  local generator = yajl.newGenerator();
+  local generator = Yajl.newGenerator();
   if options then
     for k,v in pairs(options) do
       generator:config(k, v)
@@ -117,7 +145,7 @@ function JSON.stringify(value, options)
       else
         generator:mapOpen()
         for k,v in pairs(o) do
-          if not (type(k) == "string") then
+          if not (type(k) == "string" or type(k) == "number") then
             error("Keys must be strings to stringify as JSON")
           end
           generator:string(k)
