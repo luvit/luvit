@@ -1,7 +1,7 @@
-local MIME = require('mime')
-local HTTP = require('http')
-local Url = require('url')
-local FS = require('fs')
+local mime = require('mime')
+local http = require('http')
+local url = require('url')
+local fs = require('fs')
 local Response = require('response')
 
 -- Monkey patch in a helper
@@ -25,10 +25,10 @@ function Response.prototype:error(reason)
 end
 
 local root = "."
-HTTP.createServer("0.0.0.0", 8080, function(req, res)
-  req.uri = Url.parse(req.url)
+http.createServer("0.0.0.0", 8080, function(req, res)
+  req.uri = url.parse(req.url)
   local path = root .. req.uri.pathname
-  FS.stat(path, function (err, stat)
+  fs.stat(path, function (err, stat)
     if err then
       if err.code == "ENOENT" then
         return res:notFound(err.message .. "\n")
@@ -40,11 +40,11 @@ HTTP.createServer("0.0.0.0", 8080, function(req, res)
     end
     
     res:writeHead(200, {
-      ["Content-Type"] = MIME.getType(path),
+      ["Content-Type"] = mime.getType(path),
       ["Content-Length"] = stat.size
     })
 
-    FS.createReadStream(path):pipe(res)
+    fs.createReadStream(path):pipe(res)
 
   end)
 

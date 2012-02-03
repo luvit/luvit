@@ -1,19 +1,19 @@
-local FFI = require('ffi')
+local ffi = require('ffi')
 local Emitter = require('emitter')
-local Timer = require('timer')
-local FS = require('fs')
-local UV = require('uv')
+local timer = require('timer')
+local fs = require('fs')
+local uv = require('uv')
 
-FFI.cdef(FS.readFileSync(__dirname .. '/ffi_SDL.h'))
+ffi.cdef(fs.readFileSync(__dirname .. '/ffi_SDL.h'))
 
 local SDL = {
 }
 
 local lazy = {
-  ffi = function () return FFI.load('SDL') end,
-  GFX = function () return FFI.load("SDL_gfx") end,
-  TTF = function () return FFI.load("SDL_ttf") end,
-  Mix = function () return FFI.load("SDL_mixer") end,
+  ffi = function () return ffi.load('SDL') end,
+  GFX = function () return ffi.load("SDL_gfx") end,
+  TTF = function () return ffi.load("SDL_ttf") end,
+  Mix = function () return ffi.load("SDL_mixer") end,
 
   INIT_AUDIO       = 0x00000010,
   INIT_VIDEO       = 0x00000020,
@@ -42,7 +42,7 @@ local events = false
 
 setmetatable(SDL, {
   __index = function (table, key)
-    if key == 'add_handler_type' or key == 'userdata' or key == "handlers" then return end
+    if key == 'addHandlerType' or key == 'userdata' or key == "handlers" then return end
 
     if lazy[key] then
       local value = lazy[key]
@@ -66,11 +66,11 @@ setmetatable(SDL, {
 
 function initEvents()
   events = true
-  local event = FFI.new("SDL_Event")
+  local event = ffi.new("SDL_Event")
   local alive = true
-  local before = UV.now()
-  local interval = Timer:setInterval(1, function ()
-    local now = UV.now()
+  local before = uv.now()
+  local interval = timer.setInterval(1, function ()
+    local now = uv.now()
     local delta = now - before
     before = now
 
@@ -86,7 +86,7 @@ function initEvents()
   end)
 
   function SDL.stopEvents()
-    Timer.clearTimer(interval)
+    timer.clearTimer(interval)
     alive = false
   end
 

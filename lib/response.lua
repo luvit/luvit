@@ -88,12 +88,6 @@ function Response.prototype:initialize(socket)
   self.socket = socket
 end
 
--- Fall back inheritance to the socket's methods
-function Response.meta:__index(key)
-  return Response.prototype[key] or self.socket[key]
-end
-
-
 Response.prototype.auto_date = true
 Response.prototype.auto_server = "Luvit"
 Response.prototype.auto_chunked_encoding = true
@@ -277,7 +271,7 @@ function Response.prototype:finish(chunk, callback)
   if self.chunked then
     self.socket:write('0\r\n\r\n')
   end
-  self:shutdown(function ()
+  self.socket:shutdown(function ()
     self:close()
     if callback then
       self:on("closed", callback)
@@ -285,5 +279,8 @@ function Response.prototype:finish(chunk, callback)
   end)
 end
 
+function Response.prototype:close(...)
+  return self.socket:close(...)
+end
 
 return Response

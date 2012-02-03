@@ -1,4 +1,4 @@
-local HTTP = require('http')
+local http = require('http')
 
 local options = {
   host = 'creationix.com',
@@ -8,7 +8,7 @@ local options = {
   }
 }
 local req
-req = HTTP.request(options, function(res)
+req = http.request(options, function(res)
   p("on_connect", {status_code = res.status_code, headers = res.headers})
   res:on('data', function (chunk)
     p("on_data", #chunk)

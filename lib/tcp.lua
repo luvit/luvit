@@ -68,22 +68,4 @@ function Tcp.prototype:connect6(ip_address, port)
   return uv.tcpConnect6(self.userdata, ip_address, port)
 end
 
-function Tcp:createServer(ip, port, onConnection)
-  --_oldprint("Tcp.createServer")
-  local server = Tcp:new()
-  server:bind(ip, port)
-
-  server:listen(function (err)
-    if (err) then
-      return server:emit("error", err)
-    end
-    local client = Tcp:new()
-    server:accept(client)
-    client:readStart()
-    onConnection(client)
-  end)
-
-  return server
-end
-
 return Tcp

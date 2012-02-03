@@ -1,8 +1,8 @@
-local HTTP = require("http")
-local Utils = require("utils")
-local Table = require("table")
+local http = require("http")
+local utils = require("utils")
+local table = require("table")
 
-HTTP.createServer("0.0.0.0", 8080, function (req, res)
+http.createServer("0.0.0.0", 8080, function (req, res)
   p("on_request", req)
   local chunks = {}
   local length = 0
@@ -12,7 +12,7 @@ HTTP.createServer("0.0.0.0", 8080, function (req, res)
     chunks[length] = chunk
   end)
   req:on('end', function ()
-    local body = Table.concat(chunks, "")
+    local body = table.concat(chunks, "")
     p("on_end", {total_len=#body})
     body = "length = " .. tostring(#body) .. "\n"
     res:writeHead(200, {

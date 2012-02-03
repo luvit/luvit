@@ -1,7 +1,7 @@
-local FS = require('fs')
+local fs = require('fs')
 
 print("Reading file as stream")
-local stream = FS.createReadStream("TODO.markdown")
+local stream = fs.createReadStream("TODO.markdown")
 
 print("Adding data listener")
 stream:on('data', function (chunk, len)

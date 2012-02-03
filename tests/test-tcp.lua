@@ -18,11 +18,12 @@ limitations under the License.
 
 require("helper")
 
-local TCP = require('tcp')
+local Tcp = require('tcp')
+local net = require('net')
 
 local PORT = 8080
 
-local server = TCP:createServer("127.0.0.1", PORT, function (client)
+local server = net.createServer(function (client)
   client:on("data", function (chunk)
     p('server:client:on("data")', chunk)
     assert(chunk == "ping")
@@ -36,12 +37,14 @@ local server = TCP:createServer("127.0.0.1", PORT, function (client)
   end)
 end)
 
+server:listen(PORT, "127.0.0.1")
+
 server:on("error", function (err)
   p('server:on("error")')
   assert(false)
 end)
 
-local client = TCP:new()
+local client = Tcp:new()
 client:connect("127.0.0.1", PORT)
 
 client:on("connect", function ()

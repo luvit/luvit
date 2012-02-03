@@ -17,8 +17,11 @@ limitations under the License.
 --]]
 local uv = require('uv')
 local Handle = require('handle')
+local timer = {}
 
 local Timer = Handle:extend()
+
+timer.Timer = Timer
 
 function Timer.prototype:initialize()
   self.userdata = uv.newTimer()
@@ -44,7 +47,7 @@ function Timer.prototype:getRepeat()
   return uv.timerGetRepeat(self.userdata)
 end
 
-function Timer:setTimeout(duration, callback, ...)
+function timer.setTimeout(duration, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(duration, 0, function (status)
@@ -54,7 +57,7 @@ function Timer:setTimeout(duration, callback, ...)
   return timer
 end
 
-function Timer:setInterval(period, callback, ...)
+function timer.setInterval(period, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(period, period, function (status)
@@ -63,9 +66,9 @@ function Timer:setInterval(period, callback, ...)
   return timer
 end
 
-function Timer:clearTimer(timer)
+function timer.clearTimer(timer)
   timer:stop()
   timer:close()
 end
 
-return Timer
+return timer

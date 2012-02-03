@@ -18,11 +18,11 @@ limitations under the License.
 
 local dns = require('dns')
 local tcp = require('tcp')
-local Timer = require('timer')
+local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('emitter')
 
-local Net = {}
+local net = {}
 
 --[[ Server ]]--
 
@@ -64,7 +64,7 @@ end
 
 function Server.prototype:close()
   if self._connectTimer then
-    Timer:clearTimer(self._connectTimer)
+    timer.clearTimer(self._connectTimer)
     self._connectTimer = nil
   end
   self._handle:close()
@@ -105,7 +105,7 @@ end
 function Socket.prototype:setTimeout(msecs, callback)
   callback = callback or function() end
   if not self._connectTimer then
-    self._connectTimer = Timer:new()
+    self._connectTimer = timer.Timer:new()
   end
 
   self._connectTimer:start(msecs, 0, function(status)
@@ -132,7 +132,7 @@ end
 function Socket.prototype:connect(port, host, callback)
   self._handle:on('connect', function()
     if self._connectTimer then
-      Timer:clearTimer(self._connectTimer)
+      timer.clearTimer(self._connectTimer)
       self._connectTimer = nil
     end
     self._handle:readStart()
@@ -166,17 +166,17 @@ function Socket.prototype:connect(port, host, callback)
 end
 
 function Socket.prototype:initialize()
-  self._connectTimer = Timer:new()
+  self._connectTimer = timer.Timer:new()
   self._handle = tcp:new()
   self.bytesWritten = 0
   self.bytesRead = 0
 end
 
-Net.Server = Server
+net.Server = Server
 
-Net.Socket = Socket
+net.Socket = Socket
 
-Net.createConnection = function(port, ... --[[ host, cb --]])
+net.createConnection = function(port, ... --[[ host, cb --]])
   local args = {...}
   local host
   local callback
@@ -190,11 +190,11 @@ Net.createConnection = function(port, ... --[[ host, cb --]])
   return s:connect(port, host, callback)
 end
 
-Net.create = Net.createConnection
+net.create = net.createConnection
 
-Net.createServer = function(connectionCallback)
+net.createServer = function(connectionCallback)
   local s = Server:new(connectionCallback)
   return s
 end
 
-return Net
+return net

@@ -1,4 +1,4 @@
-local Timer = require('timer')
+local Timer = require('timer').Timer
 
 local timer = Timer:new()
 local timer2 = Timer:new()
