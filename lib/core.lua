@@ -269,6 +269,17 @@ end
 
 --------------------------------------------------------------------------------
 
+--[[
+This is an abstract interface that works like `core.Stream` but doesn't actually
+contain a uv struct (it's pure lua)
+]]
+local iStream = Emitter:extend()
+core.iStream = iStream
+
+--TODO: Implement this
+
+--------------------------------------------------------------------------------
+
 -- This is for code that wants structured error messages.
 local Error = Object:extend()
 core.Error = Error
