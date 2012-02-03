@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-local Table = require('table')
-local Path = {}
+local table = require('table')
+local path = {}
 
 -- Split a filename into [root, dir, basename], unix version
 -- 'root' is just a slash, or nothing.
-local function split_path(filename)
+local function splitPath(filename)
   local root, dir, basename
   local i, j = filename:find("[^/]*$")
   if filename:sub(1, 1) == "/" then
@@ -36,65 +36,65 @@ local function split_path(filename)
 end
 
 -- Modifies an array of path parts in place by interpreting "." and ".." segments
-local function normalize_array(parts)
+local function normalizeArray(parts)
   local skip = 0
   for i = #parts, 1, -1 do
     local part = parts[i]
     if part == "." then
-      Table.remove(parts, i)
+      table.remove(parts, i)
     elseif part == ".." then
-      Table.remove(parts, i)
+      table.remove(parts, i)
       skip = skip + 1
     elseif skip > 0 then
-      Table.remove(parts, i)
+      table.remove(parts, i)
       skip = skip - 1
     end
   end
 end
 
-function Path.normalize(path)
-  local is_absolute = path:sub(1, 1) == "/"
-  local trailing_slash = path:sub(#path) == "/"
+function path.normalize(filepath)
+  local is_absolute = filepath:sub(1, 1) == "/"
+  local trailing_slash = filepath:sub(#filepath) == "/"
 
   local parts = {}
-  for part in path:gmatch("[^/]+") do
+  for part in filepath:gmatch("[^/]+") do
     parts[#parts + 1] = part
   end
-  normalize_array(parts)
-  path = Table.concat(parts, "/")
+  normalizeArray(parts)
+  filepath = table.concat(parts, "/")
 
-  if #path == 0 then
+  if #filepath == 0 then
     if is_absolute then
       return "/"
     end
     return "."
   end
   if trailing_slash then
-    path = path .. "/"
+    filepath = filepath .. "/"
   end
   if is_absolute then
-    path = "/" .. path
+    filepath = "/" .. filepath
   end
-  return path
+  return filepath
 end
 
-function Path.join(...)
-  return Path.normalize(Table.concat({...}, "/"))
+function path.join(...)
+  return path.normalize(table.concat({...}, "/"))
 end
 
-function Path.resolve(root, path)
-  if path:sub(1, 1) == "/" then
-    return Path.normalize(path)
+function path.resolve(root, filepath)
+  if filepath:sub(1, 1) == "/" then
+    return path.normalize(filepath)
   end
-  return Path.join(root, path)
+  return path.join(root, filepath)
 end
 
-function Path.dirname(path)
-  if path:sub(path:len()) == "/" then
-    path = path:sub(1, -2)
+function path.dirname(filepath)
+  if filepath:sub(filepath:len()) == "/" then
+    filepath = filepath:sub(1, -2)
   end
 
-  local root, dir = split_path(path)
+  local root, dir = splitPath(filepath)
 
   if #dir > 0 then
     dir = dir:sub(1, #dir - 1)
@@ -107,12 +107,12 @@ function Path.dirname(path)
 
 end
 
-function Path.basename(path, expected_ext)
-  return path:match("[^/]+$") or ""
+function path.basename(filepath, expected_ext)
+  return filepath:match("[^/]+$") or ""
 end
 
-function Path.extname(path)
-  return path:match(".[^.]+$") or ""
+function path.extname(filepath)
+  return filepath:match(".[^.]+$") or ""
 end
 
-return Path
+return path

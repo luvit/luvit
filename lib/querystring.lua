@@ -20,14 +20,14 @@ limitations under the License.
 -- querystring helpers
 local querystring = {}
 
-local String = require('string')
-local find = String.find
-local gsub = String.gsub
-local char = String.char
-local byte = String.byte
-local format = String.format
-local match = String.match
-local gmatch = String.gmatch
+local string = require('string')
+local find = string.find
+local gsub = string.gsub
+local char = string.char
+local byte = string.byte
+local format = string.format
+local match = string.match
+local gmatch = string.gmatch
 
 function querystring.urldecode(str)
   str = gsub(str, '+', ' ')

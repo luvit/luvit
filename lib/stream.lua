@@ -15,40 +15,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local UV = require('uv')
+local uv = require('uv')
 local Handle = require('handle')
 
 local Stream = Handle:extend()
 
 function Stream.prototype:shutdown()
   --_oldprint("Stream.prototype:shutdown")
-  return UV.shutdown(self.userdata)
+  return uv.shutdown(self.userdata)
 end
 
 function Stream.prototype:listen(callback)
   --_oldprint("Stream.prototype:listen")
-  return UV.listen(self.userdata, callback)
+  return uv.listen(self.userdata, callback)
 end
 
 
 function Stream.prototype:accept(other_stream)
   --_oldprint("Stream.prototype:accept")
-  return UV.accept(self.userdata, other_stream)
+  return uv.accept(self.userdata, other_stream)
 end
 
-function Stream.prototype:read_start()
-  --_oldprint("Stream.prototype:read_start")
-  return UV.read_start(self.userdata)
+function Stream.prototype:readStart()
+  --_oldprint("Stream.prototype:readStart")
+  return uv.readStart(self.userdata)
 end
 
-function Stream.prototype:read_stop()
-  --_oldprint("Stream.prototype:read_stop")
-  return UV.read_stop(self.userdata)
+function Stream.prototype:readStop()
+  --_oldprint("Stream.prototype:readStop")
+  return uv.readStop(self.userdata)
 end
 
 function Stream.prototype:write(chunk, callback)
   --_oldprint("Stream.prototype:write")
-  return UV.write(self.userdata, chunk, callback)
+  return uv.write(self.userdata, chunk, callback)
 end
 
 function Stream.prototype:pipe(target)

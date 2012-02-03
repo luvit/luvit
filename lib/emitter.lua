@@ -22,8 +22,8 @@ local Table = require('table')
 local Emitter = Object:extend()
 
 -- By default, and error events that are not listened for should thow errors
-function Emitter.prototype:missing_handler_type(name, ...)
-  --_oldprint("Emitter.prototype:missing_handler_type")
+function Emitter.prototype:missingHandlerType(name, ...)
+  --_oldprint("Emitter.prototype:missingHandlerType")
   if name == "error" then
     local args = {...}
     error(tostring(args[1]))
@@ -34,7 +34,7 @@ end
 function Emitter.prototype:once(name, callback)
   --_oldprint("Emitter.prototype:once")
   local function wrapped(...)
-    self:remove_listener(name, wrapped)
+    self:removeListener(name, wrapped)
     callback(...)
   end
   self:on(name, wrapped)
@@ -50,8 +50,8 @@ function Emitter.prototype:on(name, callback)
   end
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then
-    if self.add_handler_type then
-      self:add_handler_type(name)
+    if self.addHandlerType then
+      self:addHandlerType(name)
     end
     handlers_for_type = {}
     rawset(handlers, name, handlers_for_type)
@@ -63,12 +63,12 @@ function Emitter.prototype:emit(name, ...)
   --_oldprint("Emitter.prototype:emit")
   local handlers = rawget(self, "handlers")
   if not handlers then
-    self:missing_handler_type(name, ...)
+    self:missingHandlerType(name, ...)
     return
   end
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then
-    self:missing_handler_type(name, ...)
+    self:missingHandlerType(name, ...)
     return
   end
   for i, callback in ipairs(handlers_for_type) do
@@ -82,8 +82,8 @@ function Emitter.prototype:emit(name, ...)
 
 end
 
-function Emitter.prototype:remove_listener(name, callback)
-  --_oldprint("Emitter.prototype:remove_listener")
+function Emitter.prototype:removeListener(name, callback)
+  --_oldprint("Emitter.prototype:removeListener")
   local handlers = rawget(self, "handlers")
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)

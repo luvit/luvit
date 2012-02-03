@@ -4,7 +4,7 @@ local Stack = require "stack"
 local MethodEcho = require "method_echo"
 local UrlEcho = require "url_echo"
 
-HTTP.create_server("0.0.0.0", 8080, Stack.stack(
+HTTP.createServer("0.0.0.0", 8080, Stack.stack(
   Stack.mount("/methods",
     MethodEcho("PUT"),
     MethodEcho("GET")
