@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local UV = require('uv')
+local uv = require('uv')
 local table = require('table')
 
 --[[
@@ -175,7 +175,7 @@ first argument (`err`) is re-routed to the "error" event instead.
     local Joystick = Emitter:extend()
     function Joystick:initialize(device)
       self:wrap("onOpen")
-      FS.open(device, self.onOpen)
+      fs.open(device, self.onOpen)
     end
 
     function Joystick:onOpen(fd)
@@ -202,7 +202,7 @@ core.Handle = Handle
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
 function Handle:close()
   if not self.userdata then error("Can't call :close() on non-userdata objects") end
-  return UV.close(self.userdata)
+  return uv.close(self.userdata)
 end
 
 --[[
@@ -222,7 +222,7 @@ you want, not this.
 ]]
 function Handle:setHandler(name, callback)
   if not self.userdata then error("Can't call :setHandler() on non-userdata objects") end
-  return UV.setHandler(self.userdata, name, callback)
+  return uv.setHandler(self.userdata, name, callback)
 end
 
 --------------------------------------------------------------------------------
@@ -235,35 +235,67 @@ local Stream = Handle:extend()
 core.Stream = Stream
 
 function Stream:shutdown()
-  return UV.shutdown(self.userdata)
+  return uv.shutdown(self.userdata)
 end
 
 function Stream:listen(callback)
-  return UV.listen(self.userdata, callback)
+  return uv.listen(self.userdata, callback)
 end
 
 
 function Stream:accept(other_stream)
-  return UV.accept(self.userdata, other_stream)
+  return uv.accept(self.userdata, other_stream)
 end
 
 function Stream:readStart()
-  return UV.readStart(self.userdata)
+  --_oldprint("Stream:readStart")
+  return uv.readStart(self.userdata)
+end
+
+function Stream:resume ()
+  return self:readStart()
 end
 
 function Stream:readStop()
-  return UV.readStop(self.userdata)
+  --_oldprint("Stream:readStop")
+  return uv.readStop(self.userdata)
+end
+
+function Stream:pause ()
+  return self:readStop()
 end
 
 function Stream:write(chunk, callback)
-  return UV.write(self.userdata, chunk, callback)
+  --_oldprint("Stream:write")
+  local ret
+  ret = uv.write(self.userdata, chunk, function (err, buffered)
+    if self._need_drain and 0 == buffered then
+      self._need_drain = false
+      self:emit('drain')
+    end
+
+    if callback then callback(err) end
+  end)
+
+  if not ret then
+    self._need_drain = true
+  end
+
+  return ret
 end
 
-function Stream:pipe(target)
+function Stream.pipe(self, target)
+  --_oldprint("Stream:pipe")
   self:on('data', function (chunk, len)
-    target:write(chunk)
+    if target:write(chunk) then return end
+    -- Buffer full. Pause source
+    self:pause()
+  end)
+  target:on('drain', function ()
+    self:resume()
   end)
   self:on('end', function ()
+    if target.finish then return target:finish() end
     target:close()
   end)
 end
@@ -277,7 +309,23 @@ contain a uv struct (it's pure lua)
 local iStream = Emitter:extend()
 core.iStream = iStream
 
---TODO: Implement this
+function iStream:initialize()
+  self.paused = false
+end
+
+function iStream:pause()
+  self.paused = true
+  self:emit('pause')
+  return true
+end
+
+function iStream:resume()
+  self.paused = false
+  self:emit('resume')
+  return true
+end
+
+iStream.pipe = Stream.pipe
 
 --------------------------------------------------------------------------------
 

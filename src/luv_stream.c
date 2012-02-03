@@ -64,8 +64,6 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
   assert(lua_gettop(L) == before);
 }
 
-
-
 void luv_after_shutdown(uv_shutdown_t* req, int status) {
 
   /* load the lua state and the callback */
@@ -94,6 +92,7 @@ void luv_after_write(uv_write_t* req, int status) {
 
   /* load the lua state and the callback */
   luv_write_ref_t* ref = req->data;
+  uv_stream_t* handle = req->handle;
   lua_State *L = ref->L;
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
@@ -103,7 +102,9 @@ void luv_after_write(uv_write_t* req, int status) {
       luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "after_write", NULL);
       luv_acall(L, 1, 0, "after_write");
     } else {
-      luv_acall(L, 0, 0, "after_write");
+      lua_pushnil(L);
+      lua_pushinteger(L, handle->write_queue_size);
+      luv_acall(L, 2, 0, "after_write");
     }
   } else {
     lua_pop(L, 1);
@@ -211,7 +212,11 @@ int luv_write (lua_State* L) {
 
   uv_write(&ref->write_req, handle, &ref->refbuf, 1, luv_after_write);
   assert(lua_gettop(L) == before);
-  return 0;
+
+  /* Can we write more data after this? */
+  lua_pushboolean(L, 0 == handle->write_queue_size);
+
+  return 1;
 }
 
 int luv_write2(lua_State* L) {

@@ -21,8 +21,8 @@ local HttpParser = require('http_parser')
 local table = require('table')
 local osDate = require('os').date
 local stringFormat = require('string').format
-
 local iStream = require('core').iStream
+local Error = require('core').Error
 local http = {}
 
 local STATUS_CODES = {
@@ -79,231 +79,104 @@ local STATUS_CODES = {
   [509] = 'Bandwidth Limit Exceeded',
   [510] = 'Not Extended'                -- RFC 2774
 }
+
 http.STATUS_CODES = STATUS_CODES
 
---------------------------------------------------------------------------------
 
-local Request = iStream:extend()
-http.Request = Request
+-- OutgoingMessage:new(socket)
+--
+-- Used for ServerResponse and ClientRequest
+local OutgoingMessage = iStream:extend()
+http.OutgoingMessage = OutgoingMessage
 
-function Request:initialize(socket)
+function OutgoingMessage:initialize(port, host, onConnection)
+  Socket.initialize(self)
+  self.socket = net.create(port, host, onConnection)
+end
+
+function OutgoingMessage:pause()
+  if not socket then return false end
+  return self.socket:pause()
+end
+
+function OutgoingMessage:resume()
+  if not socket then return false end
+  return self.socket:resume()
+end
+
+function OutgoingMessage:close()
+  if not socket then return false end
+  return self.socket:close()
+end
+
+function OutgoingMessage:write(chunk, callback)
+end
+
+
+-- IncomingMessage:new(socket)
+--
+-- Used for ServerRequest and ClientResponse
+local IncomingMessage = iStream:extend()
+http.IncomingMessage = IncomingMessage
+
+function
+
+-- Parser metatable and freelist
+--
+-- This saves on memory usage.
+local parser_meta = {}
+
+function parser_meta:reinitialize (flag, socket)
+  self.resetState()
+  self.userdata:reinitialize(flag)
   self.socket = socket
+  return self
+end
+function parser_meta:onMessageBegin ()
+  self._headers = {}
+end
+function parser_meta:onUrl (url)
+end
+function parser_meta:onHeaderField (field)
+  self._current_field = field
+end
+function parser_meta:onHeaderValue (value)
+  self._headers[self._current_field:lower()] = value
+end
+function parser_meta:onHeadersComplete (info)
+  self.incoming = IncomingMessage:new(self.socket)
+  self.incoming.headers = self._headers
+  self.incoming.status_code = info.status_code
+  self.incoming.version_minor = info.version_minor
+  self.incoming.version_major = info.version_major
+end
+function parser_meta:onBody (chunk)
+  response:emit('data', chunk)
+end
+function parser_meta:onMessageComplete ()
+  response:emit('end')
+end
+function parser_meta:resetState ()
+  self._headers = {}
+  self._current_field = nil
+  self.incoming = nil
+  self.socket = nil
+  return self
+end
+function parser_meta:execute (chunk, offset, length)
+  return parser.userdata:execute(chunk, offset, length)
 end
 
-function Request:close(...)
-  return self.socket:close(...)
+local parsers = Freelist:new('parsers', 1000, function (socket)
+  local parser = http_parser.new('request', parser_meta)
+
+  -- Init parser
+  parser:resetState()
+
+  return parser
 end
 
---------------------------------------------------------------------------------
-
-local Response = iStream:extend()
-http.Response = Response
-
-function Response:initialize(socket)
-  self.code = 200
-  self.headers = {}
-  self.header_names = {}
-  self.headers_sent = false
-  self.socket = socket
-end
-
-Response.auto_date = true
-Response.auto_server = "Luvit"
-Response.auto_chunked_encoding = true
-Response.auto_content_length = true
-Response.auto_content_type = "text/html"
-
-function Response:setCode(code)
-  if self.headers_sent then error("Headers already sent") end
-  self.code = code
-end
-
--- This sets a header, replacing any header with the same name (case insensitive)
-function Response:setHeader(name, value)
-  if self.headers_sent then error("Headers already sent") end
-  local lower = name:lower()
-  local old_name = self.header_names[lower]
-  if old_name then
-    headers[old_name] = nil
-  end
-  self.header_names[lower] = name
-  self.headers[name] = value
-  return name
-end
-
--- Adds a header line.  This does not replace any header by the same name and
--- allows duplicate headers.  Returns the index it was inserted at
-function Response:addHeader(name, value)
-  if self.headers_sent then error("Headers already sent") end
-  self.headers[#self.headers + 1] = { name, value }
-  return #self.headers
-end
-
--- Removes a set header.  Cannot remove headers added with :addHeader
-function Response:unsetHeader(name)
-  if self.headers_sent then error("Headers already sent") end
-  local lower = name:lower()
-  local name = self.header_names[lower]
-  if not name then return end
-  self.headers[name] = nil
-  self.header_names[lower] = nil
-end
-
-function Response:flushHead(callback)
-  if self.headers_sent then error("Headers already sent") end
-
-  local reason = STATUS_CODES[self.code]
-  if not reason then error("Invalid response code " .. tostring(self.code)) end
-
-  local head = {"HTTP/1.1 " .. self.code .. " " .. reason .. "\r\n"}
-  local length = 1
-  local has_server, has_content_length, has_date, has_content_type
-
-  -- We still don't know if there is a body, try to guess
-  if self.has_body == nil then
-    -- RFC 2616, 10.2.5:
-    -- The 204 response MUST NOT include a message-body, and thus is always
-    -- terminated by the first empty line after the header fields.
-    -- RFC 2616, 10.3.5:
-    -- The 304 response MUST NOT contain a message-body, and thus is always
-    -- terminated by the first empty line after the header fields.
-    -- RFC 2616, 10.1 Informational 1xx:
-    -- This class of status code indicates a provisional response,
-    -- consisting only of the Status-Line and optional headers, and is
-    -- terminated by an empty line.
-    if self.code == 204 or self.code == 304 or (self.code >= 100 and self.code < 200) then
-      self.has_body = false
-    else
-      -- Default to true if we don't know.  It's the safe thing to assume
-      self.has_body = true
-    end
-  end
-  local has_body = self.has_body
-
-  for field, value in pairs(self.headers) do
-    -- handle headers added with `add_header`
-    if type(field) == "number" then
-      field = value[1]
-      value = value[2]
-    end
-    local lower = field:lower()
-    if lower == "server" then
-      has_server = true
-    elseif lower == "content-length" then
-      has_content_length = true
-      self.has_body = true
-    elseif lower == "content-type" then
-      has_content_type = true
-      self.has_body = true
-    elseif lower == "date" then
-      has_date = true
-    elseif lower == "transfer-encoding" and value:lower() == "chunked" then
-      self.chunked = true
-      self.has_body = true
-    end
-    length = length + 1
-    head[length] = field .. ": " .. value .. "\r\n"
-  end
-
-  -- Implement auto headers so people's http server are more spec compliant
-  if not has_server and self.auto_server then
-    length = length + 1
-    head[length] = "Server: " .. self.auto_server .. "\r\n"
-  end
-  if has_body and not has_content_type and self.auto_content_type then
-    length = length + 1
-    head[length] = "Content-Type: " .. self.auto_content_type .. "\r\n"
-  end
-  if has_body and not has_content_length and self.auto_chunked_encoding then
-    length = length + 1
-    self.chunked = true
-    head[length] = "Transfer-Encoding: chunked\r\n"
-  end
-  if not has_date and self.auto_date then
-    -- This should be RFC 1123 date format
-    -- IE: Tue, 15 Nov 1994 08:12:31 GMT
-    length = length + 1
-    head[length] = osDate("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
-  end
-
-  head = table.concat(head, "") .. "\r\n"
-  self.socket:write(head, callback)
-  self.headers_sent = true
-end
-
-function Response:writeHead(code, headers, callback)
-  if self.headers_sent then error("Headers already sent") end
-
-  self.code = code
-  for field, value in pairs(headers) do
-    if type(field) == "number" then
-      field = #self.headers + 1
-    end
-    self.headers[field] = value
-  end
-
-  self:flushHead(callback)
-end
-
-function Response:writeContinue(callback)
-  self.socket:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
-end
-
-function Response:write(chunk, callback)
-  if self.has_body == false then error("Body not allowed") end
-  if not self.headers_sent then
-    self.has_body = true
-    self:flushHead()
-  end
-  if self.chunked then
-    self.socket:write(stringFormat("%x\r\n", #chunk))
-    self.socket:write(chunk)
-    return self.socket:write("\r\n", callback)
-  end
-  return self.socket:write(chunk, callback)
-end
-
-function Response:finish(chunk, callback)
-  if chunk and self.has_body == false then error ("Body not allowed") end
-  if not self.headers_sent then
-    if self.has_body == nil then
-      if chunk then
-        if self.auto_content_length and #self.headers == 0
-         and (not self.header_names["content-length"])
-         and (not self.header_names["transfer-encoding"]) then
-          self:setHeader("Content-Length", #chunk)
-        end
-        self.has_body = true
-      else
-        self.has_body = false
-      end
-    end
-    self:flushHead()
-  end
-  if type(chunk) == "function" and callback == nil then
-    callback = chunk
-    chunk = nil
-  end
-  if chunk then
-    self:write(chunk)
-  end
-  if self.chunked then
-    self.socket:write('0\r\n\r\n')
-  end
-  self.socket:shutdown(function ()
-    self:close()
-    if callback then
-      self:on("closed", callback)
-    end
-  end)
-end
-
-function Response:close(...)
-  return self.socket:close(...)
-end
-
---------------------------------------------------------------------------------
-
+-- http.request(options, callback)
 function http.request(options, callback)
   -- Load options into local variables.  Assume defaults
   local host = options.host or "127.0.0.1"
@@ -366,7 +239,7 @@ function http.request(options, callback)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk then
-        error("Parse error in server response")
+        client:emit('error', Error:new('parse error in server response'))
       end
 
     end)
