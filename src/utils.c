@@ -37,16 +37,16 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 
   /* If C is not main then move to main */
   if (C != L) {
-    lua_getglobal(L, "event_source");
+    lua_getglobal(L, "eventSource");
     lua_pushstring(L, source);
     lua_xmove (C, L, nargs + 1);
     lua_call(L, nargs + 2, nresults);
     assert(lua_gettop(L) == beforeL);
   } else {
 
-    /* Wrap the call with the event_source function */
+    /* Wrap the call with the eventSource function */
     int offset = nargs + 2;
-    lua_getglobal(L, "event_source");
+    lua_getglobal(L, "eventSource");
     lua_insert(L, -offset);
     lua_pushstring(L, source);
     lua_insert(L, -offset);

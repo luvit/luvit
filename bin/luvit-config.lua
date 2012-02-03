@@ -40,7 +40,7 @@ elseif command == "--cflags" then
   -- calculate includes relative to the binary
   local include_dir = Path.resolve(Path.dirname(UV.execpath()), "../include/luvit")
   -- if not found...
-  if not Fs.exists_sync(include_dir) then
+  if not Fs.existsSync(include_dir) then
     -- calculate includes relative to the symlink to the binary
     include_dir = Path.resolve(__dirname, "../include/luvit")
   end

@@ -61,8 +61,8 @@ static int lhttp_parser_on_message_begin(http_parser *p) {
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_message_begin");
+  /* Get the onMessageBegin callback and put it on the stack */
+  lua_getfield(L, -1, "onMessageBegin");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -81,8 +81,8 @@ static int lhttp_parser_on_message_complete(http_parser *p) {
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_message_complete");
+  /* Get the onMessageComplete callback and put it on the stack */
+  lua_getfield(L, -1, "onMessageComplete");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -101,8 +101,8 @@ static int lhttp_parser_on_url(http_parser *p, const char *at, size_t length) {
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_url");
+  /* Get the onUrl callback and put it on the stack */
+  lua_getfield(L, -1, "onUrl");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -123,8 +123,8 @@ static int lhttp_parser_on_header_field(http_parser *p, const char *at, size_t l
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_header_field");
+  /* Get the onHeaderField callback and put it on the stack */
+  lua_getfield(L, -1, "onHeaderField");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -145,8 +145,8 @@ static int lhttp_parser_on_header_value(http_parser *p, const char *at, size_t l
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_header_value");
+  /* Get the onHeaderValue callback and put it on the stack */
+  lua_getfield(L, -1, "onHeaderField");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -167,8 +167,8 @@ static int lhttp_parser_on_body(http_parser *p, const char *at, size_t length) {
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_body");
+  /* Get the onBody callback and put it on the stack */
+  lua_getfield(L, -1, "onBody");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -189,8 +189,8 @@ static int lhttp_parser_on_headers_complete(http_parser *p) {
 
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
-  /* Get the on_message_begin callback and put it on the stack */
-  lua_getfield(L, -1, "on_headers_complete");
+  /* Get the onHeadersComplete callback and put it on the stack */
+  lua_getfield(L, -1, "onHeadersComplete");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
@@ -370,7 +370,7 @@ static const luaL_reg lhttp_parser_m[] = {
 
 static const luaL_reg lhttp_parser_f[] = {
   {"new", lhttp_parser_new},
-  {"parse_url", lhttp_parser_parse_url},
+  {"parseUrl", lhttp_parser_parse_url},
   {NULL, NULL}
 };
 

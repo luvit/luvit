@@ -165,7 +165,7 @@ int luv_dns_queryA(lua_State* L)
   return 0;
 }
 
-static void queryAAAA_callback(void *arg, int status, int timeouts,
+static void queryAaaa_callback(void *arg, int status, int timeouts,
                                unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
@@ -175,13 +175,13 @@ static void queryAAAA_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryAAAA");
+    luv_push_ares_async_error(ref->L, status, "queryAaaa");
     goto cleanup;
   }
 
   rc = ares_parse_aaaa_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "queryAAAA");
+    luv_push_ares_async_error(ref->L, rc, "queryAaaa");
     goto cleanup;
   }
 
@@ -194,16 +194,16 @@ cleanup:
   luv_dns_ref_cleanup(ref);
 }
 
-int luv_dns_queryAAAA(lua_State* L)
+int luv_dns_queryAaaa(lua_State* L)
 {
   ares_channel channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_aaaa, queryAAAA_callback, ref);
+  ares_query(channel, name, ns_c_in, ns_t_aaaa, queryAaaa_callback, ref);
   return 0;
 }
 
-static void queryCNAME_callback(void *arg, int status, int timeouts,
+static void queryCname_callback(void *arg, int status, int timeouts,
                                 unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
@@ -213,13 +213,13 @@ static void queryCNAME_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryCNAME");
+    luv_push_ares_async_error(ref->L, status, "queryCname");
     goto cleanup;
   }
 
   rc = ares_parse_a_reply(buf, len, &host, NULL, NULL);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "queryCNAME");
+    luv_push_ares_async_error(ref->L, rc, "queryCname");
     goto cleanup;
   }
 
@@ -235,16 +235,16 @@ cleanup:
   luv_dns_ref_cleanup(ref);
 }
 
-int luv_dns_queryCNAME(lua_State* L)
+int luv_dns_queryCname(lua_State* L)
 {
   ares_channel channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_cname, queryCNAME_callback, ref);
+  ares_query(channel, name, ns_c_in, ns_t_cname, queryCname_callback, ref);
   return 0;
 }
 
-static void queryMX_callback(void *arg, int status, int timeouts,
+static void queryMx_callback(void *arg, int status, int timeouts,
                              unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
@@ -255,13 +255,13 @@ static void queryMX_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryMX");
+    luv_push_ares_async_error(ref->L, status, "queryMx");
     goto cleanup;
   }
 
   rc = ares_parse_mx_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "queryMX");
+    luv_push_ares_async_error(ref->L, rc, "queryMx");
     goto cleanup;
   }
 
@@ -288,16 +288,16 @@ cleanup:
 }
 
 
-int luv_dns_queryMX(lua_State* L)
+int luv_dns_queryMx(lua_State* L)
 {
   ares_channel channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_mx, queryMX_callback, ref);
+  ares_query(channel, name, ns_c_in, ns_t_mx, queryMx_callback, ref);
   return 0;
 }
 
-static void queryNS_callback(void *arg, int status, int timeouts,
+static void queryNs_callback(void *arg, int status, int timeouts,
                              unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
@@ -307,13 +307,13 @@ static void queryNS_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryNS");
+    luv_push_ares_async_error(ref->L, status, "queryNs");
     goto cleanup;
   }
 
   rc = ares_parse_ns_reply(buf, len, &host);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "queryNS");
+    luv_push_ares_async_error(ref->L, rc, "queryNs");
     goto cleanup;
   }
 
@@ -326,16 +326,16 @@ cleanup:
   luv_dns_ref_cleanup(ref);
 }
 
-int luv_dns_queryNS(lua_State* L)
+int luv_dns_queryNs(lua_State* L)
 {
   ares_channel channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_ns, queryNS_callback, ref);
+  ares_query(channel, name, ns_c_in, ns_t_ns, queryNs_callback, ref);
   return 0;
 }
 
-static void queryTXT_callback(void *arg, int status, int timeouts,
+static void queryTxt_callback(void *arg, int status, int timeouts,
                               unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
@@ -345,13 +345,13 @@ static void queryTXT_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "queryTXT");
+    luv_push_ares_async_error(ref->L, status, "queryTxt");
     goto cleanup;
   }
 
   rc = ares_parse_txt_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "queryTXT");
+    luv_push_ares_async_error(ref->L, rc, "queryTxt");
     goto cleanup;
   }
 
@@ -369,16 +369,16 @@ cleanup:
   luv_dns_ref_cleanup(ref);
 }
 
-int luv_dns_queryTXT(lua_State* L)
+int luv_dns_queryTxt(lua_State* L)
 {
   ares_channel channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_txt, queryTXT_callback, ref);
+  ares_query(channel, name, ns_c_in, ns_t_txt, queryTxt_callback, ref);
   return 0;
 }
 
-static void querySRV_callback(void *arg, int status, int timeouts,
+static void querySrv_callback(void *arg, int status, int timeouts,
                               unsigned char* buf, int len)
 {
   luv_dns_ref_t *ref = arg;
@@ -388,13 +388,13 @@ static void querySRV_callback(void *arg, int status, int timeouts,
   luv_dns_get_callback(ref);
 
   if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "querySRV");
+    luv_push_ares_async_error(ref->L, status, "querySrv");
     goto cleanup;
   }
 
   rc = ares_parse_srv_reply(buf, len, &start);
   if (rc != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, rc, "querySRV");
+    luv_push_ares_async_error(ref->L, rc, "querySrv");
     goto cleanup;
   }
 
@@ -426,12 +426,12 @@ cleanup:
   luv_dns_ref_cleanup(ref);
 }
 
-int luv_dns_querySRV(lua_State* L)
+int luv_dns_querySrv(lua_State* L)
 {
   ares_channel channel = luv_get_ares_channel(L);
   const char* name = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
-  ares_query(channel, name, ns_c_in, ns_t_srv, querySRV_callback, ref);
+  ares_query(channel, name, ns_c_in, ns_t_srv, querySrv_callback, ref);
   return 0;
 }
 
@@ -533,7 +533,7 @@ int luv_dns_getAddrInfo(lua_State* L)
   return 0;
 }
 
-static int luv_dns__isIP(lua_State *L, const char *ip, int v4v6) {
+static int luv_dns__isIp(lua_State *L, const char *ip, int v4v6) {
   int family;
   char address_buffer[sizeof(struct in6_addr)];
 
@@ -559,19 +559,19 @@ static int luv_dns__isIP(lua_State *L, const char *ip, int v4v6) {
   return 1;
 }
 
-int luv_dns_isIP(lua_State* L)
+int luv_dns_isIp(lua_State* L)
 {
   const char *ip = luaL_checkstring(L, 1);
-  return luv_dns__isIP(L, ip, 0);
+  return luv_dns__isIp(L, ip, 0);
 }
 
-int luv_dns_isIPv4(lua_State* L)
+int luv_dns_isIpV4(lua_State* L)
 {
   const char *ip = luaL_checkstring(L, 1);
-  return luv_dns__isIP(L, ip, 4);
+  return luv_dns__isIp(L, ip, 4);
 }
 
-int luv_dns_isIPv6(lua_State* L) {
+int luv_dns_isIpV6(lua_State* L) {
   const char *ip = luaL_checkstring(L, 1);
-  return luv_dns__isIP(L, ip, 6);
+  return luv_dns__isIp(L, ip, 6);
 }

@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local UV = require('uv')
+local uv = require('uv')
 local Pipe = require('pipe')
 local Handle = require('handle')
 
@@ -28,10 +28,10 @@ function Process.prototype:initialize(command, args, options)
   args = args or {}
   options = options or {}
 
-  self.userdata = UV.spawn(self.stdin, self.stdout, self.stderr, command, args, options)
+  self.userdata = uv.spawn(self.stdin, self.stdout, self.stderr, command, args, options)
 
-  self.stdout:read_start()
-  self.stderr:read_start()
+  self.stdout:readStart()
+  self.stderr:readStart()
   self.stdout:on('end', function ()
     self.stdout:close()
   end)
@@ -46,7 +46,7 @@ function Process.prototype:initialize(command, args, options)
 end
 
 function Process.prototype:kill(signal)
-  return UV.process_kill(self.userdata, signal)
+  return uv.processKill(self.userdata, signal)
 end
 
 Process.spawn = Process.new

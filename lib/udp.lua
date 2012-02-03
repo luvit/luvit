@@ -16,45 +16,45 @@ limitations under the License.
 
 --]]
 
-local UV = require('uv')
+local uv = require('uv')
 local Handle = require('handle')
 
-local UDP = Handle:extend()
+local Udp = Handle:extend()
 
-function UDP.prototype:initialize()
-  self.userdata = UV.new_udp()
+function Udp.prototype:initialize()
+  self.userdata = uv.newUdp()
 end
 
-function UDP.prototype:bind(host, port)
-  return UV.udp_bind(self.userdata, host, port)
+function Udp.prototype:bind(host, port)
+  return uv.udpBind(self.userdata, host, port)
 end
 
-function UDP.prototype:bind6(host, port)
-  return UV.udp_bind6(self.userdata, host, port)
+function Udp.prototype:bind6(host, port)
+  return uv.udpBind6(self.userdata, host, port)
 end
 
-function UDP.prototype:set_membership(multicast_addr, interface_addr, option)
-  return UV.udp_set_membership(self.userdata, multicast_addr, interface_addr, option)
+function Udp.prototype:setMembership(multicast_addr, interface_addr, option)
+  return uv.udpSetMembership(self.userdata, multicast_addr, interface_addr, option)
 end
 
-function UDP.prototype:getsockname()
-  return UV.udp_getsockname(self.userdata)
+function Udp.prototype:getsockname()
+  return uv.udpGetsockname(self.userdata)
 end
 
-function UDP.prototype:send(...)
-  return UV.udp_send(self.userdata, ...)
+function Udp.prototype:send(...)
+  return uv.udpSend(self.userdata, ...)
 end
 
-function UDP.prototype:send6(...)
-  return UV.udp_send6(self.userdata, ...)
+function Udp.prototype:send6(...)
+  return uv.udpSend6(self.userdata, ...)
 end
 
-function UDP.prototype:recv_start()
-  return UV.udp_recv_start(self.userdata)
+function Udp.prototype:recvStart()
+  return uv.udpRecvStart(self.userdata)
 end
 
-function UDP.prototype:recv_stop()
-  return UV.udp_recv_stop(self.userdata)
+function Udp.prototype:recvStop()
+  return uv.udpRecvStop(self.userdata)
 end
 
-return UDP
+return Udp

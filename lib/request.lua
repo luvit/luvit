@@ -20,13 +20,12 @@ local Emitter = require('emitter')
 
 local Request = Emitter:extend()
 
--- Fall back inheritance to the socket's methods
-function Request.meta:__index(key)
-  return Request.prototype[key] or self.socket[key]
-end
-
 function Request.prototype:initialize(socket)
   self.socket = socket
+end
+
+function Request.prototype:close(...)
+  return self.socket:close(...)
 end
 
 return Request

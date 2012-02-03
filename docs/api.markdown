@@ -34,15 +34,15 @@ This is just like `emitter:on(...)` except it automatically removes itself after
 
 Emit an event named by `name` to all the listeners.  The extra args `...` get passed as arguments to the attached listeners.
 
-### emitter:remove_listener(name, callback)
+### emitter:removeListener(name, callback)
 
 Remove a single listener from the emitter.  The arguments `name` and `callback` need to be the same ones used when setting up the listener.
 
-### emitter:missing_handler_type(name, ...)
+### emitter:missingHandlerType(name, ...)
 
 This is a hook for emitters that want to be notified when an event is emitted but there is no listener for it.  By default the behavior is to check if `name` is `error` and throw the error.
 
-### emitter:add_handler_type(name)
+### emitter:addHandlerType(name)
 
 This is another hook for emitters that want to be notified the first time a handler is added for a specific `name`.  This is used internally for emitters that are backed by real OS level sources and need to register low-level listeners on the first listener they get.
 

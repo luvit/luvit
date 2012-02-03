@@ -18,9 +18,9 @@ limitations under the License.
 
 require("helper")
 
-local Timer = require('timer')
+local timer = require('timer')
 
 expect("timeout")
-Timer:set_timeout(200, function ()
+timer.setTimeout(200, function ()
   fulfill("timeout")
 end)

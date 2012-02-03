@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local UV = require('uv')
+local uv = require('uv')
 local Handle = require('handle')
 
 local Watcher = Handle:extend()
 
 function Watcher.prototype:initialize(path)
-  self.userdata = UV.new_fs_watcher(path)
+  self.userdata = uv.newFsWatcher(path)
 end
 
 return Watcher

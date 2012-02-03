@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-local Yajl = require('yajl')
-local Table = require('table')
+local yajl = require('yajl')
+local table = require('table')
 local JSON = {
-  null = Yajl.null
+  null = yajl.null
 }
 
 function JSON.parse(string, options)
@@ -29,42 +29,42 @@ function JSON.parse(string, options)
   local null = JSON.null
   local stack = {}
   local null = options and options.use_null and JSON.null
-  local parser = Yajl.new_parser({
-    on_null = function ()
+  local parser = yajl.newParser({
+    onNull = function ()
       current[key or #current + 1] = null
     end,
-    on_boolean = function (value)
+    onBoolean = function (value)
       current[key or #current + 1] = value
     end,
-    on_number = function (value)
+    onNumber = function (value)
       current[key or #current + 1] = value
     end,
-    on_string = function (value)
+    onString = function (value)
       current[key or #current + 1] = value
     end,
-    on_start_map = function ()
+    onStartMap = function ()
       local new = {}
-      Table.insert(stack, current)
+      table.insert(stack, current)
       current[key or #current + 1] = new
       key = nil
       current = new
     end,
-    on_map_key = function (value)
+    onMapKey = function (value)
       key = value
     end,
-    on_end_map = function ()
+    onEndMap = function ()
       key = nil
-      current = Table.remove(stack)
+      current = table.remove(stack)
     end,
-    on_start_array = function ()
+    onStartArray = function ()
       local new = {}
-      Table.insert(stack, current)
+      table.insert(stack, current)
       current[key or #current + 1] = new
       key = nil
       current = new
     end,
-    on_end_array = function ()
-      current = Table.remove(stack)
+    onEndArray = function ()
+      current = table.remove(stack)
     end
   })
   if options then
@@ -81,7 +81,7 @@ function JSON.parse(string, options)
 end
 
 function JSON.stringify(value, options)
-  local generator = Yajl.new_generator();
+  local generator = yajl.newGenerator();
   if options then
     for k,v in pairs(options) do
       generator:config(k, v)
@@ -109,13 +109,13 @@ function JSON.stringify(value, options)
         i = i + 1
       end
       if is_array then
-        generator:array_open()
+        generator:arrayOpen()
         for i,v in ipairs(o) do
           add(v)
         end
-        generator:array_close()
+        generator:arrayClose()
       else
-        generator:map_open()
+        generator:mapOpen()
         for k,v in pairs(o) do
           if not (type(k) == "string") then
             error("Keys must be strings to stringify as JSON")
@@ -123,14 +123,14 @@ function JSON.stringify(value, options)
           generator:string(k)
           add(v)
         end
-        generator:map_close()
+        generator:mapClose()
       end
     else
       error("Cannot stringify " .. type .. " value")
     end
   end
   add(value)
-  return generator:get_buf()
+  return generator:getBuf()
 end
 
 return JSON

@@ -16,24 +16,24 @@ limitations under the License.
 
 --]]
 
-local Debug = require('debug')
-local Utils = require('utils')
+local debug = require('debug')
+local utils = require('utils')
 local string = require('string')
-local source = Debug.getinfo(3, "S").source:sub(1)
+local source = debug.getinfo(3, "S").source:sub(1)
 
 local table_concat = require('table').concat
 local expectations = {}
 
 local fail = function(name, msg, default_msg)
-  local debug_info = Debug.getinfo(3)
+  local debug_info = debug.getinfo(3)
   local str = string.format("  %sFAIL %s - %s - Line: %i%s\n",
-    Utils.color("Bred"),
+    utils.color("Bred"),
     name,
     msg or default_msg,
     debug_info.currentline,
-    Utils.color())
-  print_stderr(str)
-  exit_process(1)
+    utils.color())
+  printStderr(str)
+  exitProcess(1)
 end
 
 function _G.expect(name)
@@ -60,12 +60,12 @@ process:on('exit', function (code, signal)
     end
   end
   if #errors > 0 then
-    print_stderr(Utils.color("Bred") .. "FAIL" .. Utils.color() .. "\n")
+    printStderr(utils.color("Bred") .. "FAIL" .. utils.color() .. "\n")
     error("\n" .. source .. ":on_exit:" .. table_concat(errors, ""))
-    exit_process(1)
+    exitProcess(1)
   end
-  print_stderr(Utils.color("Bgreen") .. "PASS" .. Utils.color() .. "\n")
-  exit_process(0)
+  printStderr(utils.color("Bgreen") .. "PASS" .. utils.color() .. "\n")
+  exitProcess(0)
 end)
 
 _G.equal = function(a, b)
