@@ -19,7 +19,7 @@ limitations under the License.
 require("helper")
 local net = require('net')
 
-local PORT = 8080
+local PORT = 8081
 local HOST = '127.0.0.1'
 
 local server = net.createServer(function(client)
