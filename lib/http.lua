@@ -17,12 +17,11 @@ limitations under the License.
 --]]
 
 local net = require('net')
-local HttpParser = require('http_parser')
 local table = require('table')
-local osDate = require('os').date
-local stringFormat = require('string').format
 local iStream = require('core').iStream
 local Error = require('core').Error
+local http_parser = require('http_parser')
+local math = require('math')
 local http = {}
 
 local STATUS_CODES = {
@@ -83,33 +82,251 @@ local STATUS_CODES = {
 http.STATUS_CODES = STATUS_CODES
 
 
+-- Small helpers
+local function callbackError(err, callback)
+  if callback then return callback(Error:new(err)) end
+  error(err)
+end
+
+-- Convert number base to string
+function base(num, base)
+  num = math.floor(num)
+  if not base or base == 10 then return tostring(num) end
+  local digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  local t = {}
+  local sign = ""
+  if num < 0 then
+    sign = "-"
+  num = -num
+  end
+  repeat
+    local digit = (num % base) + 1
+    num = math.floor(num / base)
+    table.insert(t, 1, digits:sub(digit, digit))
+  until num == 0
+  return sign .. table.concat(t, "")
+end
+
 -- OutgoingMessage:new(socket)
 --
 -- Used for ServerResponse and ClientRequest
 local OutgoingMessage = iStream:extend()
 http.OutgoingMessage = OutgoingMessage
 
-function OutgoingMessage:initialize(port, host, onConnection)
+function OutgoingMessage:initialize(socket)
   Socket.initialize(self)
-  self.socket = net.create(port, host, onConnection)
-end
 
-function OutgoingMessage:pause()
-  if not socket then return false end
-  return self.socket:pause()
-end
+  self.socket = socket
 
-function OutgoingMessage:resume()
-  if not socket then return false end
-  return self.socket:resume()
+  self.write_queue = {}
+
+  self._headers = {}
+  self._header_keys = {}
+  self._header_cache = nil
+  self._headers_sent = false
+  self._headers_written = false
+
+  self._last = false
+  self._has_body = true
+  self._trailer = nil
+
+  self.chunked_encoding = false
+  self.should_keep_alive = true
+  self.chunked_encoding_default = true
+  self.completed = false
 end
 
 function OutgoingMessage:close()
   if not socket then return false end
+  self.completed = true
   return self.socket:close()
 end
 
+function OutgoingMessage:setHeader(name, value)
+  if self._headers_sent then error('Headers already sent.') end
+  local key = name:lower()
+  self._headers[key] = value
+  self._header_keys[key] = name
+  return self
+end
+
+function OutgoingMessage:getHeader(name)
+  return self._headers[name:lower()]
+end
+
+function OutgoingMessage:removeHeader(name)
+  if self._headers_sent then error('Headers already sent.') end
+  name = name:lower()
+  self._headers[name] = nil
+  self._header_keys[name] = nil
+  return self
+end
+
+function OutgoingMessage:addTrailers(headers)
+  if not self._trailer then self._trailer = {} end
+
+  for key, value in pairs(headers) do
+    table.insert(self._trailer, key .. ': ' .. value)
+  end
+
+  return self
+end
+
+function OutgoingMessage:_cacheHeader(firstline, headers)
+  local sent_connection = false
+  local sent_content_length = false
+  local sent_transfer_encoding = false
+  local sent_expect = false
+
+  local buffer = { firstline }
+
+  function store(key, value)
+    table.insert(buffer, key .. ': ' .. value)
+
+    local key_lower = key:lower()
+    local value_lower = value:lower()
+
+    if nil ~= key_lower:find('connection', 1, true) then
+      sent_connection = true
+      if nil ~= value_lower:find('close', 1, true) then
+        self._last = true
+      end
+    elseif nil ~= key_lower:find('transfer-encoding', 1, true) then
+      sent_transfer_encoding = true
+      if nil ~= value_lower:find('chunk', 1, true) then
+        self.chunked_encoding = true
+      end
+    elseif nil ~= key_lower:find('content-length', 1, true) then
+      sent_content_length = true
+    end
+  end
+
+  if headers then
+    for key, value in pairs(headers) do
+      store(key, value)
+    end
+  end
+
+  if not sent_connection then
+    if self.should_keep_alive and
+       (sent_content_length or
+        self.chunked_encoding_default or
+        self.agent) then
+      table.insert(buffer, 'Connection: keep-alive')
+    else
+      self._last = true
+      table.insert(buffer, 'Connection: close')
+    end
+  end
+
+  if not sent_content_length and not sent_transfer_encoding then
+    if self._has_body then
+      if self.chunked_encoding_default then
+        table.insert(buffer, 'Transfer-Encoding: chunked')
+        self.chunked_encoding = true
+      else
+        self._last = true
+      end
+    else
+      self.chunked_encoding = false
+    end
+  end
+
+  table.insert(buffer, '\r\n')
+  self._header_cache = table.concat(buffer, '\r\n') 
+
+  -- TODO : Expect: 100-continue
+end
+
 function OutgoingMessage:write(chunk, callback)
+  if not self._has_body then
+    local err = 'This type of stream must not have a body.'
+    return callbackError(err, callback)
+  end
+
+  local length = #chunk
+  local ret = true
+  if 0 == length then return ret end
+
+  if self.chunked_encoding then
+    chunk = table.concat({
+      base(length, 16),
+      '\r\n',
+      chunk,
+      '\r\n'
+    }, '')
+
+    ret = self:_write(chunk, callback)
+  else
+    ret = self:_write(chunk, callback)
+  end
+
+  return ret
+end
+
+-- For munging headers with the body etc.
+function OutgoingMessage:_write(chunk, callback)
+  local pos = -1
+
+  if not self._headers_sent then
+    self._headers_sent = true
+    if self._header_cache then
+      chunk = table.concat({ self._header_cache, chunk }, '')
+      pos = 1
+    end
+  end
+
+  if self.socket and
+     self.socket._http_message == self and
+     self.socket.writable then
+    local c
+    while true do
+      c = table.remove(self._write_queue, 1)
+      if nil == c then break end
+      c = self.socket:write(c[1], c[2])
+      if not c then
+        table.insert(self._write_queue, pos, { chunk, callback })
+        return false
+      end
+    end
+
+    self._write_queue = {}
+    return self.socket:write(chunk, callback)
+  end
+
+  table.insert(self._write_queue, pos, { chunk, callback })
+  return false
+end
+
+function OutgoingMessage:finish(chunk, callback)
+  if self.completed then return true end
+  if chunk and not self._has_body then
+    printStderr('This stream must not have a body. Ignoring body.')
+  end
+
+  local ret = false
+
+  if chunk then
+    ret = self:write(chunk, callback)
+  end
+
+  if self.chunked_encoding then
+    if self._trailer then
+      table.insert(self._trailer, '\r\n')
+      ret = self:_write('0\r\n' .. table.concat(self._trailer, '\r\n'))
+      table.remove(self._trailer)
+    else
+      ret = self:_write('0\r\n\r\n')
+    end
+  else
+    -- TODO : Do we need to force flush here?
+    --        Copying node.js here.
+    ret = self:_write('')
+  end
+
+  self.completed = true
+
+  return ret
 end
 
 
@@ -119,7 +336,33 @@ end
 local IncomingMessage = iStream:extend()
 http.IncomingMessage = IncomingMessage
 
-function
+function IncomingMessage:initialize(socket)
+  Socket.initialize(self)
+  self.socket = socket
+
+  self.http_version = nil
+  self.complete = false
+  self.headers = {}
+  self.tailers = {}
+  self.method = nil
+  self.status_code = nil
+end
+
+function IncomingMessage:pause()
+  if not socket then return false end
+  return self.socket:pause()
+end
+
+function IncomingMessage:resume()
+  if not socket then return false end
+  return self.socket:resume()
+end
+
+function IncomingMessage:close()
+  if not socket then return false end
+  self.completed = true
+  return self.socket:close()
+end
 
 -- Parser metatable and freelist
 --
@@ -154,7 +397,7 @@ function parser_meta:onBody (chunk)
   response:emit('data', chunk)
 end
 function parser_meta:onMessageComplete ()
-  response:emit('end')
+  response:emit('finish')
 end
 function parser_meta:resetState ()
   self._headers = {}
@@ -194,7 +437,7 @@ function http.request(options, callback)
       return
     end
 
-    local response = Response:new(client)
+    local response = Request:new(client)
     local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
     for field, value in pairs(headers) do
       request[#request + 1] = field .. ": " .. value .. "\r\n"
@@ -223,16 +466,15 @@ function http.request(options, callback)
         response.version_minor = info.version_minor
         response.version_major = info.version_major
 
-        callback(response)
-
+        client:emit('response', response)
       end,
       onBody = function (chunk)
         response:emit('data', chunk)
       end,
       onMessageComplete = function ()
-        response:emit('end')
+        response:emit('finish')
       end
-    });
+    })
 
     client:on("data", function (chunk)
       local nparsed = parser:execute(chunk, 0, #chunk)
@@ -244,15 +486,17 @@ function http.request(options, callback)
 
     end)
 
-    client:on("end", function ()
+    client:on('finish', function ()
       parser:finish()
     end)
   end)
 
+  if callback then client:on('response', callback) end
+
   return client
 end
 
-function http.createServer(host, port, onConnection)
+function http.createServer(onConnection)
   local server
   server = net.createServer(function(client)
     if err then
@@ -311,7 +555,7 @@ function http.createServer(host, port, onConnection)
         request:emit('data', chunk, #chunk)
       end,
       onMessageComplete = function ()
-        request:emit('end')
+        request:emit('finish')
       end
     })
 
@@ -346,13 +590,11 @@ function http.createServer(host, port, onConnection)
 
     end)
 
-    client:on("end", function ()
+    client:on('finish', function ()
       parser:finish()
     end)
 
   end)
-
-  server:listen(port, host)
 
   return server
 end

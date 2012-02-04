@@ -294,7 +294,7 @@ function Stream.pipe(self, target)
   target:on('drain', function ()
     self:resume()
   end)
-  self:on('end', function ()
+  self:on('finish', function ()
     if target.finish then return target:finish() end
     target:close()
   end)

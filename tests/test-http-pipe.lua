@@ -17,41 +17,37 @@ limitations under the License.
 --]]
 
 require("helper")
-local net = require('net')
+local http = require('http')
+local fs  = require('fs')
 
 local PORT = 8081
 local HOST = '127.0.0.1'
+local server
 
-local server = net.createServer(function(client)
-  client:on("data", function (chunk)
-    client:write(chunk, function(err)
-      assert(err == nil)
-    end)
+server = http.createServer(function(request, response)
+  p('SERV REQ', request)
+  request:on('data', function (chunk) p('SERV DATA', #chunk) end)
+  request:on('finish', function ()
+    p('SERV END')
+    response:writeHead(200)
+    response:finish()
   end)
+end):listen(PORT, HOST)
 
-  client:on('finish', function()
-    client:close()
-  end)
+local request
+request = http.request({
+  method = 'POST',
+  host = HOST,
+  port = PORT,
+  path = '/'
+}, function (err, response)
+  if err then error(err.message) end
 
-end)
+  fs.createReadStream(__dirname .. '/fixtures/test-pipe.txt'):pipe(request)
 
-server:listen(PORT, HOST, function(err)
-  local client
-  client = net.createConnection(PORT, HOST, function(err)
-    if err then
-      assert(err)
-    end
-    client:on('data', function(data)
-      assert(#data == 5)
-      assert(data == 'hello')
-      client:close()
-      server:close()
-    end)
-
-    client:write('hello')
+  response:on('finish', function ()
+    p('REQ END')
+    server:close()
   end)
 end)
 
-server:on("error", function(err)
-  assert(err)
-end)

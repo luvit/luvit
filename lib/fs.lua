@@ -170,7 +170,7 @@ function fs.createReadStream(path, options)
           end)
           if err then return stream:emit("error", err) end
 
-          stream:emit("end")
+          stream:emit('finish')
         else
           stream:emit("data", chunk, len)
           offset = offset + len
@@ -266,7 +266,7 @@ function fs.createWriteStream(path, options)
           stream:emit('drain')
         end
         if need_finish then
-          stream:emit('end')
+          stream:emit('finish')
           stream:close()
         end
         return
@@ -325,7 +325,7 @@ function fs.readFile(path, callback)
     num = num + 1
     parts[num] = chunk
   end)
-  stream:on("end", function ()
+  stream:on('finish', function ()
     return callback(nil, table.concat(parts, ""))
   end)
   stream:on("error", callback)

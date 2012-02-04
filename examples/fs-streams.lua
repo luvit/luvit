@@ -9,7 +9,7 @@ stream:on('data', function (chunk, len)
 end)
 
 print("Adding end listener")
-stream:on('end', function ()
+stream:on('finish', function ()
   p("on_end")
 end)
 

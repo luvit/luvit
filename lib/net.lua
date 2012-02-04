@@ -60,6 +60,8 @@ function Server:listen(port, ... --[[ ip, callback --]] )
     client:readStart()
     self:emit('connection', client)
   end)
+
+  return self
 end
 
 function Server:close()
@@ -67,7 +69,7 @@ function Server:close()
     timer.clearTimer(self._connectTimer)
     self._connectTimer = nil
   end
-  self._handle:close()
+  return self._handle:close()
 end
 
 function Server:initialize(...)
@@ -116,6 +118,7 @@ end
 
 function Socket:close()
   if not self._handle then return false end
+  self.writable = false
   return self._handle:close()
 end
 
@@ -125,8 +128,28 @@ function Socket:pipe(destination)
 end
 
 function Socket:write(data, callback)
-  self.bytesWritten = self.bytesWritten + #data
+  if not self._handle then return true end
+  if not self.writable then return true end
+  self.bytes_written = self.bytes_written + #data
   return self._handle:write(data)
+end
+
+function Socket:finish(data, callback)
+  if not self._handle then return true end
+  if not writable then return true
+  self.writable = false
+
+  local ret
+
+  if data then
+    ret = self:write(data, callback)
+  end
+
+  self._handle:shutdown(function ()
+    self:close()
+  end)
+
+  return ret
 end
 
 function Socket:connect(port, host, callback)
@@ -139,12 +162,12 @@ function Socket:connect(port, host, callback)
     callback()
   end)
 
-  self._handle:on('end', function()
-    self:emit('end')
+  self._handle:on('finish', function()
+    self:emit('finish')
   end)
 
   self._handle:on('data', function(data)
-    self.bytesRead = self.bytesRead + #data
+    self.bytes_read = self.bytes_read + #data
     self:emit('data', data)
   end)
 
@@ -178,8 +201,9 @@ end
 function Socket:initialize()
   self._connectTimer = timer.Timer:new()
   self._handle = Tcp:new()
-  self.bytesWritten = 0
-  self.bytesRead = 0
+  self.bytes_written = 0
+  self.bytes_read = 0
+  self.writable = true
 
   self._handle:on('drain', function (...)
     if not self._handle then return end

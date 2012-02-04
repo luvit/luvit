@@ -16,28 +16,23 @@ limitations under the License.
 
 --]]
 
-require("helper")
-local net = require('net')
-local fs  = require('fs')
+-- Helps us to avoid creating too many of the same object
+local Object = require('object')
 
-local PORT = 8081
-local HOST = '127.0.0.1'
-local server
+local FreeList = Object:extend()
 
-server = net.createServer(function(client)
-  client:on('finish', function()
-    client:close()
-    server:close()
-  end)
-end)
+function Freelist.prototype:initialize(name, max, factory)
+  self.name = name
+  self.max = max
+  self.factory = factory
+  self.list = {}
+end
 
-server:listen(PORT, HOST, function(err)
-  local client
-  client = net.createConnection(PORT, HOST, function(err)
-    if err then
-      assert(err)
-    end
+function Freelist.prototype:alloc(...)
+  if 0 == #self.list then return self.factory:new(...) end
+  return table.remove(self.list, 1)
+end
 
-    fs.createReadStream(__dirname .. '/fixtures/test-pipe.txt'):pipe(client)
-  end)
-end)
+function Freelist.prototype:free(object)
+  if #self.list < self.max then table.insert(object) end
+end

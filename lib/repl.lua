@@ -95,7 +95,7 @@ function repl.start()
     displayPrompt(prompt)
   end)
 
-  process.stdin:on('end', function ()
+  process.stdin:on('finish', function ()
     process.exit()
   end)
 
