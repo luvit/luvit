@@ -21,7 +21,7 @@ require("helper")
 local Tcp = require('tcp').Tcp
 local net = require('net')
 
-local PORT = 8080
+local PORT = process.env.PORT or 10082
 
 local server = net.createServer(function (client)
   client:on("data", function (chunk)

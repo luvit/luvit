@@ -21,7 +21,7 @@ require("helper")
 local http = require('http')
 
 local HOST = "127.0.0.1"
-local PORT = 8080
+local PORT = process.env.PORT or 10080
 local server = nil
 local client = nil
 

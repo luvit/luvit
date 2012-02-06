@@ -5,6 +5,7 @@ local string = require('string')
 local table = require('table')
 
 local results = {}
+local ports = 10001
 
 local async = {}
 async.forEachSeries = function(arr, iterator, callback)
@@ -39,7 +40,9 @@ local function runTest(filename, callback)
 
   process.stdout:write(utils.color("Bwhite") .. filename .. utils.color())
 
-  local child = childprocess.spawn(process.argv[0], {filename}, {})
+  ports = ports + 100
+
+  local child = childprocess.spawn(process.argv[0], {filename}, {env = { PORT = "" .. ports}})
   child:on('exit', function (exit_status, term_signal)
     results[filename].exit_status = exit_status
     if exit_status ~= 0 then
