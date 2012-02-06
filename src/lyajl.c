@@ -33,7 +33,7 @@ static int lyajl_on_null (void * ctx) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_null");
+  lua_getfield(L, -1, "onNull");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -50,7 +50,7 @@ static int lyajl_on_boolean (void * ctx, int value) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_boolean");
+  lua_getfield(L, -1, "onBoolean");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -68,7 +68,7 @@ static int lyajl_on_integer (void * ctx, long long value) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_number");
+  lua_getfield(L, -1, "onNumber");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -86,7 +86,7 @@ static int lyajl_on_double (void * ctx, double value) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_number");
+  lua_getfield(L, -1, "onNumber");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -104,7 +104,7 @@ static int lyajl_on_string (void * ctx, const unsigned char* value, size_t len) 
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_string");
+  lua_getfield(L, -1, "onString");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -122,7 +122,7 @@ static int lyajl_on_start_map (void * ctx) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_start_map");
+  lua_getfield(L, -1, "onStartMap");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -140,7 +140,7 @@ static int lyajl_on_map_key (void * ctx, const unsigned char* key, size_t len) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_map_key");
+  lua_getfield(L, -1, "onMapKey");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -158,7 +158,7 @@ static int lyajl_on_end_map (void * ctx) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_end_map");
+  lua_getfield(L, -1, "onEndMap");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -175,7 +175,7 @@ static int lyajl_on_start_array (void * ctx) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_start_array");
+  lua_getfield(L, -1, "onStartArray");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -192,7 +192,7 @@ static int lyajl_on_end_array (void * ctx) {
   luv_ref_t* ref = ctx;
   lua_State *L = ref->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  lua_getfield(L, -1, "on_end_array");
+  lua_getfield(L, -1, "onEndArray");
   lua_remove(L, -2);
 
   /* If there is a callback, call it */
@@ -543,11 +543,11 @@ static const luaL_reg lyajl_gen_m[] = {
   {"boolean", lyajl_gen_boolean},
   {"number", lyajl_gen_number},
   {"string", lyajl_gen_string},
-  {"map_open", lyajl_gen_map_open},
-  {"map_close", lyajl_gen_map_close},
-  {"array_open", lyajl_gen_array_open},
-  {"array_close", lyajl_gen_array_close},
-  {"get_buf", lyajl_gen_get_buf},
+  {"mapOpen", lyajl_gen_map_open},
+  {"mapClose", lyajl_gen_map_close},
+  {"arrayOpen", lyajl_gen_array_open},
+  {"arrayClose", lyajl_gen_array_close},
+  {"getBuf", lyajl_gen_get_buf},
   {"config", lyajl_gen_config},
   {NULL, NULL}
 };
@@ -573,9 +573,9 @@ LUALIB_API int luaopen_yajl (lua_State *L) {
 
   /* With a single function */
   lua_pushcfunction(L, lyajl_new_parser);
-  lua_setfield(L, -2, "new_parser");
+  lua_setfield(L, -2, "newParser");
   lua_pushcfunction(L, lyajl_new_generator);
-  lua_setfield(L, -2, "new_generator");
+  lua_setfield(L, -2, "newGenerator");
 
   /* And version info */
   lua_pushnumber(L, YAJL_MAJOR);

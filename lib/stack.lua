@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-local Url = require('url')
-local Stack = {}
+local url = require('url')
+local stack = {}
 
-function Stack.stack(...)
-  local error_handler = Stack.errorHandler
-  local handle = error_handler
+function stack.stack(...)
+  local errorHandler = stack.errorHandler
+  local handle = errorHandler
 
   local layers  = {...}
   for i = #layers, 1, -1 do
@@ -30,12 +30,12 @@ function Stack.stack(...)
     handle = function(req, res)
       local success, err = pcall(function ()
         layer(req, res, function (err)
-          if err then return error_handler(req, res, err) end
+          if err then return errorHandler(req, res, err) end
           child(req, res)
         end)
       end)
       if not success and err then
-        error_handler(req, res, err)
+        errorHandler(req, res, err)
       end
     end
   end
@@ -46,7 +46,7 @@ end
 local function core(req, res, continue) continue() end
 
 -- Build a composite stack made of several layers
-function Stack.compose(...)
+function stack.compose(...)
   local layers = {...}
 
   -- Don't bother composing singletons
@@ -73,7 +73,7 @@ function Stack.compose(...)
 end
 
 -- Mounts a substack app at a url subtree
-function Stack.mount(mountpoint, ...)
+function stack.mount(mountpoint, ...)
 
   if mountpoint:sub(#mountpoint) == "/" then
     mountpoint = mountpoint:sub(1, #mountpoint - 1)
@@ -81,12 +81,12 @@ function Stack.mount(mountpoint, ...)
 
   local matchpoint = mountpoint .. "/"
 
-  return Stack.translate(mountpoint, matchpoint, ...)
+  return stack.translate(mountpoint, matchpoint, ...)
 
 end
 
-function Stack.translate(mountpoint, matchpoint, ...)
-  local stack = Stack.compose(...)
+function stack.translate(mountpoint, matchpoint, ...)
+  local stack = stack.compose(...)
 
   return function(req, res, continue)
     local url = req.url
@@ -99,7 +99,7 @@ function Stack.translate(mountpoint, matchpoint, ...)
 
     req.url = url:sub(#mountpoint + 1)
     -- We only want to set the parsed uri if there was already one there
-    if req.uri then req.uri = Url.parse(req.url) end
+    if req.uri then req.uri = url.parse(req.url) end
 
     stack(req, res, function (err)
       req.url = url
@@ -111,15 +111,15 @@ function Stack.translate(mountpoint, matchpoint, ...)
 end
 
 local Debug = require('debug')
-function Stack.errorHandler(req, res, err)
+function stack.errorHandler(req, res, err)
   if err then
-    res:set_code(500)
+    res:setCode(500)
     res:finish(Debug.traceback(err) .. "\n")
     return
   end
-  res:set_code(404)
+  res:setCode(404)
   res:finish("Not Found\n")
 end
 
-return Stack
+return stack
 

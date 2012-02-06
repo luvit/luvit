@@ -17,25 +17,24 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
-local UV = require('uv')
-local tcp = require('tcp')
-local Timer = require('timer')
+local Tcp = require('tcp').Tcp
+local timer = require('timer')
 local utils = require('utils')
-local Emitter = require('emitter')
+local Emitter = require('core').Emitter
 
-local Net = {}
+local net = {}
 
 --[[ Server ]]--
 
 local Server = Emitter:extend()
 
-function Server.prototype:listen(port, ... --[[ ip, callback --]] )
+function Server:listen(port, ... --[[ ip, callback --]] )
   local args = {...}
   local ip
   local callback
 
   if not self._handle then
-    self._handle = tcp:new()
+    self._handle = Tcp:new()
   end
 
   -- Future proof
@@ -56,22 +55,22 @@ function Server.prototype:listen(port, ... --[[ ip, callback --]] )
     if (err) then
       return self:emit("error", err)
     end
-    local client = tcp:new()
+    local client = Tcp:new()
     self._handle:accept(client)
-    client:read_start()
+    client:readStart()
     self:emit('connection', client)
   end)
 end
 
-function Server.prototype:close()
+function Server:close()
   if self._connectTimer then
-    Timer:clear_timer(self._connectTimer)
+    timer.clearTimer(self._connectTimer)
     self._connectTimer = nil
   end
   self._handle:close()
 end
 
-function Server.prototype:initialize(...)
+function Server:initialize(...)
   local args = {...}
   local options
   local connectionCallback
@@ -90,7 +89,7 @@ end
 
 local Socket = Emitter:extend()
 
-function Socket.prototype:_connect(address, port, addressType)
+function Socket:_connect(address, port, addressType)
   if port then
     self.remotePort = port
   end
@@ -103,10 +102,10 @@ function Socket.prototype:_connect(address, port, addressType)
   end
 end
 
-function Socket.prototype:setTimeout(msecs, callback)
+function Socket:setTimeout(msecs, callback)
   callback = callback or function() end
   if not self._connectTimer then
-    self._connectTimer = Timer:new()
+    self._connectTimer = timer.Timer:new()
   end
 
   self._connectTimer:start(msecs, 0, function(status)
@@ -115,28 +114,28 @@ function Socket.prototype:setTimeout(msecs, callback)
   end)
 end
 
-function Socket.prototype:close()
+function Socket:close()
   if self._handle then
     self._handle:close()
   end
 end
 
-function Socket.prototype:pipe(destination)
+function Socket:pipe(destination)
   self._handle:pipe(destination)
 end
 
-function Socket.prototype:write(data, callback)
+function Socket:write(data, callback)
   self.bytesWritten = self.bytesWritten + #data
   self._handle:write(data)
 end
 
-function Socket.prototype:connect(port, host, callback)
+function Socket:connect(port, host, callback)
   self._handle:on('connect', function()
     if self._connectTimer then
-      Timer:clear_timer(self._connectTimer)
+      timer.clearTimer(self._connectTimer)
       self._connectTimer = nil
     end
-    self._handle:read_start()
+    self._handle:readStart()
     callback()
   end)
 
@@ -166,18 +165,18 @@ function Socket.prototype:connect(port, host, callback)
   return self
 end
 
-function Socket.prototype:initialize()
-  self._connectTimer = Timer:new()
-  self._handle = tcp:new()
+function Socket:initialize()
+  self._connectTimer = timer.Timer:new()
+  self._handle = Tcp:new()
   self.bytesWritten = 0
   self.bytesRead = 0
 end
 
-Net.Server = Server
+net.Server = Server
 
-Net.Socket = Socket
+net.Socket = Socket
 
-Net.createConnection = function(port, ... --[[ host, cb --]])
+net.createConnection = function(port, ... --[[ host, cb --]])
   local args = {...}
   local host
   local callback
@@ -191,11 +190,11 @@ Net.createConnection = function(port, ... --[[ host, cb --]])
   return s:connect(port, host, callback)
 end
 
-Net.create = Net.createConnection
+net.create = net.createConnection
 
-Net.createServer = function(connectionCallback)
+net.createServer = function(connectionCallback)
   local s = Server:new(connectionCallback)
   return s
 end
 
-return Net
+return net

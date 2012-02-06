@@ -50,19 +50,11 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/http.o     \
         ${GENDIR}/url.o      \
         ${GENDIR}/querystring.o \
-        ${GENDIR}/request.o  \
-        ${GENDIR}/response.o \
         ${GENDIR}/fs.o       \
-        ${GENDIR}/watcher.o  \
         ${GENDIR}/dns.o      \
         ${GENDIR}/net.o      \
-        ${GENDIR}/process.o  \
-        ${GENDIR}/error.o    \
-        ${GENDIR}/emitter.o  \
-        ${GENDIR}/object.o   \
-        ${GENDIR}/handle.o   \
+        ${GENDIR}/childprocess.o  \
         ${GENDIR}/udp.o      \
-        ${GENDIR}/stream.o   \
         ${GENDIR}/tcp.o      \
         ${GENDIR}/pipe.o     \
         ${GENDIR}/tty.o      \
@@ -74,6 +66,7 @@ COREOBJS=${GENDIR}/luvit.o   \
         ${GENDIR}/stack.o    \
         ${GENDIR}/buffer.o   \
         ${GENDIR}/json.o     \
+        ${GENDIR}/core.o     \
         ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \
@@ -188,11 +181,12 @@ uninstall deinstall:
 	rm -rf ${INCLUDEDIR}
 	rm -f ${DESTDIR}${BINDIR}/luvit ${DESTDIR}${BINDIR}/luvit-config
 
-examples/native/vector.luvit: examples/native/vector.c examples/native/vector.h
-	${MAKE} -C examples/native
-
-test: examples/native/vector.luvit
+test: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
+
+api: api.markdown
+api.markdown: $(wildcard lib/*.lua)
+	find lib -name "*.lua" | grep -v "luvit.lua" | sort | xargs -l luvit tools/doc-parser.lua > $@
 
 DIST_DIR=${HOME}/luvit.io/dist
 DIST_NAME=luvit-${VERSION}
@@ -214,4 +208,4 @@ tarball:
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install all
+.PHONY: test install all api

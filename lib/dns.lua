@@ -16,62 +16,62 @@ limitations under the License.
 
 --]]
 
-local UV = require('uv')
-local Constants = require('constants')
-local Error = require('error')
-local String = require('string')
+local uv = require('uv')
+local constants = require('constants')
+local Error = require('core').Error
+local string = require('string')
 
-local DNS = {}
+local dns = {}
 
-function DNS.resolve4(domain, callback)
-  UV.dns_queryA(domain, callback)
+function dns.resolve4(domain, callback)
+  uv.dnsQueryA(domain, callback)
 end
 
-function DNS.resolve6(domain, callback)
-  UV.dns_queryAAAA(domain, callback)
+function dns.resolve6(domain, callback)
+  uv.dnsQueryAaaa(domain, callback)
 end
 
-function DNS.resolveCname(domain, callback)
-  UV.dns_queryCNAME(domain, callback)
+function dns.resolveCname(domain, callback)
+  uv.dnsQueryCname(domain, callback)
 end
 
-function DNS.resolveNs(domain, callback)
-  UV.dns_queryNS(domain, callback)
+function dns.resolveNs(domain, callback)
+  uv.dnsQueryNs(domain, callback)
 end
 
-function DNS.resolveSrv(domain, callback)
-  UV.dns_querySRV(domain, callback)
+function dns.resolveSrv(domain, callback)
+  uv.dnsQuerySrv(domain, callback)
 end
 
-function DNS.resolveTxt(domain, callback)
-  UV.dns_queryTXT(domain, callback)
+function dns.resolveTxt(domain, callback)
+  uv.dnsQueryTxt(domain, callback)
 end
 
-function DNS.resolveMx(domain, callback)
-  UV.dns_queryMX(domain, callback)
+function dns.resolveMx(domain, callback)
+  uv.dnsQueryMx(domain, callback)
 end
 
-function DNS.reverse(ip, callback)
-  UV.dns_getHostByAddr(ip, callback)
+function dns.reverse(ip, callback)
+  uv.dnsGetHostByAddr(ip, callback)
 end
 
-function DNS.resolve(domain, rrtype, callback)
+function dns.resolve(domain, rrtype, callback)
   if type(rrtype) == 'function' then
     callback = rrtype
     rrtype = 'A'
   end
-  if rrtype == 'A' then DNS.resolve4(domain, callback)
-  elseif rrtype == 'AAAA' then DNS.resolve6(domain, callback)
-  elseif rrtype == 'MX' then DNS.resolveMx(domain, callback)
-  elseif rrtype == 'TXT' then DNS.resolveTxt(domain, callback)
-  elseif rrtype == 'SRV' then DNS.resolveSrv(domain, callback)
-  elseif rrtype == 'NS' then DNS.resolveNs(domain, callback)
-  elseif rrtype == 'CNAME' then DNS.resolveCname(domain, callback)
-  elseif rrtype == 'PTR' then DNS.reverse(domain, callback)
+  if rrtype == 'A' then dns.resolve4(domain, callback)
+  elseif rrtype == 'AAAA' then dns.resolve6(domain, callback)
+  elseif rrtype == 'MX' then dns.resolveMx(domain, callback)
+  elseif rrtype == 'TXT' then dns.resolveTxt(domain, callback)
+  elseif rrtype == 'SRV' then dns.resolveSrv(domain, callback)
+  elseif rrtype == 'NS' then dns.resolveNs(domain, callback)
+  elseif rrtype == 'CNAME' then dns.resolveCname(domain, callback)
+  elseif rrtype == 'PTR' then dns.reverse(domain, callback)
   else callback(Error:new('Unknown Type ' .. rrtype)) end
 end
 
-function DNS.lookup(domain, family, callback)
+function dns.lookup(domain, family, callback)
   local response_family = nil
 
   if type(family) == 'function' then
@@ -80,19 +80,19 @@ function DNS.lookup(domain, family, callback)
   end
 
   if family == nil then
-    family = Constants.AF_UNSPEC
+    family = constants.AF_UNSPEC
   elseif family == 4 then
-    family = Constants.AF_INET
+    family = constants.AF_INET
     response_family = 4
   elseif family == 6 then
-    family = Constants.AF_INET6
+    family = constants.AF_INET6
     response_family = 6
   else
     callback(Error:new('Unknown family type ' .. family))
     return
   end
 
-  UV.dns_getAddrInfo(domain, family, function(err, addresses)
+  uv.dnsGetAddrInfo(domain, family, function(err, addresses)
     if err then
       callback(err)
       return
@@ -100,21 +100,21 @@ function DNS.lookup(domain, family, callback)
     if response_family then
       callback(nil, addresses[1], family)
     else
-      callback(nil, addresses[1], String.find(addresses[1], ':') and 6 or 4)
+      callback(nil, addresses[1], string.find(addresses[1], ':') and 6 or 4)
     end
   end)
 end
 
-function DNS.isIP(ip)
-  return UV.dns_isIP(ip)
+function dns.isIp(ip)
+  return uv.dnsIsIp(ip)
 end
 
-function DNS.isIPv4(ip)
-  return UV.dns_isIPv4(ip)
+function dns.isIpV4(ip)
+  return uv.dnsIsIpV4(ip)
 end
 
-function DNS.isIPv6(ip)
-  return UV.dns_isIPv6(ip)
+function dns.isIpV6(ip)
+  return uv.dnsIsIpV6(ip)
 end
 
-return DNS
+return dns

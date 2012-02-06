@@ -16,7 +16,9 @@ limitations under the License.
 
 --]]
 
-local Table = require('table')
+local table = require('table')
+
+local utils = {}
 
 local colors = {
   black   = "0;30",
@@ -37,56 +39,56 @@ local colors = {
   Bwhite   = "1;37"
 }
 
-local function color(color_name)
+function utils.color(color_name)
   return "\27[" .. (colors[color_name] or "0") .. "m"
 end
 
-local function colorize(color_name, string, reset_name)
-  return color(color_name) .. string .. color(reset_name)
+function utils.colorize(color_name, string, reset_name)
+  return utils.color(color_name) .. string .. utils.color(reset_name)
 end
 
-local backslash = colorize("Bgreen", "\\\\", "green")
-local null      = colorize("Bgreen", "\\0", "green")
-local newline   = colorize("Bgreen", "\\n", "green")
-local carraige  = colorize("Bgreen", "\\r", "green")
-local tab       = colorize("Bgreen", "\\t", "green")
-local quote     = colorize("Bgreen", '"', "green")
-local quote2    = colorize("Bgreen", '"')
-local obracket  = colorize("white", '[')
-local cbracket  = colorize("white", ']')
+local backslash = utils.colorize("Bgreen", "\\\\", "green")
+local null      = utils.colorize("Bgreen", "\\0", "green")
+local newline   = utils.colorize("Bgreen", "\\n", "green")
+local carraige  = utils.colorize("Bgreen", "\\r", "green")
+local tab       = utils.colorize("Bgreen", "\\t", "green")
+local quote     = utils.colorize("Bgreen", '"', "green")
+local quote2    = utils.colorize("Bgreen", '"')
+local obracket  = utils.colorize("white", '[')
+local cbracket  = utils.colorize("white", ']')
 
-local function dump(o, depth)
+function utils.dump(o, depth)
   local t = type(o)
   if t == 'string' then
     return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
   end
   if t == 'nil' then
-    return colorize("Bblack", "nil")
+    return utils.colorize("Bblack", "nil")
   end
   if t == 'boolean' then
-    return colorize("yellow", tostring(o))
+    return utils.colorize("yellow", tostring(o))
   end
   if t == 'number' then
-    return colorize("blue", tostring(o))
+    return utils.colorize("blue", tostring(o))
   end
   if t == 'userdata' then
-    return colorize("magenta", tostring(o))
+    return utils.colorize("magenta", tostring(o))
   end
   if t == 'thread' then
-    return colorize("Bred", tostring(o))
+    return utils.colorize("Bred", tostring(o))
   end
   if t == 'function' then
-    return colorize("cyan", tostring(o))
+    return utils.colorize("cyan", tostring(o))
   end
   if t == 'cdata' then
-    return colorize("Bmagenta", tostring(o))
+    return utils.colorize("Bmagenta", tostring(o))
   end
   if t == 'table' then
     if type(depth) == 'nil' then
       depth = 0
     end
     if depth > 1 then
-      return colorize("yellow", tostring(o))
+      return utils.colorize("yellow", tostring(o))
     end
     local indent = ("  "):rep(depth)
 
@@ -112,42 +114,36 @@ local function dump(o, depth)
         if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
           s = k .. ' = '
         else
-          s = '[' .. dump(k, 100) .. '] = '
+          s = '[' .. utils.dump(k, 100) .. '] = '
         end
       end
-      s = s .. dump(v, depth + 1)
+      s = s .. utils.dump(v, depth + 1)
       lines[i] = s
       estimated = estimated + #s
       i = i + 1
     end
     if estimated > 200 then
-      return "{\n  " .. indent .. Table.concat(lines, ",\n  " .. indent) .. "\n" .. indent .. "}"
+      return "{\n  " .. indent .. table.concat(lines, ",\n  " .. indent) .. "\n" .. indent .. "}"
     else
-      return "{ " .. Table.concat(lines, ", ") .. " }"
+      return "{ " .. table.concat(lines, ", ") .. " }"
     end
   end
   -- This doesn't happen right?
   return tostring(o)
 end
 
-local bind = function(fun, self, ...)
+function utils.bind(fun, self, ...)
   local bind_args = {...}
   return function(...)
     local args = {...}
     for i=#bind_args,1,-1 do
-      Table.insert(args, 1, bind_args[i])
+      table.insert(args, 1, bind_args[i])
     end
     fun(self, unpack(args))
   end
 end
 
-return {
-  bind = bind,
-  dump = dump,
-  color = color,
-  colorize = colorize,
-  inherits = inherits,
-}
+return utils
 
 --print("nil", dump(nil))
 

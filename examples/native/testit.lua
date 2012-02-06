@@ -1,9 +1,9 @@
 -- Load our native module
-local Vector = require('./vector')
+local vector = require('./vector')
 
-p(Vector)
+p(vector)
 
-local v = Vector.new(20, 10)
+local v = vector.new(20, 10)
 
 p({x=v.x,y=v.y,angle=v.angle})
 

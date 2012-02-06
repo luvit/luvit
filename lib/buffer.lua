@@ -16,26 +16,28 @@ limitations under the License.
 
 --]]
 
-local Table = require('table')
-local String = require('string')
-local Object = require('object')
-local Bit = require('bit')
-local FFI = require('ffi')
-FFI.cdef([[
+local table = require('table')
+local Object = require('core').Object
+local bit = require('bit')
+local ffi = require('ffi')
+ffi.cdef([[
   void *malloc (size_t __size);
   void free (void *__ptr);
 ]])
 
-local Buffer = Object:extend()
+local buffer = {}
 
-function Buffer.prototype:initialize(length)
+local Buffer = Object:extend()
+buffer.Buffer = Buffer
+
+function Buffer:initialize(length)
   if type(length) == "number" then
     self.length = length
-    self.ctype = FFI.gc(FFI.cast("unsigned char*", FFI.C.malloc(length)), FFI.C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", ffi.C.malloc(length)), ffi.C.free)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
-    self.ctype = FFI.cast("unsigned char*", string)
+    self.ctype = ffi.cast("unsigned char*", string)
   else
     error("Input must be a string or number")
   end
@@ -52,7 +54,7 @@ function Buffer.meta:__ipairs()
 end
 
 function Buffer.meta:__tostring()
-  return FFI.string(self.ctype)
+  return ffi.string(self.ctype)
 end
 
 function Buffer.meta:__concat(other)
@@ -64,7 +66,7 @@ function Buffer.meta:__index(key)
     if key < 1 or key > self.length then error("Index out of bounds") end
     return self.ctype[key - 1]
   end
-  return Buffer.prototype[key]
+  return Buffer[key]
 end
 
 function Buffer.meta:__newindex(key, value)
@@ -76,23 +78,23 @@ function Buffer.meta:__newindex(key, value)
   rawset(self, key, value)
 end
 
-function Buffer.prototype:inspect()
+function Buffer:inspect()
   local parts = {}
   for i = 1, tonumber(self.length) do
-    parts[i] = Bit.tohex(self[i], 2)
+    parts[i] = bit.tohex(self[i], 2)
   end
-  return "<Buffer " .. Table.concat(parts, " ") .. ">"
+  return "<Buffer " .. table.concat(parts, " ") .. ">"
 end
 
 local function compliment8(value)
   return value < 0x80 and value or -0x100 + value
 end
 
-function Buffer.prototype:readUInt8(offset)
+function Buffer:readUInt8(offset)
   return self[offset]
 end
 
-function Buffer.prototype:readInt8(offset)
+function Buffer:readInt8(offset)
   return compliment8(self[offset])
 end
 
@@ -100,44 +102,44 @@ local function compliment16(value)
   return value < 0x8000 and value or -0x10000 + value
 end
 
-function Buffer.prototype:readUInt16LE(offset)
-  return Bit.lshift(self[offset + 1], 8) +
+function Buffer:readUInt16LE(offset)
+  return bit.lshift(self[offset + 1], 8) +
                     self[offset]
 end
 
-function Buffer.prototype:readUInt16BE(offset)
-  return Bit.lshift(self[offset], 8) +
+function Buffer:readUInt16BE(offset)
+  return bit.lshift(self[offset], 8) +
                     self[offset + 1]
 end
 
-function Buffer.prototype:readInt16LE(offset)
+function Buffer:readInt16LE(offset)
   return compliment16(self:readUInt16LE(offset))
 end
 
-function Buffer.prototype:readInt16BE(offset)
+function Buffer:readInt16BE(offset)
   return compliment16(self:readUInt16BE(offset))
 end
 
-function Buffer.prototype:readUInt32LE(offset)
+function Buffer:readUInt32LE(offset)
   return self[offset + 3] * 0x1000000 +
-         Bit.lshift(self[offset + 2], 16) +
-         Bit.lshift(self[offset + 1], 8) +
+         bit.lshift(self[offset + 2], 16) +
+         bit.lshift(self[offset + 1], 8) +
                     self[offset]
 end
 
-function Buffer.prototype:readUInt32BE(offset)
+function Buffer:readUInt32BE(offset)
   return self[offset] * 0x1000000 +
-         Bit.lshift(self[offset + 1], 16) +
-         Bit.lshift(self[offset + 2], 8) +
+         bit.lshift(self[offset + 1], 16) +
+         bit.lshift(self[offset + 2], 8) +
                     self[offset + 3]
 end
 
-function Buffer.prototype:readInt32LE(offset)
-  return Bit.tobit(self:readUInt32LE(offset))
+function Buffer:readInt32LE(offset)
+  return bit.tobit(self:readUInt32LE(offset))
 end
 
-function Buffer.prototype:readInt32BE(offset)
-  return Bit.tobit(self:readUInt32BE(offset))
+function Buffer:readInt32BE(offset)
+  return bit.tobit(self:readUInt32BE(offset))
 end
 
-return Buffer
+return buffer

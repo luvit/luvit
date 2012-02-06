@@ -7,3 +7,4 @@ generated
 options.gypi
 *.xcodeproj
 out/
+*.swp

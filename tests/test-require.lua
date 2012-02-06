@@ -33,11 +33,13 @@ assert(num_loaded == 3, "There should be exactly three modules loaded, there was
 assert(m1 == rm1 and m1_m2 == rm1_m2 and m2_m2 == rm2_m2, "Modules are not caching correctly")
 
 -- Test native addons
+--[[
 local vectors = {
   require("vector"),
   require("vector-renamed"),
 }
 assert(vectors[1] == vectors[2], "Symlinks should realpath and load real module and reuse cache")
+]]
 
 -- Test to make sure dashes are allowed and the same file is cached no matter how it's found
 local libluvits = {

@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local MIME = {}
+local mime = {}
 local table = {
   ["3gp"] = "video/3gpp",
   a = "application/octet-stream",
@@ -193,12 +193,12 @@ local table = {
   yml = "text/yaml",
   zip = "application/zip",
 }
-MIME.table = table
-MIME.default = "application/octet-stream"
+mime.table = table
+mime.default = "application/octet-stream"
 
-function MIME.get_type(path)
-  return MIME.table[path:lower():match("[^.]*$")] or MIME.default
+function mime.getType(path)
+  return mime.table[path:lower():match("[^.]*$")] or mime.default
 end
 
-return MIME
+return mime
 

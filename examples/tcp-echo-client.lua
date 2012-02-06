@@ -9,7 +9,7 @@ client = net.createConnection(8080, '127.0.0.1', function(err)
 
   print("Connected...")
 
-  process.stdin:read_start()
+  process.stdin:readStart()
 
   process.stdin:pipe(client)
   client:pipe(process.stdout)
