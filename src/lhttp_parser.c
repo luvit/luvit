@@ -146,7 +146,7 @@ static int lhttp_parser_on_header_value(http_parser *p, const char *at, size_t l
   /* Put the environment of the userdata on the top of the stack */
   lua_getfenv(L, 1);
   /* Get the onHeaderValue callback and put it on the stack */
-  lua_getfield(L, -1, "onHeaderField");
+  lua_getfield(L, -1, "onHeaderValue");
   /* See if it's a function */
   if (lua_isfunction (L, -1) == 0) {
     /* no function defined */
