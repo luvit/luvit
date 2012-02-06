@@ -52,9 +52,17 @@ static int lenv_keys(lua_State* L) {
   lua_createtable(L, size, 0);
 
   for (i = 0; i < size; ++i) {
+    size_t length;
     const char* var = env[i];
     const char* s = strchr(var, '=');
-    const int length = s ? s - var : strlen(var);
+
+    if (s != NULL) {
+      length = s - var;
+    }
+    else {
+      length =  strlen(var);
+    }
+
     lua_pushlstring(L, var, length);
     lua_rawseti(L, -2, i + 1);
   }
