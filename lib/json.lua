@@ -154,7 +154,7 @@ function JSON.stringify(value, options)
         generator:mapClose()
       end
     else
-      error("Cannot stringify " .. type .. " value")
+      error("Cannot stringify " .. t .. " value")
     end
   end
   add(value)
