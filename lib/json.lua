@@ -26,7 +26,7 @@ function JSON.streamingParser(callback, options)
   local current
   local key
   local stack = {}
-  local null = options.use_null and Yajl.null
+  local null = options and options.use_null and Yajl.null
   local function emit(value, open, close)
     if current then
       current[key or #current + 1] = value
