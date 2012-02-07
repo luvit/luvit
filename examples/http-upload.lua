@@ -11,7 +11,7 @@ http.createServer("0.0.0.0", 8080, function (req, res)
     length = length + 1
     chunks[length] = chunk
   end)
-  req:on('end', function ()
+  req:on('finish', function ()
     local body = table.concat(chunks, "")
     p("on_end", {total_len=#body})
     body = "length = " .. tostring(#body) .. "\n"

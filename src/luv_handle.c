@@ -89,7 +89,7 @@ void luv_on_close(uv_handle_t* handle) {
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
-  luv_emit_event(L, "closed", 0);
+  luv_emit_event(L, "close", 0);
 
   /* This handle is no longer valid, clean up memory */
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);

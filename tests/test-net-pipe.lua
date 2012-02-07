@@ -18,21 +18,17 @@ limitations under the License.
 
 require("helper")
 local net = require('net')
+local fs  = require('fs')
 
-local PORT = process.env.PORT or 10081
+local PORT = 8081
 local HOST = '127.0.0.1'
+local server
 
-local server = net.createServer(function(client)
-  client:on("data", function (chunk)
-    client:write(chunk, function(err)
-      assert(err == nil)
-    end)
-  end)
-
+server = net.createServer(function(client)
   client:on('finish', function()
     client:close()
+    server:close()
   end)
-
 end)
 
 server:listen(PORT, HOST, function(err)
@@ -41,17 +37,7 @@ server:listen(PORT, HOST, function(err)
     if err then
       assert(err)
     end
-    client:on('data', function(data)
-      assert(#data == 5)
-      assert(data == 'hello')
-      client:close()
-      server:close()
-    end)
 
-    client:write('hello')
+    fs.createReadStream(__dirname .. '/fixtures/test-pipe.txt'):pipe(client)
   end)
-end)
-
-server:on("error", function(err)
-  assert(err)
 end)

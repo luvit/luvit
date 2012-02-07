@@ -15,7 +15,7 @@ local server = net.createServer(function (client)
   end)
 
   print("Adding listener for close event")
-  client:on("end", function ()
+  client:on('finish', function ()
     p("on_end")
 
     print("Closing connection")

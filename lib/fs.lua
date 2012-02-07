@@ -20,6 +20,7 @@ local uv = require('uv')
 local table = require('table')
 local Handle = require('core').Handle
 local Stream = require('core').Stream
+local Error = require('core').Error
 local fs = {}
 local sizes = {
   Open = 3,
@@ -133,28 +134,47 @@ function fs.createReadStream(path, options)
     setmetatable(options, read_meta)
   end
 
+  local paused = false
+  local done = false
+  local readChunk
+
   local stream = Stream:new()
+
+  function stream:pause ()
+    paused = true
+    if done then return false end
+    return paused
+  end
+  function stream:resume ()
+    paused = false
+    if done then return false end
+    readChunk()
+    return true
+  end
+
   fs.open(path, options.flags, options.mode, function (err, fd)
     if err then return stream:emit("error", err) end
     local offset = options.offset
     local last = options.length and offset + options.length
     local chunk_size = options.chunk_size
 
-    local function readChunk()
+    function readChunk()
       local to_read = (last and chunk_size + offset > last and last - offset) or chunk_size
       fs.read(fd, offset, to_read, function (err, chunk, len)
         if err or len == 0 then
+          done = true
+
           fs.close(fd, function (err)
             if err then return stream:emit("error", err) end
             stream:emit("close")
           end)
           if err then return stream:emit("error", err) end
 
-          stream:emit("end")
+          stream:emit('finish')
         else
           stream:emit("data", chunk, len)
           offset = offset + len
-          readChunk()
+          if not paused then readChunk() end
         end
       end)
     end
@@ -178,7 +198,106 @@ function fs.createWriteStream(path, options)
     setmetatable(options, write_meta)
   end
 
-  error("TODO: Implement write_stream")
+  local stream = Stream:new()
+  local writeChunk
+  local writing = false
+  local need_drain = false
+  local need_finish = false
+  local finished = false
+  local data = {}
+  local current
+  local length
+  local offset = 0
+
+  function stream:write(chunk, callback)
+    if need_finish then
+      local err = Error:new('end() called before write()')
+      if callback then return callback(err) end
+      return stream:emit('error', err)
+    end
+
+    table.insert(data, { chunk, callback })
+    if writing then
+      need_drain = true
+      return false
+    end
+    writeChunk()
+    return true
+  end
+
+  function stream:finish(chunk, callback)
+    local ret = true
+    if chunk then
+      ret = self:write(chunk, callback)
+    end
+    need_finish = true
+    return ret
+  end
+
+  function stream:close()
+    finished = true
+    self:emit('close')
+    return true
+  end
+
+  function resetState ()
+    current = nil
+    length = nil
+    offset = 0
+  end
+
+  fs.open(path, options.flags, options.mode, function (err, fd)
+    if err then return stream:emit('error', err) end
+
+    stream:emit('open')
+
+    function writeChunk()
+      if finished then return end
+
+      local first = data[1]
+
+      if not current and first then
+        current = first[1]
+        length = #current
+      elseif not current then
+        writing = false
+        if need_drain then
+          need_drain = false
+          stream:emit('drain')
+        end
+        if need_finish then
+          stream:emit('finish')
+          stream:close()
+        end
+        return
+      end
+
+      fs.write(fd, offset, current:sub(offset + 1, CHUNK_SIZE + offset), function (err, bytes_written)
+        if finished then return end
+        if err then
+          local cb = data[1][2]
+          if cb then return cb(err) end
+          return stream:emit('error', err)
+        end
+
+        if bytes_written + offset < length then
+          offset = offset + bytes_written
+          return writeChunk()
+        end
+
+        local cb = data[1][2]
+        if cb then cb() end
+
+        table.remove(data, 1)
+        resetState()
+        writeChunk()
+      end)
+
+    writing = true
+    end
+  end)
+
+  return stream
 end
 
 function fs.readFileSync(path)
@@ -206,7 +325,7 @@ function fs.readFile(path, callback)
     num = num + 1
     parts[num] = chunk
   end)
-  stream:on("end", function ()
+  stream:on('finish', function ()
     return callback(nil, table.concat(parts, ""))
   end)
   stream:on("error", callback)
