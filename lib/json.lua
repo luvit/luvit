@@ -87,11 +87,8 @@ function JSON.streamingParser(callback, options)
     end
   })
   if options then
-    options.use_null = nil
-    if options then
-      for k,v in pairs(options) do
-        parser:config(k, v)
-      end
+    for k,v in pairs(options) do
+      parser:config(k, v)
     end
   end
   return parser
