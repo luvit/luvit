@@ -2,6 +2,7 @@ local Bit = require('bit')
 local FS = require('fs')
 local Emitter = require('core').Emitter
 local Buffer = require('buffer').Buffer
+local timer = require('timer')
 
 -- http://www.mjmwired.net/kernel/Documentation/input/joystick-api.txt
 function parse(buffer)
@@ -21,27 +22,28 @@ end
 local Joystick = Emitter:extend()
 
 function Joystick:initialize(id)
-  self:wrap("on_open")
-  self:wrap("on_read")
+  self:wrap("onOpen")
+  self:wrap("onRead")
   self.id = id
-  FS.open("/dev/input/js" .. id, "r", "0644", self.on_open)
+  FS.open("/dev/input/js" .. id, "r", "0644", self.onOpen)
 end
 
 
-function Joystick:on_open(fd)
+function Joystick:onOpen(fd)
+  debug("fd", fd)
   self.fd = fd
-  self:start_read()
+  self:startRead()
 end
 
-function Joystick:start_read()
-  FS.read(self.fd, nil, 8, self.on_read)
+function Joystick:startRead()
+  FS.read(self.fd, nil, 8, self.onRead)
 end
 
-function Joystick:on_read(chunk)
+function Joystick:onRead(chunk)
   local event = parse(Buffer:new(chunk))
   event.id = self.id
   self:emit(event.type, event)
-  if self.fd then self:start_read() end
+  if self.fd then self:startRead() end
 end
 
 function Joystick:close(callback)
