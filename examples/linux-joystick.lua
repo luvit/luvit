@@ -1,7 +1,7 @@
 local Bit = require('bit')
 local FS = require('fs')
-local Emitter = require('emitter')
-local Buffer = require('buffer')
+local Emitter = require('core').Emitter
+local Buffer = require('buffer').Buffer
 
 -- http://www.mjmwired.net/kernel/Documentation/input/joystick-api.txt
 function parse(buffer)
@@ -20,7 +20,7 @@ end
 -- Expose as a nice Lua API
 local Joystick = Emitter:extend()
 
-function Joystick.prototype:initialize(id)
+function Joystick:initialize(id)
   self:wrap("on_open")
   self:wrap("on_read")
   self.id = id
@@ -28,23 +28,23 @@ function Joystick.prototype:initialize(id)
 end
 
 
-function Joystick.prototype:on_open(fd)
+function Joystick:on_open(fd)
   self.fd = fd
   self:start_read()
 end
 
-function Joystick.prototype:start_read()
+function Joystick:start_read()
   FS.read(self.fd, nil, 8, self.on_read)
 end
 
-function Joystick.prototype:on_read(chunk)
+function Joystick:on_read(chunk)
   local event = parse(Buffer:new(chunk))
   event.id = self.id
   self:emit(event.type, event)
   if self.fd then self:start_read() end
 end
 
-function Joystick.prototype:close(callback)
+function Joystick:close(callback)
   local fd = self.fd
   self.fd = nil
   FS.close(fd, callback)
