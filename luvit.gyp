@@ -127,6 +127,14 @@
           'defines': [ '_GNU_SOURCE' ]
         }],
       ],
+      'copies': [
+        {
+          'destination': 'examples/native',
+          'files': [
+            '<(PRODUCT_DIR)/vector.luvit'
+          ]
+        }
+      ]
     },
     {
       'target_name': 'vector.luvit',
@@ -146,21 +154,6 @@
           'defines': [ '_GNU_SOURCE' ]
         }],
       ],
-    },
-    {
-      'target_name': 'copy.vector.luvit',
-      'type': 'none',
-      'dependencies': [
-        'vector.luvit'
-      ],
-      'copies': [
-        {
-          'destination': 'examples/native/',
-          'files': [
-            '<(PRODUCT_DIR)/vector.luvit'
-          ]
-        }
-      ]
     }
   ],
 }
