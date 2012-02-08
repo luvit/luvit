@@ -38,7 +38,9 @@ Inherits from `core.Handle`
 
 #### Process:kill(signal)
 
-### childprocess.spawn(...)
+### childprocess.execFile(command, args, options, callback)
+
+### childprocess.spawn(command, args, options)
 
 ## core
 
@@ -176,7 +178,7 @@ or instantiate `core.iStream`.
 
 #### Stream:readStop()
 
-#### Stream:shutdown()
+#### Stream:shutdown(callback)
 
 #### Stream:write(chunk, callback)
 
@@ -240,6 +242,8 @@ TODO: Implement backpressure here and in tcp streams
 ### fs.readFileSync(path)
 
 ### fs.writeFile(path, data, callback)
+
+### fs.writeFileSync(path, data)
 
 ### http.Request
 
