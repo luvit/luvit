@@ -18,6 +18,7 @@ limitations under the License.
 local uv = require('uv')
 local Pipe = require('pipe').Pipe
 local Handle = require('core').Handle
+local table = require('table')
 
 local process = {}
 
@@ -52,8 +53,24 @@ function Process:kill(signal)
   return uv.processKill(self.userdata, signal)
 end
 
-function process.spawn(...)
-  return Process:new(...)
+function process.spawn(command, args, options)
+  return Process:new(command, args, options)
+end
+
+function process.execFile(command, args, options, callback)
+  local child = process.spawn(command, args, options)
+  local stdout = {}
+  local stderr = {}
+  child.stdout:on('data', function (chunk)
+    table.insert(stdout, chunk)
+  end)
+  child.stderr:on('data', function (chunk)
+    table.insert(stderr, chunk)
+  end)
+  child:on('error', callback)
+  child:on('exit', function (code, signal)
+    callback(nil, table.concat(stdout, ""), table.concat(stderr, ""));
+  end)
 end
 
 return process
