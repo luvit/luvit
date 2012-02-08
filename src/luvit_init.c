@@ -154,10 +154,8 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 
 int luvit_run(lua_State *L) {
   return luaL_dostring(L, "\
-    local path = require('uv').execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/?.lua'\
+    local path = require('uv').execpath():match('^(.*)/[^/]+/[^/]+$') .. '/modules/?.lua'\
     package.path = path .. ';' .. package.path\
-    print(package.path)\
     assert(require('luvit'))");
-  /* hassert(require('luvit'))*/
 }
 
