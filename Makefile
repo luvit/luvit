@@ -117,3 +117,14 @@ clean:
 	${MAKE} -C examples/native clean
 	rm -rf build
 
+
+test: ${BUILDDIR}/luvit
+	cd tests && ../${BUILDDIR}/luvit runner.lua
+
+api: api.markdown
+
+api.markdown: $(wildcard lib/*.lua)
+	find lib -name "*.lua" | grep -v "luvit.lua" | sort | xargs -l luvit tools/doc-parser.lua > $@
+
+.PHONY: test install all api
+
