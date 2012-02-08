@@ -228,8 +228,8 @@ local function myloadfile(filepath)
   local code = fs.readFileSync(filepath)
 
   -- TODO: find out why inlining assert here breaks the require test
-  local fn = loadstring(code, '@' .. filepath)
-  assert(fn)
+  local fn, err = loadstring(code, '@' .. filepath)
+  assert(fn, err)
   local dirname = path.dirname(filepath)
   local realRequire = require
   setfenv(fn, setmetatable({
