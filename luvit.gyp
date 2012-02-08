@@ -106,8 +106,6 @@
       'type': 'executable',
       'dependencies': [
         'libluvit',
-        'deps/luajit.gyp:*',
-        'deps/uv/uv.gyp:uv',
       ],
       'sources': [
         'src/luvit_main.c',
@@ -127,17 +125,9 @@
           'defines': [ '_GNU_SOURCE' ]
         }],
       ],
-      'copies': [
-        {
-          'destination': 'examples/native',
-          'files': [
-            '<(PRODUCT_DIR)/vector.luvit'
-          ]
-        }
-      ]
     },
     {
-      'target_name': 'vector.luvit',
+      'target_name': 'vector_luvit',
       'product_name': 'vector',
       'product_extension': 'luvit',
       'product_prefix': '',

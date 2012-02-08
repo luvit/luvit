@@ -4,13 +4,13 @@
 
 #define PI 3.14159265
 
-// Define a simple C struct to test the C/Lua interaction
+/* Define a simple C struct to test the C/Lua interaction */
 typedef struct {
   double x;
   double y;
 } Vector;
 
-// Constructor function for Vector instances
+/* Constructor function for Vector instances */
 static int new_vector(lua_State* L) {
   double x = luaL_checknumber(L, 1);
   double y = luaL_checknumber(L, 2);
@@ -66,7 +66,7 @@ static const luaL_reg vector_m[] = {
 
 LUALIB_API int luaopen_vector (lua_State *L) {
 
-  // Create a metatable for the vector type
+  /* Create a metatable for the vector type */
   luaL_newmetatable(L, "vector");
   luaL_register(L, NULL, vector_m);
   lua_pop(L, 1);
