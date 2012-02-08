@@ -384,6 +384,11 @@ local function usage()
   print("")
 end
 
+local realAssert = assert
+function assert(good, error)
+  return realAssert(good, tostring(error))
+end
+
 assert(xpcall(function ()
 
   local interactive = false
