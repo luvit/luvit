@@ -291,6 +291,7 @@ function Response:finish(chunk, callback)
     self.socket:write('0\r\n\r\n')
   end
   self.socket:shutdown(function ()
+    self:emit("end")
     self:close()
     if callback then
       self:on("closed", callback)
