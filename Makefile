@@ -9,6 +9,11 @@ HTTPDIR=deps/http-parser
 HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
 BUILDDIR=build
 
+PREFIX?=/usr/local
+BINDIR?=${DESTDIR}${PREFIX}/bin
+INCDIR?=${DESTDIR}${PREFIX}/include/luvit
+LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
+
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
@@ -116,6 +121,25 @@ clean:
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
 	rm -rf build
+
+install: all
+	mkdir -p ${BINDIR}
+	install ${BUILDDIR}/luvit ${BINDIR}/luvit
+	cp bin/luvit-config.lua ${BINDIR}/luvit-config
+	chmod +x ${BINDIR}/luvit-config
+	mkdir -p ${LIBDIR}
+	cp lib/luvit/*.lua ${LIBDIR}
+	mkdir -p ${INCDIR}/luajit
+	cp ${LUADIR}/src/lua.h ${INCDIR}/luajit/
+	cp ${LUADIR}/src/lauxlib.h ${INCDIR}/luajit/
+	cp ${LUADIR}/src/luaconf.h ${INCDIR}/luajit/
+	cp ${LUADIR}/src/luajit.h ${INCDIR}/luajit/
+	cp ${LUADIR}/src/lualib.h ${INCDIR}/luajit/
+	mkdir -p ${INCDIR}/http_parser
+	cp ${HTTPDIR}/http_parser.h ${INCDIR}/http_parser/
+	mkdir -p ${INCDIR}/uv
+	cp ${UVDIR}/include/uv.h ${INCDIR}/uv/
+	cp src/*.h ${INCDIR}/
 
 
 test: ${BUILDDIR}/luvit
