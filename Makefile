@@ -8,11 +8,7 @@ UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 
 HTTPDIR=deps/http-parser
 HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
 BUILDDIR=build
-GENDIR=${BUILDDIR}/generated
-PREFIX?=/usr/local
-BINDIR?=${PREFIX}/bin
-INCDIR?=${PREFIX}/include
-INCLUDEDIR?=${DESTDIR}${INCDIR}/luvit
+
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
@@ -44,30 +40,6 @@ ifeq (${OS_NAME},Linux)
 LDFLAGS+= -lrt
 endif
 
-LUVITLIB=${BUILDDIR}/libluvit.a
-
-COREOBJS=${GENDIR}/luvit.o   \
-        ${GENDIR}/http.o     \
-        ${GENDIR}/url.o      \
-        ${GENDIR}/querystring.o \
-        ${GENDIR}/fs.o       \
-        ${GENDIR}/dns.o      \
-        ${GENDIR}/net.o      \
-        ${GENDIR}/childprocess.o  \
-        ${GENDIR}/udp.o      \
-        ${GENDIR}/tcp.o      \
-        ${GENDIR}/pipe.o     \
-        ${GENDIR}/tty.o      \
-        ${GENDIR}/timer.o    \
-        ${GENDIR}/repl.o     \
-        ${GENDIR}/fiber.o    \
-        ${GENDIR}/mime.o     \
-        ${GENDIR}/path.o     \
-        ${GENDIR}/stack.o    \
-        ${GENDIR}/buffer.o   \
-        ${GENDIR}/json.o     \
-        ${GENDIR}/core.o     \
-        ${GENDIR}/utils.o
 
 LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_fs.o         \
@@ -82,29 +54,20 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_pipe.o       \
         ${BUILDDIR}/luv_tty.o        \
         ${BUILDDIR}/luv_misc.o       \
+        ${BUILDDIR}/luv.o            \
         ${BUILDDIR}/luvit_init.o     \
-        ${BUILDDIR}/luvit_exports.o  \
         ${BUILDDIR}/lconstants.o     \
         ${BUILDDIR}/lenv.o           \
         ${BUILDDIR}/lyajl.o          \
         ${BUILDDIR}/los.o            \
         ${BUILDDIR}/lhttp_parser.o
 
-ALLOBJS=${LUVLIBS}                \
-        ${BUILDDIR}/luv.o         \
-        ${BUILDDIR}/luvit_init.o  \
-        ${BUILDDIR}/luvit_exports.o \
-        ${HTTPDIR}/http_parser.o  \
-        ${COREOBJS}
-
-LUVITOBJS=${BUILDDIR}/luvit_main.o
+DEPS=${LUADIR}/src/libluajit.a \
+     ${YAJLDIR}/yajl.a         \
+     ${UVDIR}/uv.a             \
+     ${HTTPDIR}/http_parser.o
 
 all: ${BUILDDIR}/luvit
-
-deps: ${LUADIR}/src/libluajit.a ${UVDIR}/uv.a ${HTTPDIR}/http_parser.o ${YAJLDIR}/yajl.a
-
-${GENDIR}:
-	mkdir -p ${GENDIR}
 
 ${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
@@ -136,21 +99,15 @@ ${HTTPDIR}/Makefile:
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	${MAKE} -C ${HTTPDIR} http_parser.o
 
-${GENDIR}/%.c: lib/%.lua deps
-	${LUADIR}/src/luajit -b $< $@
-
-${GENDIR}/%.o: ${GENDIR}/%.c
-	$(CC) -g -Wall -c $< -o $@
-
-${BUILDDIR}/libluvit.a: ${GENDIR} ${ALLOBJS} deps
-	$(AR) rvs ${BUILDDIR}/libluvit.a ${ALLOBJS}
-
-${BUILDDIR}/%.o: src/%.c deps
+${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
-${BUILDDIR}/luvit: ${LUVITOBJS} ${LUVITLIB}
-	$(CC) -g -o ${BUILDDIR}/luvit ${LUVITOBJS} ${LDFLAGS}
+${BUILDDIR}/libluvit.a: ${LUVLIBS} ${DEPS}
+	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
+
+${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o
+	$(CC) -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a ${LDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
@@ -160,52 +117,3 @@ clean:
 	${MAKE} -C examples/native clean
 	rm -rf build
 
-install: ${BUILDDIR}/luvit
-	mkdir -p ${BINDIR}
-	install ${BUILDDIR}/luvit ${DESTDIR}${BINDIR}/luvit
-	cp bin/luvit-config.lua ${DESTDIR}${BINDIR}/luvit-config
-	chmod +x ${DESTDIR}${BINDIR}/luvit-config
-	mkdir -p ${INCLUDEDIR}/luajit
-	cp ${LUADIR}/src/lua.h ${INCLUDEDIR}/luajit/
-	cp ${LUADIR}/src/lauxlib.h ${INCLUDEDIR}/luajit/
-	cp ${LUADIR}/src/luaconf.h ${INCLUDEDIR}/luajit/
-	cp ${LUADIR}/src/luajit.h ${INCLUDEDIR}/luajit/
-	cp ${LUADIR}/src/lualib.h ${INCLUDEDIR}/luajit/
-	mkdir -p ${INCLUDEDIR}/http_parser
-	cp ${HTTPDIR}/http_parser.h ${INCLUDEDIR}/http_parser/
-	mkdir -p ${INCLUDEDIR}/uv
-	cp ${UVDIR}/include/uv.h ${INCLUDEDIR}/uv/
-	cp src/*.h ${INCLUDEDIR}/
-
-uninstall deinstall:
-	rm -rf ${INCLUDEDIR}
-	rm -f ${DESTDIR}${BINDIR}/luvit ${DESTDIR}${BINDIR}/luvit-config
-
-test: ${BUILDDIR}/luvit
-	cd tests && ../${BUILDDIR}/luvit runner.lua
-
-api: api.markdown
-api.markdown: $(wildcard lib/*.lua)
-	find lib -name "*.lua" | grep -v "luvit.lua" | sort | xargs -l luvit tools/doc-parser.lua > $@
-
-DIST_DIR=${HOME}/luvit.io/dist
-DIST_NAME=luvit-${VERSION}
-DIST_FOLDER=${DIST_DIR}/${VERSION}/${DIST_NAME}
-DIST_FILE=${DIST_FOLDER}.tar.gz
-tarball:
-	rm -rf ${DIST_FOLDER} ${DIST_FILE}
-	mkdir -p ${DIST_DIR}
-	git clone . ${DIST_FOLDER}
-	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
-	cd ${DIST_FOLDER} ; git submodule update --init
-	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
-	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
-            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
-            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
-            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
-            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
-	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
-	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
-	rm -rf ${DIST_FOLDER}
-
-.PHONY: test install all api
