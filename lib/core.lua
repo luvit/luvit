@@ -234,8 +234,8 @@ or instantiate `core.iStream`.
 local Stream = Handle:extend()
 core.Stream = Stream
 
-function Stream:shutdown()
-  return UV.shutdown(self.userdata)
+function Stream:shutdown(callback)
+  return UV.shutdown(self.userdata, callback)
 end
 
 function Stream:listen(callback)
