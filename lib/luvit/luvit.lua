@@ -307,7 +307,7 @@ package.searchpath = nil
 package.seeall = nil
 package.config = nil
 _G.module = nil
-
+local libpath = uv.execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/'
 function require(filepath, dirname)
   if not dirname then dirname = base_path end
 
@@ -342,6 +342,15 @@ function require(filepath, dirname)
     else
       errors[#errors + 1] = loader
     end
+  end
+
+  -- Library modules
+
+  local loader = loadModule(libpath .. filepath)
+  if type(loader) == "function" then
+    return loader()
+  else
+    errors[#errors + 1] = loader
   end
 
   -- Bundled path modules
