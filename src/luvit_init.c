@@ -33,7 +33,6 @@
 #include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
-#include "luvit_exports.h"
 #include "lyajl.h"
 #include "lenv.h"
 
