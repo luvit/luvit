@@ -1,12 +1,13 @@
 local fs = require('fs')
 local timer = require('timer')
-local Fiber = require('fiber')
+local fiber = require('fiber')
 
-Fiber:new(function (resume, wait)
+fiber.new(function (resume, wait)
 
   print("opening...")
-  fs.open("LICENSE.txt", "r", "0644", resume)
+  fs.open(__dirname .. "/../LICENSE.txt", "r", "0644", resume)
   local err, fd = wait()
+
   p("on_open", {err=err,fd=fd})
 
   print("fstatting...")
@@ -34,7 +35,7 @@ Fiber:new(function (resume, wait)
 
 end)
 
-Fiber:new(function (resume, wait)
+fiber.new(function (resume, wait)
 
   print("scanning directory...")
   fs.readdir(".", resume)

@@ -1,4 +1,4 @@
-local Emitter = require('emitter')
+local Emitter = require('core').Emitter
 
 local emitter = Emitter:new()
 

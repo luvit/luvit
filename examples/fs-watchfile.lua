@@ -1,4 +1,4 @@
-local Watcher = require('watcher')
+local Watcher = require('fs').Watcher
 
 local watcher = Watcher:new('.')
 watcher:on("change", function (event, path)
