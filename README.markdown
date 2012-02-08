@@ -14,7 +14,7 @@ local HTTP = require("http")
 -- Create a simple nodeJS style hello-world server
 HTTP.createServer("0.0.0.0", 8080, function (req, res)
   local body = "Hello World\n"
-  res:write_head(200, {
+  res:writeHead(200, {
     ["Content-Type"] = "text/plain",
     ["Content-Length"] = #body
   })
