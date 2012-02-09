@@ -118,6 +118,10 @@ function Socket:close()
   if self._handle then
     self._handle:close()
   end
+  if self._connectTimer then
+    timer.clearTimer(self._connectTimer)
+    self._connectTimer = nil
+  end
 end
 
 function Socket:pipe(destination)
@@ -150,12 +154,10 @@ function Socket:connect(port, host, callback)
 
   self._handle:on('error', function(err)
     self:emit('error', err)
-    self:close()
   end)
 
   dns.lookup(host, function(err, ip, addressType)
     if err then
-      self:close()
       callback(err)
       return
     end
