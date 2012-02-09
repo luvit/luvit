@@ -291,6 +291,7 @@ function Response:finish(chunk, callback)
     self.socket:write('0\r\n\r\n')
   end
   self.socket:shutdown(function ()
+    self:emit("end")
     self:close()
     if callback then
       self:on("closed", callback)
@@ -474,6 +475,14 @@ function http.createServer(host, port, onConnection)
     end)
 
     client:on("end", function ()
+      parser:finish()
+    end)
+
+    client:on("error", function (err)
+      request:emit("error", err)
+      -- N.B. must close(), or https://github.com/joyent/libuv/blob/master/src/unix/stream.c#L586
+      -- kills the appication
+      client:close()
       parser:finish()
     end)
 

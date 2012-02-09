@@ -1,7 +1,7 @@
 local fs = require('fs')
 
 print("Reading file as stream")
-local stream = fs.createReadStream("TODO.markdown")
+local stream = fs.createReadStream(__dirname .. "/../TODO.markdown")
 
 print("Adding data listener")
 stream:on('data', function (chunk, len)

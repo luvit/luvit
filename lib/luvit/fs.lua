@@ -212,6 +212,12 @@ function fs.readFile(path, callback)
   stream:on("error", callback)
 end
 
+function fs.writeFileSync(path, data)
+  local fd = fs.openSync(path, "w", "0666")
+  fs.writeSync(fd, 0, data)
+  fs.closeSync(fd)
+end
+
 function fs.writeFile(path, data, callback)
   fs.open(path, "w", "0666", function (err, fd)
     if err then return callback(err) end

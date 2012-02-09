@@ -228,8 +228,8 @@ local function myloadfile(filepath)
   local code = fs.readFileSync(filepath)
 
   -- TODO: find out why inlining assert here breaks the require test
-  local fn = loadstring(code, '@' .. filepath)
-  assert(fn)
+  local fn, err = loadstring(code, '@' .. filepath)
+  assert(fn, err)
   local dirname = path.dirname(filepath)
   local realRequire = require
   setfenv(fn, setmetatable({
@@ -307,7 +307,7 @@ package.searchpath = nil
 package.seeall = nil
 package.config = nil
 _G.module = nil
-
+local libpath = uv.execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/'
 function require(filepath, dirname)
   if not dirname then dirname = base_path end
 
@@ -344,6 +344,15 @@ function require(filepath, dirname)
     end
   end
 
+  -- Library modules
+
+  local loader = loadModule(libpath .. filepath)
+  if type(loader) == "function" then
+    return loader()
+  else
+    errors[#errors + 1] = loader
+  end
+
   -- Bundled path modules
   local dir = dirname .. "/"
   repeat
@@ -373,6 +382,11 @@ local function usage()
   print("  -i, --interactive   Enter interactive repl after executing script.")
   print("                      (Note, if no script is provided, a repl is run instead.)")
   print("")
+end
+
+local realAssert = assert
+function assert(good, error)
+  return realAssert(good, tostring(error))
 end
 
 assert(xpcall(function ()

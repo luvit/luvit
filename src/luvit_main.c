@@ -32,6 +32,10 @@
 #include "luvit.h"
 #include "luv.h"
 
+#ifdef BUNDLE
+#include "luvit_exports.h"
+#endif
+
 int main(int argc, char *argv[])
 {
   lua_State *L;
@@ -46,6 +50,10 @@ int main(int argc, char *argv[])
   luaL_openlibs(L);
 
   loop = uv_default_loop();
+
+#ifdef LUV_EXPORTS
+  luvit__suck_in_symbols();
+#endif
 
   if (luvit_init(L, loop, argc, argv)) {
     fprintf(stderr, "luvit_init has failed\n");
