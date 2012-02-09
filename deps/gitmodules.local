@@ -10,3 +10,6 @@
 [submodule "deps/yajl"]
         path = deps/yajl
         url = ../deps/yajl/.git
+[submodule "deps/zlib"]
+        path = deps/zlib
+        url = ../deps/zlib/.git
