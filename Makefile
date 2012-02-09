@@ -156,5 +156,25 @@ api: api.markdown
 api.markdown: $(wildcard lib/*.lua)
 	find lib -name "*.lua" | grep -v "luvit.lua" | sort | xargs -l luvit tools/doc-parser.lua > $@
 
-.PHONY: test install all api bundle bundle/libs.a
+DIST_DIR?=${HOME}/luvit.io/dist
+DIST_NAME=luvit-${VERSION}
+DIST_FOLDER=${DIST_DIR}/${VERSION}/${DIST_NAME}
+DIST_FILE=${DIST_FOLDER}.tar.gz
+tarball:
+	rm -rf ${DIST_FOLDER} ${DIST_FILE}
+	mkdir -p ${DIST_DIR}
+	git clone . ${DIST_FOLDER}
+	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
+	cd ${DIST_FOLDER} ; git submodule update --init
+	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
+	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
+            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
+            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
+            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
+            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
+	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
+	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
+	rm -rf ${DIST_FOLDER}
+
+.PHONY: test install all api bundle tarball
 
