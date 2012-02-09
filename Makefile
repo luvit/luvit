@@ -120,7 +120,7 @@ clean:
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
-	rm -rf build bundle src/luvit_exports.*
+	rm -rf build bundle
 
 install: all
 	mkdir -p ${BINDIR}
