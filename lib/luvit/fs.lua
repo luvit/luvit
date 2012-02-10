@@ -245,5 +245,30 @@ function Watcher:initialize(path)
   self.userdata = uv.newFsWatcher(path)
 end
 
+local SyncWriteStream = iStream:extend()
+
+-- Copy hack from nodejs to stdout and stderr to piped file
+function SyncWriteStream:initialize(fd)
+  self.fd = fd
+end
+
+function SyncWriteStream:write(chunk, callback)
+  return fs.writeSync(self.fd, 0, chunk)
+end
+
+function SyncWriteStream:finish(chunk, callback)
+  if (chunk ~= nil) then
+    self:write(chunk)
+  end
+  self:emit("end")
+  self:close()
+end
+
+function SyncWriteStream:close(chunk, callback)
+  fs.closeSync(self.fd)
+end
+
+fs.SyncWriteStream = SyncWriteStream
+
 return fs
 
