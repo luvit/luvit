@@ -2,6 +2,7 @@ local native = require('uv_native')
 local Object = require('core').Object
 local Emitter = require('core').Emitter
 local iStream = require('core').iStream
+local fs = require('fs')
 
 local uv = Object:extend()
 
@@ -196,10 +197,46 @@ Timer.getRepeat = native.timerGetRepeat
 local Process = Handle:extend()
 uv.Process = Process
 
+uv.createWriteableStdioStream = function(fd)
+  local fd_type = native.handleType(fd);
+  if (fd_type == "TTY") then
+    local tty = Tty:new(fd)
+    native.unref()
+    return tty
+  elseif (fd_type == "FILE") then
+    return fs.SyncWriteStream:new(fd)
+  elseif (fd_type == "NAMED_PIPE") then
+    local pipe = Pipe:new(nil)
+    pipe:open(fd)
+    native.unref()
+    return pipe
+  else
+    error("Unknown stream file type " .. fd)
+  end
+end
+
+uv.createReadableStdioStream = function(fd)
+  local fd_type = native.handleType(fd);
+  if (fd_type == "TTY") then
+    local tty = Tty:new(fd)
+    native.unref()
+    return tty
+  elseif (fd_type == "FILE") then
+    return fs.createReadStream(nil, {fd = fd})
+  elseif (fd_type == "NAMED_PIPE") then
+    local pipe = Pipe:new(nil)
+    pipe:open(fd)
+    native.unref()
+    return pipe
+  else
+    error("Unknown stream file type " .. fd)
+  end
+end
+
 function Process:initialize(command, args, options)
-  self.stdin = Pipe:new(0)
-  self.stdout = Pipe:new(0)
-  self.stderr = Pipe:new(0)
+  self.stdin = Pipe.new(0)
+  self.stdout = Pipe.new(1)
+  self.stderr = Pipe.new(2)
   args = args or {}
   options = options or {}
 

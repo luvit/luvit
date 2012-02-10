@@ -120,46 +120,77 @@ local read_options = {
   mode = "0644",
   chunk_size = CHUNK_SIZE,
   offset = 0,
+  fd = nil,
+  reading = nil,
   length = nil -- nil means read to EOF
 }
 local read_meta = {__index=read_options}
 
 -- TODO: Implement backpressure here and in tcp streams
-function fs.createReadStream(path, options)
+local ReadStream = iStream:extend()
+fs.ReadStream = ReadStream
+
+function ReadStream:initialize(path, options)
+
   if not options then
     options = read_options
   else
     setmetatable(options, read_meta)
   end
 
-  local stream = iStream:new()
+  self.options = options
+  self.offset = options.offset
+
+  if (options.fd ~= nil) then
+    self.fd = options.fd
+    self:_read()
+    return
+  end
+
   fs.open(path, options.flags, options.mode, function (err, fd)
-    if err then return stream:emit("error", err) end
-    local offset = options.offset
-    local last = options.length and offset + options.length
-    local chunk_size = options.chunk_size
-
-    local function readChunk()
-      local to_read = (last and chunk_size + offset > last and last - offset) or chunk_size
-      fs.read(fd, offset, to_read, function (err, chunk, len)
-        if err or len == 0 then
-          fs.close(fd, function (err)
-            if err then return stream:emit("error", err) end
-            stream:emit("close")
-          end)
-          if err then return stream:emit("error", err) end
-
-          stream:emit("end")
-        else
-          stream:emit("data", chunk, len)
-          offset = offset + len
-          readChunk()
-        end
-      end)
-    end
-    readChunk()
+    if err then return self:emit("error", err) end
+    self.fd = fd
+    self:_read()
   end)
-  return stream
+end
+
+function ReadStream:readStart()
+  if (self.reading) then
+    return
+  end
+  self:_read()
+end
+
+function ReadStream:_read()
+  local options = self.options
+
+  local last = options.length and self.offset + options.length
+  local chunk_size = options.chunk_size
+  local to_read = (last and chunk_size + self.offset > last and last - self.offset) or chunk_size
+
+  self.reading = true
+
+  fs.read(self.fd, self.offset, to_read, function (err, chunk, len)
+    if err or len == 0 then
+      fs.close(self.fd, function (err)
+        if err then return self:emit("error", err) end
+        self:emit("close")
+      end)
+      if err then return self:emit("error", err) end
+
+      self.reading = false
+      self:emit("end")
+    else
+      self:emit("data", chunk, len)
+      self.offset = self.offset + len
+      self:_read()
+    end
+  end)
+end
+
+-- TODO: Implement backpressure here and in tcp streams
+function fs.createReadStream(path, options)
+  return ReadStream:new(path, options)
 end
 
 local write_options = {
@@ -237,6 +268,31 @@ function fs.writeFile(path, data, callback)
   end)
 end
 
+local SyncWriteStream = iStream:extend()
+fs.SyncWriteStream = SyncWriteStream
+
+-- Copy hack from nodejs to stdout and stderr to piped file
+function SyncWriteStream:initialize(fd)
+  self.fd = fd
+  self.offset = 0
+end
+
+function SyncWriteStream:write(chunk, callback)
+  len = fs.writeSync(self.fd, self.offset, chunk)
+  self.offset = self.offset + len
+  return len
+end
+
+function SyncWriteStream:finish(chunk, callback)
+  if (chunk ~= nil) then
+    self:write(chunk)
+  end
+  self:emit("end")
+  self:close()
+end
+
+function SyncWriteStream:close(chunk, callback)
+  fs.closeSync(self.fd)
+end
 
 return fs
-

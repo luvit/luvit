@@ -30,18 +30,16 @@ require = require('module').require
 local Emitter = require('core').Emitter
 local env = require('env')
 local constants = require('constants')
-local Tty = require('uv').Tty
+local uv = require('uv')
 local utils = require('utils')
 
 setmetatable(process, Emitter.meta)
 
 -- Replace lua's stdio with luvit's
 -- leave stderr using lua's blocking implementation
-process.stdin = Tty:new(0)
-native.unref()
-process.stdout = Tty:new(1)
-native.unref()
-process.stderr = io.stderr
+process.stdin = uv.createReadableStdioStream(0)
+process.stdout = uv.createWriteableStdioStream(1)
+process.stderr = uv.createWriteableStdioStream(2)
 
 -- clear some globals
 -- This will break lua code written for other lua runtimes
