@@ -10,7 +10,9 @@ root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 build_dir = os.path.join(root, 'out')
 
 def build():
-  if sys.platform != "win32":
+  if sys.platform.find('freebsd') == 0:
+      cmd = 'gmake -C %s' % build_dir
+  elif sys.platform != "win32":
       cmd = 'make -C %s' % build_dir
   else:
       cmd = 'tools\win_build.bat'
