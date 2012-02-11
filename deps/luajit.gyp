@@ -46,7 +46,7 @@
       }],
       ['OS=="solaris"', {
         'cflags': ['-pthreads'],
-        'ldlags': ['-pthreads'],
+        'ldflags': ['-pthreads'],
       }],
       ],
     },
