@@ -135,7 +135,7 @@ OS_BINDING.time = OLD_OS.time
 
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
 -- These shouldn't hold open the event loop
-if luvit_os ~= "win" then
+if OS_BINDING.type() ~= "win32" then
   native.activateSignalHandler(constants.SIGPIPE)
   native.unref()
   native.activateSignalHandler(constants.SIGINT)
