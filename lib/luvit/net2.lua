@@ -139,8 +139,8 @@ would be to wait a second and then try again. This can be done with
       if e.code == 'EADDRINUSE' then
         print('Address in use, retrying...')
         timer.setTimeout(1000, function ()
-          server:close();
-          server:listen(PORT, HOST);
+          server:close()
+          server:listen(PORT, HOST)
         end)
       end
     end)
