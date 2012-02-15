@@ -145,7 +145,7 @@ would be to wait a second and then try again. This can be done with
       end
     end)
 
-(Note: All sockets in Node set `SO_REUSEADDR` already)
+(Note: All sockets in Luvit set `SO_REUSEADDR` already)
 
 If a path is given instead of a port, then start a UNIX socket server 
 listening for connections on the given `path`.
@@ -246,7 +246,7 @@ following this event.  See example in discussion of `server.listen`.
 --[[
 This object is an abstraction of a TCP or UNIX socket.  `net.Socket`
 instances implement a duplex Stream interface.  They can be created by the
-user and used as a client (with `connect()`) or they can be created by Node
+user and used as a client (with `connect()`) or they can be created by Luvit
 and passed to the user through the `'connection'` event of a server.
 ]]
 local Socket = Stream:extend()
@@ -297,7 +297,7 @@ end
 `net.Socket` has the property that `socket.write()` always works. This is to
 help users get up and running quickly. The computer cannot always keep up
 with the amount of data that is written to a socket - the network connection
-simply might be too slow. Node will internally queue up the data written to a
+simply might be too slow. Luvit will internally queue up the data written to a
 socket and send it out over the wire when it is possible. (Internally it is
 polling on the socket's file descriptor for being writable).
 
