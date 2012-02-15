@@ -2003,7 +2003,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
       value = '$(abspath %s)' % value
     if key == 'LINK':
       make_global_settings += ('%s ?= %s $(builddir)/linker.lock %s\n' %
-                               (key, flock_command, value))
+                               (key, header_params['flock'], value))
     elif key in ['CC', 'CXX']:
       make_global_settings += (
           'ifneq (,$(filter $(origin %s), undefined default))\n' % key)
