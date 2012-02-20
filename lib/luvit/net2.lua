@@ -502,26 +502,5 @@ Emitted once the socket is fully closed. The argument `had_error` is a boolean
 which says if the socket was closed due to a transmission error.
 ]]
 
---[[
-Tests if input is an IP address. Returns 0 for invalid strings,
-returns 4 for IP version 4 addresses, and returns 6 for IP version 6 addresses.
-]]
-function net.isIP(input)
-  -- TODO: Implement
-end
-
---[[
-Returns true if input is a version 4 IP address, otherwise returns false.
-]]
-function net.isIPv4(input)
-  -- TODO: Implement
-end
-
---[[
-Returns true if input is a version 6 IP address, otherwise returns false.
-]]
-function net.isIPv6(input)
-  -- TODO: Implement
-end
 
 return net
