@@ -16,10 +16,9 @@ limitations under the License.
 
 --]]
 
-local uv = require('uv')
+local native = require('uv_native')
 local table = require('table')
-local Handle = require('core').Handle
-local Stream = require('core').Stream
+local iStream = require('core').iStream
 local fs = {}
 local sizes = {
   Open = 3,
@@ -57,7 +56,7 @@ end
 -- Wrap the core fs functions in forced sync and async versions
 for name, arity in pairs(sizes) do
   local sync, async
-  local real = uv["fs" .. name]
+  local real = native["fs" .. name]
   if arity == 1 then
     async = function (arg, callback)
       return real(arg, callback or default)
@@ -92,7 +91,7 @@ for name, arity in pairs(sizes) do
 end
 
 function fs.exists(path, callback)
-  uv.fsStat(path, function (err)
+  native.fsStat(path, function (err)
     if not err then
       return callback(nil, true)
     end
@@ -105,7 +104,7 @@ end
 
 function fs.existsSync(path)
   local success, err = pcall(function ()
-    uv.fsStat(path)
+    native.fsStat(path)
   end)
   if not err then return true end
   if err.code == "ENOENT" or err.code == "ENOTDIR" then
@@ -133,7 +132,7 @@ function fs.createReadStream(path, options)
     setmetatable(options, read_meta)
   end
 
-  local stream = Stream:new()
+  local stream = iStream:new()
   fs.open(path, options.flags, options.mode, function (err, fd)
     if err then return stream:emit("error", err) end
     local offset = options.offset
@@ -238,12 +237,6 @@ function fs.writeFile(path, data, callback)
   end)
 end
 
-local Watcher = Handle:extend()
-fs.Watcher = Watcher
-
-function Watcher:initialize(path)
-  self.userdata = uv.newFsWatcher(path)
-end
 
 return fs
 

@@ -15,37 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local uv = require('uv')
-local Handle = require('core').Handle
+
+local Timer = require('uv').Timer
+
 local timer = {}
-
-local Timer = Handle:extend()
-
-timer.Timer = Timer
-
-function Timer:initialize()
-  self.userdata = uv.newTimer()
-end
-
-function Timer:start(timeout, interval, callback)
-  return uv.timerStart(self.userdata, timeout, interval, callback)
-end
-
-function Timer:stop()
-  return uv.timerStop(self.userdata)
-end
-
-function Timer:again()
-  return uv.timerAgain(self.userdata)
-end
-
-function Timer:setRepeat(interval)
-  return uv.timerSetRepeat(self.userdata, interval)
-end
-
-function Timer:getRepeat()
-  return uv.timerGetRepeat(self.userdata)
-end
 
 function timer.setTimeout(duration, callback, ...)
   local args = {...}

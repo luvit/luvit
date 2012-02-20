@@ -93,8 +93,8 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_pushcfunction(L, luaopen_http_parser);
   lua_setfield(L, -2, "http_parser");
   /* Register uv */
-  lua_pushcfunction(L, luaopen_uv);
-  lua_setfield(L, -2, "uv");
+  lua_pushcfunction(L, luaopen_uv_native);
+  lua_setfield(L, -2, "uv_native");
   /* Register env */
   lua_pushcfunction(L, luaopen_env);
   lua_setfield(L, -2, "env");
@@ -153,7 +153,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 
 int luvit_run(lua_State *L) {
   return luaL_dostring(L, "\
-    local path = require('uv').execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/?.lua'\
+    local path = require('uv_native').execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/?.lua'\
     package.path = path .. ';' .. package.path\
     assert(require('luvit'))");
 }

@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local uv = require('uv')
+local native = require('uv_native')
 local constants = require('constants')
 local Error = require('core').Error
 local string = require('string')
@@ -24,35 +24,35 @@ local string = require('string')
 local dns = {}
 
 function dns.resolve4(domain, callback)
-  uv.dnsQueryA(domain, callback)
+  native.dnsQueryA(domain, callback)
 end
 
 function dns.resolve6(domain, callback)
-  uv.dnsQueryAaaa(domain, callback)
+  native.dnsQueryAaaa(domain, callback)
 end
 
 function dns.resolveCname(domain, callback)
-  uv.dnsQueryCname(domain, callback)
+  native.dnsQueryCname(domain, callback)
 end
 
 function dns.resolveNs(domain, callback)
-  uv.dnsQueryNs(domain, callback)
+  native.dnsQueryNs(domain, callback)
 end
 
 function dns.resolveSrv(domain, callback)
-  uv.dnsQuerySrv(domain, callback)
+  native.dnsQuerySrv(domain, callback)
 end
 
 function dns.resolveTxt(domain, callback)
-  uv.dnsQueryTxt(domain, callback)
+  native.dnsQueryTxt(domain, callback)
 end
 
 function dns.resolveMx(domain, callback)
-  uv.dnsQueryMx(domain, callback)
+  native.dnsQueryMx(domain, callback)
 end
 
 function dns.reverse(ip, callback)
-  uv.dnsGetHostByAddr(ip, callback)
+  native.dnsGetHostByAddr(ip, callback)
 end
 
 function dns.resolve(domain, rrtype, callback)
@@ -92,7 +92,7 @@ function dns.lookup(domain, family, callback)
     return
   end
 
-  uv.dnsGetAddrInfo(domain, family, function(err, addresses)
+  native.dnsGetAddrInfo(domain, family, function(err, addresses)
     if err then
       callback(err)
       return
@@ -106,15 +106,15 @@ function dns.lookup(domain, family, callback)
 end
 
 function dns.isIp(ip)
-  return uv.dnsIsIp(ip)
+  return native.dnsIsIp(ip)
 end
 
 function dns.isIpV4(ip)
-  return uv.dnsIsIpV4(ip)
+  return native.dnsIsIpV4(ip)
 end
 
 function dns.isIpV6(ip)
-  return uv.dnsIsIpV6(ip)
+  return native.dnsIsIpV6(ip)
 end
 
 return dns

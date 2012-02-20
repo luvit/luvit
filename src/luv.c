@@ -160,7 +160,7 @@ static const luaL_reg luv_f[] = {
 };
 
 
-LUALIB_API int luaopen_uv (lua_State* L) {
+LUALIB_API int luaopen_uv_native (lua_State* L) {
   int before = lua_gettop(L);
 
   /* metatable for handle userdata types */

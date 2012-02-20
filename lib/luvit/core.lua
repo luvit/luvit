@@ -16,7 +16,6 @@ limitations under the License.
 
 --]]
 
-local UV = require('uv')
 local table = require('table')
 
 --[[
@@ -193,73 +192,13 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-This class is never used directly, but is the inheritance chain of all libuv
-objects.
+This is an abstract interface that works like `core.Stream` but doesn't actually
+contain a uv struct (it's pure lua)
 ]]
-local Handle = Emitter:extend()
-core.Handle = Handle
+local iStream = Emitter:extend()
+core.iStream = iStream
 
--- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
-function Handle:close()
-  if not self.userdata then error("Can't call :close() on non-userdata objects") end
-  return UV.close(self.userdata)
-end
-
---[[
-This is used by Emitters to register with native events when the first listener
-is added.
-]]
-function Handle:addHandlerType(name)
-  if not self.userdata then return end
-  self:setHandler(name, function (...)
-    self:emit(name, ...)
-  end)
-end
-
---[[
-Set or replace the handler for a native event.  Usually `Emitter:on()` is what
-you want, not this.
-]]
-function Handle:setHandler(name, callback)
-  if not self.userdata then error("Can't call :setHandler() on non-userdata objects") end
-  return UV.setHandler(self.userdata, name, callback)
-end
-
---------------------------------------------------------------------------------
-
---[[
-This is never used directly.  If you want to create a pure Lua stream, subclass
-or instantiate `core.iStream`.
-]]
-local Stream = Handle:extend()
-core.Stream = Stream
-
-function Stream:shutdown(callback)
-  return UV.shutdown(self.userdata, callback)
-end
-
-function Stream:listen(callback)
-  return UV.listen(self.userdata, callback)
-end
-
-
-function Stream:accept(other_stream)
-  return UV.accept(self.userdata, other_stream)
-end
-
-function Stream:readStart()
-  return UV.readStart(self.userdata)
-end
-
-function Stream:readStop()
-  return UV.readStop(self.userdata)
-end
-
-function Stream:write(chunk, callback)
-  return UV.write(self.userdata, chunk, callback)
-end
-
-function Stream:pipe(target)
+function iStream:pipe(target)
   self:on('data', function (chunk, len)
     target:write(chunk)
   end)
@@ -267,17 +206,6 @@ function Stream:pipe(target)
     target:close()
   end)
 end
-
---------------------------------------------------------------------------------
-
---[[
-This is an abstract interface that works like `core.Stream` but doesn't actually
-contain a uv struct (it's pure lua)
-]]
-local iStream = Emitter:extend()
-core.iStream = iStream
-
---TODO: Implement this
 
 --------------------------------------------------------------------------------
 

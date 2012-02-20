@@ -132,6 +132,42 @@ function utils.dump(o, depth)
   return tostring(o)
 end
 
+-- Replace print
+function utils.print(...)
+  local n = select('#', ...)
+  local arguments = { ... }
+
+  for i = 1, n do
+    arguments[i] = tostring(arguments[i])
+  end
+
+  process.stdout:write(table.concat(arguments, "\t") .. "\n")
+end
+
+-- A nice global data dumper
+function utils.prettyPrint(...)
+  local n = select('#', ...)
+  local arguments = { ... }
+
+  for i = 1, n do
+    arguments[i] = utils.dump(arguments[i])
+  end
+
+  process.stdout:write(table.concat(arguments, "\t") .. "\n")
+end
+
+-- Like p, but prints to stderr using blocking I/O for better debugging
+function utils.debug(...)
+  local n = select('#', ...)
+  local arguments = { ... }
+
+  for i = 1, n do
+    arguments[i] = utils.dump(arguments[i])
+  end
+
+  process.stderr:write(table.concat(arguments, "\t") .. "\n")
+end
+
 function utils.bind(fun, self, ...)
   local bind_args = {...}
   return function(...)

@@ -18,7 +18,7 @@ limitations under the License.
 
 require("helper")
 
-local Tcp = require('tcp').Tcp
+local Tcp = require('uv').Tcp
 local net = require('net')
 
 local PORT = process.env.PORT or 10082

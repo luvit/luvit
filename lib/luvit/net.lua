@@ -17,7 +17,8 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
-local Tcp = require('tcp').Tcp
+local Tcp = require('uv').Tcp
+local Timer = require('uv').Timer
 local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
@@ -105,7 +106,7 @@ end
 function Socket:setTimeout(msecs, callback)
   callback = callback or function() end
   if not self._connectTimer then
-    self._connectTimer = timer.Timer:new()
+    self._connectTimer = Timer:new()
   end
 
   self._connectTimer:start(msecs, 0, function(status)
@@ -168,7 +169,7 @@ function Socket:connect(port, host, callback)
 end
 
 function Socket:initialize()
-  self._connectTimer = timer.Timer:new()
+  self._connectTimer = Timer:new()
   self._handle = Tcp:new()
   self.bytesWritten = 0
   self.bytesRead = 0

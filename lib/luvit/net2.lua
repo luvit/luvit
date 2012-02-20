@@ -20,7 +20,7 @@ local dns = require('dns')
 local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
-local Stream = require('core').Stream
+local Stream = require('uv').Stream
 
 --[[
 The `net` module provides you with an asynchronous network wrapper. It contains

@@ -15,50 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local uv = require('uv')
-local Pipe = require('pipe').Pipe
-local Handle = require('core').Handle
+local Process = require('uv').Process
 local table = require('table')
 
-local process = {}
+local childProcess = {}
 
-local Process = Handle:extend()
-process.Process = Process
-
-function Process:initialize(command, args, options)
-  self.stdin = Pipe:new(0)
-  self.stdout = Pipe:new(0)
-  self.stderr = Pipe:new(0)
-  args = args or {}
-  options = options or {}
-
-  self.userdata = uv.spawn(self.stdin, self.stdout, self.stderr, command, args, options)
-
-  self.stdout:readStart()
-  self.stderr:readStart()
-  self.stdout:on('end', function ()
-    self.stdout:close()
-  end)
-  self.stderr:on('end', function ()
-    self.stderr:close()
-  end)
-  self:on('exit', function ()
-    self.stdin:close()
-    self:close()
-  end)
-
-end
-
-function Process:kill(signal)
-  return uv.processKill(self.userdata, signal)
-end
-
-function process.spawn(command, args, options)
+function childProcess.spawn(command, args, options)
   return Process:new(command, args, options)
 end
 
-function process.execFile(command, args, options, callback)
-  local child = process.spawn(command, args, options)
+function childProcess.execFile(command, args, options, callback)
+  local child = childProcess.spawn(command, args, options)
   local stdout = {}
   local stderr = {}
   child.stdout:on('data', function (chunk)
@@ -73,5 +40,5 @@ function process.execFile(command, args, options, callback)
   end)
 end
 
-return process
+return childProcess
 

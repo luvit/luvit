@@ -18,7 +18,6 @@ limitations under the License.
 
 local FS = require('fs')
 local Path = require('path')
-local UV = require('uv')
 local Table = require('table')
 local ChildProcess = require('childprocess')
 
@@ -34,7 +33,7 @@ local function mapcat(array, fn, join)
   return Table.concat(map(array, fn), join or "")
 end
 
-local libdir = Path.join(Path.dirname(UV.execpath()), "../lib/luvit")
+local libdir = Path.join(Path.dirname(process.execPath), "../lib/luvit")
 
 local files = FS.readdirSync(libdir)
 local names = map(files, function (file)
