@@ -9,7 +9,7 @@
         'asm_format': 'machasm',
         'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
       }],
-      ['OS == "linux"', {
+      ['OS == "linux" or OS == "freebsd"', {
         'asm_format': 'elfasm',
         'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
       }]
@@ -46,7 +46,11 @@
       }],
       ['OS=="solaris"', {
         'cflags': ['-pthreads'],
-        'ldlags': ['-pthreads'],
+        'ldflags': ['-pthreads'],
+      }],
+      ['OS=="freebsd"', {
+        'cflags': ['-pthread'],
+        'ldflags': ['-pthread'],
       }],
       ],
     },
