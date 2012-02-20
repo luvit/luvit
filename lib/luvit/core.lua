@@ -192,7 +192,7 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-This is an abstract interface that works like `core.Stream` but doesn't actually
+This is an abstract interface that works like `uv.Stream` but doesn't actually
 contain a uv struct (it's pure lua)
 ]]
 local iStream = Emitter:extend()
