@@ -208,25 +208,20 @@ function Timer:initialize()
   self.userdata = native.newTimer()
 end
 
-function Timer:start(timeout, interval, callback)
-  return native.timerStart(self.userdata, timeout, interval, callback)
-end
+-- Timer:start(timeout, interval, callback)
+Timer.start = native.timerStart
 
-function Timer:stop()
-  return native.timerStop(self.userdata)
-end
+-- Timer:stop()
+Timer.stop = native.timerStop
 
-function Timer:again()
-  return native.timerAgain(self.userdata)
-end
+-- Timer:again()
+Timer.again = native.timerAgain
 
-function Timer:setRepeat(interval)
-  return native.timerSetRepeat(self.userdata, interval)
-end
+-- Timer:setRepeat(interval)
+Timer.setRepeat = native.timerSetRepeat
 
-function Timer:getRepeat()
-  return native.timerGetRepeat(self.userdata)
-end
+-- Timer:getRepeat()
+Timer.getRepeat = native.timerGetRepeat
 
 --------------------------------------------------------------------------------
 
