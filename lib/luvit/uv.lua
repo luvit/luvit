@@ -15,10 +15,8 @@ local Handle = Emitter:extend()
 uv.Handle = Handle
 
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
-function Handle:close()
-  if not self.userdata then error("Can't call :close() on non-userdata objects") end
-  return native.close(self.userdata)
-end
+-- Handle:close()
+Handle.close = native.close
 
 --[[
 This is used by Emitters to register with native events when the first listener
@@ -35,10 +33,8 @@ end
 Set or replace the handler for a native event.  Usually `Emitter:on()` is what
 you want, not this.
 ]]
-function Handle:setHandler(name, callback)
-  if not self.userdata then error("Can't call :setHandler() on non-userdata objects") end
-  return native.setHandler(self.userdata, name, callback)
-end
+-- Handle:setHandler(name, callback)
+Handle.setHandler = native.setHandler
 
 --------------------------------------------------------------------------------
 
@@ -49,30 +45,23 @@ or instantiate `core.iStream`.
 local Stream = Handle:extend()
 uv.Stream = Stream
 
-function Stream:shutdown(callback)
-  return native.shutdown(self.userdata, callback)
-end
+-- Stream:shutdown(callback)
+Stream.shutdown = native.shutdown
 
-function Stream:listen(callback)
-  return native.listen(self.userdata, callback)
-end
+-- Stream:listen(callback)
+Stream.listen = native.listen
 
+-- Stream:accept(other_stream)
+Stream.accept = native.accept
 
-function Stream:accept(other_stream)
-  return native.accept(self.userdata, other_stream)
-end
+-- Stream:readStart()
+Stream.readStart = native.readStart
 
-function Stream:readStart()
-  return native.readStart(self.userdata)
-end
+-- Stream:readStop()
+Stream.readStop = native.readStop
 
-function Stream:readStop()
-  return native.readStop(self.userdata)
-end
-
-function Stream:write(chunk, callback)
-  return native.write(self.userdata, chunk, callback)
-end
+-- Stream:write(chunk, callback)
+Stream.write = native.write
 
 Stream.pipe = iStream.pipe
 
@@ -85,37 +74,29 @@ function Tcp:initialize()
   self.userdata = native.newTcp()
 end
 
-function Tcp:nodelay(enable)
-  return native.tcpNodelay(self.userdata, enable)
-end
+-- Tcp:nodelay(enable)
+Tcp.nodelay = native.tcpNodelay
 
-function Tcp:keepalive(enable, delay)
-  return native.tcpKeepalive(self.userdata, enable, delay)
-end
+-- Tcp:keepalive(enable, delay)
+Tcp.keepalive = native.tcpKeepalive
 
-function Tcp:bind(host, port)
-  return native.tcpBind(self.userdata, host, port)
-end
+-- Tcp:bind(host, port)
+Tcp.bind = native.tcpBind
 
-function Tcp:bind6(host, port)
-  return native.tcpBind6(self.userdata, host, port)
-end
+-- Tcp:bind6(host, port)
+Tcp.bind6 = native.tcpBind6
 
-function Tcp:getsockname()
-  return native.tcpGetsockname(self.userdata)
-end
+-- Tcp:getsockname()
+Tcp.getsockname = native.tcpGetsockname
 
-function Tcp:getpeername()
-  return native.tcpGetpeername(self.userdata)
-end
+-- Tcp:getpeername()
+Tcp.getpeername = native.tcpGetpeername
 
-function Tcp:connect(ip_address, port)
-  return native.tcpConnect(self.userdata, ip_address, port)
-end
+-- Tcp:connect(ip_address, port)
+Tcp.connect = native.tcpConnect
 
-function Tcp:connect6(ip_address, port)
-  return native.tcpConnect6(self.userdata, ip_address, port)
-end
+-- Tcp:connect6(ip_address, port)
+Tcp.connect6 = native.tcpConnect6
 
 --------------------------------------------------------------------------------
 
