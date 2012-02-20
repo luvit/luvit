@@ -126,37 +126,29 @@ function Udp:initialize()
   self.userdata = native.newUdp()
 end
 
-function Udp:bind(host, port)
-  return native.udpBind(self.userdata, host, port)
-end
+-- Udp:bind(host, port)
+Udp.bind = native.udpBind
 
-function Udp:bind6(host, port)
-  return native.udpBind6(self.userdata, host, port)
-end
+-- Udp:bind6(host, port)
+Udp.bind6 = native.udpBind6
 
-function Udp:setMembership(multicast_addr, interface_addr, option)
-  return native.udpSetMembership(self.userdata, multicast_addr, interface_addr, option)
-end
+-- Udp:setMembership(multicast_addr, interface_addr, option)
+Udp.setMembership = native.udpSetMembership
 
-function Udp:getsockname()
-  return native.udpGetsockname(self.userdata)
-end
+-- Udp:getsockname()
+Udp.getsockname = native.udpGetsockname
 
-function Udp:send(...)
-  return native.udpSend(self.userdata, ...)
-end
+-- Udp:send(...)
+Udp.send = native.udpSend
 
-function Udp:send6(...)
-  return native.udpSend6(self.userdata, ...)
-end
+-- Udp:send6(...)
+Udp.send6 = native.udpSend6
 
-function Udp:recvStart()
-  return native.udpRecvStart(self.userdata)
-end
+-- Udp:recvStart()
+Udp.recvStart = native.udpRecvStart
 
-function Udp:recvStop()
-  return native.udpRecvStop(self.userdata)
-end
+-- Udp:recvStop()
+Udp.recvStop = native.udpRecvStop
 
 --------------------------------------------------------------------------------
 
@@ -167,17 +159,14 @@ function Pipe:initialize(ipc)
   self.userdata = native.newPipe(ipc and 1 or 0)
 end
 
-function Pipe:open(fd)
-  return native.pipeOpen(self.userdata, fd)
-end
+-- Pipe:open(fd)
+Pipe.open = native.pipeOpen
 
-function Pipe:bind(name)
-  return native.pipeBind(self.userdata, name)
-end
+-- Pipe:bind(name)
+Pipe.bind = native.pipeBind
 
-function Pipe:connect(name)
-  return native.pipeConnect(self.userdata, name)
-end
+-- Pipe:connect(name)
+Pipe.connect = native.pipeConnect
 
 --------------------------------------------------------------------------------
 
@@ -188,13 +177,11 @@ function Tty:initialize(fd, readable)
   self.userdata = native.newTty(fd, readable)
 end
 
-function Tty:setMode(mode)
-  return native.ttySetMode(self.userdata, mode)
-end
+-- Tty:setMode(mode)
+Tty.setMode = native.ttySetMode
 
-function Tty:getWinsize()
-  return native.ttyGetWinsize(self.userdata)
-end
+-- Tty:getWinsize()
+Tty.getWinsize = native.ttyGetWinsize
 
 Tty.resetMode = native.ttyResetMode
 
@@ -252,9 +239,8 @@ function Process:initialize(command, args, options)
 
 end
 
-function Process:kill(signal)
-  return native.processKill(self.userdata, signal)
-end
+-- Process:kill(signal)
+Process.kill = native.processKill
 
 --------------------------------------------------------------------------------
 
