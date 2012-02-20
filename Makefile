@@ -176,5 +176,5 @@ tarball:
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install all api bundle tarball
+.PHONY: test install all api.markdown bundle tarball
 
