@@ -35,10 +35,9 @@ if command == "--libs" then
   print(Table.concat(flags, " "))
 elseif command == "--cflags" then
   local Path = require('path')
-  local UV = require('uv')
   local Fs = require('fs')
   -- calculate includes relative to the binary
-  local include_dir = Path.resolve(Path.dirname(UV.execpath()), "../include/luvit")
+  local include_dir = Path.resolve(Path.dirname(process.execPath), "../include/luvit")
   -- if not found...
   if not Fs.existsSync(include_dir) then
     -- calculate includes relative to the symlink to the binary
