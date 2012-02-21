@@ -34,6 +34,14 @@ local function printResults(results)
   print(table.concat(results, '\t'))
 end
 
+function repl.useColors(colors)
+  if colors then
+    c = utils.color
+  else
+    c = function (x) return "" end
+  end
+end
+
 local buffer = ''
 
 function repl.evaluateLine(line)
@@ -75,7 +83,9 @@ function repl.evaluateLine(line)
   return '>'
 end
 
-repl.colored_name = c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c()
+repl.colored_name = function()
+  return c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c()
+end
 
 function repl.start()
   --_oldprint("repl.start")
@@ -84,8 +94,7 @@ function repl.start()
     process.stdout:write(prompt .. ' ', noop)
   end
 
-
-  print(c("Bwhite") .. "Welcome to the " .. repl.colored_name .. c("Bwhite") .. " repl" .. c())
+  print(c("Bwhite") .. "Welcome to the " .. repl.colored_name() .. c("Bwhite") .. " repl" .. c())
 
   displayPrompt '>'
 
