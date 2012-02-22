@@ -157,15 +157,16 @@ end
 
 
 local function usage()
-  print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]")
-  print("")
-  print("Options:")
-  print("  -h, --help          Print this help screen.")
-  print("  -v, --version       Print the version.")
-  print("  -e code_chunk       Evaluate code chunk and print result.")
-  print("  -i, --interactive   Enter interactive repl after executing script.")
-  print("                      (Note, if no script is provided, a repl is run instead.)")
-  print("")
+  print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]"..[[
+
+
+Options:
+  -h, --help          Print this help screen.
+  -v, --version       Print the version.
+  -e code_chunk       Evaluate code chunk and print result.
+  -i, --interactive   Enter interactive repl after executing script.
+  -n, --no-color      Disable colors.
+                      (Note, if no script is provided, a repl is run instead.)]])
 end
 
 local realAssert = assert
@@ -178,12 +179,12 @@ end
 assert(xpcall(function ()
 
   local interactive = false
+  local usecolors = true
   local showrepl = true
   local file
   local state = "BEGIN"
   local to_eval = {}
   local args = {[0]=process.argv[0]}
-
 
   for i, value in ipairs(process.argv) do
     if state == "BEGIN" then
@@ -198,6 +199,8 @@ assert(xpcall(function ()
         showrepl = false
       elseif value == "-i" or value == "--interactive" then
         interactive = true
+      elseif value == "-n" or value == "--no-color" then
+        usecolors = false
       elseif value:sub(1, 1) == "-" then
         usage()
         process.exit(1)
@@ -222,6 +225,11 @@ assert(xpcall(function ()
   process.argv = args
   
   local repl = require('repl')
+  utils.useColors = usecolors
+
+  -- if not (native.handleType(1) == "TTY") then
+  --  utils.useColors = false
+  -- end
 
   for i, value in ipairs(to_eval) do
     repl.evaluateLine(value)
@@ -248,6 +256,3 @@ end, traceback))
 native.run()
 -- trigger exit handlers and exit cleanly
 process.exit(0)
-
-
-
