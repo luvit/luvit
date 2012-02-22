@@ -7,7 +7,7 @@
   'targets': [
     {
       'target_name': 'yajl',
-      'type': '<(library)',
+      'type': 'static_library',
       'sources': [
         'yajl/src/yajl.c',
         'yajl/src/yajl_alloc.c',
