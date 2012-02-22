@@ -223,13 +223,13 @@ assert(xpcall(function ()
   end
 
   process.argv = args
-  
+
   local repl = require('repl')
   utils.useColors = usecolors
 
-  -- if not (native.handleType(1) == "TTY") then
-  --  utils.useColors = false
-  -- end
+  if not (native.handleType(1) == "TTY") then
+   utils.useColors = false
+  end
 
   for i, value in ipairs(to_eval) do
     repl.evaluateLine(value)
