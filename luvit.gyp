@@ -4,13 +4,16 @@
      'type': 'static_library',
      'dependencies': [
        'deps/http-parser/http_parser.gyp:http_parser',
-       'deps/luajit.gyp:*',
+       'deps/luajit.gyp:luajit',
+       'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
+       'deps/yajl.gyp:copy_headers',
        'deps/uv/uv.gyp:uv',
      ],
      'export_dependent_settings': [
        'deps/http-parser/http_parser.gyp:http_parser',
-       'deps/luajit.gyp:*',
+       'deps/luajit.gyp:luajit',
+       'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/uv/uv.gyp:uv',
       ],
