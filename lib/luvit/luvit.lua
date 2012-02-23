@@ -237,6 +237,9 @@ assert(xpcall(function ()
   end
 
   if interactive or showrepl then
+    if OS_BINDING.type() == "win32" then
+      native.ref()
+    end
     repl.start()
   end
 
