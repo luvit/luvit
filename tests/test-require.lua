@@ -17,14 +17,19 @@ limitations under the License.
 --]]
 
 require("helper")
+local path = require("path")
 
 _G.num_loaded = 0
 local m1 = require("module1")
-local m1_m2 = require("module1/module2")
-local m2_m2 = require("module2/module2")
-local rm1 = require("./modules/module1")
-local rm1_m2 = require("./modules/module1/module2")
-local rm2_m2 = require("./modules/module2/module2")
+local m1_m2 = require(path.join("module1", "module2"))
+local m1_m2 = require(path.join("module1", "module2"))
+local m1_m2 = require(path.join("module1", "module2"))
+local m2_m2 = require(path.join("module2", "module2"))
+local rm1 = require(path.join(".", "modules", "module1"))
+local rm1_m2 = require(path.join(".", "modules", "module1", "module2"))
+local rm2_m2 = require(path.join(".", "modules", "module2", "module2"))
+
+printStderr("require: " .. tostring(require))
 
 p(m1, m1_m2, m2_m2)
 p(rm1, rm1_m2, rm2_m2)
@@ -44,7 +49,7 @@ assert(vectors[1] == vectors[2], "Symlinks should realpath and load real module 
 -- Test to make sure dashes are allowed and the same file is cached no matter how it's found
 local libluvits = {
   require('lib-luvit'),
-  require('./modules/lib-luvit'),
+  require(path.join('.', 'modules', 'lib-luvit')),
 }
 assert(libluvits[1] == libluvits[2], "Module search and relative should share same cache")
 

@@ -88,7 +88,7 @@ function path.normalize(filepath)
 end
 
 function path.join(...)
-  return path.normalize(table.concat({...}, path.sep))
+  return table.concat({...}, path.sep)
 end
 
 function path.resolve(root, filepath)
