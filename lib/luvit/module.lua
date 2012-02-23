@@ -124,7 +124,6 @@ local function loadModule(filepath, verbose)
   return "\n\tCannot find module " .. filepath
 end
 
--- Remove the cwd based loaders, we don't want them
 local builtinLoader = package.loaders[1]
 local base_path = process.cwd()
 local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. ']+' ..path.sep.. '[^' ..path.sep.. ']+$') ..path.sep.. 'lib' ..path.sep.. 'luvit' ..path.sep
@@ -175,7 +174,6 @@ function module.require(filepath, dirname)
   -- Bundled path modules
   local dir = dirname .. path.sep
   repeat
-    dir = path.dirname(dir)
     local full_path = path.join(dir, "modules", filepath)
     local loader = loadModule(full_path)
     if type(loader) == "function" then
@@ -183,12 +181,14 @@ function module.require(filepath, dirname)
     else
       errors[#errors + 1] = loader
     end
+    dir = path.dirname(dir)
   until dir == "."
 
   error("Failed to find module '" .. filepath .."'" .. table.concat(errors, ""))
 
 end
 
+-- Remove the cwd based loaders, we don't want them
 package.loaders = nil
 package.path = nil
 package.cpath = nil
