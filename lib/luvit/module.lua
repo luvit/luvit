@@ -18,6 +18,7 @@ limitations under the License.
 
 local fs = require('fs')
 local path = require('path')
+local table = require('table')
 
 
 local module = {}
