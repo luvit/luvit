@@ -16,6 +16,13 @@ limitations under the License.
 
 --]]
 
+local os = require("os")
+
+if (os.type() == "win32") then
+  print("buffer is broken on win32, need to not ffi into malloc")
+  return
+end
+
 require("helper")
 local Buffer = require('buffer').Buffer
 
