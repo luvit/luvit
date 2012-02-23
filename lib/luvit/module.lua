@@ -126,14 +126,14 @@ end
 -- Remove the cwd based loaders, we don't want them
 local builtinLoader = package.loaders[1]
 local base_path = process.cwd()
-local libpath = process.execPath:match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/'
+local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. ']+' ..path.sep.. '[^' ..path.sep.. ']+$') ..path.sep.. 'lib' ..path.sep.. 'luvit' ..path.sep
 function module.require(filepath, dirname)
   if not dirname then dirname = base_path end
 
   -- Absolute and relative required modules
-  local first = filepath:sub(1, 1)
+  local first = filepath:sub(1, 2)
   local absolute_path
-  if first == "/" then
+  if first == "c:" then
     absolute_path = path.normalize(filepath)
   elseif first == "." then
     absolute_path = path.join(dirname, filepath)
@@ -173,17 +173,17 @@ function module.require(filepath, dirname)
   end
 
   -- Bundled path modules
-  local dir = dirname .. "/"
+  local dir = dirname .. path.sep
   repeat
-    dir = dir:sub(1, dir:find("/[^/]*$") - 1)
-    local full_path = dir .. "/modules/" .. filepath
-    local loader = loadModule(dir .. "/modules/" .. filepath)
+    dir = path.dirname(dir)
+    local full_path = path.join(dir, modules, filepath)
+    local loader = loadModule(full_path)
     if type(loader) == "function" then
       return loader()
     else
       errors[#errors + 1] = loader
     end
-  until #dir == 0
+  until dir == "."
 
   error("Failed to find module '" .. filepath .."'" .. table.concat(errors, ""))
 

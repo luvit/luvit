@@ -151,9 +151,16 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   return 0;
 }
 
+#ifdef _WIN32
+  #define SEP "\\\\"
+#else
+  #define SEP "/"
+#endif
+
+
 int luvit_run(lua_State *L) {
   return luaL_dostring(L, "\
-    local path = require('uv_native').execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/?.lua'\
+    local path = require('uv_native').execpath():match('^(.*)"SEP"[^"SEP"]+"SEP"[^"SEP"]+$') .. '"SEP"lib"SEP"luvit"SEP"?.lua'\
     package.path = path .. ';' .. package.path\
     assert(require('luvit'))");
 }
