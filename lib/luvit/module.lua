@@ -176,7 +176,7 @@ function module.require(filepath, dirname)
   local dir = dirname .. path.sep
   repeat
     dir = path.dirname(dir)
-    local full_path = path.join(dir, modules, filepath)
+    local full_path = path.join(dir, "modules", filepath)
     local loader = loadModule(full_path)
     if type(loader) == "function" then
       return loader()
