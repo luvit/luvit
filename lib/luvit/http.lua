@@ -380,7 +380,7 @@ function http.request(options, callback)
   return client
 end
 
-function http.createServer(host, port, onConnection)
+function http.createServer(onConnection)
   local server
   server = net.createServer(function(client)
     if err then
@@ -487,8 +487,6 @@ function http.createServer(host, port, onConnection)
     end)
 
   end)
-
-  server:listen(port, host)
 
   return server
 end
