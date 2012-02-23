@@ -19,9 +19,15 @@ limitations under the License.
 require("helper")
 
 local path = require('path')
+local os = require('os')
 
 -- test `path.dirname`
-assert(path.dirname('/usr/bin/vim') == '/usr/bin')
-assert(path.dirname('/usr/bin/') == '/usr')
-assert(path.dirname('/usr/bin') == '/usr')
-
+if (os.type() ~= "win32") then
+  assert(path.dirname('/usr/bin/vim') == '/usr/bin')
+  assert(path.dirname('/usr/bin/') == '/usr')
+  assert(path.dirname('/usr/bin') == '/usr')
+else
+  assert(path.dirname('C:\\Users\\philips\\vim.exe') == 'C:\\Users\\philips')
+  assert(path.dirname('C:\\Users\\philips\\') == 'C:\\Users')
+  assert(path.dirname('C:\\Users\\philips\\') == 'C:\\Users')
+end

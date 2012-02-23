@@ -109,16 +109,16 @@ local function loadModule(filepath, verbose)
   end
 
   -- Then, look for module/package.lua config file
-  if fs.existsSync(filepath .. "/package.lua") then
-    local metadata = loadModule(filepath .. "/package.lua")()
+  if fs.existsSync(path.join(filepath, "package.lua")) then
+    local metadata = loadModule(path.join(filepath, "package.lua"))()
     if metadata.main then
       return loadModule(path.join(filepath, metadata.main))
     end
   end
 
   -- Try to load as either lua script or binary extension
-  local fn = myloadfile(filepath .. ".lua") or myloadfile(filepath .. "/init.lua")
-          or myloadlib(filepath .. ".luvit") or myloadlib(filepath .. "/init.luvit")
+  local fn = myloadfile(filepath .. ".lua") or myloadfile(path.join(filepath, "init.lua"))
+          or myloadlib(filepath .. ".luvit") or myloadlib(path.join(filepath, "init.luvit"))
   if fn then return fn end
 
   return "\n\tCannot find module " .. filepath
