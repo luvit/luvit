@@ -30,18 +30,16 @@ require = require('module').require
 local Emitter = require('core').Emitter
 local env = require('env')
 local constants = require('constants')
-local Tty = require('uv').Tty
+local uv = require('uv')
 local utils = require('utils')
 
 setmetatable(process, Emitter.meta)
 
 -- Replace lua's stdio with luvit's
 -- leave stderr using lua's blocking implementation
-process.stdin = Tty:new(0)
-native.unref()
-process.stdout = Tty:new(1)
-native.unref()
-process.stderr = io.stderr
+process.stdin = uv.createReadableStdioStream(0)
+process.stdout = uv.createWriteableStdioStream(1)
+process.stderr = uv.createWriteableStdioStream(2)
 
 -- clear some globals
 -- This will break lua code written for other lua runtimes
@@ -135,7 +133,7 @@ OS_BINDING.time = OLD_OS.time
 
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
 -- These shouldn't hold open the event loop
-if luvit_os ~= "win" then
+if OS_BINDING.type() ~= "win32" then
   native.activateSignalHandler(constants.SIGPIPE)
   native.unref()
   native.activateSignalHandler(constants.SIGINT)
@@ -247,6 +245,9 @@ assert(xpcall(function ()
   end
 
   if interactive or showrepl then
+    if OS_BINDING.type() == "win32" then
+      native.ref()
+    end
     repl.start()
   end
 
