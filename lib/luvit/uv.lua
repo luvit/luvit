@@ -234,9 +234,12 @@ uv.createReadableStdioStream = function(fd)
 end
 
 function Process:initialize(command, args, options)
-  self.stdin = Pipe:new(0)
-  self.stdout = Pipe:new(1)
-  self.stderr = Pipe:new(2)
+  self.stdin = Pipe:new(nil)
+  self.stdin:open(0)
+  self.stdout = Pipe:new(nil)
+  self.stdin:open(1)
+  self.stderr = Pipe:new(nil)
+  self.stdin:open(2)
   args = args or {}
   options = options or {}
 
