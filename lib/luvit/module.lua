@@ -132,11 +132,10 @@ function module.require(filepath, dirname)
   if not dirname then dirname = base_path end
 
   -- Absolute and relative required modules
-  local first = filepath:sub(1, 2)
   local absolute_path
-  if first == "c:" then
+  if filepath:sub(1, path.root:len()) == path.root then
     absolute_path = path.normalize(filepath)
-  elseif first == "." then
+  elseif filepath:sub(1, 1) == "." then
     absolute_path = path.join(dirname, filepath)
   end
   if absolute_path then
