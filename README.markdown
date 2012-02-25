@@ -12,14 +12,14 @@ This project is still under heavy development, but it's showing promise.  In ini
 local HTTP = require("http")
 
 -- Create a simple nodeJS style hello-world server
-HTTP.createServer("0.0.0.0", 8080, function (req, res)
+HTTP.createServer(function (req, res)
   local body = "Hello World\n"
   res:writeHead(200, {
     ["Content-Type"] = "text/plain",
     ["Content-Length"] = #body
   })
   res:finish(body)
-end)
+end):listen(8080)
 
 -- Give a friendly message
 print("Server listening at http://localhost:8080/")
