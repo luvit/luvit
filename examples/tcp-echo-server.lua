@@ -1,36 +1,13 @@
 local net = require('net')
 
-local server = net.createServer(function (client)
-  p("on_connection", client)
+net.createServer(function (client)
 
-  print("Adding listener for data events")
-  client:on("data", function (chunk)
-    p("on_read", chunk)
+  -- Echo everything the client says back to itself
+  client:pipe(client)
 
-    print("Sending chunk back to client")
-    client:write(chunk, function (err)
-      p("on_written", err)
-    end)
+  -- Also log it to the server's stdout
+  client:pipe(process.stdout)
 
-  end)
-
-  print("Adding listener for close event")
-  client:on("end", function ()
-    p("on_end")
-
-    print("Closing connection")
-    client:close(function ()
-      p("on_closed")
-    end)
-  end)
-
-end)
-
-server:listen(8080, '0.0.0.0', function(err)
-  print("TCP echo server listening on port 8080")
-end)
-
-print("Listening for errors in the server")
-server:on("error", function (err)
-  p("ERROR", err)
-end)
+end):listen(8080)
+     
+print("TCP echo server listening on port 8080")
