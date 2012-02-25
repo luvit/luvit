@@ -6,7 +6,7 @@ Luvit is an attempt to do something crazy by taking node.js' awesome architectur
 
 This project is still under heavy development, but it's showing promise. In initial benchmarking with a hello world server, this is between 2 and 4 times faster than node.js. Version 0.2.0 is the first stable release.
 
-Do you have a question/want to learn more? Make sure to check out the mailing list and drop by our IRC channel, #luvit on Freenode.
+Do you have a question/want to learn more? Make sure to check out the [mailing list](http://groups.google.com/group/luvit/) and drop by our IRC channel, #luvit on Freenode.
 
 ```lua
 -- Load the http library
