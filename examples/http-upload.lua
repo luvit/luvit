@@ -2,7 +2,7 @@ local http = require("http")
 local utils = require("utils")
 local table = require("table")
 
-http.createServer("0.0.0.0", 8080, function (req, res)
+http.createServer(function (req, res)
   p("on_request", req)
   local chunks = {}
   local length = 0
@@ -22,7 +22,7 @@ http.createServer("0.0.0.0", 8080, function (req, res)
     res:finish(body)
   end)
     
-end)
+end):listen(8080)
 
 print("Server listening at http://localhost:8080/")
 

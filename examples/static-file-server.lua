@@ -2,10 +2,10 @@ local mime = require('mime')
 local http = require('http')
 local url = require('url')
 local fs = require('fs')
-local Response = require('response')
+local Response = require('http').Response
 
 -- Monkey patch in a helper
-function Response.prototype:notFound(reason)
+function Response:notFound(reason)
   self:writeHead(404, {
     ["Content-Type"] = "text/plain",
     ["Content-Length"] = #reason
@@ -15,7 +15,7 @@ function Response.prototype:notFound(reason)
 end
 
 -- Monkey patch in another
-function Response.prototype:error(reason)
+function Response:error(reason)
   self:writeHead(500, {
     ["Content-Type"] = "text/plain",
     ["Content-Length"] = #reason
@@ -25,7 +25,7 @@ function Response.prototype:error(reason)
 end
 
 local root = "."
-http.createServer("0.0.0.0", 8080, function(req, res)
+http.createServer(function(req, res)
   req.uri = url.parse(req.url)
   local path = root .. req.uri.pathname
   fs.stat(path, function (err, stat)
@@ -48,6 +48,6 @@ http.createServer("0.0.0.0", 8080, function(req, res)
 
   end)
 
-end)
+end):listen(8080)
 
 print("Http static file server listening at http://localhost:8080/")
