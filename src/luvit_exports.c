@@ -11,7 +11,6 @@ extern const char **luaJIT_BC_utils;
 extern const char **luaJIT_BC_mime;
 extern const char **luaJIT_BC_timer;
 extern const char **luaJIT_BC_path;
-extern const char **luaJIT_BC_net2;
 extern const char **luaJIT_BC_stack;
 extern const char **luaJIT_BC_repl;
 extern const char **luaJIT_BC_buffer;
@@ -37,7 +36,6 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const char *)luaJIT_BC_mime +
     (size_t)(const char *)luaJIT_BC_timer +
     (size_t)(const char *)luaJIT_BC_path +
-    (size_t)(const char *)luaJIT_BC_net2 +
     (size_t)(const char *)luaJIT_BC_stack +
     (size_t)(const char *)luaJIT_BC_repl +
     (size_t)(const char *)luaJIT_BC_buffer +
