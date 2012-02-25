@@ -25,7 +25,7 @@ local PORT = process.env.PORT or 10080
 local server = nil
 local client = nil
 
-server = http.createServer(HOST, PORT, function(request, response)
+server = http.createServer(function(request, response)
   p('server:onConnection')
   p(request)
   assert(request.method == "GET")
@@ -38,14 +38,13 @@ server = http.createServer(HOST, PORT, function(request, response)
   server:close()
 end)
 
-http.request(
-  {
+server:listen(PORT, HOST, function()
+  http.request({
     host = HOST,
     port = PORT,
     path = "/foo",
     headers = {bar = "cats"}
-  },
-  function(response)
+  }, function(response)
     p('client:onResponse')
     p(response)
     assert(response.status_code == 200)
@@ -53,4 +52,6 @@ http.request(
     assert(response.version_minor == 1)
     -- TODO: fix refcount so this isn't needed.
     process.exit()
+  end)
 end)
+

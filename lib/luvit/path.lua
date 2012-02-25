@@ -16,16 +16,25 @@ limitations under the License.
 
 --]]
 
+local os = require('os_binding')
 local table = require('table')
 local path = {}
+
+if os.type() == "win32" then
+  path.sep = "\\"
+  path.root = "c:"
+else
+  path.sep = "/"
+  path.root = "/"
+end
 
 -- Split a filename into [root, dir, basename], unix version
 -- 'root' is just a slash, or nothing.
 local function splitPath(filename)
   local root, dir, basename
-  local i, j = filename:find("[^/]*$")
-  if filename:sub(1, 1) == "/" then
-    root = "/"
+  local i, j = filename:find("[^" .. path.sep .. "]*$")
+  if filename:sub(1, 1) == path.sep then
+    root = path.root
     dir = filename:sub(2, i - 1)
   else
     root = ""
@@ -53,44 +62,44 @@ local function normalizeArray(parts)
 end
 
 function path.normalize(filepath)
-  local is_absolute = filepath:sub(1, 1) == "/"
-  local trailing_slash = filepath:sub(#filepath) == "/"
+  local is_absolute = filepath:sub(1, 1) == path.sep
+  local trailing_slash = filepath:sub(#filepath) == path.sep
 
   local parts = {}
-  for part in filepath:gmatch("[^/]+") do
+  for part in filepath:gmatch("[^" .. path.sep .. "]+") do
     parts[#parts + 1] = part
   end
   normalizeArray(parts)
-  filepath = table.concat(parts, "/")
+  filepath = table.concat(parts, path.sep)
 
   if #filepath == 0 then
     if is_absolute then
-      return "/"
+      return path.sep
     end
     return "."
   end
   if trailing_slash then
-    filepath = filepath .. "/"
+    filepath = filepath .. path.sep
   end
   if is_absolute then
-    filepath = "/" .. filepath
+    filepath = path.sep .. filepath
   end
   return filepath
 end
 
 function path.join(...)
-  return path.normalize(table.concat({...}, "/"))
+  return table.concat({...}, path.sep)
 end
 
 function path.resolve(root, filepath)
-  if filepath:sub(1, 1) == "/" then
+  if filepath:sub(1, path.root:len()) == path.root then
     return path.normalize(filepath)
   end
   return path.join(root, filepath)
 end
 
 function path.dirname(filepath)
-  if filepath:sub(filepath:len()) == "/" then
+  if filepath:sub(filepath:len()) == path.sep then
     filepath = filepath:sub(1, -2)
   end
 
@@ -108,7 +117,7 @@ function path.dirname(filepath)
 end
 
 function path.basename(filepath, expected_ext)
-  return filepath:match("[^/]+$") or ""
+  return filepath:match("[^" .. path.sep .. "]+$") or ""
 end
 
 function path.extname(filepath)

@@ -60,6 +60,7 @@
       'target_name': 'luajit',
       'type': 'executable',
       'dependencies': [
+        'buildvm',
         'libluajit',
         'luajit-datafiles',
       ],
@@ -95,7 +96,7 @@
           { 'type': 'static_library' } ],
       ],
       'dependencies': [
-        'buildvm#host',
+        'buildvm',
       ],
       'variables': {
         'lj_sources': [
@@ -251,7 +252,6 @@
     {
       'target_name': 'buildvm',
       'type': 'executable',
-      'toolsets': ['host'],
       'sources': [
         'luajit/src/buildvm.c',
         'luajit/src/buildvm_asm.c',

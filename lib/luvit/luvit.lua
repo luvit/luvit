@@ -30,18 +30,16 @@ require = require('module').require
 local Emitter = require('core').Emitter
 local env = require('env')
 local constants = require('constants')
-local Tty = require('uv').Tty
+local uv = require('uv')
 local utils = require('utils')
 
 setmetatable(process, Emitter.meta)
 
 -- Replace lua's stdio with luvit's
 -- leave stderr using lua's blocking implementation
-process.stdin = Tty:new(0)
-native.unref()
-process.stdout = Tty:new(1)
-native.unref()
-process.stderr = io.stderr
+process.stdin = uv.createReadableStdioStream(0)
+process.stdout = uv.createWriteableStdioStream(1)
+process.stderr = uv.createWriteableStdioStream(2)
 
 -- clear some globals
 -- This will break lua code written for other lua runtimes
@@ -135,7 +133,7 @@ OS_BINDING.time = OLD_OS.time
 
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
 -- These shouldn't hold open the event loop
-if luvit_os ~= "win" then
+if OS_BINDING.type() ~= "win32" then
   native.activateSignalHandler(constants.SIGPIPE)
   native.unref()
   native.activateSignalHandler(constants.SIGINT)
@@ -157,15 +155,16 @@ end
 
 
 local function usage()
-  print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]")
-  print("")
-  print("Options:")
-  print("  -h, --help          Print this help screen.")
-  print("  -v, --version       Print the version.")
-  print("  -e code_chunk       Evaluate code chunk and print result.")
-  print("  -i, --interactive   Enter interactive repl after executing script.")
-  print("                      (Note, if no script is provided, a repl is run instead.)")
-  print("")
+  print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]"..[[
+
+
+Options:
+  -h, --help          Print this help screen.
+  -v, --version       Print the version.
+  -e code_chunk       Evaluate code chunk and print result.
+  -i, --interactive   Enter interactive repl after executing script.
+  -n, --no-color      Disable colors.
+                      (Note, if no script is provided, a repl is run instead.)]])
 end
 
 local realAssert = assert
@@ -178,12 +177,12 @@ end
 assert(xpcall(function ()
 
   local interactive = false
+  local usecolors = true
   local showrepl = true
   local file
   local state = "BEGIN"
   local to_eval = {}
   local args = {[0]=process.argv[0]}
-
 
   for i, value in ipairs(process.argv) do
     if state == "BEGIN" then
@@ -198,6 +197,8 @@ assert(xpcall(function ()
         showrepl = false
       elseif value == "-i" or value == "--interactive" then
         interactive = true
+      elseif value == "-n" or value == "--no-color" then
+        usecolors = false
       elseif value:sub(1, 1) == "-" then
         usage()
         process.exit(1)
@@ -220,8 +221,13 @@ assert(xpcall(function ()
   end
 
   process.argv = args
-  
+
   local repl = require('repl')
+  utils.useColors = usecolors
+
+  if not (native.handleType(1) == "TTY") then
+   utils.useColors = false
+  end
 
   for i, value in ipairs(to_eval) do
     repl.evaluateLine(value)
@@ -239,6 +245,9 @@ assert(xpcall(function ()
   end
 
   if interactive or showrepl then
+    if OS_BINDING.type() == "win32" then
+      native.ref()
+    end
     repl.start()
   end
 
@@ -248,6 +257,3 @@ end, traceback))
 native.run()
 -- trigger exit handlers and exit cleanly
 process.exit(0)
-
-
-

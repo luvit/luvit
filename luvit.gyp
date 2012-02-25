@@ -4,13 +4,16 @@
      'type': 'static_library',
      'dependencies': [
        'deps/http-parser/http_parser.gyp:http_parser',
-       'deps/luajit.gyp:*',
+       'deps/luajit.gyp:luajit',
+       'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
+       'deps/yajl.gyp:copy_headers',
        'deps/uv/uv.gyp:uv',
      ],
      'export_dependent_settings': [
        'deps/http-parser/http_parser.gyp:http_parser',
-       'deps/luajit.gyp:*',
+       'deps/luajit.gyp:luajit',
+       'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/uv/uv.gyp:uv',
       ],
@@ -52,18 +55,17 @@
        'lib/luvit/json.lua',
        'lib/luvit/luvit.lua',
        'lib/luvit/mime.lua',
+       'lib/luvit/module.lua',
        'lib/luvit/net.lua',
+       'lib/luvit/net2.lua',
        'lib/luvit/path.lua',
-       'lib/luvit/pipe.lua',
        'lib/luvit/querystring.lua',
        'lib/luvit/repl.lua',
        'lib/luvit/stack.lua',
-       'lib/luvit/tcp.lua',
        'lib/luvit/timer.lua',
-       'lib/luvit/tty.lua',
-       'lib/luvit/udp.lua',
        'lib/luvit/url.lua',
        'lib/luvit/utils.lua',
+       'lib/luvit/uv.lua',
      ],
      'defines': [
        'LUVIT_OS="<(OS)"',
@@ -125,7 +127,7 @@
           'defines': [ '_GNU_SOURCE' ]
         }],
       ],
-      'defines': [ 'BUNDLE=1']
+      'defines': [ 'BUNDLE=1' ]
     },
     {
       'target_name': 'vector_luvit',

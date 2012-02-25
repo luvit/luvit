@@ -39,8 +39,14 @@ local colors = {
   Bwhite   = "1;37"
 }
 
+utils.useColors = true
+
 function utils.color(color_name)
-  return "\27[" .. (colors[color_name] or "0") .. "m"
+  if utils.useColors then
+    return "\27[" .. (colors[color_name] or "0") .. "m"
+  else
+    return ""
+  end
 end
 
 function utils.colorize(color_name, string, reset_name)

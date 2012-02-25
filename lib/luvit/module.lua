@@ -18,6 +18,7 @@ limitations under the License.
 
 local fs = require('fs')
 local path = require('path')
+local table = require('table')
 
 
 local module = {}
@@ -108,34 +109,32 @@ local function loadModule(filepath, verbose)
   end
 
   -- Then, look for module/package.lua config file
-  if fs.existsSync(filepath .. "/package.lua") then
-    local metadata = loadModule(filepath .. "/package.lua")()
+  if fs.existsSync(path.join(filepath, "package.lua")) then
+    local metadata = loadModule(path.join(filepath, "package.lua"))()
     if metadata.main then
       return loadModule(path.join(filepath, metadata.main))
     end
   end
 
   -- Try to load as either lua script or binary extension
-  local fn = myloadfile(filepath .. ".lua") or myloadfile(filepath .. "/init.lua")
-          or myloadlib(filepath .. ".luvit") or myloadlib(filepath .. "/init.luvit")
+  local fn = myloadfile(filepath .. ".lua") or myloadfile(path.join(filepath, "init.lua"))
+          or myloadlib(filepath .. ".luvit") or myloadlib(path.join(filepath, "init.luvit"))
   if fn then return fn end
 
   return "\n\tCannot find module " .. filepath
 end
 
--- Remove the cwd based loaders, we don't want them
 local builtinLoader = package.loaders[1]
 local base_path = process.cwd()
-local libpath = process.execPath:match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/'
+local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. ']+' ..path.sep.. '[^' ..path.sep.. ']+$') ..path.sep.. 'lib' ..path.sep.. 'luvit' ..path.sep
 function module.require(filepath, dirname)
   if not dirname then dirname = base_path end
 
   -- Absolute and relative required modules
-  local first = filepath:sub(1, 1)
   local absolute_path
-  if first == "/" then
+  if filepath:sub(1, path.root:len()) == path.root then
     absolute_path = path.normalize(filepath)
-  elseif first == "." then
+  elseif filepath:sub(1, 1) == "." then
     absolute_path = path.join(dirname, filepath)
   end
   if absolute_path then
@@ -173,22 +172,23 @@ function module.require(filepath, dirname)
   end
 
   -- Bundled path modules
-  local dir = dirname .. "/"
+  local dir = dirname .. path.sep
   repeat
-    dir = dir:sub(1, dir:find("/[^/]*$") - 1)
-    local full_path = dir .. "/modules/" .. filepath
-    local loader = loadModule(dir .. "/modules/" .. filepath)
+    local full_path = path.join(dir, "modules", filepath)
+    local loader = loadModule(full_path)
     if type(loader) == "function" then
       return loader()
     else
       errors[#errors + 1] = loader
     end
-  until #dir == 0
+    dir = path.dirname(dir)
+  until dir == "."
 
   error("Failed to find module '" .. filepath .."'" .. table.concat(errors, ""))
 
 end
 
+-- Remove the cwd based loaders, we don't want them
 package.loaders = nil
 package.path = nil
 package.cpath = nil
