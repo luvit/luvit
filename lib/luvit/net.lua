@@ -40,12 +40,12 @@ function Server:listen(port, ... --[[ ip, callback --]] )
 
   -- Future proof
   if type(args[1]) == 'function' then
-    ip = '0.0.0.0'
     callback = args[1]
   else
     ip = args[1]
-    callback = args[2] or function() end
+    callback = args[2]
   end
+  ip = ip or '0.0.0.0'
 
   self._handle:bind(ip, port)
   self._handle:on('listening', callback)
