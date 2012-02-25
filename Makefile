@@ -26,10 +26,10 @@ else ifeq (${OS_NAME},Linux)
 LDFLAGS=-Wl,-E
 endif
 # LUAJIT CONFIGURATION #
-XCFLAGS=-g
+#XCFLAGS=-g
 #XCFLAGS+=-DLUAJIT_DISABLE_JIT
 XCFLAGS+=-DLUAJIT_ENABLE_LUA52COMPAT
-XCFLAGS+=-DLUA_USE_APICHECK
+#XCFLAGS+=-DLUA_USE_APICHECK
 export XCFLAGS
 # verbose build
 export Q=
@@ -167,6 +167,7 @@ tarball:
 	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
 	cd ${DIST_FOLDER} ; git submodule update --init
 	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
+	rm -rf ${DIST_FOLDER}/deps/zlib
 	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
             -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
             -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
