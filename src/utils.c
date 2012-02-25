@@ -60,7 +60,7 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
 void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, const char* source, const char* path) {
 
   lua_newtable(L);
-  lua_getglobal(L, "error_meta");
+  lua_getglobal(L, "errorMeta");
   lua_setmetatable(L, -2);
 
   if (path) {

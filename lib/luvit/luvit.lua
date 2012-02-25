@@ -153,6 +153,7 @@ function eventSource(name, fn, ...)
   end, traceback))
 end
 
+errorMeta = {__tostring=function(table) return table.message end}
 
 local function usage()
   print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]"..[[
