@@ -57,7 +57,6 @@
        'lib/luvit/mime.lua',
        'lib/luvit/module.lua',
        'lib/luvit/net.lua',
-       'lib/luvit/net2.lua',
        'lib/luvit/path.lua',
        'lib/luvit/querystring.lua',
        'lib/luvit/repl.lua',
