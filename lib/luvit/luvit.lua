@@ -205,28 +205,15 @@ assert(xpcall(function ()
         usecolors = false
       -- pkgconfig's --cflags
       elseif value == "--cflags" then
+        showrepl = false
         local Table = require('table')
         local Path = require("path")
         local FS = require("fs")
         -- calculate includes relative to the binary
-        local include_dir = Path.resolve(
-            Path.dirname(process.execPath),
-            "../include/luvit"
-          )
-        -- do some minimal realpathing
-        local function partialRealpath(filepath)
-          local link
-          link = FS.lstatSync(filepath).is_symbolic_link
-            and FS.readlinkSync(filepath)
-          while link do
-            filepath = Path.resolve(Path.dirname(filepath), link)
-            link = FS.lstatSync(filepath).is_symbolic_link
-              and FS.readlinkSync(filepath)
-          end
-          return Path.normalize(filepath)
-        end
-        -- realpath include dir
-        include_dir = partialRealpath(include_dir)
+        local include_dir = Path.normalize(Path.resolve(
+          Path.dirname(process.execPath),
+          "../include/luvit"
+        ))
         local cflags = {
           "-I" .. include_dir,
           "-D_LARGEFILE_SOURCE",
@@ -237,6 +224,7 @@ assert(xpcall(function ()
         print(Table.concat(cflags, " "))
       -- pkgconfig's --libs
       elseif value == "--libs" then
+        showrepl = false
         local Table = require('table')
         local libs = {
           "-shared",
