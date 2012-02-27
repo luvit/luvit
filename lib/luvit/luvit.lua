@@ -209,7 +209,6 @@ assert(xpcall(function ()
         local Path = require("path")
         local FS = require("fs")
         -- calculate includes relative to the binary
-        p(process.execPath, Path.dirname(process.execPath))
         local include_dir = Path.resolve(
             Path.dirname(process.execPath),
             "../include/luvit"
@@ -241,6 +240,7 @@ assert(xpcall(function ()
         local Table = require('table')
         local libs = {
           "-shared",
+          -- TODO: "-L" .. lib_dir,
           "-lm"
         }
         if require('os').type() == "Darwin" then
