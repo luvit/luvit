@@ -165,7 +165,10 @@ Options:
   -e code_chunk       Evaluate code chunk and print result.
   -i, --interactive   Enter interactive repl after executing script.
   -n, --no-color      Disable colors.
-                      (Note, if no script is provided, a repl is run instead.)]])
+                      (Note, if no script is provided, a repl is run instead.)
+  --cflags            Print CFLAGS.
+  --libs              Print LDFLAGS.
+]])
 end
 
 local realAssert = assert
@@ -200,6 +203,54 @@ assert(xpcall(function ()
         interactive = true
       elseif value == "-n" or value == "--no-color" then
         usecolors = false
+      -- pkgconfig's --cflags
+      elseif value == "--cflags" then
+        local Table = require('table')
+        local Path = require("path")
+        local FS = require("fs")
+        -- calculate includes relative to the binary
+        local include_dir = Path.resolve(
+            Path.dirname(process.execPath),
+            "../include/luvit"
+          )
+        -- do some minimal realpathing
+        local function partialRealpath(filepath)
+          local link
+          link = FS.lstatSync(filepath).is_symbolic_link
+            and FS.readlinkSync(filepath)
+          while link do
+            filepath = Path.resolve(Path.dirname(filepath), link)
+            link = FS.lstatSync(filepath).is_symbolic_link
+              and FS.readlinkSync(filepath)
+          end
+          return Path.normalize(filepath)
+        end
+        -- realpath include dir
+        include_dir = partialRealpath(include_dir)
+        local cflags = {
+          "-I" .. include_dir,
+          "-D_LARGEFILE_SOURCE",
+          "-D_FILE_OFFSET_BITS=64",
+          "-Wall -Werror",
+          "-fPIC"
+        }
+        print(Table.concat(cflags, " "))
+      -- pkgconfig's --libs
+      elseif value == "--libs" then
+        local Table = require('table')
+        local libs = {
+          "-shared",
+          -- TODO: "-L" .. lib_dir,
+          "-lm"
+        }
+        if require('os').type() == "Darwin" then
+          if false then -- TODO: check if 64 bit
+            Table.insert(libs, "-pagezero_size 10000")
+            Table.insert(libs, "-image_base 100000000")
+          end
+          Table.insert(libs, "-undefined dynamic_lookup")
+        end
+        print(Table.concat(libs, " "))
       elseif value:sub(1, 1) == "-" then
         usage()
         process.exit(1)
