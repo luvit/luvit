@@ -125,8 +125,6 @@ clean:
 install: all
 	mkdir -p ${BINDIR}
 	install ${BUILDDIR}/luvit ${BINDIR}/luvit
-	cp bin/luvit-config.lua ${BINDIR}/luvit-config
-	chmod +x ${BINDIR}/luvit-config
 	mkdir -p ${LIBDIR}
 	cp lib/luvit/*.lua ${LIBDIR}
 	mkdir -p ${INCDIR}/luajit
