@@ -216,6 +216,9 @@ assert(xpcall(function ()
         ))
         local cflags = {
           "-I" .. include_dir,
+          "-I" .. Path.join(include_dir, "uv"),
+          "-I" .. Path.join(include_dir, "luajit"),
+          "-I" .. Path.join(include_dir, "http_parser"),
           "-D_LARGEFILE_SOURCE",
           "-D_FILE_OFFSET_BITS=64",
           "-Wall -Werror",

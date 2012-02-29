@@ -1,5 +1,5 @@
-CFLAGS=$(shell luvit-config --cflags)
-LIBS=$(shell luvit-config --libs)
+CFLAGS=$(shell luvit --cflags)
+LIBS=$(shell luvit --libs)
 
 all: vector.luvit
 
