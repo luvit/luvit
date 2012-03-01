@@ -130,6 +130,9 @@ local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. 
 function module.require(filepath, dirname)
   if not dirname then dirname = base_path end
 
+  -- Let module paths always use / even on windows
+  filepath = filepath:gsub("/", path.sep)
+
   -- Absolute and relative required modules
   local absolute_path
   if filepath:sub(1, path.root:len()) == path.root then
