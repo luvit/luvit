@@ -130,8 +130,19 @@ function Socket:pipe(destination)
 end
 
 function Socket:write(data, callback)
+  p('Socket:Write')
   self.bytesWritten = self.bytesWritten + #data
-  self._handle:write(data)
+  self._pendingWriteRequests = self._pendingWriteRequests + 1
+  self._handle:write(data, function(err)
+    p('write finish callback')
+    self._pendingWriteRequests = self._pendingWriteRequests - 1
+    if self._pendingWriteReqs == 0 then
+      self:emit('drain');
+    end
+    if callback then
+      callback(err)
+    end
+  end)
 end
 
 function Socket:connect(port, host, callback)
@@ -171,6 +182,7 @@ end
 function Socket:initialize()
   self._connectTimer = Timer:new()
   self._handle = Tcp:new()
+  self._pendingWriteRequests = 0
   self.bytesWritten = 0
   self.bytesRead = 0
 end
