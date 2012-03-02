@@ -377,11 +377,11 @@ function http.request(options, callback)
 
     end)
 
-    client:on("end", function ()
+    client:once("end", function ()
       parser:finish()
     end)
 
-    client:on("error", function (err)
+    client:once("error", function (err)
       parser:finish()
       response:emit("error", err)
     end)
@@ -474,11 +474,11 @@ function http.createServer(onConnection)
 
     end)
 
-    client:on("end", function ()
+    client:once("end", function ()
       parser:finish()
     end)
 
-    client:on("error", function (err)
+    client:once("error", function (err)
       parser:finish()
       request:emit("error", err)
     end)
