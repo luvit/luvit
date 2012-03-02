@@ -58,7 +58,9 @@ server = http.createServer(function(request, response)
     debug('server response error', err)
   end)
   debug('server connection handled')
-end):listen(PORT, HOST)
+end):listen(PORT, HOST, function ()
+
+------ CLIENT -----
 print("Server listening at http://" .. HOST .. ":" .. PORT)
 
 local payload = 'THIS-NEVER-REACHES-THE-SERVER:('
@@ -73,15 +75,10 @@ request = http.request(
     method = 'POST',
     headers = {
       bar = "cats",
-      -- uncomment to pend request forever.
-      -- demonstrates that the request is NOT a writable stream
-      -- but a black hole ( >/dev/null) instead.
       ['Content-Length'] = #payload,
-    },
-    -- helper to demonstrate the only way to write to stream
-    data = payload
+    }
   },
-  function (conn)
+  function (err, conn)
     debug('conn open')
     assert(conn.status_code == 200)
     assert(conn.version_major == 1)
@@ -121,3 +118,6 @@ request:write(payload)
 --[[ -- uncomment to get C assertion at 688 of libuv's stream.c
 debug('client request close')
 request:close()]]--
+
+---------
+end)
