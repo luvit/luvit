@@ -255,7 +255,7 @@ function Response:write(chunk, callback)
     self.has_body = true
     self:flushHead()
   end
-  if self.chunked then
+  if self.chunked and #chunk > 0 then
     self.socket:write(stringFormat("%x\r\n", #chunk))
     self.socket:write(chunk)
     return self.socket:write("\r\n", callback)
