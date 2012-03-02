@@ -324,6 +324,7 @@ function http.request(options, callback)
 
     local response = Response:new(client)
     local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
+    -- FIXME: pairs() toss headers, while order can be significant!
     for field, value in pairs(headers) do
       request[#request + 1] = field .. ": " .. value .. "\r\n"
     end
