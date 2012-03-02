@@ -78,7 +78,7 @@ request = http.request(
       ['Content-Length'] = #payload,
     }
   },
-  function (err, conn)
+  function (conn)
     debug('conn open')
     assert(conn.status_code == 200)
     assert(conn.version_major == 1)

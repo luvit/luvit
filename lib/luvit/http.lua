@@ -329,8 +329,7 @@ function http.request(options, callback)
   client = net.create(port, host, function(err)
 
     if err then
-      callback(err)
-      client:close()
+      client:emit("error", err)
       return
     end
 
@@ -364,7 +363,7 @@ function http.request(options, callback)
         response.version_minor = info.version_minor
         response.version_major = info.version_major
 
-        callback(nil, response)
+        callback(response)
       end,
       onBody = function (chunk)
         response:emit("data", chunk)
