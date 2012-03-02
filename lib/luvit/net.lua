@@ -58,7 +58,6 @@ end
 function Socket:close()
   if self._handle then
     self._handle:close()
-    self._handle = nil
   end
   if self._connectTimer then
     timer.clearTimer(self._connectTimer)
