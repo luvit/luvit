@@ -27,7 +27,6 @@
 typedef struct {
   lua_State* L;
   int r;
-  int r2;
   uv_write_t write_req;
   uv_buf_t refbuf;
 } luv_write_ref_t;
