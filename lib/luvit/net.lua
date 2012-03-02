@@ -22,13 +22,13 @@ local Timer = require('uv').Timer
 local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
-local Stream = require('uv').Stream
+local iStream = require('core').iStream
 
 local net = {}
 
 --[[ Socket ]]--
 
-local Socket = Stream:extend()
+local Socket = iStream:extend()
 
 function Socket:_connect(address, port, addressType)
   if port then
