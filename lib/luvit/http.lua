@@ -171,7 +171,10 @@ function Response:flushHead(callback)
     -- This class of status code indicates a provisional response,
     -- consisting only of the Status-Line and optional headers, and is
     -- terminated by an empty line.
-    if self.code == 204 or self.code == 304 or (self.code >= 100 and self.code < 200) then
+    if self.code == 204
+      or self.code == 304
+      or (self.code >= 100 and self.code < 200)
+    then
       self.has_body = false
     else
       -- Default to true if we don't know.  It's the safe thing to assume
@@ -431,7 +434,11 @@ function http.createServer(onConnection)
         end
 
         -- Handle 100-continue requests
-        if request.headers.expect and info.version_major == 1 and info.version_minor == 1 and request.headers.expect:lower() == "100-continue" then
+        if request.headers.expect
+          and info.version_major == 1
+          and info.version_minor == 1
+          and request.headers.expect:lower() == "100-continue"
+        then
           if server.handlers and server.handlers.check_continue then
             server:emit("check_continue", request, response)
           else
