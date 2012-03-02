@@ -58,6 +58,7 @@ end
 function Socket:close()
   if self._handle then
     self._handle:close()
+    self._handle = nil
   end
   if self._connectTimer then
     timer.clearTimer(self._connectTimer)
@@ -88,6 +89,10 @@ function Socket:_write(data, callback)
   return self._handle:writeQueueSize() == 0
 end
 
+function Socket:shutdown(callback)
+  self._handle:shutdown(callback)
+end
+
 function Socket:pause()
   self._handle:readStop()
 end
@@ -96,14 +101,17 @@ function Socket:resume()
   self._handle:readStart()
 end
 
-function Socket:connect(port, host, callback)
-  self._handle:on('connect', function()
-    if self._connectTimer then
-      timer.clearTimer(self._connectTimer)
-      self._connectTimer = nil
-    end
-    self._handle:readStart()
-    callback()
+function Socket:_initEmitters()
+  self._handle:on('close', function()
+    self:emit('close')
+  end)
+
+  self._handle:on('closed', function()
+    self:emit('closed')
+  end)
+
+  self._handle:on('timeout', function()
+    self:emit('timeout')
   end)
 
   self._handle:on('end', function()
@@ -117,6 +125,17 @@ function Socket:connect(port, host, callback)
 
   self._handle:on('error', function(err)
     self:emit('error', err)
+  end)
+end
+
+function Socket:connect(port, host, callback)
+  self._handle:on('connect', function()
+    if self._connectTimer then
+      timer.clearTimer(self._connectTimer)
+      self._connectTimer = nil
+    end
+    self._handle:readStart()
+    callback()
   end)
 
   dns.lookup(host, function(err, ip, addressType)
@@ -136,12 +155,13 @@ function Socket:initialize(handle)
   self._pendingWriteRequests = 0
   self.bytesWritten = 0
   self.bytesRead = 0
+
+  self:_initEmitters()
 end
 
 --[[ Server ]]--
 
-local Server = Stream:extend()
-
+local Server = Emitter:extend()
 function Server:listen(port, ... --[[ ip, callback --]] )
   local args = {...}
   local ip
@@ -177,15 +197,27 @@ function Server:listen(port, ... --[[ ip, callback --]] )
     local sock = Socket:new(client)
     sock:resume()
     self:emit('connection', sock)
+    sock:emit('connect')
+  end)
+end
+
+function Server:_emitClosedIfDrained()
+  timer.setTimeout(0, function()
+    self:emit('close')
   end)
 end
 
 function Server:close()
+  if not self._handle then
+    return
+  end
   if self._connectTimer then
     timer.clearTimer(self._connectTimer)
     self._connectTimer = nil
   end
   self._handle:close()
+  self._handle = nil
+  self:_emitClosedIfDrained()
 end
 
 function Server:initialize(...)

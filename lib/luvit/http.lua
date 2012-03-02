@@ -333,10 +333,6 @@ function http.request(options, callback)
       return
     end
 
-    -- restore real writer
-    client.write = client._write
-    client._write = nil
-
     -- send request headers and content
     client:write(table.concat(request))
 
@@ -405,13 +401,6 @@ function http.request(options, callback)
     end)
 
   end)
-
-  -- store original writer, and patch it with buffering one
-  client._write = client.write
-  client.write = function (self, data, callback)
-    request[#request + 1] = data
-    if callback then callback() end
-  end
 
   return client
 end
