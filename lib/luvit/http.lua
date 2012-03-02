@@ -457,14 +457,7 @@ function http.createServer(onConnection)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk then
-        -- If the error was caused by non-http protocol like in websockets
-        -- then that's ok, just emit the rest directly to the request object
-        if request.upgrade then
-          chunk = chunk:sub(nparsed + 1)
-          request:emit("data", chunk)
-        else
-          request:emit("error", "parse error")
-        end
+        request:emit("error", "parse error")
       end
 
     end)
