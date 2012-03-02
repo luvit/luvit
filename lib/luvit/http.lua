@@ -472,8 +472,8 @@ function http.createServer(onConnection)
 
       -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
       -- shouldn't send data to the HTTP parser
-      if request.upgrade then
-        request:emit("data", chunk)
+      if response.upgrade then
+        response:emit("data", chunk)
         return
       end
 
