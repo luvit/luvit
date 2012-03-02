@@ -317,6 +317,14 @@ function http.request(options, callback)
   local headers = options.headers or {}
   if not headers.host then headers.host = host end
 
+  -- buffer request content until socket is connected
+  local request = { method .. " " .. path .. " HTTP/1.1\r\n" }
+  -- FIXME: pairs() toss headers, while order can be significant!
+  for field, value in pairs(headers) do
+    request[#request + 1] = field .. ": " .. value .. "\r\n"
+  end
+  request[#request + 1] = "\r\n"
+
   local client
   client = net.create(port, host, function(err)
 
@@ -326,14 +334,14 @@ function http.request(options, callback)
       return
     end
 
-    local response = Response:new(client)
-    local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
-    -- FIXME: pairs() toss headers, while order can be significant!
-    for field, value in pairs(headers) do
-      request[#request + 1] = field .. ": " .. value .. "\r\n"
-    end
-    request[#request + 1] = "\r\n"
+    -- restore real writer
+    client.write = client._write
+    client._write = nil
+
+    -- send request headers and content
     client:write(table.concat(request))
+
+    local response = Response:new(client)
 
     local headers
     local current_field
@@ -356,7 +364,7 @@ function http.request(options, callback)
         response.version_minor = info.version_minor
         response.version_major = info.version_major
 
-        callback(response)
+        callback(nil, response)
       end,
       onBody = function (chunk)
         response:emit("data", chunk)
@@ -364,6 +372,7 @@ function http.request(options, callback)
       onMessageComplete = function ()
         response:emit("end")
       end
+
     });
 
     client:on("data", function (chunk)
@@ -397,6 +406,13 @@ function http.request(options, callback)
     end)
 
   end)
+
+  -- store original writer, and patch it with buffering one
+  client._write = client.write
+  client.write = function (self, data, callback)
+    request[#request + 1] = data
+    if callback then callback() end
+  end
 
   return client
 end
