@@ -27,6 +27,7 @@
 typedef struct {
   lua_State* L;
   int r;
+  int r2;
   uv_write_t write_req;
   uv_buf_t refbuf;
 } luv_write_ref_t;
@@ -50,5 +51,6 @@ int luv_read_start2(lua_State* L);
 int luv_read_stop(lua_State* L);
 int luv_write (lua_State* L);
 int luv_write2(lua_State* L);
+int luv_write_queue_size(lua_State* L);
 
 #endif

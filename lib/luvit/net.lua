@@ -22,12 +22,13 @@ local Timer = require('uv').Timer
 local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
+local Stream = require('uv').Stream
 
 local net = {}
 
 --[[ Server ]]--
 
-local Server = Emitter:extend()
+local Server = Stream:extend()
 
 function Server:listen(port, ... --[[ ip, callback --]] )
   local args = {...}
@@ -88,7 +89,7 @@ end
 
 --[[ Socket ]]--
 
-local Socket = Emitter:extend()
+local Socket = Stream:extend()
 
 function Socket:_connect(address, port, addressType)
   if port then
@@ -130,19 +131,29 @@ function Socket:pipe(destination)
 end
 
 function Socket:write(data, callback)
-  p('Socket:Write')
+  p('Socket:write')
   self.bytesWritten = self.bytesWritten + #data
   self._pendingWriteRequests = self._pendingWriteRequests + 1
+  return self:_write(data, callback)
+end
+
+function Socket:_write(data, callback)
+  p('print writing data ' .. data)
   self._handle:write(data, function(err)
-    p('write finish callback')
     self._pendingWriteRequests = self._pendingWriteRequests - 1
-    if self._pendingWriteReqs == 0 then
+    if self._pendingWriteRequests == 0 then
+      p('emitting drain')
       self:emit('drain');
     end
     if callback then
       callback(err)
     end
   end)
+  return self._handle:writeQueueSize() == 0
+end
+
+function Socket:pause()
+  self._handle.readStop()
 end
 
 function Socket:connect(port, host, callback)

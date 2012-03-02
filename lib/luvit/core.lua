@@ -200,14 +200,25 @@ core.iStream = iStream
 
 function iStream:pipe(target)
   self:on('data', function (chunk, len)
-    target:write(chunk)
+    if target:write(chunk) == false and self.pause then
+      self:pause()
+    end
   end)
-  self:on('drain', function()
-    target:resume()
+
+  target:on('drain', function()
+    self:resume()
   end)
-  self:on('end', function ()
-    target:close()
-  end)
+
+  function onclose()
+    target:destroy()
+  end
+
+  function onend()
+    target:done()
+  end
+
+  self:on('close', onclose)
+  self:on('end', onend)
 end
 
 --------------------------------------------------------------------------------
