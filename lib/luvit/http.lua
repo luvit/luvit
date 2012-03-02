@@ -474,11 +474,8 @@ function http.createServer(onConnection)
     end)
 
     client:on("error", function (err)
-      request:emit("error", err)
-      -- N.B. must close(), or https://github.com/joyent/libuv/blob/master/src/unix/stream.c#L586
-      -- kills the appication
-      client:close()
       parser:finish()
+      request:emit("error", err)
     end)
 
   end)
