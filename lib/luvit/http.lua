@@ -371,6 +371,13 @@ function http.request(options, callback)
       -- Ignore empty chunks
       if #chunk == 0 then return end
 
+      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+      -- shouldn't send data to the HTTP parser
+      if request.upgrade then
+        request:emit("data", chunk)
+        return
+      end
+
       local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
