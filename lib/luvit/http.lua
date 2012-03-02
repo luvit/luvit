@@ -316,6 +316,7 @@ function http.request(options, callback)
 
   local client
   client = net.create(port, host, function(err)
+
     if err then
       callback(err)
       client:close()
@@ -371,7 +372,7 @@ function http.request(options, callback)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk then
-        error("Parse error in server response")
+        response:emit("error", "parse error")
       end
 
     end)
@@ -379,6 +380,12 @@ function http.request(options, callback)
     client:on("end", function ()
       parser:finish()
     end)
+
+    client:on("error", function (err)
+      parser:finish()
+      response:emit("error", err)
+    end)
+
   end)
 
   return client
