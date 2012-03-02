@@ -99,6 +99,9 @@ Tcp.connect = native.tcpConnect
 -- Tcp:connect6(ip_address, port)
 Tcp.connect6 = native.tcpConnect6
 
+-- Tcp:writeQueueSize()
+Tcp.writeQueueSize = native.writeQueueSize
+
 --------------------------------------------------------------------------------
 
 local Udp = Handle:extend()

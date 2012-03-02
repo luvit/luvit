@@ -22,73 +22,13 @@ local Timer = require('uv').Timer
 local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
+local iStream = require('core').iStream
 
 local net = {}
 
---[[ Server ]]--
-
-local Server = Emitter:extend()
-
-function Server:listen(port, ... --[[ ip, callback --]] )
-  local args = {...}
-  local ip
-  local callback
-
-  if not self._handle then
-    self._handle = Tcp:new()
-  end
-
-  -- Future proof
-  if type(args[1]) == 'function' then
-    callback = args[1]
-  else
-    ip = args[1]
-    callback = args[2]
-  end
-  ip = ip or '0.0.0.0'
-
-  self._handle:bind(ip, port)
-  self._handle:on('listening', callback)
-  self._handle:on('error', function(err)
-    return self:emit("error", err)
-  end)
-  self._handle:listen(function(err)
-    if (err) then
-      return self:emit("error", err)
-    end
-    local client = Tcp:new()
-    self._handle:accept(client)
-    client:readStart()
-    self:emit('connection', client)
-  end)
-end
-
-function Server:close()
-  if self._connectTimer then
-    timer.clearTimer(self._connectTimer)
-    self._connectTimer = nil
-  end
-  self._handle:close()
-end
-
-function Server:initialize(...)
-  local args = {...}
-  local options
-  local connectionCallback
-
-  if #args == 1 then
-    connectionCallback = args[1]
-  elseif #args == 2 then
-    options = args[1]
-    connectionCallback = args[2]
-  end
-
-  self:on('connection', connectionCallback)
-end
-
 --[[ Socket ]]--
 
-local Socket = Emitter:extend()
+local Socket = iStream:extend()
 
 function Socket:_connect(address, port, addressType)
   if port then
@@ -118,6 +58,7 @@ end
 function Socket:close()
   if self._handle then
     self._handle:close()
+    self._handle = nil
   end
   if self._connectTimer then
     timer.clearTimer(self._connectTimer)
@@ -131,17 +72,46 @@ end
 
 function Socket:write(data, callback)
   self.bytesWritten = self.bytesWritten + #data
-  self._handle:write(data)
+  return self:_write(data, callback)
 end
 
-function Socket:connect(port, host, callback)
-  self._handle:on('connect', function()
-    if self._connectTimer then
-      timer.clearTimer(self._connectTimer)
-      self._connectTimer = nil
+function Socket:_write(data, callback)
+  self._pendingWriteRequests = self._pendingWriteRequests + 1
+  self._handle:write(data, function(err)
+    self._pendingWriteRequests = self._pendingWriteRequests - 1
+    if self._pendingWriteRequests == 0 then
+      self:emit('drain');
     end
-    self._handle:readStart()
-    callback()
+    if callback then
+      callback(err)
+    end
+  end)
+  return self._handle:writeQueueSize() == 0
+end
+
+function Socket:shutdown(callback)
+  self._handle:shutdown(callback)
+end
+
+function Socket:pause()
+  self._handle:readStop()
+end
+
+function Socket:resume()
+  self._handle:readStart()
+end
+
+function Socket:_initEmitters()
+  self._handle:on('close', function()
+    self:emit('close')
+  end)
+
+  self._handle:on('closed', function()
+    self:emit('closed')
+  end)
+
+  self._handle:on('timeout', function()
+    self:emit('timeout')
   end)
 
   self._handle:on('end', function()
@@ -156,6 +126,17 @@ function Socket:connect(port, host, callback)
   self._handle:on('error', function(err)
     self:emit('error', err)
   end)
+end
+
+function Socket:connect(port, host, callback)
+  self._handle:on('connect', function()
+    if self._connectTimer then
+      timer.clearTimer(self._connectTimer)
+      self._connectTimer = nil
+    end
+    self._handle:readStart()
+    callback()
+  end)
 
   dns.lookup(host, function(err, ip, addressType)
     if err then
@@ -168,12 +149,93 @@ function Socket:connect(port, host, callback)
   return self
 end
 
-function Socket:initialize()
+function Socket:initialize(handle)
   self._connectTimer = Timer:new()
-  self._handle = Tcp:new()
+  self._handle = handle or Tcp:new()
+  self._pendingWriteRequests = 0
   self.bytesWritten = 0
   self.bytesRead = 0
+
+  self:_initEmitters()
 end
+
+--[[ Server ]]--
+
+local Server = Emitter:extend()
+function Server:listen(port, ... --[[ ip, callback --]] )
+  local args = {...}
+  local ip
+  local callback
+
+  if not self._handle then
+    self._handle = Tcp:new()
+  end
+
+  -- Future proof
+  if type(args[1]) == 'function' then
+    callback = args[1]
+  else
+    ip = args[1]
+    callback = args[2]
+  end
+  ip = ip or '0.0.0.0'
+
+  self._handle:bind(ip, port)
+  self._handle:on('listening', callback)
+  self._handle:on('error', function(err)
+    return self:emit("error", err)
+  end)
+  self._handle:listen(function(err)
+    if (err) then
+      timer.setTimeout(0, function()
+        self:emit("error", err)
+      end)
+      return
+    end
+    local client = Tcp:new()
+    self._handle:accept(client)
+    local sock = Socket:new(client)
+    sock:resume()
+    self:emit('connection', sock)
+    sock:emit('connect')
+  end)
+end
+
+function Server:_emitClosedIfDrained()
+  timer.setTimeout(0, function()
+    self:emit('close')
+  end)
+end
+
+function Server:close()
+  if not self._handle then
+    return
+  end
+  if self._connectTimer then
+    timer.clearTimer(self._connectTimer)
+    self._connectTimer = nil
+  end
+  self._handle:close()
+  self._handle = nil
+  self:_emitClosedIfDrained()
+end
+
+function Server:initialize(...)
+  local args = {...}
+  local options
+  local connectionCallback
+
+  if #args == 1 then
+    connectionCallback = args[1]
+  elseif #args == 2 then
+    options = args[1]
+    connectionCallback = args[2]
+  end
+
+  self:on('connection', connectionCallback)
+end
+
+-- Exports
 
 net.Server = Server
 
