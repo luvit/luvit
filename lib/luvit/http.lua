@@ -352,13 +352,12 @@ function http.request(options, callback)
         response.version_major = info.version_major
 
         callback(response)
-
       end,
       onBody = function (chunk)
-        response:emit('data', chunk)
+        response:emit("data", chunk)
       end,
       onMessageComplete = function ()
-        response:emit('end')
+        response:emit("end")
       end
     });
 
@@ -382,10 +381,7 @@ end
 
 function http.createServer(onConnection)
   local server
-  server = net.createServer(function(client)
-    if err then
-      return server:emit("error", err)
-    end
+  server = net.createServer(function (client)
 
     -- Accept the client and build request and response objects
     local request = Request:new(client)
@@ -436,13 +432,12 @@ function http.createServer(onConnection)
 
       end,
       onBody = function (chunk)
-        request:emit('data', chunk, #chunk)
+        request:emit("data", chunk)
       end,
       onMessageComplete = function ()
-        request:emit('end')
+        request:emit("end")
       end
     })
-
 
     client:on("data", function (chunk)
 
