@@ -325,6 +325,10 @@ function http.request(options, callback)
   end
   request[#request + 1] = "\r\n"
 
+  -- placeholders for original client methods.
+  -- we restore them upon connection callback fired
+  local original_write
+
   local client
   client = net.create(port, host, function(err)
 
@@ -332,6 +336,11 @@ function http.request(options, callback)
       client:emit("error", err)
       return
     end
+
+    -- restore original client methods
+    client.write = original_write
+    -- N.B. close is net.Socket method, no to restore old means to remove new
+    client.close = nil
 
     -- send request headers and content
     client:write(table.concat(request))
@@ -401,6 +410,15 @@ function http.request(options, callback)
     end)
 
   end)
+
+  -- store original client methods.
+  original_write = client.write
+  -- while connecting, we want to buffer writes and closes
+  client.write = function (self, data, callback)
+    request[#request + 1] = data
+    if callback then callback() end
+  end
+  client.close = client.write
 
   return client
 end
