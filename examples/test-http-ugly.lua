@@ -75,7 +75,7 @@ request = http.request(
     method = 'POST',
     headers = {
       bar = "cats",
-      ['Content-Length'] = #payload,
+      --['Content-Length'] = #payload,
     }
   },
   function (conn)
@@ -95,10 +95,10 @@ request = http.request(
     --[[delay(500, function ()
       debug('client closes socket')
       -- FIXME: wonder what to call?! :)
-      --request:close()
-      --conn.socket:close()
+      request:close()
       --conn:finish()
-      --request:close()
+      --conn:close()
+      --conn.socket:close()
     end)]]--
 end)
 
@@ -114,10 +114,8 @@ end)
 
 debug('client request send', payload)
 request:write(payload)
-
---[[ -- uncomment to get C assertion at 688 of libuv's stream.c
-debug('client request close')
-request:close()]]--
+request:write(payload)
+request:close('PLUS')
 
 ---------
 end)
