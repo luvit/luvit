@@ -363,6 +363,10 @@ function http.request(options, callback)
     });
 
     client:on("data", function (chunk)
+
+      -- Ignore empty chunks
+      if #chunk == 0 then return end
+
       local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
