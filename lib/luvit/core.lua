@@ -216,7 +216,9 @@ function iStream:pipe(target)
   end
 
   function onend()
-    target:done()
+    if target.done then
+      target:done()
+    end
   end
 
   self:on('close', onclose)

@@ -70,18 +70,15 @@ function Socket:pipe(destination)
 end
 
 function Socket:write(data, callback)
-  p('Socket:write')
   self.bytesWritten = self.bytesWritten + #data
   return self:_write(data, callback)
 end
 
 function Socket:_write(data, callback)
-  p('print writing data ' .. data)
   self._pendingWriteRequests = self._pendingWriteRequests + 1
   self._handle:write(data, function(err)
     self._pendingWriteRequests = self._pendingWriteRequests - 1
     if self._pendingWriteRequests == 0 then
-      p('emitting drain')
       self:emit('drain');
     end
     if callback then
@@ -92,12 +89,10 @@ function Socket:_write(data, callback)
 end
 
 function Socket:pause()
-  p('socket pause')
   self._handle:readStop()
 end
 
 function Socket:resume()
-  p('socket resume')
   self._handle:readStart()
 end
 
