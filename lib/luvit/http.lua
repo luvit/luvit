@@ -171,7 +171,10 @@ function Response:flushHead(callback)
     -- This class of status code indicates a provisional response,
     -- consisting only of the Status-Line and optional headers, and is
     -- terminated by an empty line.
-    if self.code == 204 or self.code == 304 or (self.code >= 100 and self.code < 200) then
+    if self.code == 204
+      or self.code == 304
+      or (self.code >= 100 and self.code < 200)
+    then
       self.has_body = false
     else
       -- Default to true if we don't know.  It's the safe thing to assume
@@ -255,7 +258,7 @@ function Response:write(chunk, callback)
     self.has_body = true
     self:flushHead()
   end
-  if self.chunked then
+  if self.chunked and #chunk > 0 then
     self.socket:write(stringFormat("%x\r\n", #chunk))
     self.socket:write(chunk)
     return self.socket:write("\r\n", callback)
@@ -316,6 +319,7 @@ function http.request(options, callback)
 
   local client
   client = net.create(port, host, function(err)
+
     if err then
       callback(err)
       client:close()
@@ -324,6 +328,7 @@ function http.request(options, callback)
 
     local response = Response:new(client)
     local request = {method .. " " .. path .. " HTTP/1.1\r\n"}
+    -- FIXME: pairs() toss headers, while order can be significant!
     for field, value in pairs(headers) do
       request[#request + 1] = field .. ": " .. value .. "\r\n"
     end
@@ -352,29 +357,45 @@ function http.request(options, callback)
         response.version_major = info.version_major
 
         callback(response)
-
       end,
       onBody = function (chunk)
-        response:emit('data', chunk)
+        response:emit("data", chunk)
       end,
       onMessageComplete = function ()
-        response:emit('end')
+        response:emit("end")
       end
     });
 
     client:on("data", function (chunk)
+
+      -- Ignore empty chunks
+      if #chunk == 0 then return end
+
+      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+      -- shouldn't send data to the HTTP parser
+      if request.upgrade then
+        request:emit("data", chunk)
+        return
+      end
+
       local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk then
-        error("Parse error in server response")
+        response:emit("error", "parse error")
       end
 
     end)
 
-    client:on("end", function ()
+    client:once("end", function ()
       parser:finish()
     end)
+
+    client:once("error", function (err)
+      parser:finish()
+      response:emit("error", err)
+    end)
+
   end)
 
   return client
@@ -382,10 +403,7 @@ end
 
 function http.createServer(onConnection)
   local server
-  server = net.createServer(function(client)
-    if err then
-      return server:emit("error", err)
-    end
+  server = net.createServer(function (client)
 
     -- Accept the client and build request and response objects
     local request = Request:new(client)
@@ -423,7 +441,11 @@ function http.createServer(onConnection)
         end
 
         -- Handle 100-continue requests
-        if request.headers.expect and info.version_major == 1 and info.version_minor == 1 and request.headers.expect:lower() == "100-continue" then
+        if request.headers.expect
+          and info.version_major == 1
+          and info.version_minor == 1
+          and request.headers.expect:lower() == "100-continue"
+        then
           if server.handlers and server.handlers.check_continue then
             server:emit("check_continue", request, response)
           else
@@ -436,13 +458,12 @@ function http.createServer(onConnection)
 
       end,
       onBody = function (chunk)
-        request:emit('data', chunk, #chunk)
+        request:emit("data", chunk)
       end,
       onMessageComplete = function ()
-        request:emit('end')
+        request:emit("end")
       end
     })
-
 
     client:on("data", function (chunk)
 
@@ -462,28 +483,18 @@ function http.createServer(onConnection)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk then
-        -- If the error was caused by non-http protocol like in websockets
-        -- then that's ok, just emit the rest directly to the request object
-        if request.upgrade then
-          chunk = chunk:sub(nparsed + 1)
-          request:emit("data", chunk)
-        else
-          request:emit("error", "parse error")
-        end
+        request:emit("error", "parse error")
       end
 
     end)
 
-    client:on("end", function ()
+    client:once("end", function ()
       parser:finish()
     end)
 
-    client:on("error", function (err)
-      request:emit("error", err)
-      -- N.B. must close(), or https://github.com/joyent/libuv/blob/master/src/unix/stream.c#L586
-      -- kills the appication
-      client:close()
+    client:once("error", function (err)
       parser:finish()
+      request:emit("error", err)
     end)
 
   end)
