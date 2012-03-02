@@ -206,7 +206,9 @@ function iStream:pipe(target)
   end)
 
   target:on('drain', function()
-    self:resume()
+    if type(self.resume) == 'function' then
+      self:resume()
+    end
   end)
 
   function onclose()

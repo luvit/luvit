@@ -26,67 +26,6 @@ local Stream = require('uv').Stream
 
 local net = {}
 
---[[ Server ]]--
-
-local Server = Stream:extend()
-
-function Server:listen(port, ... --[[ ip, callback --]] )
-  local args = {...}
-  local ip
-  local callback
-
-  if not self._handle then
-    self._handle = Tcp:new()
-  end
-
-  -- Future proof
-  if type(args[1]) == 'function' then
-    callback = args[1]
-  else
-    ip = args[1]
-    callback = args[2]
-  end
-  ip = ip or '0.0.0.0'
-
-  self._handle:bind(ip, port)
-  self._handle:on('listening', callback)
-  self._handle:on('error', function(err)
-    return self:emit("error", err)
-  end)
-  self._handle:listen(function(err)
-    if (err) then
-      return self:emit("error", err)
-    end
-    local client = Tcp:new()
-    self._handle:accept(client)
-    client:readStart()
-    self:emit('connection', client)
-  end)
-end
-
-function Server:close()
-  if self._connectTimer then
-    timer.clearTimer(self._connectTimer)
-    self._connectTimer = nil
-  end
-  self._handle:close()
-end
-
-function Server:initialize(...)
-  local args = {...}
-  local options
-  local connectionCallback
-
-  if #args == 1 then
-    connectionCallback = args[1]
-  elseif #args == 2 then
-    options = args[1]
-    connectionCallback = args[2]
-  end
-
-  self:on('connection', connectionCallback)
-end
-
 --[[ Socket ]]--
 
 local Socket = Stream:extend()
@@ -133,12 +72,12 @@ end
 function Socket:write(data, callback)
   p('Socket:write')
   self.bytesWritten = self.bytesWritten + #data
-  self._pendingWriteRequests = self._pendingWriteRequests + 1
   return self:_write(data, callback)
 end
 
 function Socket:_write(data, callback)
   p('print writing data ' .. data)
+  self._pendingWriteRequests = self._pendingWriteRequests + 1
   self._handle:write(data, function(err)
     self._pendingWriteRequests = self._pendingWriteRequests - 1
     if self._pendingWriteRequests == 0 then
@@ -153,7 +92,13 @@ function Socket:_write(data, callback)
 end
 
 function Socket:pause()
-  self._handle.readStop()
+  p('socket pause')
+  self._handle:readStop()
+end
+
+function Socket:resume()
+  p('socket resume')
+  self._handle:readStart()
 end
 
 function Socket:connect(port, host, callback)
@@ -190,13 +135,80 @@ function Socket:connect(port, host, callback)
   return self
 end
 
-function Socket:initialize()
+function Socket:initialize(handle)
   self._connectTimer = Timer:new()
-  self._handle = Tcp:new()
+  self._handle = handle or Tcp:new()
   self._pendingWriteRequests = 0
   self.bytesWritten = 0
   self.bytesRead = 0
 end
+
+--[[ Server ]]--
+
+local Server = Stream:extend()
+
+function Server:listen(port, ... --[[ ip, callback --]] )
+  local args = {...}
+  local ip
+  local callback
+
+  if not self._handle then
+    self._handle = Tcp:new()
+  end
+
+  -- Future proof
+  if type(args[1]) == 'function' then
+    callback = args[1]
+  else
+    ip = args[1]
+    callback = args[2]
+  end
+  ip = ip or '0.0.0.0'
+
+  self._handle:bind(ip, port)
+  self._handle:on('listening', callback)
+  self._handle:on('error', function(err)
+    return self:emit("error", err)
+  end)
+  self._handle:listen(function(err)
+    if (err) then
+      timer.setTimeout(0, function()
+        self:emit("error", err)
+      end)
+      return
+    end
+    local client = Tcp:new()
+    self._handle:accept(client)
+    local sock = Socket:new(client)
+    sock:resume()
+    self:emit('connection', sock)
+  end)
+end
+
+function Server:close()
+  if self._connectTimer then
+    timer.clearTimer(self._connectTimer)
+    self._connectTimer = nil
+  end
+  self._handle:close()
+end
+
+function Server:initialize(...)
+  local args = {...}
+  local options
+  local connectionCallback
+
+  if #args == 1 then
+    connectionCallback = args[1]
+  elseif #args == 2 then
+    options = args[1]
+    connectionCallback = args[2]
+  end
+
+  self:on('connection', connectionCallback)
+end
+
+-- Exports
 
 net.Server = Server
 
