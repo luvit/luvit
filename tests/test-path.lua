@@ -31,3 +31,11 @@ else
   assert(path.dirname('C:\\Users\\philips\\') == 'C:\\Users')
   assert(path.dirname('C:\\Users\\philips\\') == 'C:\\Users')
 end
+
+-- Test out the OS path objects
+assert(path.posix:dirname('/usr/bin/vim') == '/usr/bin')
+assert(path.posix:dirname('/usr/bin/') == '/usr')
+assert(path.posix:dirname('/usr/bin') == '/usr')
+assert(path.nt:dirname('C:\\Users\\philips\\vim.exe') == 'C:\\Users\\philips')
+assert(path.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
+assert(path.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
