@@ -1,6 +1,4 @@
-language: node_js
-node_js:
- - 0.6
+language: erlang
 script: "make test"
 notifications:
   email: true
