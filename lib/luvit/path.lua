@@ -16,25 +16,27 @@ limitations under the License.
 
 --]]
 
+local Object = require('core').Object
 local os = require('os_binding')
 local table = require('table')
+
 local path = {}
 
-if os.type() == "win32" then
-  path.sep = "\\"
-  path.root = "c:"
-else
-  path.sep = "/"
-  path.root = "/"
+local Path = Object:extend()
+path.Path = Path
+
+function Path:initialize(root, sep)
+  self.root = root
+  self.sep = sep
 end
 
 -- Split a filename into [root, dir, basename], unix version
 -- 'root' is just a slash, or nothing.
-local function splitPath(filename)
+function Path:_splitPath(filename)
   local root, dir, basename
-  local i, j = filename:find("[^" .. path.sep .. "]*$")
-  if filename:sub(1, 1) == path.sep then
-    root = path.root
+  local i, j = filename:find("[^" .. self.sep .. "]*$")
+  if filename:sub(1, 1) == self.sep then
+    root = self.root
     dir = filename:sub(2, i - 1)
   else
     root = ""
@@ -45,7 +47,7 @@ local function splitPath(filename)
 end
 
 -- Modifies an array of path parts in place by interpreting "." and ".." segments
-local function normalizeArray(parts)
+function Path:_normalizeArray(parts)
   local skip = 0
   for i = #parts, 1, -1 do
     local part = parts[i]
@@ -61,49 +63,49 @@ local function normalizeArray(parts)
   end
 end
 
-function path.normalize(filepath)
-  local is_absolute = filepath:sub(1, 1) == path.sep
-  local trailing_slash = filepath:sub(#filepath) == path.sep
+function Path:normalize(filepath)
+  local is_absolute = filepath:sub(1, 1) == self.sep
+  local trailing_slash = filepath:sub(#filepath) == self.sep
 
   local parts = {}
-  for part in filepath:gmatch("[^" .. path.sep .. "]+") do
+  for part in filepath:gmatch("[^" .. self.sep .. "]+") do
     parts[#parts + 1] = part
   end
-  normalizeArray(parts)
-  filepath = table.concat(parts, path.sep)
+  self:_normalizeArray(parts)
+  filepath = table.concat(parts, self.sep)
 
   if #filepath == 0 then
     if is_absolute then
-      return path.sep
+      return self.sep
     end
     return "."
   end
   if trailing_slash then
-    filepath = filepath .. path.sep
+    filepath = filepath .. self.sep
   end
   if is_absolute then
-    filepath = path.sep .. filepath
+    filepath = self.sep .. filepath
   end
   return filepath
 end
 
-function path.join(...)
-  return table.concat({...}, path.sep)
+function Path:join(...)
+  return table.concat({...}, self.sep)
 end
 
-function path.resolve(root, filepath)
-  if filepath:sub(1, path.root:len()) == path.root then
-    return path.normalize(filepath)
+function Path:resolve(root, filepath)
+  if filepath:sub(1, self.root:len()) == self.root then
+    return self:normalize(filepath)
   end
-  return path.join(root, filepath)
+  return self:join(root, filepath)
 end
 
-function path.dirname(filepath)
-  if filepath:sub(filepath:len()) == path.sep then
+function Path:dirname(filepath)
+  if filepath:sub(filepath:len()) == self.sep then
     filepath = filepath:sub(1, -2)
   end
 
-  local root, dir = splitPath(filepath)
+  local root, dir = self:_splitPath(filepath)
 
   if #dir > 0 then
     dir = dir:sub(1, #dir - 1)
@@ -116,12 +118,33 @@ function path.dirname(filepath)
 
 end
 
-function path.basename(filepath, expected_ext)
-  return filepath:match("[^" .. path.sep .. "]+$") or ""
+function Path:basename(filepath, expected_ext)
+  return filepath:match("[^" .. self.sep .. "]+$") or ""
 end
 
-function path.extname(filepath)
+function Path:extname(filepath)
   return filepath:match(".[^.]+$") or ""
+end
+
+path.nt = Path:new("c:", "\\")
+path.posix = Path:new("/", "/")
+
+local function setup_meta(ospath)
+  setmetatable(path, {__index = function(table, key)
+      if type(ospath[key]) == 'function' then
+        return function(...) return ospath[key](ospath, ...) end
+      else
+        return ospath[key]
+      end
+    end
+  })
+end
+
+
+if os.type() == "win32" then
+  setup_meta(path.nt)
+else
+  setup_meta(path.posix)
 end
 
 return path
