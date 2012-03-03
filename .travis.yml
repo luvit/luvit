@@ -1,7 +1,8 @@
-language: node_js
-node_js:
- - 0.6
-script: "make test"
+language: erlang
+
+script:
+  - "make test"
+
 notifications:
   email: true
   irc: "irc.freenode.org#luvit"
