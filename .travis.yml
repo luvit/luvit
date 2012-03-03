@@ -1,5 +1,8 @@
 language: erlang
-script: make test
+
+script:
+  - "make test"
+
 notifications:
   email: true
   irc: "irc.freenode.org#luvit"
