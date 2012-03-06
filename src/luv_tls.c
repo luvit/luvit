@@ -59,6 +59,25 @@ static BIO* _lua_load_bio(lua_State *L, int index) {
   return bio;
 }
 
+static X509* _lua_load_x509(lua_State *L, int index) {
+  X509 *x509;
+  BIO *bio;
+
+  bio = _lua_load_bio(L, index);
+  if (!bio) {
+    return NULL;
+  }
+
+  x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+  if (!x509) {
+    BIO_free(bio);
+    return NULL;
+  }
+
+  BIO_free(bio);
+  return x509;
+}
+
 /**
  * TLS Secure Context Methods
  */
@@ -471,6 +490,36 @@ tls_sc_add_crl(lua_State *L) {
   return 1;
 }
 
+int tls_sc_add_ca_cert(lua_State *L)
+{
+  tls_sc_t *ctx = getSC(L);
+  X509 *x509;
+  int newCAStore = FALSE;
+
+  if (!ctx->ca_store) {
+    ctx->ca_store = X509_STORE_new();
+    SSL_CTX_set_cert_store(ctx->ctx, ctx->ca_store);
+    newCAStore = TRUE;
+  }
+
+  x509 = _lua_load_x509(L, 2);
+  if (!x509) {
+    lua_pushboolean(L, 0);
+    return 1;
+  }
+
+  X509_STORE_add_cert(ctx->ca_store, x509);
+  SSL_CTX_add_client_CA(ctx->ctx, x509);
+  X509_free(x509);
+
+  if (newCAStore) {
+    SSL_CTX_set_cert_store(ctx->ctx, ctx->ca_store);
+  }
+
+  lua_pushboolean(L, 1);
+  return 1;
+}
+
 static int
 tls_sc_gc(lua_State *L) {
   return tls_sc_close(L);
@@ -482,6 +531,7 @@ static const luaL_reg tls_sc_lib[] = {
   {"setCert", tls_sc_set_cert},
   {"setCiphers", tls_sc_set_ciphers},
   {"setOptions", tls_sc_set_options},
+  {"addCACert", tls_sc_add_ca_cert},
   {"addTrustedCert", tls_sc_add_trusted_cert},
   {"addRootCerts", tls_sc_add_root_certs},
   {"addCRL", tls_sc_add_crl},
