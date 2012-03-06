@@ -21,9 +21,13 @@ extern const char **luaJIT_BC_querystring;
 extern const char **luaJIT_BC_repl;
 extern const char **luaJIT_BC_stack;
 extern const char **luaJIT_BC_timer;
+extern const char **luaJIT_BC_tls;
 extern const char **luaJIT_BC_url;
 extern const char **luaJIT_BC_utils;
 extern const char **luaJIT_BC_uv;
+#ifdef USE_OPENSSL
+extern const char **luaJIT_BC_tls;
+#endif
 
 const void *luvit__suck_in_symbols(void)
 {
@@ -46,6 +50,9 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const char *)luaJIT_BC_repl +
     (size_t)(const char *)luaJIT_BC_stack +
     (size_t)(const char *)luaJIT_BC_timer +
+#ifdef USE_OPENSSL
+    (size_t)(const char *)luaJIT_BC_tls +
+#endif
     (size_t)(const char *)luaJIT_BC_url +
     (size_t)(const char *)luaJIT_BC_utils +
     (size_t)(const char *)luaJIT_BC_uv;
