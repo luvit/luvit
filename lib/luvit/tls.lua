@@ -577,7 +577,6 @@ function Server:initialize(...)
     local pair = SecurePair:new(creds, true, self.requestCert, self.rejectUnauthorized, nil)
     local cleartext = pipe(pair, socket)
     pair:on('secure', function()
-      -- TODO certificate validations
       self:emit('secureConnection', cleartext, pair.encrypted)
     end)
     pair:on('error', function(err)
