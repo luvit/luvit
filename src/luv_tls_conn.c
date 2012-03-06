@@ -596,7 +596,7 @@ tls_conn_get_peer_certificate(lua_State *L)
     const char hex[] = "0123456789ABCDEF";
     char fingerprint[EVP_MAX_MD_SIZE * 3];
 
-    for (i=0; i<md_size; i++) {
+    for (i=0; i < md_size; i++) {
       fingerprint[3*i] = hex[(md[i] & 0xf0) >> 4];
       fingerprint[(3*i)+1] = hex[(md[i] & 0x0f)];
       fingerprint[(3*i)+2] = ':';
