@@ -1,29 +1,31 @@
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ Copyright Joyent, Inc. and other Node contributors.
+
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to permit
+ persons to whom the Software is furnished to do so, subject to the
+ following conditions:
+
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+ NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+ USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 #ifndef SRC_NODE_ROOT_CERTS_H_
 #define SRC_NODE_ROOT_CERTS_H_
 
 const char* root_certs[] = {
-  // "GTE CyberTrust Root CA"
+  /* "GTE CyberTrust Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIB+jCCAWMCAgGjMA0GCSqGSIb3DQEBBAUAMEUxCzAJBgNVBAYTAlVTMRgwFgYDVQQKEw9HVEUg\n"
   "Q29ycG9yYXRpb24xHDAaBgNVBAMTE0dURSBDeWJlclRydXN0IFJvb3QwHhcNOTYwMjIzMjMwMTAw\n"
@@ -36,7 +38,7 @@ const char* root_certs[] = {
   "1tWW4/5ODFlitppK+ULdjG+BqXH/9ApybW1EDp3zdHSo1TRJ6V6e6bR64eVaH4QwnNOfpSXY\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GTE CyberTrust Global Root"
+  /* "GTE CyberTrust Global Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICWjCCAcMCAgGlMA0GCSqGSIb3DQEBBAUAMHUxCzAJBgNVBAYTAlVTMRgwFgYDVQQKEw9HVEUg\n"
   "Q29ycG9yYXRpb24xJzAlBgNVBAsTHkdURSBDeWJlclRydXN0IFNvbHV0aW9ucywgSW5jLjEjMCEG\n"
@@ -51,7 +53,7 @@ const char* root_certs[] = {
   "NMQkpw0PlZPvy5TYnh+dXIVtx6quTx8itc2VrbqnzPmrC3p/\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Thawte Personal Freemail CA"
+  /* "Thawte Personal Freemail CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDLTCCApagAwIBAgIBADANBgkqhkiG9w0BAQQFADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgT\n"
   "DFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3Vs\n"
@@ -70,7 +72,7 @@ const char* root_certs[] = {
   "/qarigd1iwzdUYRr5PjRzneigQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Thawte Server CA"
+  /* "Thawte Server CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDEzCCAnygAwIBAgIBATANBgkqhkiG9w0BAQQFADCBxDELMAkGA1UEBhMCWkExFTATBgNVBAgT\n"
   "DFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMR0wGwYDVQQKExRUaGF3dGUgQ29uc3Vs\n"
@@ -88,7 +90,7 @@ const char* root_certs[] = {
   "GCg70eNAKJpaPNW15yAbi8qkq43pUdniTCxZqdq5snUb9kLy78fyGPmJvKP/iiMucEc=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Thawte Premium Server CA"
+  /* "Thawte Premium Server CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDJzCCApCgAwIBAgIBATANBgkqhkiG9w0BAQQFADCBzjELMAkGA1UEBhMCWkExFTATBgNVBAgT\n"
   "DFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMR0wGwYDVQQKExRUaGF3dGUgQ29uc3Vs\n"
@@ -107,7 +109,7 @@ const char* root_certs[] = {
   "UCemDaYj+bvLpgcUQg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Equifax Secure CA"
+  /* "Equifax Secure CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJVUzEQMA4GA1UE\n"
   "ChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5\n"
@@ -126,14 +128,14 @@ const char* root_certs[] = {
   "70+sB3c4\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Digital Signature Trust Co. Global CA 1"
+  /* "Digital Signature Trust Co. Global CA 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDKTCCApKgAwIBAgIENnAVljANBgkqhkiG9w0BAQUFADBGMQswCQYDVQQGEwJVUzEkMCIGA1UE\n"
   "ChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMREwDwYDVQQLEwhEU1RDQSBFMTAeFw05ODEy\n"
   "MTAxODEwMjNaFw0xODEyMTAxODQwMjNaMEYxCzAJBgNVBAYTAlVTMSQwIgYDVQQKExtEaWdpdGFs\n"
   "IFNpZ25hdHVyZSBUcnVzdCBDby4xETAPBgNVBAsTCERTVENBIEUxMIGdMA0GCSqGSIb3DQEBAQUA\n"
   "A4GLADCBhwKBgQCgbIGpzzQeJN3+hijM3oMv+V7UQtLodGBmE5gGHKlREmlvMVW5SXIACH7TpWJE\n"
-  "NySZj9mDSI+ZbZUTu0M7LklOiDfBu1h//uG9+LthzfNHwJmm8fOR6Hh8AMthyUQncWlVSn5JTe2i\n"
+  "NySZj9mDSI+ZbZUTu0M7LklOiDfBu1h/*uG9+LthzfNHwJmm8fOR6Hh8AMthyUQncWlVSn5JTe2i\n"
   "o74CTADKAqjuAQIxZA9SLRN0dja1erQtcQIBA6OCASQwggEgMBEGCWCGSAGG+EIBAQQEAwIABzBo\n"
   "BgNVHR8EYTBfMF2gW6BZpFcwVTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG0RpZ2l0YWwgU2lnbmF0\n"
   "dXJlIFRydXN0IENvLjERMA8GA1UECxMIRFNUQ0EgRTExDTALBgNVBAMTBENSTDEwKwYDVR0QBCQw\n"
@@ -145,13 +147,13 @@ const char* root_certs[] = {
   "RbyhkwS7hp86W0N6w4pl\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Digital Signature Trust Co. Global CA 3"
+  /* "Digital Signature Trust Co. Global CA 3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDKTCCApKgAwIBAgIENm7TzjANBgkqhkiG9w0BAQUFADBGMQswCQYDVQQGEwJVUzEkMCIGA1UE\n"
   "ChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMREwDwYDVQQLEwhEU1RDQSBFMjAeFw05ODEy\n"
   "MDkxOTE3MjZaFw0xODEyMDkxOTQ3MjZaMEYxCzAJBgNVBAYTAlVTMSQwIgYDVQQKExtEaWdpdGFs\n"
   "IFNpZ25hdHVyZSBUcnVzdCBDby4xETAPBgNVBAsTCERTVENBIEUyMIGdMA0GCSqGSIb3DQEBAQUA\n"
-  "A4GLADCBhwKBgQC/k48Xku8zExjrEH9OFr//Bo8qhbxe+SSmJIi2A7fBw18DW9Fvrn5C6mYjuGOD\n"
+  "A4GLADCBhwKBgQC/k48Xku8zExjrEH9OFr/*Bo8qhbxe+SSmJIi2A7fBw18DW9Fvrn5C6mYjuGOD\n"
   "VvsoLeE4i7TuqAHhzhy2iCoiRoX7n6dwqUcUP87eZfCocfdPJmyMvMa1795JJ/9IKn3oTQPMx7JS\n"
   "xhcxEzu1TdvIxPbDDyQq2gyd55FbgM2UnQIBA6OCASQwggEgMBEGCWCGSAGG+EIBAQQEAwIABzBo\n"
   "BgNVHR8EYTBfMF2gW6BZpFcwVTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG0RpZ2l0YWwgU2lnbmF0\n"
@@ -164,7 +166,7 @@ const char* root_certs[] = {
   "mPnHfxsb1gYgAlihw6ID\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 1 Public Primary Certification Authority"
+  /* "Verisign Class 1 Public Primary Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICPTCCAaYCEQDNun9W8N/kvFT+IqyzcqpVMA0GCSqGSIb3DQEBAgUAMF8xCzAJBgNVBAYTAlVT\n"
   "MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE3MDUGA1UECxMuQ2xhc3MgMSBQdWJsaWMgUHJpbWFy\n"
@@ -179,7 +181,7 @@ const char* root_certs[] = {
   "NACY89FxlA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 2 Public Primary Certification Authority"
+  /* "Verisign Class 2 Public Primary Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICPDCCAaUCEC0b/EoXjaOR6+f/9YtFvgswDQYJKoZIhvcNAQECBQAwXzELMAkGA1UEBhMCVVMx\n"
   "FzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMTcwNQYDVQQLEy5DbGFzcyAyIFB1YmxpYyBQcmltYXJ5\n"
@@ -194,7 +196,7 @@ const char* root_certs[] = {
   "lw0Xd8rY\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 3 Public Primary Certification Authority"
+  /* "Verisign Class 3 Public Primary Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICPDCCAaUCEHC65B0Q2Sk0tjjKewPMur8wDQYJKoZIhvcNAQECBQAwXzELMAkGA1UEBhMCVVMx\n"
   "FzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMTcwNQYDVQQLEy5DbGFzcyAzIFB1YmxpYyBQcmltYXJ5\n"
@@ -209,7 +211,7 @@ const char* root_certs[] = {
   "Tqj/ZA1k\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 1 Public Primary Certification Authority - G2"
+  /* "Verisign Class 1 Public Primary Certification Authority - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDAjCCAmsCEEzH6qqYPnHTkxD4PTqJkZIwDQYJKoZIhvcNAQEFBQAwgcExCzAJBgNVBAYTAlVT\n"
   "MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xhc3MgMSBQdWJsaWMgUHJpbWFy\n"
@@ -227,7 +229,7 @@ const char* root_certs[] = {
   "lUGcZXNY8ZCaPGqxmMnEh7zPRW1F4m4iP/68DzFc6PLZ\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 2 Public Primary Certification Authority - G2"
+  /* "Verisign Class 2 Public Primary Certification Authority - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDAzCCAmwCEQC5L2DMiJ+hekYJuFtwbIqvMA0GCSqGSIb3DQEBBQUAMIHBMQswCQYDVQQGEwJV\n"
   "UzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xPDA6BgNVBAsTM0NsYXNzIDIgUHVibGljIFByaW1h\n"
@@ -245,7 +247,7 @@ const char* root_certs[] = {
   "LbYWm1lbtFFZOrMLFPQS32eg9K0yZF6xRnInjBJ7xUS0rg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 3 Public Primary Certification Authority - G2"
+  /* "Verisign Class 3 Public Primary Certification Authority - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDAjCCAmsCEH3Z/gfPqB63EHln+6eJNMYwDQYJKoZIhvcNAQEFBQAwgcExCzAJBgNVBAYTAlVT\n"
   "MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xhc3MgMyBQdWJsaWMgUHJpbWFy\n"
@@ -263,7 +265,7 @@ const char* root_certs[] = {
   "Oaxxp5EJb+RxBrO6WVcmeQD2+A2iMzAo1KpYoJ2daZH9\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 4 Public Primary Certification Authority - G2"
+  /* "Verisign Class 4 Public Primary Certification Authority - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDAjCCAmsCEDKIjprS9esTR/h/xCA3JfgwDQYJKoZIhvcNAQEFBQAwgcExCzAJBgNVBAYTAlVT\n"
   "MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xhc3MgNCBQdWJsaWMgUHJpbWFy\n"
@@ -281,7 +283,7 @@ const char* root_certs[] = {
   "ZYPejYqcPIiNOVn8qj8ijaHBZlCBckztImRPT8qAkbYp\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GlobalSign Root CA"
+  /* "GlobalSign Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkGA1UEBhMCQkUx\n"
   "GTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jvb3QgQ0ExGzAZBgNVBAMTEkds\n"
@@ -293,7 +295,7 @@ const char* root_certs[] = {
   "Kk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdGsnUOhugZitVtbNV4FpWi6cgKOOvyJBNP\n"
   "c1STE4U6G7weNLWLBYy5d4ux2x8gkasJU26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrX\n"
   "gzT/LCrBbBlDSgeF59N89iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNV\n"
-  "HRMBAf8EBTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0BAQUF\n"
+  "HRMBAf8EBTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo/*z9SzANBgkqhkiG9w0BAQUF\n"
   "AAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOzyj1hTdNGCbM+w6Dj\n"
   "Y1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE38NflNUVyRRBnMRddWQVDf9VMOyG\n"
   "j/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymPAbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhH\n"
@@ -301,7 +303,7 @@ const char* root_certs[] = {
   "X4XSQRjbgbMEHMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GlobalSign Root CA - R2"
+  /* "GlobalSign Root CA - R2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDujCCAqKgAwIBAgILBAAAAAABD4Ym5g0wDQYJKoZIhvcNAQEFBQAwTDEgMB4GA1UECxMXR2xv\n"
   "YmFsU2lnbiBSb290IENBIC0gUjIxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMTCkdsb2Jh\n"
@@ -322,7 +324,7 @@ const char* root_certs[] = {
   "TBj0/VLZjmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ValiCert Class 1 VA"
+  /* "ValiCert Class 1 VA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIC5zCCAlACAQEwDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0IFZhbGlkYXRp\n"
   "b24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENs\n"
@@ -340,7 +342,7 @@ const char* root_certs[] = {
   "Orf1LXLI\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ValiCert Class 2 VA"
+  /* "ValiCert Class 2 VA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIC5zCCAlACAQEwDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0IFZhbGlkYXRp\n"
   "b24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENs\n"
@@ -358,7 +360,7 @@ const char* root_certs[] = {
   "W9ViH0Pd\n"
   "-----END CERTIFICATE-----\n",
 
-  // "RSA Root Certificate 1"
+  /* "RSA Root Certificate 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIC5zCCAlACAQEwDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0IFZhbGlkYXRp\n"
   "b24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENs\n"
@@ -376,7 +378,7 @@ const char* root_certs[] = {
   "on+jjBXu\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 1 Public Primary Certification Authority - G3"
+  /* "Verisign Class 1 Public Primary Certification Authority - G3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEGjCCAwICEQCLW3VWhFSFCwDPrzhIzrGkMA0GCSqGSIb3DQEBBQUAMIHKMQswCQYDVQQGEwJV\n"
   "UzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlTaWduIFRydXN0IE5ldHdv\n"
@@ -394,12 +396,12 @@ const char* root_certs[] = {
   "FQRKr4Mn0cVYiMHd9qqnoxjaaKptEVHhv2Vrn5Z20T0CAwEAATANBgkqhkiG9w0BAQUFAAOCAQEA\n"
   "q2aN17O6x5q25lXQBfGfMY1aqtmqRiYPce2lrVNWYgFHKkTp/j90CxObufRNG7LRX7K20ohcs5/N\n"
   "y9Sn2WCVhDr4wTcdYcrnsMXlkdpUpqwxga6X3s0IrLjAl4B/bnKk52kTlWUfxJM8/XmPBNQ+T+r3\n"
-  "ns7NZ3xPZQL/kYVUc8f/NveGLezQXk//EZ9yBta4GvFMDSZl4kSAHsef493oCtrspSCAaWihT37h\n"
+  "ns7NZ3xPZQL/kYVUc8f/NveGLezQXk/*EZ9yBta4GvFMDSZl4kSAHsef493oCtrspSCAaWihT37h\n"
   "a88HQfqDjrw43bAuEbFrskLMmrz5SCJ5ShkPshw+IHTZasO+8ih4E1Z5T21Q6huwtVexN2ZYI/Pc\n"
   "D98Kh8TvhgXVOBRgmaNL3gaWcSzy27YfpO8/7g==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 2 Public Primary Certification Authority - G3"
+  /* "Verisign Class 2 Public Primary Certification Authority - G3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEGTCCAwECEGFwy0mMX5hFKeewptlQW3owDQYJKoZIhvcNAQEFBQAwgcoxCzAJBgNVBAYTAlVT\n"
   "MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjEfMB0GA1UECxMWVmVyaVNpZ24gVHJ1c3QgTmV0d29y\n"
@@ -418,11 +420,11 @@ const char* root_certs[] = {
   "JhU8wI1NQ0kdvekhktdmnLfexbjQ5F1fdiLAJvmEOjr5jLX77GDx6M4EsMjdpwOPMPOY36TmpDHf\n"
   "0xwLRtxyID+u7gU8pDM/CzmscHhzS5kr3zDCVLCoO1Wh/hYozUK9dG6A2ydEp85EXdQbkJgNHkKU\n"
   "sQAsBNB0owIFImNjzYO1+8FtYmtpdf1dcEG59b98377BMnMiIYtYgXsVkXq642RIsH/7NiXaldDx\n"
-  "JBQX3RiAa0YjOVT1jmIJBB2UkKab5iXiQkWquJCtvgiPqQtCGJTPcjnhsUPgKM+351psE2tJs//j\n"
+  "JBQX3RiAa0YjOVT1jmIJBB2UkKab5iXiQkWquJCtvgiPqQtCGJTPcjnhsUPgKM+351psE2tJs/*j\n"
   "GHyJizNdrDPXp/naOlXJWBD5qu9ats9LS98q\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 3 Public Primary Certification Authority - G3"
+  /* "Verisign Class 3 Public Primary Certification Authority - G3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEGjCCAwICEQCbfgZJoz5iudXukEhxKe9XMA0GCSqGSIb3DQEBBQUAMIHKMQswCQYDVQQGEwJV\n"
   "UzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlTaWduIFRydXN0IE5ldHdv\n"
@@ -445,7 +447,7 @@ const char* root_certs[] = {
   "t20Xj50egWTh/sVFuq1ruQp6Tk9LhO5L8X3dEQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Verisign Class 4 Public Primary Certification Authority - G3"
+  /* "Verisign Class 4 Public Primary Certification Authority - G3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEGjCCAwICEQDsoKeLbnVqAc/EfMwvlF7XMA0GCSqGSIb3DQEBBQUAMIHKMQswCQYDVQQGEwJV\n"
   "UzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlTaWduIFRydXN0IE5ldHdv\n"
@@ -468,7 +470,7 @@ const char* root_certs[] = {
   "UPMxxY8BqHTr9Xgn2uf3ZkPznoM+IKrDNWCRzg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Entrust.net Secure Server CA"
+  /* "Entrust.net Secure Server CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIE2DCCBEGgAwIBAgIEN0rSQzANBgkqhkiG9w0BAQUFADCBwzELMAkGA1UEBhMCVVMxFDASBgNV\n"
   "BAoTC0VudHJ1c3QubmV0MTswOQYDVQQLEzJ3d3cuZW50cnVzdC5uZXQvQ1BTIGluY29ycC4gYnkg\n"
@@ -494,7 +496,7 @@ const char* root_certs[] = {
   "n9cd2cNgQ4xYDiKWL2KjLB+6rQXvqzJ4h6BUcxm1XAX5Uj5tLUUL9wqT6u0G+bI=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Entrust.net Secure Personal CA"
+  /* "Entrust.net Secure Personal CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIE7TCCBFagAwIBAgIEOAOR7jANBgkqhkiG9w0BAQQFADCByTELMAkGA1UEBhMCVVMxFDASBgNV\n"
   "BAoTC0VudHJ1c3QubmV0MUgwRgYDVQQLFD93d3cuZW50cnVzdC5uZXQvQ2xpZW50X0NBX0luZm8v\n"
@@ -521,7 +523,7 @@ const char* root_certs[] = {
   "JqibGapEPHayXOw=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Entrust.net Premium 2048 Secure Server CA"
+  /* "Entrust.net Premium 2048 Secure Server CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEXDCCA0SgAwIBAgIEOGO5ZjANBgkqhkiG9w0BAQUFADCBtDEUMBIGA1UEChMLRW50cnVzdC5u\n"
   "ZXQxQDA+BgNVBAsUN3d3dy5lbnRydXN0Lm5ldC9DUFNfMjA0OCBpbmNvcnAuIGJ5IHJlZi4gKGxp\n"
@@ -545,7 +547,7 @@ const char* root_certs[] = {
   "OP/swNlQ8C5LWK5Gb9Auw2DaclVyvUxFnmG6v4SBkgPR0ml8xQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Baltimore CyberTrust Root"
+  /* "Baltimore CyberTrust Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDdzCCAl+gAwIBAgIEAgAAuTANBgkqhkiG9w0BAQUFADBaMQswCQYDVQQGEwJJRTESMBAGA1UE\n"
   "ChMJQmFsdGltb3JlMRMwEQYDVQQLEwpDeWJlclRydXN0MSIwIAYDVQQDExlCYWx0aW1vcmUgQ3li\n"
@@ -565,7 +567,7 @@ const char* root_certs[] = {
   "RCwBXbsdtTLSR9I4LtD+gdwyah617jzV/OeBHRnDJELqYzmp\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Equifax Secure Global eBusiness CA"
+  /* "Equifax Secure Global eBusiness CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICkDCCAfmgAwIBAgIBATANBgkqhkiG9w0BAQQFADBaMQswCQYDVQQGEwJVUzEcMBoGA1UEChMT\n"
   "RXF1aWZheCBTZWN1cmUgSW5jLjEtMCsGA1UEAxMkRXF1aWZheCBTZWN1cmUgR2xvYmFsIGVCdXNp\n"
@@ -581,7 +583,7 @@ const char* root_certs[] = {
   "NMR1pHMc8Y3c7635s3a0kr/clRAevsvIO1qEYBlWlKlV\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Equifax Secure eBusiness CA 1"
+  /* "Equifax Secure eBusiness CA 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICgjCCAeugAwIBAgIBBDANBgkqhkiG9w0BAQQFADBTMQswCQYDVQQGEwJVUzEcMBoGA1UEChMT\n"
   "RXF1aWZheCBTZWN1cmUgSW5jLjEmMCQGA1UEAxMdRXF1aWZheCBTZWN1cmUgZUJ1c2luZXNzIENB\n"
@@ -597,7 +599,7 @@ const char* root_certs[] = {
   "KpYrtWKmpj29f5JZzVoqgrI3eQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Equifax Secure eBusiness CA 2"
+  /* "Equifax Secure eBusiness CA 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDIDCCAomgAwIBAgIEN3DPtTANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJVUzEXMBUGA1UE\n"
   "ChMORXF1aWZheCBTZWN1cmUxJjAkBgNVBAsTHUVxdWlmYXggU2VjdXJlIGVCdXNpbmVzcyBDQS0y\n"
@@ -616,7 +618,7 @@ const char* root_certs[] = {
   "V+GRMOrN\n"
   "-----END CERTIFICATE-----\n",
 
-  // "beTRUSTed Root CA"
+  /* "beTRUSTed Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFLDCCBBSgAwIBAgIEOU99hzANBgkqhkiG9w0BAQUFADBaMQswCQYDVQQGEwJXVzESMBAGA1UE\n"
   "ChMJYmVUUlVTVGVkMRswGQYDVQQDExJiZVRSVVNUZWQgUm9vdCBDQXMxGjAYBgNVBAMTEWJlVFJV\n"
@@ -644,7 +646,7 @@ const char* root_certs[] = {
   "PyMQPyEQWbfkQN0mDCP2qq4=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AddTrust Low-Value Services Root"
+  /* "AddTrust Low-Value Services Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEGDCCAwCgAwIBAgIBATANBgkqhkiG9w0BAQUFADBlMQswCQYDVQQGEwJTRTEUMBIGA1UEChML\n"
   "QWRkVHJ1c3QgQUIxHTAbBgNVBAsTFEFkZFRydXN0IFRUUCBOZXR3b3JrMSEwHwYDVQQDExhBZGRU\n"
@@ -667,7 +669,7 @@ const char* root_certs[] = {
   "ccweGyBECMB6tkD9xOQ14R0WHNC8K47Wcdk=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AddTrust External Root"
+  /* "AddTrust External Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEUMBIGA1UEChML\n"
   "QWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0IEV4dGVybmFsIFRUUCBOZXR3b3JrMSIwIAYD\n"
@@ -690,7 +692,7 @@ const char* root_certs[] = {
   "G+GMmIPLHzHxREzGBHNJdmAPx/i9F4BrLunMTA5amnkPIAou1Z5jJh5VkpTYghdae9C8x49OhgQ=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AddTrust Public Services Root"
+  /* "AddTrust Public Services Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEFTCCAv2gAwIBAgIBATANBgkqhkiG9w0BAQUFADBkMQswCQYDVQQGEwJTRTEUMBIGA1UEChML\n"
   "QWRkVHJ1c3QgQUIxHTAbBgNVBAsTFEFkZFRydXN0IFRUUCBOZXR3b3JrMSAwHgYDVQQDExdBZGRU\n"
@@ -713,7 +715,7 @@ const char* root_certs[] = {
   "EufOX1362KqxMy3ZdvJOOjMMK7MtkAY=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AddTrust Qualified Certificates Root"
+  /* "AddTrust Qualified Certificates Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEHjCCAwagAwIBAgIBATANBgkqhkiG9w0BAQUFADBnMQswCQYDVQQGEwJTRTEUMBIGA1UEChML\n"
   "QWRkVHJ1c3QgQUIxHTAbBgNVBAsTFEFkZFRydXN0IFRUUCBOZXR3b3JrMSMwIQYDVQQDExpBZGRU\n"
@@ -736,7 +738,7 @@ const char* root_certs[] = {
   "iFrRHnGTHyQwdOUeqN48Jzd/g66ed8/wMLH/S5noxqE=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Thawte Time Stamping CA"
+  /* "Thawte Time Stamping CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICoTCCAgqgAwIBAgIBADANBgkqhkiG9w0BAQQFADCBizELMAkGA1UEBhMCWkExFTATBgNVBAgT\n"
   "DFdlc3Rlcm4gQ2FwZTEUMBIGA1UEBxMLRHVyYmFudmlsbGUxDzANBgNVBAoTBlRoYXd0ZTEdMBsG\n"
@@ -752,7 +754,7 @@ const char* root_certs[] = {
   "d/r8zSeUQhac0xxo7L9c3eWpexAKMnRUEzGLhQOEkbdYATAUOK8oyvyxUBkZCayJSdM=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Entrust.net Global Secure Server CA"
+  /* "Entrust.net Global Secure Server CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIElTCCA/6gAwIBAgIEOJsRPDANBgkqhkiG9w0BAQQFADCBujEUMBIGA1UEChMLRW50cnVzdC5u\n"
   "ZXQxPzA9BgNVBAsUNnd3dy5lbnRydXN0Lm5ldC9TU0xfQ1BTIGluY29ycC4gYnkgcmVmLiAobGlt\n"
@@ -777,7 +779,7 @@ const char* root_certs[] = {
   "a9kC9n8O6mUE8c1UyrrJzOCE98g+EZfTYAkYvAX/bIkz8OwVDw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Entrust.net Global Secure Personal CA"
+  /* "Entrust.net Global Secure Personal CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEgzCCA+ygAwIBAgIEOJ725DANBgkqhkiG9w0BAQQFADCBtDEUMBIGA1UEChMLRW50cnVzdC5u\n"
   "ZXQxQDA+BgNVBAsUN3d3dy5lbnRydXN0Lm5ldC9HQ0NBX0NQUyBpbmNvcnAuIGJ5IHJlZi4gKGxp\n"
@@ -802,7 +804,7 @@ const char* root_certs[] = {
   "Gof4T4HHdguEOnKdzmVml64mXg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Entrust Root Certification Authority"
+  /* "Entrust Root Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEkTCCA3mgAwIBAgIERWtQVDANBgkqhkiG9w0BAQUFADCBsDELMAkGA1UEBhMCVVMxFjAUBgNV\n"
   "BAoTDUVudHJ1c3QsIEluYy4xOTA3BgNVBAsTMHd3dy5lbnRydXN0Lm5ldC9DUFMgaXMgaW5jb3Jw\n"
@@ -827,7 +829,7 @@ const char* root_certs[] = {
   "tHuu2guQOHXvgR1m0vdXcDazv/wor3ElhVsT/h5/WrQ8\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AOL Time Warner Root Certification Authority 1"
+  /* "AOL Time Warner Root Certification Authority 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID5jCCAs6gAwIBAgIBATANBgkqhkiG9w0BAQUFADCBgzELMAkGA1UEBhMCVVMxHTAbBgNVBAoT\n"
   "FEFPTCBUaW1lIFdhcm5lciBJbmMuMRwwGgYDVQQLExNBbWVyaWNhIE9ubGluZSBJbmMuMTcwNQYD\n"
@@ -849,7 +851,7 @@ const char* root_certs[] = {
   "juyDUTEH1dSf/1l7qG6Fz9NLqUmwX7A5KGgOc90lmt4S\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AOL Time Warner Root Certification Authority 2"
+  /* "AOL Time Warner Root Certification Authority 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIF5jCCA86gAwIBAgIBATANBgkqhkiG9w0BAQUFADCBgzELMAkGA1UEBhMCVVMxHTAbBgNVBAoT\n"
   "FEFPTCBUaW1lIFdhcm5lciBJbmMuMRwwGgYDVQQLExNBbWVyaWNhIE9ubGluZSBJbmMuMTcwNQYD\n"
@@ -880,7 +882,7 @@ const char* root_certs[] = {
   "uBOLZ8/5fNkiHfZdxRwBL5joeiQYvITX+txyW/fBOmg=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "beTRUSTed Root CA-Baltimore Implementation"
+  /* "beTRUSTed Root CA-Baltimore Implementation" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFajCCBFKgAwIBAgIEPLU9RjANBgkqhkiG9w0BAQUFADBmMRIwEAYDVQQKEwliZVRSVVNUZWQx\n"
   "GzAZBgNVBAsTEmJlVFJVU1RlZCBSb290IENBczEzMDEGA1UEAxMqYmVUUlVTVGVkIFJvb3QgQ0Et\n"
@@ -909,7 +911,7 @@ const char* root_certs[] = {
   "SoDByFOQtTwxiBdQn8nEDovYqAJjDQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "beTRUSTed Root CA - Entrust Implementation"
+  /* "beTRUSTed Root CA - Entrust Implementation" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIGUTCCBTmgAwIBAgIEPLVPQDANBgkqhkiG9w0BAQUFADBmMRIwEAYDVQQKEwliZVRSVVNUZWQx\n"
   "GzAZBgNVBAsTEmJlVFJVU1RlZCBSb290IENBczEzMDEGA1UEAxMqYmVUUlVTVGVkIFJvb3QgQ0Eg\n"
@@ -942,7 +944,7 @@ const char* root_certs[] = {
   "6TfW1mG+oq1I59/mdP7TbX3SJdysYlep9w==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "beTRUSTed Root CA - RSA Implementation"
+  /* "beTRUSTed Root CA - RSA Implementation" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFaDCCBFCgAwIBAgIQO1nHe81bV569N1KsdrSqGjANBgkqhkiG9w0BAQUFADBiMRIwEAYDVQQK\n"
   "EwliZVRSVVNUZWQxGzAZBgNVBAsTEmJlVFJVU1RlZCBSb290IENBczEvMC0GA1UEAxMmYmVUUlVT\n"
@@ -971,7 +973,7 @@ const char* root_certs[] = {
   "WtRIn7lAhAuYaPsBQ9Yb4gmxlxw=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "RSA Security 2048 v3"
+  /* "RSA Security 2048 v3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDYTCCAkmgAwIBAgIQCgEBAQAAAnwAAAAKAAAAAjANBgkqhkiG9w0BAQUFADA6MRkwFwYDVQQK\n"
   "ExBSU0EgU2VjdXJpdHkgSW5jMR0wGwYDVQQLExRSU0EgU2VjdXJpdHkgMjA0OCBWMzAeFw0wMTAy\n"
@@ -991,7 +993,7 @@ const char* root_certs[] = {
   "pKnXwiJPZ9d37CAFYd4=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Global CA"
+  /* "GeoTrust Global CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDVDCCAjygAwIBAgIDAjRWMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYTAlVTMRYwFAYDVQQK\n"
   "Ew1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVzdCBHbG9iYWwgQ0EwHhcNMDIwNTIxMDQw\n"
@@ -1011,7 +1013,7 @@ const char* root_certs[] = {
   "Mw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Global CA 2"
+  /* "GeoTrust Global CA 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDZjCCAk6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBEMQswCQYDVQQGEwJVUzEWMBQGA1UEChMN\n"
   "R2VvVHJ1c3QgSW5jLjEdMBsGA1UEAxMUR2VvVHJ1c3QgR2xvYmFsIENBIDIwHhcNMDQwMzA0MDUw\n"
@@ -1031,7 +1033,7 @@ const char* root_certs[] = {
   "H4z1Ir+rzoPz4iIprn2DQKi6bA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Universal CA"
+  /* "GeoTrust Universal CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFaDCCA1CgAwIBAgIBATANBgkqhkiG9w0BAQUFADBFMQswCQYDVQQGEwJVUzEWMBQGA1UEChMN\n"
   "R2VvVHJ1c3QgSW5jLjEeMBwGA1UEAxMVR2VvVHJ1c3QgVW5pdmVyc2FsIENBMB4XDTA0MDMwNDA1\n"
@@ -1060,7 +1062,7 @@ const char* root_certs[] = {
   "P/rmMuGNG2+k5o7Y+SlIis5z/iw=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Universal CA 2"
+  /* "GeoTrust Universal CA 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFbDCCA1SgAwIBAgIBATANBgkqhkiG9w0BAQUFADBHMQswCQYDVQQGEwJVUzEWMBQGA1UEChMN\n"
   "R2VvVHJ1c3QgSW5jLjEgMB4GA1UEAxMXR2VvVHJ1c3QgVW5pdmVyc2FsIENBIDIwHhcNMDQwMzA0\n"
@@ -1069,7 +1071,7 @@ const char* root_certs[] = {
   "A4ICDwAwggIKAoICAQCzVFLByT7y2dyxUxpZKeexw0Uo5dfR7cXFS6GqdHtXr0om/Nj1XqduGdt0\n"
   "DE81WzILAePb63p3NeqqWuDW6KFXlPCQo3RWlEQwAx5cTiuFJnSCegx2oG9NzkEtoBUGFF+3Qs17\n"
   "j1hhNNwqCPkuwwGmIkQcTAeC5lvO0Ep8BNMZcyfwqph/Lq9O64ceJHdqXbboW0W63MOhBW9Wjo8Q\n"
-  "JqVJwy7XQYci4E+GymC16qFjwAGXEHm9ADwSbSsVsaxLse4YuU6W3Nx2/zu+z18DwPw76L5GG//a\n"
+  "JqVJwy7XQYci4E+GymC16qFjwAGXEHm9ADwSbSsVsaxLse4YuU6W3Nx2/zu+z18DwPw76L5GG/*a\n"
   "QMJS9/7jOvdqdzXQ2o3rXhhqMcceujwbKNZrVMaqW9eiLBsZzKIC9ptZvTdrhrVtgrrY6slWvKk2\n"
   "WP0+GfPtDCapkzj4T8FdIgbQl+rhrcZV4IErKIM6+vR7IVEAvlI4zs1meaj0gVbi0IMJR1FbUGrP\n"
   "20gaXT73y/Zl92zxlfgCOzJWgjl6W70viRu/obTo/3+NjN8D8WBOWBFM66M/ECuDmgFz2ZRthAAn\n"
@@ -1089,7 +1091,7 @@ const char* root_certs[] = {
   "X36vWkzaH6byHCx+rgIW0lbQL1dTR+iS\n"
   "-----END CERTIFICATE-----\n",
 
-  // "UTN-USER First-Network Applications"
+  /* "UTN-USER First-Network Applications" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEZDCCA0ygAwIBAgIQRL4Mi1AAJLQR0zYwS8AzdzANBgkqhkiG9w0BAQUFADCBozELMAkGA1UE\n"
   "BhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl\n"
@@ -1113,7 +1115,7 @@ const char* root_certs[] = {
   "DbUMo2s/rn9X9R+WfN9v3YIwLGUbQErNaLly7HF27FSOH4UMAWr6pjisH8SE\n"
   "-----END CERTIFICATE-----\n",
 
-  // "America Online Root Certification Authority 1"
+  /* "America Online Root Certification Authority 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDpDCCAoygAwIBAgIBATANBgkqhkiG9w0BAQUFADBjMQswCQYDVQQGEwJVUzEcMBoGA1UEChMT\n"
   "QW1lcmljYSBPbmxpbmUgSW5jLjE2MDQGA1UEAxMtQW1lcmljYSBPbmxpbmUgUm9vdCBDZXJ0aWZp\n"
@@ -1134,7 +1136,7 @@ const char* root_certs[] = {
   "sPmuujz9dLQR6FgNgLzTqIA6me11zEZ7\n"
   "-----END CERTIFICATE-----\n",
 
-  // "America Online Root Certification Authority 2"
+  /* "America Online Root Certification Authority 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFpDCCA4ygAwIBAgIBATANBgkqhkiG9w0BAQUFADBjMQswCQYDVQQGEwJVUzEcMBoGA1UEChMT\n"
   "QW1lcmljYSBPbmxpbmUgSW5jLjE2MDQGA1UEAxMtQW1lcmljYSBPbmxpbmUgUm9vdCBDZXJ0aWZp\n"
@@ -1155,7 +1157,7 @@ const char* root_certs[] = {
   "AwIBhjANBgkqhkiG9w0BAQUFAAOCAgEAZ2sGuV9FOypLM7PmG2tZTiLMubekJcmnxPBUlgtk87FY\n"
   "T15R/LKXeydlwuXK5w0MJXti4/qftIe3RUavg6WXSIylvfEWK5t2LHo1YGwRgJfMqZJS5ivmae2p\n"
   "+DYtLHe/YUjRYwu5W1LtGLBDQiKmsXeu3mnFzcccobGlHBD7GL4acN3Bkku+KVqdPzW+5X1R+FXg\n"
-  "JXUjhx5c3LqdsKyzadsXg8n33gy8CNyRnqjQ1xU3c6U1uPx+xURABsPr+CKAXEfOAuMRn0T//Zoy\n"
+  "JXUjhx5c3LqdsKyzadsXg8n33gy8CNyRnqjQ1xU3c6U1uPx+xURABsPr+CKAXEfOAuMRn0T/*Zoy\n"
   "zH1kUQ7rVyZ2OuMeIjzCpjbdGe+n/BLzJsBZMYVMnNjP36TMzCmT/5RtdlwTCJfy7aULTd3oyWgO\n"
   "ZtMADjMSW7yV5TKQqLPGbIOtd+6Lfn6xqavT4fG2wLHqiMDn05DpKJKUe2h7lyoKZy2FAjgQ5ANh\n"
   "1NolNscIWC2hp1GvMApJ9aZphwctREZ2jirlmjvXGKL8nDgQzMY70rUXOm/9riW99XJZZLF0Kjhf\n"
@@ -1164,7 +1166,7 @@ const char* root_certs[] = {
   "cX/9XhmgD0uRuMRUvAawRY8mkaKO/qk=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Visa eCommerce Root"
+  /* "Visa eCommerce Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDojCCAoqgAwIBAgIQE4Y1TR0/BvLB+WUF1ZAcYjANBgkqhkiG9w0BAQUFADBrMQswCQYDVQQG\n"
   "EwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRlcm5hdGlvbmFsIFNlcnZpY2Ug\n"
@@ -1185,7 +1187,7 @@ const char* root_certs[] = {
   "398znM/jra6O1I7mT1GvFpLgXPYHDw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TC TrustCenter, Germany, Class 2 CA"
+  /* "TC TrustCenter, Germany, Class 2 CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDXDCCAsWgAwIBAgICA+owDQYJKoZIhvcNAQEEBQAwgbwxCzAJBgNVBAYTAkRFMRAwDgYDVQQI\n"
   "EwdIYW1idXJnMRAwDgYDVQQHEwdIYW1idXJnMTowOAYDVQQKEzFUQyBUcnVzdENlbnRlciBmb3Ig\n"
@@ -1205,7 +1207,7 @@ const char* root_certs[] = {
   "ASZ4smZHcFFk\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TC TrustCenter, Germany, Class 3 CA"
+  /* "TC TrustCenter, Germany, Class 3 CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDXDCCAsWgAwIBAgICA+swDQYJKoZIhvcNAQEEBQAwgbwxCzAJBgNVBAYTAkRFMRAwDgYDVQQI\n"
   "EwdIYW1idXJnMRAwDgYDVQQHEwdIYW1idXJnMTowOAYDVQQKEzFUQyBUcnVzdENlbnRlciBmb3Ig\n"
@@ -1225,7 +1227,7 @@ const char* root_certs[] = {
   "CdS7kjXvD9s0\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Certum Root CA"
+  /* "Certum Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDDDCCAfSgAwIBAgIDAQAgMA0GCSqGSIb3DQEBBQUAMD4xCzAJBgNVBAYTAlBMMRswGQYDVQQK\n"
   "ExJVbml6ZXRvIFNwLiB6IG8uby4xEjAQBgNVBAMTCUNlcnR1bSBDQTAeFw0wMjA2MTExMDQ2Mzla\n"
@@ -1243,7 +1245,7 @@ const char* root_certs[] = {
   "qFlnGNu8cN2bsWntgM6JQEhqDjXKKWYVIZQs6GAqm4VKQPNriiTsBhYscw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Comodo AAA Services root"
+  /* "Comodo AAA Services root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEMjCCAxqgAwIBAgIBATANBgkqhkiG9w0BAQUFADB7MQswCQYDVQQGEwJHQjEbMBkGA1UECAwS\n"
   "R3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHDAdTYWxmb3JkMRowGAYDVQQKDBFDb21vZG8gQ0Eg\n"
@@ -1266,7 +1268,7 @@ const char* root_certs[] = {
   "12yxow+ev+to51byrvLjKzg6CYG1a4XXvi3tPxq3smPi9WIsgtRqAEFQ8TmDn5XpNpaYbg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Comodo Secure Services root"
+  /* "Comodo Secure Services root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEPzCCAyegAwIBAgIBATANBgkqhkiG9w0BAQUFADB+MQswCQYDVQQGEwJHQjEbMBkGA1UECAwS\n"
   "R3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHDAdTYWxmb3JkMRowGAYDVQQKDBFDb21vZG8gQ0Eg\n"
@@ -1290,7 +1292,7 @@ const char* root_certs[] = {
   "RR3B7Hzs/Sk=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Comodo Trusted Services root"
+  /* "Comodo Trusted Services root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEQzCCAyugAwIBAgIBATANBgkqhkiG9w0BAQUFADB/MQswCQYDVQQGEwJHQjEbMBkGA1UECAwS\n"
   "R3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHDAdTYWxmb3JkMRowGAYDVQQKDBFDb21vZG8gQ0Eg\n"
@@ -1314,7 +1316,7 @@ const char* root_certs[] = {
   "9y5Xt5hwXsjEeLBi\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IPS Chained CAs root"
+  /* "IPS Chained CAs root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIH9zCCB2CgAwIBAgIBADANBgkqhkiG9w0BAQUFADCCARwxCzAJBgNVBAYTAkVTMRIwEAYDVQQI\n"
   "EwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEuMCwGA1UEChMlSVBTIEludGVybmV0IHB1\n"
@@ -1354,7 +1356,7 @@ const char* root_certs[] = {
   "2GsDgaPb1pOVIO/Tln4mkImcJpvNb2ar7QMiRDjMWb2f2/YHogF/JsRj9SVCXmK9\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IPS CLASE1 root"
+  /* "IPS CLASE1 root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIH6jCCB1OgAwIBAgIBADANBgkqhkiG9w0BAQUFADCCARIxCzAJBgNVBAYTAkVTMRIwEAYDVQQI\n"
   "EwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEuMCwGA1UEChMlSVBTIEludGVybmV0IHB1\n"
@@ -1394,7 +1396,7 @@ const char* root_certs[] = {
   "DszFV0VRFOlOHIilkfSj945RyKm+hjM+5i9Ibq9UkE6tsSU=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IPS CLASE3 root"
+  /* "IPS CLASE3 root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIH6jCCB1OgAwIBAgIBADANBgkqhkiG9w0BAQUFADCCARIxCzAJBgNVBAYTAkVTMRIwEAYDVQQI\n"
   "EwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEuMCwGA1UEChMlSVBTIEludGVybmV0IHB1\n"
@@ -1434,7 +1436,7 @@ const char* root_certs[] = {
   "NPjDfxZ4IwwHJPJGR607VNCv1TGyr33I6unUVtkOE7LFRVA=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IPS CLASEA1 root"
+  /* "IPS CLASEA1 root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIH9zCCB2CgAwIBAgIBADANBgkqhkiG9w0BAQUFADCCARQxCzAJBgNVBAYTAkVTMRIwEAYDVQQI\n"
   "EwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEuMCwGA1UEChMlSVBTIEludGVybmV0IHB1\n"
@@ -1474,7 +1476,7 @@ const char* root_certs[] = {
   "KcJboOeXNp13XjFr/tOn2yrb25aLH2betgPAK7N41lUH5Y85UN4HI3LmvSAUS7SG\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IPS CLASEA3 root"
+  /* "IPS CLASEA3 root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIH9zCCB2CgAwIBAgIBADANBgkqhkiG9w0BAQUFADCCARQxCzAJBgNVBAYTAkVTMRIwEAYDVQQI\n"
   "EwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEuMCwGA1UEChMlSVBTIEludGVybmV0IHB1\n"
@@ -1514,7 +1516,7 @@ const char* root_certs[] = {
   "KcJQrSRE7SOzSMtEQMEDlQwKeAYSAfWRMS1Jjbs/RU4s4OjNtckUFQzjB4ObJnXv\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IPS Timestamping root"
+  /* "IPS Timestamping root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIIODCCB6GgAwIBAgIBADANBgkqhkiG9w0BAQUFADCCAR4xCzAJBgNVBAYTAkVTMRIwEAYDVQQI\n"
   "EwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEuMCwGA1UEChMlSVBTIEludGVybmV0IHB1\n"
@@ -1555,7 +1557,7 @@ const char* root_certs[] = {
   "s/zif/WN87GphV+I3pGW7hdbrqXqcGV4LCFkAZXOzkw+UPS2Wctjjba9GNSHSl/c7+lW8AoM6HU=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "QuoVadis Root CA"
+  /* "QuoVadis Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIF0DCCBLigAwIBAgIEOrZQizANBgkqhkiG9w0BAQUFADB/MQswCQYDVQQGEwJCTTEZMBcGA1UE\n"
   "ChMQUXVvVmFkaXMgTGltaXRlZDElMCMGA1UECxMcUm9vdCBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0\n"
@@ -1586,7 +1588,7 @@ const char* root_certs[] = {
   "5nrQNiOKSnQ2+Q==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "QuoVadis Root CA 2"
+  /* "QuoVadis Root CA 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFtzCCA5+gAwIBAgICBQkwDQYJKoZIhvcNAQEFBQAwRTELMAkGA1UEBhMCQk0xGTAXBgNVBAoT\n"
   "EFF1b1ZhZGlzIExpbWl0ZWQxGzAZBgNVBAMTElF1b1ZhZGlzIFJvb3QgQ0EgMjAeFw0wNjExMjQx\n"
@@ -1616,7 +1618,7 @@ const char* root_certs[] = {
   "VCLAAVBpQ570su9t+Oza8eOx79+Rj1QqCyXBJhnEUhAFZdWCEOrCMc0u\n"
   "-----END CERTIFICATE-----\n",
 
-  // "QuoVadis Root CA 3"
+  /* "QuoVadis Root CA 3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIGnTCCBIWgAwIBAgICBcYwDQYJKoZIhvcNAQEFBQAwRTELMAkGA1UEBhMCQk0xGTAXBgNVBAoT\n"
   "EFF1b1ZhZGlzIExpbWl0ZWQxGzAZBgNVBAMTElF1b1ZhZGlzIFJvb3QgQ0EgMzAeFw0wNjExMjQx\n"
@@ -1650,7 +1652,7 @@ const char* root_certs[] = {
   "qZ5hHY8y2o4M1nQ+ewkk2gF3R8Q7zTSMmfXK4SVhM7JZG+Ju1zdXtg2pEto=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Security Communication Root CA"
+  /* "Security Communication Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDWjCCAkKgAwIBAgIBADANBgkqhkiG9w0BAQUFADBQMQswCQYDVQQGEwJKUDEYMBYGA1UEChMP\n"
   "U0VDT00gVHJ1c3QubmV0MScwJQYDVQQLEx5TZWN1cml0eSBDb21tdW5pY2F0aW9uIFJvb3RDQTEw\n"
@@ -1670,7 +1672,7 @@ const char* root_certs[] = {
   "FL39vmwLAw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Sonera Class 1 Root CA"
+  /* "Sonera Class 1 Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDIDCCAgigAwIBAgIBJDANBgkqhkiG9w0BAQUFADA5MQswCQYDVQQGEwJGSTEPMA0GA1UEChMG\n"
   "U29uZXJhMRkwFwYDVQQDExBTb25lcmEgQ2xhc3MxIENBMB4XDTAxMDQwNjEwNDkxM1oXDTIxMDQw\n"
@@ -1689,7 +1691,7 @@ const char* root_certs[] = {
   "IRlXvVWa\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Sonera Class 2 Root CA"
+  /* "Sonera Class 2 Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDIDCCAgigAwIBAgIBHTANBgkqhkiG9w0BAQUFADA5MQswCQYDVQQGEwJGSTEPMA0GA1UEChMG\n"
   "U29uZXJhMRkwFwYDVQQDExBTb25lcmEgQ2xhc3MyIENBMB4XDTAxMDQwNjA3Mjk0MFoXDTIxMDQw\n"
@@ -1708,7 +1710,7 @@ const char* root_certs[] = {
   "llpwrN9M\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Staat der Nederlanden Root CA"
+  /* "Staat der Nederlanden Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDujCCAqKgAwIBAgIEAJiWijANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJOTDEeMBwGA1UE\n"
   "ChMVU3RhYXQgZGVyIE5lZGVybGFuZGVuMSYwJAYDVQQDEx1TdGFhdCBkZXIgTmVkZXJsYW5kZW4g\n"
@@ -1726,10 +1728,10 @@ const char* root_certs[] = {
   "EytNwiphyPgJWPwtArI5fZlmgb9uXJVFIGzmeafR2Bwp/MIgJ1HI8XxdNGdphREwxgDS1/PTfLbw\n"
   "MVcoEoJz6TMvplW0C5GUR5z6u3pCMuiufi3IvKwUv9kP2Vv8wfl6leF9fpb8cbDCTMjfRTTJzg3y\n"
   "nGQI0DvDKcWy7ZAEwbEpkcUwb8GpcjPM/l0WFywRaed+/sWDCN+83CI6LiBpIzlWYGeQiy52OfsR\n"
-  "iJf2fL1LuCAWZwWN4jvBcj+UlTfHXbme2JOhF4//DGYVwSR8MnwDHTuhWEUykw==\n"
+  "iJf2fL1LuCAWZwWN4jvBcj+UlTfHXbme2JOhF4/*DGYVwSR8MnwDHTuhWEUykw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TDC Internet Root CA"
+  /* "TDC Internet Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEKzCCAxOgAwIBAgIEOsylTDANBgkqhkiG9w0BAQUFADBDMQswCQYDVQQGEwJESzEVMBMGA1UE\n"
   "ChMMVERDIEludGVybmV0MR0wGwYDVQQLExRUREMgSW50ZXJuZXQgUm9vdCBDQTAeFw0wMTA0MDUx\n"
@@ -1752,7 +1754,7 @@ const char* root_certs[] = {
   "Cbz0vGbMPVjQV0kK7iXiQe4T+Zs4NNEA9X7nlB38aQNiuJkFBT1reBK9sG9l\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TDC OCES Root CA"
+  /* "TDC OCES Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFGTCCBAGgAwIBAgIEPki9xDANBgkqhkiG9w0BAQUFADAxMQswCQYDVQQGEwJESzEMMAoGA1UE\n"
   "ChMDVERDMRQwEgYDVQQDEwtUREMgT0NFUyBDQTAeFw0wMzAyMTEwODM5MzBaFw0zNzAyMTEwOTA5\n"
@@ -1779,7 +1781,7 @@ const char* root_certs[] = {
   "AoLbrIyigfCbmTH1ICCoiGEKB5+U/NDXG8wuF/MEJ3Zn61SD/aSQfgY9BKNDLdr8C2LqL19iUw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "UTN DATACorp SGC Root CA"
+  /* "UTN DATACorp SGC Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEXjCCA0agAwIBAgIQRL4Mi1AAIbQR0ypoBqmtaTANBgkqhkiG9w0BAQUFADCBkzELMAkGA1UE\n"
   "BhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl\n"
@@ -1803,7 +1805,7 @@ const char* root_certs[] = {
   "DPafepE39peC4N1xaf92P2BNPM/3mfnGV/TJVTl4uix5yaaIK/QI\n"
   "-----END CERTIFICATE-----\n",
 
-  // "UTN USERFirst Email Root CA"
+  /* "UTN USERFirst Email Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEojCCA4qgAwIBAgIQRL4Mi1AAJLQR0zYlJWfJiTANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UE\n"
   "BhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl\n"
@@ -1828,7 +1830,7 @@ const char* root_certs[] = {
   "w7JHpsIyYdfHb0gkUSeh1YdV8nuPmD0Wnu51tvjQjvLzxq4oW6fw8zYX/MMF08oDSlQ=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "UTN USERFirst Hardware Root CA"
+  /* "UTN USERFirst Hardware Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEdDCCA1ygAwIBAgIQRL4Mi1AAJLQR0zYq/mUK/TANBgkqhkiG9w0BAQUFADCBlzELMAkGA1UE\n"
   "BhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl\n"
@@ -1846,14 +1848,14 @@ const char* root_certs[] = {
   "lp1L0sNFMEQGA1UdHwQ9MDswOaA3oDWGM2h0dHA6Ly9jcmwudXNlcnRydXN0LmNvbS9VVE4tVVNF\n"
   "UkZpcnN0LUhhcmR3YXJlLmNybDAxBgNVHSUEKjAoBggrBgEFBQcDAQYIKwYBBQUHAwUGCCsGAQUF\n"
   "BwMGBggrBgEFBQcDBzANBgkqhkiG9w0BAQUFAAOCAQEARxkP3nTGmZev/K0oXnWO6y1n7k57K9cM\n"
-  "//bey1WiCuFMVGWTYGufEpytXoMs61quwOQt9ABjHbjAbPLPSbtNk28GpgoiskliCE7/yMgUsogW\n"
+  "/*bey1WiCuFMVGWTYGufEpytXoMs61quwOQt9ABjHbjAbPLPSbtNk28GpgoiskliCE7/yMgUsogW\n"
   "XecB5BKV5UU0s4tpvc+0hY91UZ59Ojg6FEgSxvunOxqNDYJAB+gECJChicsZUN/KHAG8HQQZexB2\n"
   "lzvukJDKxA4fFm517zP4029bHpbj4HR3dHuKom4t3XbWOTCC8KucUvIqx69JXn7HaOWCgchqJ/kn\n"
   "iCrVWFCVH/A7HFe7fRQ5YiuayZSSKqMiDP+JJn1fIytH1xUdqWqeUQ0qUZ6B+dQ7XnASfxAynB67\n"
   "nfhmqA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "UTN USERFirst Object Root CA"
+  /* "UTN USERFirst Object Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEZjCCA06gAwIBAgIQRL4Mi1AAJLQR0zYt4LNfGzANBgkqhkiG9w0BAQUFADCBlTELMAkGA1UE\n"
   "BhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl\n"
@@ -1877,7 +1879,7 @@ const char* root_certs[] = {
   "hU3IfdeLA/5u1fedFqySLKAj5ZyRUh+U3xeUc8OzwcFxBSAAeL0TUh2oPs0AH8g=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Camerfirma Chambers of Commerce Root"
+  /* "Camerfirma Chambers of Commerce Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEvTCCA6WgAwIBAgIBADANBgkqhkiG9w0BAQUFADB/MQswCQYDVQQGEwJFVTEnMCUGA1UEChMe\n"
   "QUMgQ2FtZXJmaXJtYSBTQSBDSUYgQTgyNzQzMjg3MSMwIQYDVQQLExpodHRwOi8vd3d3LmNoYW1i\n"
@@ -1903,7 +1905,7 @@ const char* root_certs[] = {
   "erfutGWaIZDgqtCYvDi1czyL+Nw=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Camerfirma Global Chambersign Root"
+  /* "Camerfirma Global Chambersign Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIExTCCA62gAwIBAgIBADANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJFVTEnMCUGA1UEChMe\n"
   "QUMgQ2FtZXJmaXJtYSBTQSBDSUYgQTgyNzQzMjg3MSMwIQYDVQQLExpodHRwOi8vd3d3LmNoYW1i\n"
@@ -1922,14 +1924,14 @@ const char* root_certs[] = {
   "aGFtYmVyc2lnbi5vcmcwKgYDVR0SBCMwIYEfY2hhbWJlcnNpZ25yb290QGNoYW1iZXJzaWduLm9y\n"
   "ZzBbBgNVHSAEVDBSMFAGCysGAQQBgYcuCgEBMEEwPwYIKwYBBQUHAgEWM2h0dHA6Ly9jcHMuY2hh\n"
   "bWJlcnNpZ24ub3JnL2Nwcy9jaGFtYmVyc2lnbnJvb3QuaHRtbDANBgkqhkiG9w0BAQUFAAOCAQEA\n"
-  "PDtwkfkEVCeR4e3t/mh/YV3lQWVPMvEYBZRqHN4fcNs+ezICNLUMbKGKfKX0j//U2K0X1S0E0T9Y\n"
+  "PDtwkfkEVCeR4e3t/mh/YV3lQWVPMvEYBZRqHN4fcNs+ezICNLUMbKGKfKX0j/*U2K0X1S0E0T9Y\n"
   "gOKBWYi+wONGkyT+kL0mojAt6JcmVzWJdJYY9hXiryQZVgICsroPFOrGimbBhkVVi76SvpykBMdJ\n"
   "PJ7oKXqJ1/6v/2j1pReQvayZzKWGVwlnRtvWFsJG8eSpUPWP0ZIV018+xgBJOm5YstHRJw0lyDL4\n"
   "IBHNfTIzSJRUTN3cecQwn+uOuFW114hcxWokPbLTBQNRxgfvzBRydD1ucs4YKIxKoHflCStFREes\n"
   "t2d/AYoFWpO+ocH/+OcOZ6RHSXZddZAa9SaP8A==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "NetLock Qualified (Class QA) Root"
+  /* "NetLock Qualified (Class QA) Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIG0TCCBbmgAwIBAgIBezANBgkqhkiG9w0BAQUFADCByTELMAkGA1UEBhMCSFUxETAPBgNVBAcT\n"
   "CEJ1ZGFwZXN0MScwJQYDVQQKEx5OZXRMb2NrIEhhbG96YXRiaXp0b25zYWdpIEtmdC4xGjAYBgNV\n"
@@ -1964,7 +1966,7 @@ const char* root_certs[] = {
   "5qq5aKrN9p2QdRLqOBrKROi3macqaJVmlaut74nLYKkGEsaUR+ko\n"
   "-----END CERTIFICATE-----\n",
 
-  // "NetLock Notary (Class A) Root"
+  /* "NetLock Notary (Class A) Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIGfTCCBWWgAwIBAgICAQMwDQYJKoZIhvcNAQEEBQAwga8xCzAJBgNVBAYTAkhVMRAwDgYDVQQI\n"
   "EwdIdW5nYXJ5MREwDwYDVQQHEwhCdWRhcGVzdDEnMCUGA1UEChMeTmV0TG9jayBIYWxvemF0Yml6\n"
@@ -1998,7 +2000,7 @@ const char* root_certs[] = {
   "8CgHrTwXZoi1/baI\n"
   "-----END CERTIFICATE-----\n",
 
-  // "NetLock Business (Class B) Root"
+  /* "NetLock Business (Class B) Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFSzCCBLSgAwIBAgIBaTANBgkqhkiG9w0BAQQFADCBmTELMAkGA1UEBhMCSFUxETAPBgNVBAcT\n"
   "CEJ1ZGFwZXN0MScwJQYDVQQKEx5OZXRMb2NrIEhhbG96YXRiaXp0b25zYWdpIEtmdC4xGjAYBgNV\n"
@@ -2026,7 +2028,7 @@ const char* root_certs[] = {
   "stE3Kfq51hdcR0/jHTjrn9V7lagonhVK0dHQKwCXoOKSNitjrFgBazMpUIaD8QFI\n"
   "-----END CERTIFICATE-----\n",
 
-  // "NetLock Express (Class C) Root"
+  /* "NetLock Express (Class C) Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFTzCCBLigAwIBAgIBaDANBgkqhkiG9w0BAQQFADCBmzELMAkGA1UEBhMCSFUxETAPBgNVBAcT\n"
   "CEJ1ZGFwZXN0MScwJQYDVQQKEx5OZXRMb2NrIEhhbG96YXRiaXp0b25zYWdpIEtmdC4xGjAYBgNV\n"
@@ -2054,7 +2056,7 @@ const char* root_certs[] = {
   "gyL1SRt/Syu0VMGAfJlOHdCM7tCs5ZL6dVb+ZKATj7i4Fp1hBWeAyNDYpQcCNJgEjTME1A==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "XRamp Global CA Root"
+  /* "XRamp Global CA Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEMDCCAxigAwIBAgIQUJRs7Bjq1ZxN1ZfvdY+grTANBgkqhkiG9w0BAQUFADCBgjELMAkGA1UE\n"
   "BhMCVVMxHjAcBgNVBAsTFXd3dy54cmFtcHNlY3VyaXR5LmNvbTEkMCIGA1UEChMbWFJhbXAgU2Vj\n"
@@ -2077,7 +2079,7 @@ const char* root_certs[] = {
   "8LIRnM98QObd50N9otg6tamN8jSZxNQQ4Qb9CYQQO+7ETPTsJ3xCwnR8gooJybQDJbw=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Go Daddy Class 2 CA"
+  /* "Go Daddy Class 2 CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEADCCAuigAwIBAgIBADANBgkqhkiG9w0BAQUFADBjMQswCQYDVQQGEwJVUzEhMB8GA1UEChMY\n"
   "VGhlIEdvIERhZGR5IEdyb3VwLCBJbmMuMTEwLwYDVQQLEyhHbyBEYWRkeSBDbGFzcyAyIENlcnRp\n"
@@ -2100,7 +2102,7 @@ const char* root_certs[] = {
   "vZ8=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Starfield Class 2 CA"
+  /* "Starfield Class 2 CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEDzCCAvegAwIBAgIBADANBgkqhkiG9w0BAQUFADBoMQswCQYDVQQGEwJVUzElMCMGA1UEChMc\n"
   "U3RhcmZpZWxkIFRlY2hub2xvZ2llcywgSW5jLjEyMDAGA1UECxMpU3RhcmZpZWxkIENsYXNzIDIg\n"
@@ -2123,7 +2125,7 @@ const char* root_certs[] = {
   "QBFGmh95DmK/D5fs4C8fF5Q=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "StartCom Certification Authority"
+  /* "StartCom Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIHyTCCBbGgAwIBAgIBATANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJJTDEWMBQGA1UEChMN\n"
   "U3RhcnRDb20gTHRkLjErMCkGA1UECxMiU2VjdXJlIERpZ2l0YWwgQ2VydGlmaWNhdGUgU2lnbmlu\n"
@@ -2163,7 +2165,7 @@ const char* root_certs[] = {
   "g14=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Taiwan GRCA"
+  /* "Taiwan GRCA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFcjCCA1qgAwIBAgIQH51ZWtcvwgZEpYAIaeNe9jANBgkqhkiG9w0BAQUFADA/MQswCQYDVQQG\n"
   "EwJUVzEwMC4GA1UECgwnR292ZXJubWVudCBSb290IENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4X\n"
@@ -2183,7 +2185,7 @@ const char* root_certs[] = {
   "09yewDL7MTqKUWUwDQYJKoZIhvcNAQEFBQADggIBAECASvomyc5eMN1PhnR2WPWus4MzeKR6dBcZ\n"
   "TulStbngCnRiqmjKeKBMmo4sIy7VahIkv9Ro04rQ2JyftB8M3jh+Vzj8jeJPXgyfqzvS/3WXy6Tj\n"
   "Zwj/5cAWtUgBfen5Cv8b5Wppv3ghqMKnI6mGq3ZW6A4M9hPdKmaKZEk9GhiHkASfQlK3T8v+R0F2\n"
-  "Ne//AHY2RTKbxkaFXeIksB7jSJaYV0eUVXoPQbFEJPPB/hprv4j9wabak2BegUqZIJxIZhm1AHlU\n"
+  "Ne/*AHY2RTKbxkaFXeIksB7jSJaYV0eUVXoPQbFEJPPB/hprv4j9wabak2BegUqZIJxIZhm1AHlU\n"
   "D7gsL0u8qV1bYH+Mh6XgUmMqvtg7hUAV/h62ZT/FS9p+tXo1KaMuephgIqP0fSdOLeq0dDzpD6Qz\n"
   "DxARvBMB1uUO07+1EqLhRSPAzAhuYbeJq4PjJB7mXQfnHyA+z2fI56wwbSdLaG5LKlwCCDTb+Hbk\n"
   "Z6MmnD+iMsJKxYEYMRBWqoTvLQr/uB930r+lWKBi5NdLkXWNiYCYfm3LU05er/ayl4WXudpVBrkk\n"
@@ -2192,7 +2194,7 @@ const char* root_certs[] = {
   "+fwC00fmcc4QAu4njIT/rEUNE1yDMuAlpYYsfPQS\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Firmaprofesional Root CA"
+  /* "Firmaprofesional Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEVzCCAz+gAwIBAgIBATANBgkqhkiG9w0BAQUFADCBnTELMAkGA1UEBhMCRVMxIjAgBgNVBAcT\n"
   "GUMvIE11bnRhbmVyIDI0NCBCYXJjZWxvbmExQjBABgNVBAMTOUF1dG9yaWRhZCBkZSBDZXJ0aWZp\n"
@@ -2216,7 +2218,7 @@ const char* root_certs[] = {
   "VM+h4k0460tQtcsm9MracEpqoeJ5quGnM/b9Sh/22WA=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Wells Fargo Root CA"
+  /* "Wells Fargo Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID5TCCAs2gAwIBAgIEOeSXnjANBgkqhkiG9w0BAQUFADCBgjELMAkGA1UEBhMCVVMxFDASBgNV\n"
   "BAoTC1dlbGxzIEZhcmdvMSwwKgYDVQQLEyNXZWxscyBGYXJnbyBDZXJ0aWZpY2F0aW9uIEF1dGhv\n"
@@ -2238,7 +2240,7 @@ const char* root_certs[] = {
   "tqcZZE6St8WRPH9IFmV7Fv3L/PvZ1dZPIWU7Sn9Ho/s=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Swisscom Root CA 1"
+  /* "Swisscom Root CA 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIF2TCCA8GgAwIBAgIQXAuFXAvnWUHfV8w/f52oNjANBgkqhkiG9w0BAQUFADBkMQswCQYDVQQG\n"
   "EwJjaDERMA8GA1UEChMIU3dpc3Njb20xJTAjBgNVBAsTHERpZ2l0YWwgQ2VydGlmaWNhdGUgU2Vy\n"
@@ -2269,7 +2271,7 @@ const char* root_certs[] = {
   "NY6E0F/6MBr1mmz0DlP5OlvRHA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "DigiCert Assured ID Root CA"
+  /* "DigiCert Assured ID Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDtzCCAp+gAwIBAgIQDOfg5RfYRv6P5WD8G/AwOTANBgkqhkiG9w0BAQUFADBlMQswCQYDVQQG\n"
   "EwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSQw\n"
@@ -2290,7 +2292,7 @@ const char* root_certs[] = {
   "+o0bJW1sj6W3YQGx0qMmoRBxna3iw/nDmVG3KwcIzi7mULKn+gpFL6Lw8g==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "DigiCert Global Root CA"
+  /* "DigiCert Global Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBhMQswCQYDVQQG\n"
   "EwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSAw\n"
@@ -2299,7 +2301,7 @@ const char* root_certs[] = {
   "dy5kaWdpY2VydC5jb20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkq\n"
   "hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsBCSDMAZOn\n"
   "TjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97nh6Vfe63SKMI2tavegw5\n"
-  "BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt43C/dxC//AH2hdmoRBBYMql1GNXRor5H\n"
+  "BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt43C/dxC/*AH2hdmoRBBYMql1GNXRor5H\n"
   "4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7PT19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y\n"
   "7vrTC0LUq7dBMtoM1O/4gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQAB\n"
   "o2MwYTAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbRTLtm\n"
@@ -2311,7 +2313,7 @@ const char* root_certs[] = {
   "CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "DigiCert High Assurance EV Root CA"
+  /* "DigiCert High Assurance EV Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDxTCCAq2gAwIBAgIQAqxcJmoLQJuPC3nyrkYldzANBgkqhkiG9w0BAQUFADBsMQswCQYDVQQG\n"
   "EwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSsw\n"
@@ -2332,7 +2334,7 @@ const char* root_certs[] = {
   "vEsXCS+0yx5DaMkHJ8HSXPfqIbloEpw8nL+e/IBcm2PN7EeqJSdnoDfzAIJ9VNep+OkuE6N36B9K\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Certplus Class 2 Primary CA"
+  /* "Certplus Class 2 Primary CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDkjCCAnqgAwIBAgIRAIW9S/PY2uNp9pTXX8OlRCMwDQYJKoZIhvcNAQEFBQAwPTELMAkGA1UE\n"
   "BhMCRlIxETAPBgNVBAoTCENlcnRwbHVzMRswGQYDVQQDExJDbGFzcyAyIFByaW1hcnkgQ0EwHhcN\n"
@@ -2349,11 +2351,11 @@ const char* root_certs[] = {
   "P9GIROkkXe/nFL0gt5o8AP5tn9uQ3Nf0YtaLcF3n5QRIqWh8yfFC82x/xXp8HVGIutIKPidd3i1R\n"
   "TtMTZGnkLuPT55sJmabglZvOGtd/vjzOUrMRFcEPF80Du5wlFbqidon8BvEY0JNLDnyCt6X09l/+\n"
   "7UCmnYR0ObncHoUW2ikbhiMAybuJfm6AiB4vFLQDJKgybwOaRywwvlbGp0ICcBvqQNi6BQNwB6SW\n"
-  "//1IMwrh3KWBkJtN3X3n57LNXMhqlfil9o3EXXgIvnsG1knPGTZQIy4I5p4FTUcY1Rbpsda2ENW7\n"
+  "/*1IMwrh3KWBkJtN3X3n57LNXMhqlfil9o3EXXgIvnsG1knPGTZQIy4I5p4FTUcY1Rbpsda2ENW7\n"
   "l7+ijrRU\n"
   "-----END CERTIFICATE-----\n",
 
-  // "DST Root CA X3"
+  /* "DST Root CA X3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/MSQwIgYDVQQK\n"
   "ExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMTDkRTVCBSb290IENBIFgzMB4X\n"
@@ -2372,7 +2374,7 @@ const char* root_certs[] = {
   "fZGL+T0yjWW06XyxV3bqxbYoOb8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n"
   "-----END CERTIFICATE-----\n",
 
-  // "DST ACES CA X6"
+  /* "DST ACES CA X6" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIECTCCAvGgAwIBAgIQDV6ZCtadt3js2AdWO4YV2TANBgkqhkiG9w0BAQUFADBbMQswCQYDVQQG\n"
   "EwJVUzEgMB4GA1UEChMXRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QxETAPBgNVBAsTCERTVCBBQ0VT\n"
@@ -2395,7 +2397,7 @@ const char* root_certs[] = {
   "oKfN5XozNmr6mis=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TURKTRUST Certificate Services Provider Root 1"
+  /* "TURKTRUST Certificate Services Provider Root 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID+zCCAuOgAwIBAgIBATANBgkqhkiG9w0BAQUFADCBtzE/MD0GA1UEAww2VMOcUktUUlVTVCBF\n"
   "bGVrdHJvbmlrIFNlcnRpZmlrYSBIaXptZXQgU2HEn2xhecSxY8Sxc8SxMQswCQYDVQQGDAJUUjEP\n"
@@ -2417,7 +2419,7 @@ const char* root_certs[] = {
   "nNN9aV3wxqUeJBujR/xpB2jn5Jq07Q+hh4cCzofSSE7hvP/L8XKSRGQDJereW26fyfJOrN3H\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TURKTRUST Certificate Services Provider Root 2"
+  /* "TURKTRUST Certificate Services Provider Root 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEPDCCAySgAwIBAgIBATANBgkqhkiG9w0BAQUFADCBvjE/MD0GA1UEAww2VMOcUktUUlVTVCBF\n"
   "bGVrdHJvbmlrIFNlcnRpZmlrYSBIaXptZXQgU2HEn2xhecSxY8Sxc8SxMQswCQYDVQQGEwJUUjEP\n"
@@ -2441,7 +2443,7 @@ const char* root_certs[] = {
   "UrbnBEI=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "SwissSign Platinum CA - G2"
+  /* "SwissSign Platinum CA - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFwTCCA6mgAwIBAgIITrIAZwwDXU8wDQYJKoZIhvcNAQEFBQAwSTELMAkGA1UEBhMCQ0gxFTAT\n"
   "BgNVBAoTDFN3aXNzU2lnbiBBRzEjMCEGA1UEAxMaU3dpc3NTaWduIFBsYXRpbnVtIENBIC0gRzIw\n"
@@ -2471,7 +2473,7 @@ const char* root_certs[] = {
   "IfNAChs0B0QTwoRqjt8ZWr9/6x3iGjjRXK9HkmuAtTClyY3YqzGBH9/CZjfTk6mFhnll0g==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "SwissSign Gold CA - G2"
+  /* "SwissSign Gold CA - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFujCCA6KgAwIBAgIJALtAHEP1Xk+wMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNVBAYTAkNIMRUw\n"
   "EwYDVQQKEwxTd2lzc1NpZ24gQUcxHzAdBgNVBAMTFlN3aXNzU2lnbiBHb2xkIENBIC0gRzIwHhcN\n"
@@ -2501,7 +2503,7 @@ const char* root_certs[] = {
   "viOvrv1vA+ACOzB2+httQc8Bsem4yWb02ybzOqR08kkkW8mw0FfB+j564ZfJ\n"
   "-----END CERTIFICATE-----\n",
 
-  // "SwissSign Silver CA - G2"
+  /* "SwissSign Silver CA - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFvTCCA6WgAwIBAgIITxvUL1S7L0swDQYJKoZIhvcNAQEFBQAwRzELMAkGA1UEBhMCQ0gxFTAT\n"
   "BgNVBAoTDFN3aXNzU2lnbiBBRzEhMB8GA1UEAxMYU3dpc3NTaWduIFNpbHZlciBDQSAtIEcyMB4X\n"
@@ -2531,14 +2533,14 @@ const char* root_certs[] = {
   "DgEj8Z+7fNzcbBGXJbLytGMU0gYqZ4yD9c7qB9iaah7s5Aq7KkzrCWA5zspi2C5u\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Primary Certification Authority"
+  /* "GeoTrust Primary Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDfDCCAmSgAwIBAgIQGKy1av1pthU6Y2yv2vrEoTANBgkqhkiG9w0BAQUFADBYMQswCQYDVQQG\n"
   "EwJVUzEWMBQGA1UEChMNR2VvVHJ1c3QgSW5jLjExMC8GA1UEAxMoR2VvVHJ1c3QgUHJpbWFyeSBD\n"
   "ZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw0wNjExMjcwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMFgx\n"
   "CzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMTEwLwYDVQQDEyhHZW9UcnVzdCBQ\n"
   "cmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\n"
-  "CgKCAQEAvrgVe//UfH1nrYNke8hCUy3f9oQIIGHWAVlqnEQRr+92/ZV+zmEwu3qDXwK9AWbK7hWN\n"
+  "CgKCAQEAvrgVe/*UfH1nrYNke8hCUy3f9oQIIGHWAVlqnEQRr+92/ZV+zmEwu3qDXwK9AWbK7hWN\n"
   "b6EwnL2hhZ6UOvNWiAAxz9juapYC2e0DjPt1befquFUWBRaa9OBesYjAZIVcFU2Ix7e64HXprQU9\n"
   "nceJSOC7KMgD4TCTZF5SwFlwIjVXiIrxlQqD17wxcwE07e9GceBrAqg1cmuXm2bgyxx5X9gaBGge\n"
   "RwLmnWDiNpcB3841kt++Z8dtd1k7j53WkBWUvEI0EME5+bEnPn7WinXFsq+W06Lem+SYvn3h6YGt\n"
@@ -2551,7 +2553,7 @@ const char* root_certs[] = {
   "1riR/aYNKxoUAT6A8EKglQdebc3MS6RFjasS6LPeWuWgfOgPIh1a6Vk=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "thawte Primary Root CA"
+  /* "thawte Primary Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEIDCCAwigAwIBAgIQNE7VVyDV7exJ9C/ON9srbTANBgkqhkiG9w0BAQUFADCBqTELMAkGA1UE\n"
   "BhMCVVMxFTATBgNVBAoTDHRoYXd0ZSwgSW5jLjEoMCYGA1UECxMfQ2VydGlmaWNhdGlvbiBTZXJ2\n"
@@ -2574,7 +2576,7 @@ const char* root_certs[] = {
   "z7z9M/P2C2F+fpErgUfCJzDupxBdN49cOSvkBPB7jVaMaA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "VeriSign Class 3 Public Primary Certification Authority - G5"
+  /* "VeriSign Class 3 Public Primary Certification Authority - G5" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIE0zCCA7ugAwIBAgIQGNrRniZ96LtKIVjNzGs7SjANBgkqhkiG9w0BAQUFADCByjELMAkGA1UE\n"
   "BhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBO\n"
@@ -2600,7 +2602,7 @@ const char* root_certs[] = {
   "ZV8NhnacRHr2lVz2XTIIM6RUthg/aFzyQkqFOFSDX9HoLPKsEdao7WNq\n"
   "-----END CERTIFICATE-----\n",
 
-  // "SecureTrust CA"
+  /* "SecureTrust CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDuDCCAqCgAwIBAgIQDPCOXAgWpa1Cf/DrJxhZ0DANBgkqhkiG9w0BAQUFADBIMQswCQYDVQQG\n"
   "EwJVUzEgMB4GA1UEChMXU2VjdXJlVHJ1c3QgQ29ycG9yYXRpb24xFzAVBgNVBAMTDlNlY3VyZVRy\n"
@@ -2621,7 +2623,7 @@ const char* root_certs[] = {
   "3ItHuuG51WLQoqD0ZwV4KWMabwTW+MZMo5qxN7SN5ShLHZ4swrhovO0C7jE=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Secure Global CA"
+  /* "Secure Global CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDvDCCAqSgAwIBAgIQB1YipOjUiolN9BPI8PjqpTANBgkqhkiG9w0BAQUFADBKMQswCQYDVQQG\n"
   "EwJVUzEgMB4GA1UEChMXU2VjdXJlVHJ1c3QgQ29ycG9yYXRpb24xGTAXBgNVBAMTEFNlY3VyZSBH\n"
@@ -2642,7 +2644,7 @@ const char* root_certs[] = {
   "f8LDmBxrThaA63p4ZUWiABqvDA1VZDRIuJK58bRQKfJPIx/abKwfROHdI3hRW8cW\n"
   "-----END CERTIFICATE-----\n",
 
-  // "COMODO Certification Authority"
+  /* "COMODO Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEHTCCAwWgAwIBAgIQToEtioJl4AsC7j41AkblPTANBgkqhkiG9w0BAQUFADCBgTELMAkGA1UE\n"
   "BhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgG\n"
@@ -2665,7 +2667,7 @@ const char* root_certs[] = {
   "+8cFduPYSo38NBejxiEovjBFMR7HeL5YYTisO+IBZQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Network Solutions Certificate Authority"
+  /* "Network Solutions Certificate Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID5jCCAs6gAwIBAgIQV8szb8JcFuZHFhfjkDFo4DANBgkqhkiG9w0BAQUFADBiMQswCQYDVQQG\n"
   "EwJVUzEhMB8GA1UEChMYTmV0d29yayBTb2x1dGlvbnMgTC5MLkMuMTAwLgYDVQQDEydOZXR3b3Jr\n"
@@ -2687,7 +2689,7 @@ const char* root_certs[] = {
   "ydi8NmdspZS11My5vWo1ViHe2MPr+8ukYEywVaCge1ey\n"
   "-----END CERTIFICATE-----\n",
 
-  // "WellsSecure Public Root Certificate Authority"
+  /* "WellsSecure Public Root Certificate Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEvTCCA6WgAwIBAgIBATANBgkqhkiG9w0BAQUFADCBhTELMAkGA1UEBhMCVVMxIDAeBgNVBAoM\n"
   "F1dlbGxzIEZhcmdvIFdlbGxzU2VjdXJlMRwwGgYDVQQLDBNXZWxscyBGYXJnbyBCYW5rIE5BMTYw\n"
@@ -2713,7 +2715,7 @@ const char* root_certs[] = {
   "tylv2G0xffX8oRAHh84vWdw+WNs=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "COMODO ECC Certification Authority"
+  /* "COMODO ECC Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICiTCCAg+gAwIBAgIQH0evqmIAcFBUTAGem2OZKjAKBggqhkjOPQQDAzCBhTELMAkGA1UEBhMC\n"
   "R0IxGzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UE\n"
@@ -2729,7 +2731,7 @@ const char* root_certs[] = {
   "U/7dIOA1mjbRxwG55tzd8/8dLDoWV9mSOdY=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "MD5 Collisions Forged Rogue CA 25c3"
+  /* "MD5 Collisions Forged Rogue CA 25c3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEMjCCA5ugAwIBAgIBQjANBgkqhkiG9w0BAQQFADBaMQswCQYDVQQGEwJVUzEcMBoGA1UEChMT\n"
   "RXF1aWZheCBTZWN1cmUgSW5jLjEtMCsGA1UEAxMkRXF1aWZheCBTZWN1cmUgR2xvYmFsIGVCdXNp\n"
@@ -2752,7 +2754,7 @@ const char* root_certs[] = {
   "K8bNs7SPYtD+t8UmckTt9phbrsvRlfXaCL5oRrF1yOwdjx56lPGqU3iiRa5U6tGedMh2Zw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "IGC/A"
+  /* "IGC/A" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEAjCCAuqgAwIBAgIFORFFEJQwDQYJKoZIhvcNAQEFBQAwgYUxCzAJBgNVBAYTAkZSMQ8wDQYD\n"
   "VQQIEwZGcmFuY2UxDjAMBgNVBAcTBVBhcmlzMRAwDgYDVQQKEwdQTS9TR0ROMQ4wDAYDVQQLEwVE\n"
@@ -2775,7 +2777,7 @@ const char* root_certs[] = {
   "0mBWWg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Security Communication EV RootCA1"
+  /* "Security Communication EV RootCA1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDfTCCAmWgAwIBAgIBADANBgkqhkiG9w0BAQUFADBgMQswCQYDVQQGEwJKUDElMCMGA1UEChMc\n"
   "U0VDT00gVHJ1c3QgU3lzdGVtcyBDTy4sTFRELjEqMCgGA1UECxMhU2VjdXJpdHkgQ29tbXVuaWNh\n"
@@ -2795,7 +2797,7 @@ const char* root_certs[] = {
   "T1MKZPlO9L9OVL14bIjqv5wTJMJwaaJ/D8g8rQjJsJhAoyrniIPtd490\n"
   "-----END CERTIFICATE-----\n",
 
-  // "OISTE WISeKey Global Root GA CA"
+  /* "OISTE WISeKey Global Root GA CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID8TCCAtmgAwIBAgIQQT1yx/RrH4FDffHSKFTfmjANBgkqhkiG9w0BAQUFADCBijELMAkGA1UE\n"
   "BhMCQ0gxEDAOBgNVBAoTB1dJU2VLZXkxGzAZBgNVBAsTEkNvcHlyaWdodCAoYykgMjAwNTEiMCAG\n"
@@ -2817,7 +2819,7 @@ const char* root_certs[] = {
   "okxSdsARo27mHbrjWr42U8U+dY+GaSlYU7Wcu2+fXMUY7N0v4ZjJ/L7fCg0=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "S-TRUST Authentication and Encryption Root CA 2005 PN"
+  /* "S-TRUST Authentication and Encryption Root CA 2005 PN" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEezCCA2OgAwIBAgIQNxkY5lNUfBq1uMtZWts1tzANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UE\n"
   "BhMCREUxIDAeBgNVBAgTF0JhZGVuLVd1ZXJ0dGVtYmVyZyAoQlcpMRIwEAYDVQQHEwlTdHV0dGdh\n"
@@ -2842,7 +2844,7 @@ const char* root_certs[] = {
   "Hz2eBIPdltkdOpQ=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Microsec e-Szigno Root CA"
+  /* "Microsec e-Szigno Root CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIHqDCCBpCgAwIBAgIRAMy4579OKRr9otxmpRwsDxEwDQYJKoZIhvcNAQEFBQAwcjELMAkGA1UE\n"
   "BhMCSFUxETAPBgNVBAcTCEJ1ZGFwZXN0MRYwFAYDVQQKEw1NaWNyb3NlYyBMdGQuMRQwEgYDVQQL\n"
@@ -2881,7 +2883,7 @@ const char* root_certs[] = {
   "S6kRnSlqLtBdgcDPsiBDxwPgN05dCtxZICU=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Certigna"
+  /* "Certigna" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDqDCCApCgAwIBAgIJAP7c4wEPyUj/MA0GCSqGSIb3DQEBBQUAMDQxCzAJBgNVBAYTAkZSMRIw\n"
   "EAYDVQQKDAlEaGlteW90aXMxETAPBgNVBAMMCENlcnRpZ25hMB4XDTA3MDYyOTE1MTMwNVoXDTI3\n"
@@ -2902,7 +2904,7 @@ const char* root_certs[] = {
   "WyH8EZE0vkHve52Xdf+XlcCWWC/qu0bXu+TZLg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "AC Ra\xC3\xADz Certic\xC3\xA1mara S.A."
+  /* "AC Ra\xC3\xADz Certic\xC3\xA1mara S.A." */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIGZjCCBE6gAwIBAgIPB35Sk3vgFeNX8GmMy+wMMA0GCSqGSIb3DQEBBQUAMHsxCzAJBgNVBAYT\n"
   "AkNPMUcwRQYDVQQKDD5Tb2NpZWRhZCBDYW1lcmFsIGRlIENlcnRpZmljYWNpw7NuIERpZ2l0YWwg\n"
@@ -2935,7 +2937,7 @@ const char* root_certs[] = {
   "Iw4OGEfhefwVVdCx/CVxY3UzHCMrr1zZ7Ud3YA47Dx7SwNxkBYn8eNZcLCZDqQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TC TrustCenter Class 2 CA II"
+  /* "TC TrustCenter Class 2 CA II" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEqjCCA5KgAwIBAgIOLmoAAQACH9dSISwRXDswDQYJKoZIhvcNAQEFBQAwdjELMAkGA1UEBhMC\n"
   "REUxHDAaBgNVBAoTE1RDIFRydXN0Q2VudGVyIEdtYkgxIjAgBgNVBAsTGVRDIFRydXN0Q2VudGVy\n"
@@ -2943,7 +2945,7 @@ const char* root_certs[] = {
   "MTEyMTQzODQzWhcNMjUxMjMxMjI1OTU5WjB2MQswCQYDVQQGEwJERTEcMBoGA1UEChMTVEMgVHJ1\n"
   "c3RDZW50ZXIgR21iSDEiMCAGA1UECxMZVEMgVHJ1c3RDZW50ZXIgQ2xhc3MgMiBDQTElMCMGA1UE\n"
   "AxMcVEMgVHJ1c3RDZW50ZXIgQ2xhc3MgMiBDQSBJSTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC\n"
-  "AQoCggEBAKuAh5uO8MN8h9foJIIRszzdQ2Lu+MNF2ujhoF/RKrLqk2jftMjWQ+nEdVl//OEd+DFw\n"
+  "AQoCggEBAKuAh5uO8MN8h9foJIIRszzdQ2Lu+MNF2ujhoF/RKrLqk2jftMjWQ+nEdVl/*OEd+DFw\n"
   "IxuInie5e/060smp6RQvkL4DUsFJzfb95AhmC1eKokKguNV/aVyQMrKXDcpK3EY+AlWJU+MaWss2\n"
   "xgdW94zPEfRMuzBwBJWl9jmM/XOBCH2JXjIeIqkiRUuwZi4wzJ9l/fzLganx4Duvo4bRierERXlQ\n"
   "Xa7pIXSSTYtZgo+U4+lK8edJsBTj9WLL1XK9H7nSn6DNqPoByNkN39r8R52zyFTfSUrxIan+GE7u\n"
@@ -2961,7 +2963,7 @@ const char* root_certs[] = {
   "vQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TC TrustCenter Class 3 CA II"
+  /* "TC TrustCenter Class 3 CA II" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEqjCCA5KgAwIBAgIOSkcAAQAC5aBd1j8AUb8wDQYJKoZIhvcNAQEFBQAwdjELMAkGA1UEBhMC\n"
   "REUxHDAaBgNVBAoTE1RDIFRydXN0Q2VudGVyIEdtYkgxIjAgBgNVBAsTGVRDIFRydXN0Q2VudGVy\n"
@@ -2987,7 +2989,7 @@ const char* root_certs[] = {
   "5A==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "TC TrustCenter Universal CA I"
+  /* "TC TrustCenter Universal CA I" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID3TCCAsWgAwIBAgIOHaIAAQAC7LdggHiNtgYwDQYJKoZIhvcNAQEFBQAweTELMAkGA1UEBhMC\n"
   "REUxHDAaBgNVBAoTE1RDIFRydXN0Q2VudGVyIEdtYkgxJDAiBgNVBAsTG1RDIFRydXN0Q2VudGVy\n"
@@ -3009,7 +3011,7 @@ const char* root_certs[] = {
   "7CIMHOCkoj3w6DnPgcB77V0fb8XQC9eY\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Deutsche Telekom Root CA 2"
+  /* "Deutsche Telekom Root CA 2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDnzCCAoegAwIBAgIBJjANBgkqhkiG9w0BAQUFADBxMQswCQYDVQQGEwJERTEcMBoGA1UEChMT\n"
   "RGV1dHNjaGUgVGVsZWtvbSBBRzEfMB0GA1UECxMWVC1UZWxlU2VjIFRydXN0IENlbnRlcjEjMCEG\n"
@@ -3030,7 +3032,7 @@ const char* root_certs[] = {
   "Cm26OWMohpLzGITY+9HPBVZkVw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ComSign CA"
+  /* "ComSign CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDkzCCAnugAwIBAgIQFBOWgxRVjOp7Y+X8NId3RDANBgkqhkiG9w0BAQUFADA0MRMwEQYDVQQD\n"
   "EwpDb21TaWduIENBMRAwDgYDVQQKEwdDb21TaWduMQswCQYDVQQGEwJJTDAeFw0wNDAzMjQxMTMy\n"
@@ -3051,7 +3053,7 @@ const char* root_certs[] = {
   "AGegcQCCSA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ComSign Secured CA"
+  /* "ComSign Secured CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDqzCCApOgAwIBAgIRAMcoRwmzuGxFjB36JPU2TukwDQYJKoZIhvcNAQEFBQAwPDEbMBkGA1UE\n"
   "AxMSQ29tU2lnbiBTZWN1cmVkIENBMRAwDgYDVQQKEwdDb21TaWduMQswCQYDVQQGEwJJTDAeFw0w\n"
@@ -3072,7 +3074,7 @@ const char* root_certs[] = {
   "OjRXUDpvgV4GxvU+fE6OK85lBi5d0ipTdF7Tbieejw==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Cybertrust Global Root"
+  /* "Cybertrust Global Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDoTCCAomgAwIBAgILBAAAAAABD4WqLUgwDQYJKoZIhvcNAQEFBQAwOzEYMBYGA1UEChMPQ3li\n"
   "ZXJ0cnVzdCwgSW5jMR8wHQYDVQQDExZDeWJlcnRydXN0IEdsb2JhbCBSb290MB4XDTA2MTIxNTA4\n"
@@ -3093,7 +3095,7 @@ const char* root_certs[] = {
   "WL1WMRJOEcgh4LMRkWXbtKaIOM5V\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ePKI Root Certification Authority"
+  /* "ePKI Root Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFsDCCA5igAwIBAgIQFci9ZUdcr7iXAF7kBtK8nTANBgkqhkiG9w0BAQUFADBeMQswCQYDVQQG\n"
   "EwJUVzEjMCEGA1UECgwaQ2h1bmdod2EgVGVsZWNvbSBDby4sIEx0ZC4xKjAoBgNVBAsMIWVQS0kg\n"
@@ -3123,7 +3125,7 @@ const char* root_certs[] = {
   "BCEIZ43ygknQW/2xzQ+DhNQ+IIX3Sj0rnP0qCglN6oH4EZw=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "T\xc3\x9c\x42\xC4\xB0TAK UEKAE K\xC3\xB6k Sertifika Hizmet Sa\xC4\x9Flay\xc4\xb1\x63\xc4\xb1s\xc4\xb1 - S\xC3\xBCr\xC3\xBCm 3"
+  /* "T\xc3\x9c\x42\xC4\xB0TAK UEKAE K\xC3\xB6k Sertifika Hizmet Sa\xC4\x9Flay\xc4\xb1\x63\xc4\xb1s\xc4\xb1 - S\xC3\xBCr\xC3\xBCm 3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFFzCCA/+gAwIBAgIBETANBgkqhkiG9w0BAQUFADCCASsxCzAJBgNVBAYTAlRSMRgwFgYDVQQH\n"
   "DA9HZWJ6ZSAtIEtvY2FlbGkxRzBFBgNVBAoMPlTDvHJraXllIEJpbGltc2VsIHZlIFRla25vbG9q\n"
@@ -3150,7 +3152,7 @@ const char* root_certs[] = {
   "dqMTw5RhK2vZbMEHCiIHhWyFJEapvj+LeISCfiQMnf2BN+MlqO02TpUsyZyQ2uypQjyttgI=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Buypass Class 2 CA 1"
+  /* "Buypass Class 2 CA 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDUzCCAjugAwIBAgIBATANBgkqhkiG9w0BAQUFADBLMQswCQYDVQQGEwJOTzEdMBsGA1UECgwU\n"
   "QnV5cGFzcyBBUy05ODMxNjMzMjcxHTAbBgNVBAMMFEJ1eXBhc3MgQ2xhc3MgMiBDQSAxMB4XDTA2\n"
@@ -3169,14 +3171,14 @@ const char* root_certs[] = {
   "wDX3OaJdZtB7WZ+oRxKaJyOkLY4ng5IgodcVf/EuGO70SH8vf/GhGLWhC5SgYiAynB321O+/TIho\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Buypass Class 3 CA 1"
+  /* "Buypass Class 3 CA 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDUzCCAjugAwIBAgIBAjANBgkqhkiG9w0BAQUFADBLMQswCQYDVQQGEwJOTzEdMBsGA1UECgwU\n"
   "QnV5cGFzcyBBUy05ODMxNjMzMjcxHTAbBgNVBAMMFEJ1eXBhc3MgQ2xhc3MgMyBDQSAxMB4XDTA1\n"
   "MDUwOTE0MTMwM1oXDTE1MDUwOTE0MTMwM1owSzELMAkGA1UEBhMCTk8xHTAbBgNVBAoMFEJ1eXBh\n"
   "c3MgQVMtOTgzMTYzMzI3MR0wGwYDVQQDDBRCdXlwYXNzIENsYXNzIDMgQ0EgMTCCASIwDQYJKoZI\n"
   "hvcNAQEBBQADggEPADCCAQoCggEBAKSO13TZKWTeXx+HgJHqTjnmGcZEC4DVC69TB4sSveZn8AKx\n"
-  "ifZgisRbsELRwCGoy+Gb72RRtqfPFfV0gGgEkKBYouZ0plNTVUhjP5JW3SROjvi6K//zNIqeKNc0\n"
+  "ifZgisRbsELRwCGoy+Gb72RRtqfPFfV0gGgEkKBYouZ0plNTVUhjP5JW3SROjvi6K/*zNIqeKNc0\n"
   "n6wv1g/xpC+9UrJJhW05NfBEMJNGJPO251P7vGGvqaMU+8IXF4Rs4HyI+MkcVyzwPX6UvCWThOia\n"
   "AJpFBUJXgPROztmuOfbIUxAMZTpHe2DC1vqRycZxbL2RhzyRhkmr8w+gbCZ2Xhysm3HljbybIR6c\n"
   "1jh+JIAVMYKWsUnTYjdbiAwKYjT+p0h+mbEwi5A3lRyoH6UsjfRVyNvdWQrCrXig9IsCAwEAAaNC\n"
@@ -3188,7 +3190,7 @@ const char* root_certs[] = {
   "el/wroQk5PMr+4okoyeYZdowdXb8GZHo2+ubPzK/QJcHJrrM85SFSnonk8+QQtS4Wxam58tAA915\n"
   "-----END CERTIFICATE-----\n",
 
-  // "EBG Elektronik Sertifika Hizmet Sa\xC4\x9Flay\xc4\xb1\x63\xc4\xb1s\xc4\xb1"
+  /* "EBG Elektronik Sertifika Hizmet Sa\xC4\x9Flay\xc4\xb1\x63\xc4\xb1s\xc4\xb1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIF5zCCA8+gAwIBAgIITK9zQhyOdAIwDQYJKoZIhvcNAQEFBQAwgYAxODA2BgNVBAMML0VCRyBF\n"
   "bGVrdHJvbmlrIFNlcnRpZmlrYSBIaXptZXQgU2HEn2xhecSxY8Sxc8SxMTcwNQYDVQQKDC5FQkcg\n"
@@ -3219,7 +3221,7 @@ const char* root_certs[] = {
   "AahH3eU7QPl1K5srRmSGjR70j/sHd9DqSaIcjVIUpgqT\n"
   "-----END CERTIFICATE-----\n",
 
-  // "certSIGN ROOT CA"
+  /* "certSIGN ROOT CA" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDODCCAiCgAwIBAgIGIAYFFnACMA0GCSqGSIb3DQEBBQUAMDsxCzAJBgNVBAYTAlJPMREwDwYD\n"
   "VQQKEwhjZXJ0U0lHTjEZMBcGA1UECxMQY2VydFNJR04gUk9PVCBDQTAeFw0wNjA3MDQxNzIwMDRa\n"
@@ -3238,7 +3240,7 @@ const char* root_certs[] = {
   "TogVZ96edhBiIL5VaZVDADlN9u6wWk5JRFRYX0KD\n"
   "-----END CERTIFICATE-----\n",
 
-  // "CNNIC ROOT"
+  /* "CNNIC ROOT" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDVTCCAj2gAwIBAgIESTMAATANBgkqhkiG9w0BAQUFADAyMQswCQYDVQQGEwJDTjEOMAwGA1UE\n"
   "ChMFQ05OSUMxEzARBgNVBAMTCkNOTklDIFJPT1QwHhcNMDcwNDE2MDcwOTE0WhcNMjcwNDE2MDcw\n"
@@ -3258,7 +3260,7 @@ const char* root_certs[] = {
   "mxE=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ApplicationCA - Japanese Government"
+  /* "ApplicationCA - Japanese Government" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDoDCCAoigAwIBAgIBMTANBgkqhkiG9w0BAQUFADBDMQswCQYDVQQGEwJKUDEcMBoGA1UEChMT\n"
   "SmFwYW5lc2UgR292ZXJubWVudDEWMBQGA1UECxMNQXBwbGljYXRpb25DQTAeFw0wNzEyMTIxNTAw\n"
@@ -3272,14 +3274,14 @@ const char* root_certs[] = {
   "WssmP3HMlEYNllPqa0jQk/5CdTAOBgNVHQ8BAf8EBAMCAQYwWQYDVR0RBFIwUKROMEwxCzAJBgNV\n"
   "BAYTAkpQMRgwFgYDVQQKDA/ml6XmnKzlm73mlL/lupwxIzAhBgNVBAsMGuOCouODl+ODquOCseOD\n"
   "vOOCt+ODp+ODs0NBMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQEFBQADggEBADlqRHZ3ODrs\n"
-  "o2dGD/mLBqj7apAxzn7s2tGJfHrrLgy9mTLnsCTWw//1sogJhyzjVOGjprIIC8CFqMjSnHH2HZ9g\n"
+  "o2dGD/mLBqj7apAxzn7s2tGJfHrrLgy9mTLnsCTWw/*1sogJhyzjVOGjprIIC8CFqMjSnHH2HZ9g\n"
   "/DgzE+Ge3Atf2hZQKXsvcJEPmbo0NI2VdMV+eKlmXb3KIXdCEKxmJj3ekav9FfBv7WxfEPjzFvYD\n"
   "io+nEhEMy/0/ecGc/WLuo89UDNErXxc+4z6/wCs+CZv+iKZ+tJIX/COUgb1up8WMwusRRdv4QcmW\n"
   "dupwX3kSa+SjB1oF7ydJzyGfikwJcGapJsErEU4z0g781mzSDjJkaP+tBXhfAx2o45CsJOAPQKdL\n"
   "rosot4LKGAfmt1t06SAZf7IbiVQ=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Primary Certification Authority - G3"
+  /* "GeoTrust Primary Certification Authority - G3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIID/jCCAuagAwIBAgIQFaxulBmyeUtB9iepwxgPHzANBgkqhkiG9w0BAQsFADCBmDELMAkGA1UE\n"
   "BhMCVVMxFjAUBgNVBAoTDUdlb1RydXN0IEluYy4xOTA3BgNVBAsTMChjKSAyMDA4IEdlb1RydXN0\n"
@@ -3301,7 +3303,7 @@ const char* root_certs[] = {
   "t/3LjWeJGqvtux6jAAgIFyqCXDFdRootD4abdNlF+9RAsXqqaC2Gspki4cErx5z481+oghLrGREt\n"
   "-----END CERTIFICATE-----\n",
 
-  // "thawte Primary Root CA - G2"
+  /* "thawte Primary Root CA - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICiDCCAg2gAwIBAgIQNfwmXNmET8k9Jj1Xm67XVjAKBggqhkjOPQQDAzCBhDELMAkGA1UEBhMC\n"
   "VVMxFTATBgNVBAoTDHRoYXd0ZSwgSW5jLjE4MDYGA1UECxMvKGMpIDIwMDcgdGhhd3RlLCBJbmMu\n"
@@ -3313,11 +3315,11 @@ const char* root_certs[] = {
   "LSKkQjnE/o/qycG+1E3/n3qe4rF8mq2nhglzh9HnmuN6papu+7qzcMBniKI11KOasf2twu8x+qi5\n"
   "8/sIxpHR+ymVo0IwQDAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQU\n"
   "mtgAMADna3+FGO6Lts6KDPgR4bswCgYIKoZIzj0EAwMDaQAwZgIxAN344FdHW6fmCsO99YCKlzUN\n"
-  "G4k8VIZ3KMqh9HneteY4sPBlcIx/AlTCv//YoT7ZzwIxAMSNlPzcU9LcnXgWHxUzI1NS41oxXZ3K\n"
+  "G4k8VIZ3KMqh9HneteY4sPBlcIx/AlTCv/*YoT7ZzwIxAMSNlPzcU9LcnXgWHxUzI1NS41oxXZ3K\n"
   "rr0TKUQNJ1uo52icEvdYPy5yAlejj6EULg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "thawte Primary Root CA - G3"
+  /* "thawte Primary Root CA - G3" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEKjCCAxKgAwIBAgIQYAGXt0an6rS0mtZLL/eQ+zANBgkqhkiG9w0BAQsFADCBrjELMAkGA1UE\n"
   "BhMCVVMxFTATBgNVBAoTDHRoYXd0ZSwgSW5jLjEoMCYGA1UECxMfQ2VydGlmaWNhdGlvbiBTZXJ2\n"
@@ -3340,7 +3342,7 @@ const char* root_certs[] = {
   "er/YB1IsYvdwY9k5vG8cwnncdimvzsUsZAReiDZuMdRAGmI0Nj81Aa6sY6A=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "GeoTrust Primary Certification Authority - G2"
+  /* "GeoTrust Primary Certification Authority - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIICrjCCAjWgAwIBAgIQPLL0SAoA4v7rJDteYD7DazAKBggqhkjOPQQDAzCBmDELMAkGA1UEBhMC\n"
   "VVMxFjAUBgNVBAoTDUdlb1RydXN0IEluYy4xOTA3BgNVBAsTMChjKSAyMDA3IEdlb1RydXN0IElu\n"
@@ -3357,7 +3359,7 @@ const char* root_certs[] = {
   "npaqBA+K\n"
   "-----END CERTIFICATE-----\n",
 
-  // "VeriSign Universal Root Certification Authority"
+  /* "VeriSign Universal Root Certification Authority" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEuTCCA6GgAwIBAgIQQBrEZCGzEyEDDrvkEhrFHTANBgkqhkiG9w0BAQsFADCBvTELMAkGA1UE\n"
   "BhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBO\n"
@@ -3383,7 +3385,7 @@ const char* root_certs[] = {
   "mJO37M2CYfE45k+XmCpajQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "VeriSign Class 3 Public Primary Certification Authority - G4"
+  /* "VeriSign Class 3 Public Primary Certification Authority - G4" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDhDCCAwqgAwIBAgIQL4D+I4wOIg9IZxIokYesszAKBggqhkjOPQQDAzCByjELMAkGA1UEBhMC\n"
   "VVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3\n"
@@ -3403,7 +3405,7 @@ const char* root_certs[] = {
   "AJw9SDkjOVgaFRJZap7v1VmyHVIsmXHNxynfGyphe3HR3vPA5Q06Sqotp9iGKt0uEA==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "NetLock Arany (Class Gold) Ftanstvny"
+  /* "NetLock Arany (Class Gold) Ftanstvny" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEFTCCAv2gAwIBAgIGSUEs5AAQMA0GCSqGSIb3DQEBCwUAMIGnMQswCQYDVQQGEwJIVTERMA8G\n"
   "A1UEBwwIQnVkYXBlc3QxFTATBgNVBAoMDE5ldExvY2sgS2Z0LjE3MDUGA1UECwwuVGFuw7pzw610\n"
@@ -3426,7 +3428,7 @@ const char* root_certs[] = {
   "dZWAUWpLMKawYqGT8ZvYzsRjdT9ZR7E=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Staat der Nederlanden Root CA - G2"
+  /* "Staat der Nederlanden Root CA - G2" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFyjCCA7KgAwIBAgIEAJiWjDANBgkqhkiG9w0BAQsFADBaMQswCQYDVQQGEwJOTDEeMBwGA1UE\n"
   "CgwVU3RhYXQgZGVyIE5lZGVybGFuZGVuMSswKQYDVQQDDCJTdGFhdCBkZXIgTmVkZXJsYW5kZW4g\n"
@@ -3457,7 +3459,7 @@ const char* root_certs[] = {
   "66+KAQ==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "CA Disig"
+  /* "CA Disig" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIEDzCCAvegAwIBAgIBATANBgkqhkiG9w0BAQUFADBKMQswCQYDVQQGEwJTSzETMBEGA1UEBxMK\n"
   "QnJhdGlzbGF2YTETMBEGA1UEChMKRGlzaWcgYS5zLjERMA8GA1UEAxMIQ0EgRGlzaWcwHhcNMDYw\n"
@@ -3480,7 +3482,7 @@ const char* root_certs[] = {
   "4Z7CRneC9VkGjCFMhwnN5ag=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Juur-SK"
+  /* "Juur-SK" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIE5jCCA86gAwIBAgIEO45L/DANBgkqhkiG9w0BAQUFADBdMRgwFgYJKoZIhvcNAQkBFglwa2lA\n"
   "c2suZWUxCzAJBgNVBAYTAkVFMSIwIAYDVQQKExlBUyBTZXJ0aWZpdHNlZXJpbWlza2Vza3VzMRAw\n"
@@ -3507,7 +3509,7 @@ const char* root_certs[] = {
   "yyqcjg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "Hongkong Post Root CA 1"
+  /* "Hongkong Post Root CA 1" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDMDCCAhigAwIBAgICA+gwDQYJKoZIhvcNAQEFBQAwRzELMAkGA1UEBhMCSEsxFjAUBgNVBAoT\n"
   "DUhvbmdrb25nIFBvc3QxIDAeBgNVBAMTF0hvbmdrb25nIFBvc3QgUm9vdCBDQSAxMB4XDTAzMDUx\n"
@@ -3526,7 +3528,7 @@ const char* root_certs[] = {
   "c4afU9hDDl3WY4JxHYB0yvbiAmvZWg==\n"
   "-----END CERTIFICATE-----\n",
 
-  // "SecureSign RootCA11"
+  /* "SecureSign RootCA11" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDbTCCAlWgAwIBAgIBATANBgkqhkiG9w0BAQUFADBYMQswCQYDVQQGEwJKUDErMCkGA1UEChMi\n"
   "SmFwYW4gQ2VydGlmaWNhdGlvbiBTZXJ2aWNlcywgSW5jLjEcMBoGA1UEAxMTU2VjdXJlU2lnbiBS\n"
@@ -3546,7 +3548,7 @@ const char* root_certs[] = {
   "lgeLKBObjBmNQSdJQO7e5iNEOdyhIta6A/I=\n"
   "-----END CERTIFICATE-----\n",
 
-  // "ACEDICOM Root"
+  /* "ACEDICOM Root" */
   "-----BEGIN CERTIFICATE-----\n"
   "MIIFtTCCA52gAwIBAgIIYY3HhjsBggUwDQYJKoZIhvcNAQEFBQAwRDEWMBQGA1UEAwwNQUNFRElD\n"
   "T00gUm9vdDEMMAoGA1UECwwDUEtJMQ8wDQYDVQQKDAZFRElDT00xCzAJBgNVBAYTAkVTMB4XDTA4\n"
@@ -3576,7 +3578,7 @@ const char* root_certs[] = {
   "tkYNbn5XOmeUwssfnHdKZ05phkOTOPu220+DkdRgfks+KzgHVZhepA==\n"
   "-----END CERTIFICATE-----\n",
 
-  0 // sentinel
+  0 /* sentinel */
 };
 
-#endif // SRC_NODE_ROOT_CERTS_H_
+#endif /* SRC_NODE_ROOT_CERTS_H_ */
