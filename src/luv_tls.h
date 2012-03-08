@@ -43,5 +43,6 @@ typedef struct tls_sc_t {
 tls_sc_t* luvit__lua_tls_sc_get(lua_State *L, int index);
 int luvit__lua_tls_conn_init(lua_State *L);
 int luvit__lua_tls_conn_create(lua_State *L);
+int luaopen_tls(lua_State *L);
 
 #endif

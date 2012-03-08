@@ -33,9 +33,7 @@
           'export_dependent_settings': [
             'deps/openssl/openssl.gyp:openssl'
           ],
-          'defines': [
-            'USE_OPENSSL'
-          ],
+          'defines': [ 'USE_OPENSSL' ],
         }],
       ],
      'sources': [
@@ -140,6 +138,9 @@
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
           'cflags': [ '--std=c89' ],
           'defines': [ '_GNU_SOURCE' ]
+        }],
+        ['"<(without_ssl)" == "false"', {
+          'defines': [ 'USE_OPENSSL' ],
         }],
       ],
       'defines': [ 'BUNDLE=1' ]

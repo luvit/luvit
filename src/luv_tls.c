@@ -547,7 +547,7 @@ static const luaL_reg tls_lib[] = {
 };
 
 int
-luvit__lua_tls_init(lua_State *L)
+luaopen_tls(lua_State *L)
 {
   luaL_newmetatable(L, TLS_SECURE_CONTEXT_HANDLE);
   lua_pushliteral(L, "__index");

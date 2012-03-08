@@ -28,6 +28,7 @@ extern const char **luaJIT_BC_url;
 extern const char **luaJIT_BC_utils;
 extern const char **luaJIT_BC_uv;
 
+
 const void *luvit__suck_in_symbols(void)
 {
   luvit_ugly_hack = (const char*)

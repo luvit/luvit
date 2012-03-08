@@ -30,6 +30,9 @@
 #include "los.h"
 #include "luv.h"
 #include "luv_dns.h"
+#ifdef USE_OPENSSL
+#include "luv_tls.h"
+#endif
 #include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
@@ -83,6 +86,11 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_getfield(L, -1, "preload");
   lua_remove(L, -2);
 
+#ifdef USE_OPENSSL
+  /* Register yajl */
+  lua_pushcfunction(L, luaopen_tls);
+  lua_setfield(L, -2, "_tls");
+#endif
   /* Register yajl */
   lua_pushcfunction(L, luaopen_yajl);
   lua_setfield(L, -2, "yajl");
