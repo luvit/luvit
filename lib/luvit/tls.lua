@@ -656,7 +656,26 @@ end
 
 --[[ Public ]]--
 
-function connect(port, host, options, callback)
+function connect(port, ...)
+  local args = {...}
+  local options = {}, callback
+
+  if type(args[0]) == 'object' then
+    options = args[0]
+  elseif type(args[1]) == 'object' then
+    options = args[1]
+    options.port = args[0]
+  elseif type(args[2]) == 'object' then
+    options = args[2]
+    options.port = args[0]
+    options.host = args[1]
+  end
+  p(options)
+
+  if type(args[#args]) == 'function' then
+    callback = args[#args]
+  end
+
   local socket = options.socket or Socket:new()
   local sslcontext = Credential:new(options)
 
@@ -699,7 +718,7 @@ function connect(port, host, options, callback)
     end)
   end
 
-  socket:connect(port, host, onconnect)
+  socket:connect(options.port, options.host, onconnect)
 end
 
 local exports = {}
