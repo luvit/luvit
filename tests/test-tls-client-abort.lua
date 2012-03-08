@@ -1,3 +1,4 @@
+require('helper')
 local fixture = require('./fixture-tls')
 local tls = require('tls')
 
@@ -11,4 +12,5 @@ local conn = tls.connect(options, function()
 end)
 conn:on('error', function()
 end)
-conn:destroy()
+
+doesnt_throw(conn:destroy())
