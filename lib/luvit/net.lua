@@ -139,11 +139,15 @@ function Socket:connect(...)
   if type(args[1]) == 'table' then
     -- connect(options, [cb])
     options = args[1]
+    callback = args[2]
   else
     -- connect(port, [host], [cb])
     options.port = args[1]
     if type(args[2]) == 'string' then
       options.host = args[2];
+      callback = args[3]
+    else
+      callback = args[2]
     end
   end
 
