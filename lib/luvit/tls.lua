@@ -28,7 +28,7 @@ local net = require('net')
 local fmt = require('string').format
 
 local END_OF_FILE = 42
-local DEBUG = true
+local DEBUG = false
 
 local function dbg(format, ...)
   if DEBUG == true then
@@ -520,7 +520,6 @@ function SecurePair:err()
   dbg('SecurePair:err')
   if self._secureEstablished == false then
     local err = self.ssl:getError()
-    p(err)
     if not err then
       err = Error:new('socket hang up')
       err.code = 'ECONNRESET'
@@ -672,7 +671,6 @@ function Server:setOptions(options)
   if options.sessionIdContext then
     self.sessionIdContext = options.sessionIdContext
   end
-  p(self)
 end
 
 function createServer(options, listener)

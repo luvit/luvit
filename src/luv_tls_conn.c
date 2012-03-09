@@ -57,7 +57,6 @@ static const int X509_NAME_FLAGS = ASN1_STRFLGS_ESC_CTRL
 
 #define TLS_CONNECTION_HANDLE "ltls_connection"
 
-#define SSL_DEBUG
 #ifdef SSL_DEBUG
 #define DBG(...) fprintf(stderr, __VA_ARGS__)
 #else
