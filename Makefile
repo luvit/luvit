@@ -7,7 +7,6 @@ UVDIR=deps/uv
 UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 -d -)
 HTTPDIR=deps/http-parser
 HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
-SSLDIR=deps/openssl/openssl
 BUILDDIR=build
 
 PREFIX?=/usr/local
@@ -40,7 +39,6 @@ LDFLAGS+=-L${BUILDDIR} -lluvit
 LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
-LDFLAGS+=${SSLDIR}/libssl.a ${SSLDIR}/libcrypto.a
 LDFLAGS+=-Wall -lm -ldl -lpthread
 
 ifeq (${OS_NAME},Linux)
@@ -58,8 +56,6 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_process.o    \
         ${BUILDDIR}/luv_stream.o     \
         ${BUILDDIR}/luv_tcp.o        \
-        ${BUILDDIR}/luv_tls.o        \
-        ${BUILDDIR}/luv_tls_conn.o   \
         ${BUILDDIR}/luv_pipe.o       \
         ${BUILDDIR}/luv_tty.o        \
         ${BUILDDIR}/luv_misc.o       \
@@ -74,8 +70,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
 DEPS=${LUADIR}/src/libluajit.a \
      ${YAJLDIR}/yajl.a         \
      ${UVDIR}/uv.a             \
-     ${HTTPDIR}/http_parser.o  \
-     ${SSLDIR}/libssl.a
+     ${HTTPDIR}/http_parser.o
 
 all: ${BUILDDIR}/luvit
 
@@ -109,16 +104,10 @@ ${HTTPDIR}/Makefile:
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	${MAKE} -C ${HTTPDIR} http_parser.o
 
-${SSLDIR}/Makefile:
-	git submodule update --init ${SSLDIR}/../
-
-${SSLDIR}/libssl.a: ${SSLDIR}/Makefile
-	( cd ${SSLDIR}; ./config )
-	${MAKE} -C ${SSLDIR}
 
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
-	$(CC) --std=c89 -DUSE_OPENSSL -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ -I${SSLDIR}/include -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
+	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/libluvit.a: ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
