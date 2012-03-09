@@ -336,7 +336,7 @@ tls_conn_clear_in(lua_State *L) {
   }
 
   bytes_written = SSL_write(tc->ssl, data, len);
-  DBG("bytes_written = %d, len = %d\n", bytes_written, len);
+  DBG("bytes_written = %d, len = %ld\n", bytes_written, len);
   tls_handle_ssl_error(tc, tc->ssl, bytes_written, "SSL_write:ClearIn");
   lua_pushnumber(L, bytes_written);
   return 1;
