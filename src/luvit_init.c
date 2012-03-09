@@ -51,6 +51,52 @@ static int luvit_print_stderr(lua_State* L) {
   return 0;
 }
 
+
+#ifdef USE_OPENSSL
+
+static uv_rwlock_t* locks;
+
+static unsigned long crypto_id_cb(void) {
+#ifdef _WIN32
+  return (unsigned long) GetCurrentThreadId();
+#else /* !_WIN32 */
+  return (unsigned long) pthread_self();
+#endif /* !_WIN32 */
+}
+
+
+static void crypto_lock_init(void) {
+  int i, n;
+
+  n = CRYPTO_num_locks();
+  locks = malloc(sizeof(uv_rwlock_t) * n);
+
+  for (i = 0; i < n; i++)
+    if (uv_rwlock_init(locks + i))
+      abort();
+}
+
+
+static void crypto_lock_cb(int mode, int n, const char* file, int line) {
+  assert((mode & CRYPTO_LOCK) || (mode & CRYPTO_UNLOCK));
+  assert((mode & CRYPTO_READ) || (mode & CRYPTO_WRITE));
+
+  if (mode & CRYPTO_LOCK) {
+    if (mode & CRYPTO_READ)
+      uv_rwlock_rdlock(locks + n);
+    else
+      uv_rwlock_wrlock(locks + n);
+  } else {
+    if (mode & CRYPTO_READ)
+      uv_rwlock_rdunlock(locks + n);
+    else
+      uv_rwlock_wrunlock(locks + n);
+  }
+}
+
+#endif
+
+
 #ifndef PATH_MAX
 #define PATH_MAX 1024
 #endif
@@ -69,6 +115,39 @@ static int luvit_getcwd(lua_State* L) {
   lua_pushstring(L, getbuf);
   return 1;
 }
+
+#ifdef USE_OPENSSL
+int luvit_init_ssl()
+{
+#if !defined(OPENSSL_NO_COMP)
+  STACK_OF(SSL_COMP)* comp_methods;
+#endif
+
+  /* Initialize OpenSSL */
+  SSL_library_init();
+  OpenSSL_add_all_algorithms();
+  OpenSSL_add_all_digests();
+  SSL_load_error_strings();
+  ERR_load_crypto_strings();
+
+  crypto_lock_init();
+  CRYPTO_set_locking_callback(crypto_lock_cb);
+  CRYPTO_set_id_callback(crypto_id_cb);
+
+  /* Turn off compression. Saves memory - do it in userland. */
+#if !defined(OPENSSL_NO_COMP)
+#if OPENSSL_VERSION_NUMBER < 0x00908000L
+  comp_methods = SSL_COMP_get_compression_method()
+#else
+  comp_methods = SSL_COMP_get_compression_methods();
+#endif
+  sk_SSL_COMP_zero(comp_methods);
+  assert(sk_SSL_COMP_num(comp_methods) == 0);
+#endif
+
+  return 0;
+}
+#endif
 
 int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 {
@@ -135,7 +214,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 
   lua_pushstring(L, UV_VERSION);
   lua_setglobal(L, "UV_VERSION");
-  
+
   lua_pushstring(L, LUAJIT_VERSION);
   lua_setglobal(L, "LUAJIT_VERSION");
 

@@ -28,7 +28,7 @@ local net = require('net')
 local fmt = require('string').format
 
 local END_OF_FILE = 42
-local DEBUG = false
+local DEBUG = true
 
 local function dbg(format, ...)
   if DEBUG == true then
@@ -49,9 +49,7 @@ function Credential:initialize(secureProtocol, flags, context)
 end
 
 local function createCredentials(options, context)
-  if not options then
-    options = {}
-  end
+  options = options or {}
 
   dbg('Create Credential')
 
@@ -85,10 +83,10 @@ local function createCredentials(options, context)
     dbg('Setting CA')
     if type(options.ca) == 'table' then
       for i=1,#options.ca do
-        c.context:setCACert(options.ca[i])
+        c.context:addCACert(options.ca[i])
       end
     else
-      c.context:setCACert(options.ca)
+      c.context:addCACert(options.ca)
     end
   end
 
@@ -129,6 +127,10 @@ end
 function CryptoStream:write(data, ...)
   dbg('CryptoStream:write')
 
+  if #data == 0 then
+    return
+  end
+
   if self._type == 'cleartextstream' then
     dbg('cleartext.write called with length ' .. #data)
   else
@@ -155,7 +157,7 @@ function CryptoStream:write(data, ...)
     if self._pendingBytes >= (128 * 1024) then
       self._needDrain = true
     else
-      if self._type == 'encryptedstream' then
+      if self._type == 'cleartextstream' then
         self._needDrain = self.pair.encrypted._paused
       else
         self._needDrain = self.pair.cleartext._paused
@@ -203,10 +205,28 @@ function CryptoStream:destroySoon()
   end
 end
 
+--function CryptoStream:done(d)
+--  dbg('done')
+--  if self.pair._doneFlag then
+--    return
+--  end
+--
+--  if self.writable == false then
+--    return
+--  end
+--
+--  if d then
+--    self:write(d);
+--  end
+--
+--  self.writable = false
+--
+--  self.pair:cycle()
+--end
+
 function CryptoStream:getPeerCertificate()
   if self.pair.ssl then
     local c = self.pair.ssl:getPeerCertificate()
-    p(c)
     if c then
       return c
     end
@@ -287,28 +307,30 @@ function CryptoStream:_pull()
   dbg('CryptoStream:_pull')
 
   while #self._pending > 0 do
-    local tmp = table.remove(self._pending, 1)
-    local callback = table.remove(self._pendingCallbacks, 1)
+    local tmp = table.remove(self._pending)
+    local callback = table.remove(self._pendingCallbacks)
 
-    local rv = self:_puller(tmp)
+    if #tmp ~= 0 then
+      local rv = self:_puller(tmp)
 
-    if self.pair.ssl and self.pair.ssl:getError() then
-      self.pair:err()
-      return
-    end
+      if self.pair.ssl and self.pair.ssl:getError() then
+        self.pair:err()
+        return
+      end
 
-    self.pair:maybeInitFinished()
+      self.pair:maybeInitFinished()
 
-    if rv <= 0 then
-      table.insert(self._pending, 1, tmp)
-      table.insert(self._pendingCallbacks, 1, callback)
-      break
-    end
+      if rv <= 0 then
+        table.insert(self._pending, 1, tmp)
+        table.insert(self._pendingCallbacks, 1, callback)
+        break
+      end
 
-    self._pendingBytes = self._pendingBytes - rv
+      self._pendingBytes = self._pendingBytes - #tmp
 
-    if callback then
-      callback()
+      if callback then
+        callback()
+      end
     end
   end
 
@@ -472,31 +494,31 @@ end
 
 function SecurePair:destroy()
   dbg('SecurePair:destroy')
-  if self._doneFlag == false then
-    self._doneFlag = true
-
-    if self.ssl then
-      self.ssl.close()
-      self.ssl = nil
-    end
-
-    self.encrypted.writable = false
-    self.encrypted.readable = false
-    self.cleartext.writable = false
-    self.cleartext.readable = false
-
-    timer.setTimeout(0, function()
-      self.cleartext:emit('end')
-      self.encrypted:emit('close')
-      self.cleartext:emit('close')
-    end)
+  if self._doneFlag == true then
+    return
   end
+
+  self._doneFlag = true
+  self.ssl:close()
+  self.ssl = nil
+
+  self.encrypted.writable = false
+  self.encrypted.readable = false
+  self.cleartext.writable = false
+  self.cleartext.readable = false
+
+  timer.setTimeout(0, function()
+    self.cleartext:emit('end')
+    self.encrypted:emit('close')
+    self.cleartext:emit('close')
+  end)
 end
 
 function SecurePair:err()
   dbg('SecurePair:err')
   if self._secureEstablished == false then
     local err = self.ssl:getError()
+    p(err)
     if not err then
       err = Error:new('socket hang up')
       err.code = 'ECONNRESET'
@@ -580,7 +602,7 @@ function Server:initialize(...)
       self:emit('secureConnection', cleartext, pair.encrypted)
     end)
     pair:on('error', function(err)
-      dbg('on error', err)
+      dbg('on error' .. err)
     end)
   end)
 
@@ -648,6 +670,7 @@ function Server:setOptions(options)
   if options.sessionIdContext then
     self.sessionIdContext = options.sessionIdContext
   end
+  p(self)
 end
 
 function createServer(options, listener)
@@ -656,21 +679,20 @@ end
 
 --[[ Public ]]--
 
-function connect(port, ...)
+function connect(...)
   local args = {...}
   local options = {}, callback
 
-  if type(args[0]) == 'object' then
-    options = args[0]
-  elseif type(args[1]) == 'object' then
+  if type(args[1]) == 'table' then
     options = args[1]
-    options.port = args[0]
-  elseif type(args[2]) == 'object' then
+  elseif type(args[2]) == 'table' then
     options = args[2]
-    options.port = args[0]
-    options.host = args[1]
+    options.port = args[1]
+  elseif type(args[3]) == 'table' then
+    options = args[3]
+    options.port = args[1]
+    options.host = args[2]
   end
-  p(options)
 
   if type(args[#args]) == 'function' then
     callback = args[#args]
@@ -718,7 +740,7 @@ function connect(port, ...)
     end)
   end
 
-  socket:connect(options.port, options.host, onconnect)
+  return socket:connect(options.port, options.host, onconnect)
 end
 
 local exports = {}

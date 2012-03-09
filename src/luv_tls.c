@@ -85,8 +85,7 @@ static X509* _lua_load_x509(lua_State *L, int index) {
 static tls_sc_t*
 newSC(lua_State *L)
 {
-  tls_sc_t* ctx;
-  ctx = lua_newuserdata(L, sizeof(tls_sc_t));
+  tls_sc_t *ctx = lua_newuserdata(L, sizeof(tls_sc_t));
   ctx->ctx = NULL;
   /* TODO: reference gloabl CA-store */
   ctx->ca_store = NULL;
@@ -104,11 +103,37 @@ luvit__lua_tls_sc_get(lua_State *L, int index)
 
 static int
 tls_sc_create(lua_State *L) {
-  tls_sc_t* ctx;
-  ctx = newSC(L);
+  tls_sc_t *ctx;
+  const char *method_string = lua_tostring(L, 1);
+  const SSL_METHOD *method = SSLv23_method();
 
-  /* TODO: make method configurable */
-  ctx->ctx = SSL_CTX_new(TLSv1_method());
+  if (method_string) {
+    if (strcmp(method_string, "SSLv3_method") == 0) {
+      method = SSLv3_method();
+    } else if (strcmp(method_string, "SSLv3_server_method") == 0) {
+      method = SSLv3_server_method();
+    } else if (strcmp(method_string, "SSLv3_client_method") == 0) {
+      method = SSLv3_client_method();
+    } else if (strcmp(method_string, "SSLv23_method") == 0) {
+      method = SSLv23_method();
+    } else if (strcmp(method_string, "SSLv23_server_method") == 0) {
+      method = SSLv23_server_method();
+    } else if (strcmp(method_string, "SSLv23_client_method") == 0) {
+      method = SSLv23_client_method();
+    } else if (strcmp(method_string, "TLSv1_method") == 0) {
+      method = TLSv1_method();
+    } else if (strcmp(method_string, "TLSv1_server_method") == 0) {
+      method = TLSv1_server_method();
+    } else if (strcmp(method_string, "TLSv1_client_method") == 0) {
+      method = TLSv1_client_method();
+    } else {
+      luaL_error(L, "method not supported: %s", method_string);
+      return 0;
+    }
+  }
+
+  ctx = newSC(L);
+  ctx->ctx = SSL_CTX_new(method);
   /* TODO: customize Session cache */
   SSL_CTX_set_session_cache_mode(ctx->ctx, SSL_SESS_CACHE_SERVER);
 
@@ -375,12 +400,11 @@ static int
 tls_sc_set_ciphers(lua_State *L) {
   tls_sc_t *ctx;
   const char *cipherstr = NULL;
-  size_t clen = 0;
   int rv;
 
   ctx = getSC(L);
 
-  cipherstr = luaL_checklstring(L, 2, &clen);
+  cipherstr = luaL_checkstring(L, 2);
 
   ERR_clear_error();
 
@@ -501,6 +525,7 @@ int tls_sc_add_ca_cert(lua_State *L)
     SSL_CTX_set_cert_store(ctx->ctx, ctx->ca_store);
     newCAStore = TRUE;
   }
+
 
   x509 = _lua_load_x509(L, 2);
   if (!x509) {

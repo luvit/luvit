@@ -95,7 +95,9 @@ _G.assert = function(assertion, msg)
   end
 end
 
-_G.doesnt_throw = function(...)
-  local s, e = pcall(...)
-  asserts.ok(not e, 'Function thrown an error')
+_G.doesnt_throw = function(assertion, msg)
+  local s, e = pcall(assertion)
+  if e then
+    fail("assert", msg, "Function threw an error")
+  end
 end

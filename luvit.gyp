@@ -117,6 +117,16 @@
      ],
     },
     {
+      'target_name': 'cli',
+      'type': 'executable',
+      'dependencies': [
+        'deps/openssl/openssl.gyp:openssl'
+        ],
+      'sources': [
+        'cli.c'
+      ]
+    },
+    {
       'target_name': 'luvit',
       'type': 'executable',
       'dependencies': [

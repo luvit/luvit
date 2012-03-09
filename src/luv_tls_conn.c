@@ -57,6 +57,7 @@ static const int X509_NAME_FLAGS = ASN1_STRFLGS_ESC_CTRL
 
 #define TLS_CONNECTION_HANDLE "ltls_connection"
 
+#define SSL_DEBUG
 #ifdef SSL_DEBUG
 #define DBG(...) fprintf(stderr, __VA_ARGS__)
 #else
@@ -116,11 +117,15 @@ newCONN(lua_State *L)
 
   SSL_set_app_data(tc->ssl, tc);
   SSL_set_bio(tc->ssl, tc->bio_read, tc->bio_write);
-  SSL_set_mode(tc->ssl, SSL_get_mode(tc->ssl) | SSL_MODE_RELEASE_BUFFERS);
   /* Always allow a connection. We'll reject in lua. */
   SSL_set_verify(tc->ssl, verify_mode, tls_conn_verify_cb);
 
-  tc->is_server ? SSL_set_accept_state(tc->ssl) : SSL_set_connect_state(tc->ssl);
+  if (tc->is_server) {
+    SSL_set_accept_state(tc->ssl);
+  }
+  else {
+    SSL_set_connect_state(tc->ssl);
+  }
 
   luaL_getmetatable(L, TLS_CONNECTION_HANDLE);
   lua_setmetatable(L, -2);
@@ -141,7 +146,7 @@ luvit__lua_tls_conn_create(lua_State *L) {
 }
 
 static int
-tls_handle_ssl_error_x(SSL *ssl, int rv, const char *func) {
+tls_handle_ssl_error_x(tls_conn_t *tc, SSL *ssl, int rv, const char *func) {
   if (rv >= 0) {
     return rv;
   }
@@ -160,12 +165,15 @@ tls_handle_ssl_error_x(SSL *ssl, int rv, const char *func) {
     return 0;
   }
   else {
+    BUF_MEM* mem;
     BIO *bio;
-    BUF_MEM *mem;
+
     assert(err == SSL_ERROR_SSL || err == SSL_ERROR_SYSCALL);
+    tc->error = rv;
     if ((bio = BIO_new(BIO_s_mem()))) {
       ERR_print_errors(bio);
       BIO_get_mem_ptr(bio, &mem);
+      DBG("[%p] SSL: error %s\n", ssl, mem->data);
       BIO_free(bio);
     }
     return rv;
@@ -204,8 +212,8 @@ tls_handle_bio_error_x(tls_conn_t *tc, BIO *bio, SSL *ssl, int rv, const char *f
   return 0;
 }
 
-#define tls_handle_ssl_error(ssl, rv) tls_handle_ssl_error_x(ssl, rv, __FUNCTION__)
-#define tls_handle_bio_error(tc, bio, ssl, rv) tls_handle_bio_error_x(tc, bio, ssl, rv, __FUNCTION__)
+#define tls_handle_ssl_error(tc, ssl, rv, func) tls_handle_ssl_error_x(tc, ssl, rv, func)
+#define tls_handle_bio_error(tc, bio, ssl, rv, func) tls_handle_bio_error_x(tc, bio, ssl, rv, func)
 
 static int
 tls_conn_start(lua_State *L) {
@@ -215,11 +223,12 @@ tls_conn_start(lua_State *L) {
   if (!SSL_is_init_finished(tc->ssl)) {
     if (tc->is_server) {
       rv = SSL_accept(tc->ssl);
+      tls_handle_ssl_error(tc, tc->ssl, rv, "SSL_accept:Start");
     }
     else {
       rv = SSL_connect(tc->ssl);
+      tls_handle_ssl_error(tc, tc->ssl, rv, "SSL_connect:Start");
     }
-    tls_handle_ssl_error(tc->ssl, rv);
   }
   lua_pushnumber(L, rv);
   return 1;
@@ -239,17 +248,17 @@ tls_conn_enc_in(lua_State *L) {
   tls_conn_t *tc = getCONN(L, 1);
   const char *data = luaL_checklstring(L, 2, &len);
   int bytes_written = BIO_write(tc->bio_read, data, len);
-  tls_handle_bio_error(tc, tc->bio_read, tc->ssl, bytes_written);
+  tls_handle_bio_error(tc, tc->bio_read, tc->ssl, bytes_written, "BIO_write");
   lua_pushnumber(L, bytes_written);
   return 1;
 }
 
 static int
 tls_conn_enc_out(lua_State *L) {
-  char pool[4096];
+  char pool[16 * 4096];
   tls_conn_t *tc = getCONN(L, 1);
   int bytes_read = BIO_read(tc->bio_write, pool, sizeof(pool));
-  tls_handle_bio_error(tc, tc->bio_write, tc->ssl, bytes_read);
+  tls_handle_bio_error(tc, tc->bio_write, tc->ssl, bytes_read, "BIO_read");
   lua_pushnumber(L, bytes_read);
   if (bytes_read > 0) {
     lua_pushlstring(L, pool, bytes_read);
@@ -271,7 +280,7 @@ tls_conn_enc_pending(lua_State *L) {
 static int
 tls_conn_clear_out(lua_State *L) {
   tls_conn_t *tc = getCONN(L, 1);
-  char pool[4096];
+  char pool[16 * 4096];
   int bytes_read;
 
   if (!SSL_is_init_finished(tc->ssl)) {
@@ -279,10 +288,10 @@ tls_conn_clear_out(lua_State *L) {
 
     if (tc->is_server) {
       rv = SSL_accept(tc->ssl);
-      tls_handle_ssl_error(tc->ssl, rv);
+      tls_handle_ssl_error(tc, tc->ssl, rv, "SSL_accept:ClearOut");
     } else {
       rv = SSL_connect(tc->ssl);
-      tls_handle_ssl_error(tc->ssl, rv);
+      tls_handle_ssl_error(tc, tc->ssl, rv, "SSL_connect:ClearOut");
     }
 
     if (rv < 0) {
@@ -292,7 +301,7 @@ tls_conn_clear_out(lua_State *L) {
   }
 
   bytes_read = SSL_read(tc->ssl, pool, sizeof(pool));
-  tls_handle_ssl_error(tc->ssl, bytes_read);
+  tls_handle_ssl_error(tc, tc->ssl, bytes_read, "SSL_read:ClearOut");
   lua_pushnumber(L, bytes_read);
   if (bytes_read > 0) {
     lua_pushlstring(L, pool, bytes_read);
@@ -314,10 +323,10 @@ tls_conn_clear_in(lua_State *L) {
     int rv;
     if (tc->is_server) {
       rv = SSL_accept(tc->ssl);
-      tls_handle_ssl_error(tc->ssl, rv);
+      tls_handle_ssl_error(tc, tc->ssl, rv, "SSL_accept:ClearIn");
     } else {
       rv = SSL_connect(tc->ssl);
-      tls_handle_ssl_error(tc->ssl, rv);
+      tls_handle_ssl_error(tc, tc->ssl, rv, "SSL_Connect:ClearIn");
     }
 
     if (rv < 0) {
@@ -328,7 +337,7 @@ tls_conn_clear_in(lua_State *L) {
 
   bytes_written = SSL_write(tc->ssl, data, len);
   DBG("bytes_written = %d, len = %d\n", bytes_written, len);
-  tls_handle_ssl_error(tc->ssl, bytes_written);
+  tls_handle_ssl_error(tc, tc->ssl, bytes_written, "SSL_write:ClearIn");
   lua_pushnumber(L, bytes_written);
   return 1;
 }
