@@ -166,7 +166,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_remove(L, -2);
 
 #ifdef USE_OPENSSL
-  /* Register yajl */
+  /* Register tls */
   lua_pushcfunction(L, luaopen_tls);
   lua_setfield(L, -2, "_tls");
 #endif
