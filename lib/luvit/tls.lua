@@ -88,6 +88,8 @@ local function createCredentials(options, context)
     else
       c.context:addCACert(options.ca)
     end
+  else
+    c.context:addRootCerts()
   end
 
   if options.crl then

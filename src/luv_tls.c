@@ -15,6 +15,7 @@
  *
  */
 
+
 #include "luv.h"
 #include "luv_tls.h"
 #include "luv_tls_root_certs.h"
@@ -127,8 +128,7 @@ tls_sc_create(lua_State *L) {
     } else if (strcmp(method_string, "TLSv1_client_method") == 0) {
       method = TLSv1_client_method();
     } else {
-      luaL_error(L, "method not supported: %s", method_string);
-      return 0;
+      return luaL_error(L, "method not supported: %s", method_string);
     }
   }
 
@@ -163,14 +163,14 @@ tls_fatal_error_x(lua_State *L, const char *func) {
   unsigned long err = ERR_get_error();
 
   if (err == 0) {
-    luaL_error(L, "%s: unknown fatal error", func);
+    return luaL_error(L, "%s: unknown fatal error", func);
   }
   else {
     ERR_error_string(err, buf);
 
     ERR_clear_error();
 
-    luaL_error(L, "%s: %s", func, buf);
+    return luaL_error(L, "%s: %s", func, buf);
   }
 
   return 0;

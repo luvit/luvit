@@ -6,7 +6,6 @@ local tls = require('tls')
 local options = {
   cert = fixture.certPem,
   key = fixture.keyPem,
-  ca = fixture.caPem,
   port = fixture.commonPort,
 --  ciphers = 'NULL-MD5'
 }
@@ -21,7 +20,7 @@ local response = ''
 
 local server = tls.createServer(options, function(conn)
   conn:write(reply)
-  conn:close()
+  conn.socket:close()
   nconns = nconns + 1
 end)
 
