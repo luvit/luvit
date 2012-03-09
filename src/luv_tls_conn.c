@@ -484,7 +484,7 @@ tls_conn_is_init_finished(lua_State *L) {
 
 static int
 tls_conn_get_current_cipher(lua_State *L) {
-  SSL_CIPHER *c;
+  const SSL_CIPHER *c;
   tls_conn_t *tc = getCONN(L, 1);
   if (!tc->ssl) {
     lua_pushnil(L);
