@@ -317,7 +317,13 @@ function http.request(options, callback)
   local headers = options.headers or {}
   if not headers.host then headers.host = host end
 
+  -- TODO: clarify
+  if not headers["Content-Length"] then
+    headers["Transfer-Encoding"] = "chunked"
+  end
+
   -- buffer request content until socket is connected
+  local content = {}
   local request = { method .. " " .. path .. " HTTP/1.1\r\n" }
   -- FIXME: pairs() toss headers, while order can be significant!
   for field, value in pairs(headers) do
@@ -330,20 +336,38 @@ function http.request(options, callback)
   local original_write
 
   local client
-  client = net.create(port, host, function(err)
+  client = net.create(port, host, function (err)
 
     if err then
       client:emit("error", err)
       return
     end
 
-    -- restore original client methods
-    client.write = original_write
-    -- N.B. close is net.Socket method, no to restore old means to remove new
-    client.close = nil
-
     -- send request headers and content
-    client:write(table.concat(request))
+    original_write(client, table.concat(request))
+    request = nil
+    original_write(client, table.concat(content))
+    content = nil
+
+    -- replace write() with chunked-encoding version
+    client.chunked = headers["Transfer-Encoding"] == "chunked"
+    if client.chunked then
+      client.write = function (self, chunk, callback)
+        if #chunk > 0 then
+          original_write(self, stringFormat("%x\r\n", #chunk))
+          original_write(self, chunk)
+          return original_write(self, "\r\n", callback)
+        end
+        return original_write(self, chunk, callback)
+      end
+    else
+      client.write = original_write
+    end
+
+    -- restore original client methods.
+    -- N.B. close() is net.Socket method, so to restore old method
+    -- means simply to remove new method
+    client.close = nil
 
     local response = Response:new(client)
 
@@ -377,7 +401,7 @@ function http.request(options, callback)
         response:emit("end")
       end
 
-    });
+    })
 
     client:on("data", function (chunk)
 
@@ -409,16 +433,33 @@ function http.request(options, callback)
       response:emit("error", err)
     end)
 
+    -- close writing end
+    if client.done then
+      if client.chunked then
+        original_write(client, '0\r\n\r\n')
+      end
+      client:shutdown()
+    end
+
   end)
 
   -- store original client methods.
   original_write = client.write
   -- while connecting, we want to buffer writes and closes
-  client.write = function (self, data, callback)
-    request[#request + 1] = data
+  client.write = function (self, chunk, callback)
+    if #chunk > 0 then
+      if headers["Transfer-Encoding"] == "chunked" then
+        content[#content + 1] = stringFormat("%x\r\n%s\r\n", #chunk, chunk)
+      else
+        content[#content + 1] = chunk
+      end
+    end
     if callback then callback() end
   end
-  client.close = client.write
+  client.close = function (self, chunk, callback)
+    self.done = true
+    self:write(chunk, callback)
+  end
 
   return client
 end
