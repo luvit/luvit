@@ -75,7 +75,7 @@ request = http.request(
     method = 'POST',
     headers = {
       bar = "cats",
-      --['Content-Length'] = #payload,
+      --['Content-Length'] = #payload * 2 + 4,
     }
   },
   function (conn)
