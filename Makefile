@@ -136,8 +136,8 @@ ${HTTPDIR}/Makefile:
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	$(MAKE) -C ${HTTPDIR} http_parser.o
 
-${SSLDIR}/Makefile:
-	git submodule update --init ${SSLDIR}/../
+${SSLDIR}/Makefile.openssl:
+	git submodule update --init ${SSLDIR}
 
 ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
