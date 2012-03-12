@@ -66,12 +66,14 @@ process.versions = {
   luajit = LUAJIT_VERSION,
   yajl = YAJL_VERSION,
   http_parser = HTTP_VERSION,
+  openssl = OPENSSL_VERSION,
 }
 _G.VERSION = nil
 _G.YAJL_VERSION = nil
 _G.LUAJIT_VERSION = nil
 _G.UV_VERSION = nil
 _G.HTTP_VERSION = nil
+_G.OPENSSL_VERSION = nil
 
 -- Add a way to exit programs cleanly
 function process.exit(exit_code)
