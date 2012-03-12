@@ -13,3 +13,6 @@
 [submodule "deps/zlib"]
 	path = deps/zlib
 	url = https://github.com/creationix/zlib.git
+[submodule "deps/openssl"]
+	path = deps/openssl
+	url = https://github.com/luvit/openssl.git

@@ -28,7 +28,12 @@ parser.add_option("--prefix",
 parser.add_option("--arch",
     action="store",
     dest="arch",
-    help="Select the default architecture (ia32,x64,mac,arm)")
+    help="Select the default architecture (ia32,x64,arm)")
+
+parser.add_option("--without-ssl",
+    action="store_true",
+    dest="without_ssl",
+    help="Disable SSL Support")
 
 (options, args) = parser.parse_args()
 
@@ -61,7 +66,7 @@ def host_arch():
       return 'ia32'
 
   if sys.platform == "darwin":
-      return 'mac'
+      return 'ia32'
 
   arch = uname('-p')
 
@@ -88,6 +93,7 @@ def configure_luvit(o):
   o['variables']['luvit_prefix'] = options.prefix if options.prefix else ''
   o['variables']['host_arch'] = host_arch()
   o['variables']['target_arch'] = options.arch if options.arch else target_arch()
+  o['variables']['without_ssl'] = 'true' if options.without_ssl else 'false'
 
 print "configure options:", options
 
@@ -133,7 +139,8 @@ def render_openssl_symlinks(src, dest):
             shutil.copy2(srcf, destf)
 
 if sys.platform == "win32":
-    render_openssl_symlinks('deps/openssl/include/openssl', 'deps/openssl-configs/realized/openssl')
+    render_openssl_symlinks('deps/openssl/openssl/include/openssl',
+        'deps/openssl/openssl-configs/realized/openssl')
     code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=2010")
 else:
     code = os.system("tools/gyp_luvit")

@@ -104,6 +104,7 @@ ${HTTPDIR}/Makefile:
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	${MAKE} -C ${HTTPDIR} http_parser.o
 
+
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"

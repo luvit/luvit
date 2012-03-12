@@ -77,12 +77,16 @@ end
 function Socket:_write(data, callback)
   self._pendingWriteRequests = self._pendingWriteRequests + 1
   self._handle:write(data, function(err)
+    if err then
+      self:emit('error', err);
+      return
+    end
     self._pendingWriteRequests = self._pendingWriteRequests - 1
     if self._pendingWriteRequests == 0 then
       self:emit('drain');
     end
     if callback then
-      callback(err)
+      callback()
     end
   end)
   return self._handle:writeQueueSize() == 0
@@ -127,7 +131,30 @@ function Socket:_initEmitters()
   end)
 end
 
-function Socket:connect(port, host, callback)
+function Socket:connect(...)
+  local args = {...}
+  local options = {}
+  local callback
+
+  if type(args[1]) == 'table' then
+    -- connect(options, [cb])
+    options = args[1]
+    callback = args[2]
+  else
+    -- connect(port, [host], [cb])
+    options.port = args[1]
+    if type(args[2]) == 'string' then
+      options.host = args[2];
+      callback = args[3]
+    else
+      callback = args[2]
+    end
+  end
+
+  if not options.host then
+    options.host = '0.0.0.0'
+  end
+
   self._handle:on('connect', function()
     if self._connectTimer then
       timer.clearTimer(self._connectTimer)
@@ -137,15 +164,27 @@ function Socket:connect(port, host, callback)
     callback()
   end)
 
-  dns.lookup(host, function(err, ip, addressType)
+  dns.lookup(options.host, function(err, ip, addressType)
     if err then
       callback(err)
       return
     end
-    self:_connect(ip, port, addressType)
+    self:_connect(ip, options.port, addressType)
   end)
 
   return self
+end
+
+function Socket:destroy()
+  self.readable = false
+  self.writable = false
+  if self._handle then
+    self._handle:close()
+    self._handle = nil
+  end
+  timer.setTimeout(0, function()
+    self:emit('close')
+  end)
 end
 
 function Socket:initialize(handle)
@@ -154,6 +193,8 @@ function Socket:initialize(handle)
   self._pendingWriteRequests = 0
   self.bytesWritten = 0
   self.bytesRead = 0
+  self.readable = true
+  self.writable = true
 
   self:_initEmitters()
 end

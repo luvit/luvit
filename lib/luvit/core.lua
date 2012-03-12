@@ -199,14 +199,14 @@ local iStream = Emitter:extend()
 core.iStream = iStream
 
 function iStream:pipe(target)
-  self:on('data', function (chunk, len)
+  self:on('data', function (chunk)
     if target:write(chunk) == false and self.pause then
       self:pause()
     end
   end)
 
   target:on('drain', function()
-    if type(self.resume) == 'function' then
+    if self.resume then
       self:resume()
     end
   end)
