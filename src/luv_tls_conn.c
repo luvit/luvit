@@ -183,13 +183,14 @@ tls_handle_ssl_error_x(tls_conn_t *tc, SSL *ssl, int rv, const char *func) {
 
 static int
 tls_handle_bio_error_x(tls_conn_t *tc, BIO *bio, SSL *ssl, int rv, const char *func) {
-  int retry;
+  int retry = 0;
 
   if (rv >= 0) {
     return rv;
   }
 
   retry = BIO_should_retry(bio);
+  (void) retry; /* unused variable w/out debugging */
 
   if (BIO_should_write(bio)) {
     DBG("[%p] BIO: %s want write. should retry %d\n", ssl, func, retry);
