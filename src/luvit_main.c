@@ -30,6 +30,7 @@
 #include "uv.h"
 
 #include "luvit.h"
+#include "luvit_init.h"
 #include "luv.h"
 
 #ifdef BUNDLE
@@ -53,6 +54,10 @@ int main(int argc, char *argv[])
 
 #ifdef LUV_EXPORTS
   luvit__suck_in_symbols();
+#endif
+
+#ifdef USE_OPENSSL
+  luvit_init_ssl();
 #endif
 
   if (luvit_init(L, loop, argc, argv)) {

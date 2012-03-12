@@ -22,6 +22,19 @@
           'cflags': [ '--std=c89' ],
           'defines': [ '_GNU_SOURCE' ]
         }],
+        ['"<(without_ssl)" == "false"', {
+          'sources': [
+            'src/luv_tls.c',
+            'src/luv_tls_conn.c',
+          ],
+          'dependencies': [
+            'deps/openssl/openssl.gyp:openssl'
+          ],
+          'export_dependent_settings': [
+            'deps/openssl/openssl.gyp:openssl'
+          ],
+          'defines': [ 'USE_OPENSSL' ],
+        }],
       ],
      'sources': [
        'src/lconstants.c',
@@ -62,6 +75,7 @@
        'lib/luvit/repl.lua',
        'lib/luvit/stack.lua',
        'lib/luvit/timer.lua',
+       'lib/luvit/tls.lua',
        'lib/luvit/url.lua',
        'lib/luvit/utils.lua',
        'lib/luvit/uv.lua',
@@ -103,6 +117,16 @@
      ],
     },
     {
+      'target_name': 'cli',
+      'type': 'executable',
+      'dependencies': [
+        'deps/openssl/openssl.gyp:openssl'
+        ],
+      'sources': [
+        'cli.c'
+      ]
+    },
+    {
       'target_name': 'luvit',
       'type': 'executable',
       'dependencies': [
@@ -124,6 +148,9 @@
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
           'cflags': [ '--std=c89' ],
           'defines': [ '_GNU_SOURCE' ]
+        }],
+        ['"<(without_ssl)" == "false"', {
+          'defines': [ 'USE_OPENSSL' ],
         }],
       ],
       'defines': [ 'BUNDLE=1' ]
