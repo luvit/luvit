@@ -681,7 +681,8 @@ end
 
 function connect(...)
   local args = {...}
-  local options = {}, callback
+  local options = {}
+  local callback
 
   if type(args[1]) == 'table' then
     options = args[1]
