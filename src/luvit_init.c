@@ -224,6 +224,11 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_pushstring(L, YAJL_VERSIONISH);
   lua_setglobal(L, "YAJL_VERSION");
 
+#ifdef USE_OPENSSL
+  lua_pushstring(L, OPENSSL_VERSION_TEXT);
+  lua_setglobal(L, "OPENSSL_VERSION");
+#endif
+
   /* Hold a reference to the main thread in the registry */
   assert(lua_pushthread(L) == 1);
   lua_setfield(L, LUA_REGISTRYINDEX, "main_thread");
