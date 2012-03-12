@@ -39,10 +39,12 @@ local colors = {
   Bwhite   = "1;37"
 }
 
-utils.useColors = true
+if not _G.useColors then
+  _G.useColors = true
+end
 
 function utils.color(color_name)
-  if utils.useColors then
+  if _G.useColors then
     return "\27[" .. (colors[color_name] or "0") .. "m"
   else
     return ""
@@ -53,15 +55,22 @@ function utils.colorize(color_name, string, reset_name)
   return utils.color(color_name) .. string .. utils.color(reset_name)
 end
 
-local backslash = utils.colorize("Bgreen", "\\\\", "green")
-local null      = utils.colorize("Bgreen", "\\0", "green")
-local newline   = utils.colorize("Bgreen", "\\n", "green")
-local carraige  = utils.colorize("Bgreen", "\\r", "green")
-local tab       = utils.colorize("Bgreen", "\\t", "green")
-local quote     = utils.colorize("Bgreen", '"', "green")
-local quote2    = utils.colorize("Bgreen", '"')
-local obracket  = utils.colorize("white", '[')
-local cbracket  = utils.colorize("white", ']')
+local backslash, null, newline, carraige, tab, quote, quote2, obracket, cbracket
+
+function utils.loadColors (n)
+  if n ~= nil then _G.useColors = n end
+  backslash = utils.colorize("Bgreen", "\\\\", "green")
+  null      = utils.colorize("Bgreen", "\\0", "green")
+  newline   = utils.colorize("Bgreen", "\\n", "green")
+  carraige  = utils.colorize("Bgreen", "\\r", "green")
+  tab       = utils.colorize("Bgreen", "\\t", "green")
+  quote     = utils.colorize("Bgreen", '"', "green")
+  quote2    = utils.colorize("Bgreen", '"')
+  obracket  = utils.colorize("white", '[')
+  cbracket  = utils.colorize("white", ']')
+end
+
+utils.loadColors ()
 
 function utils.dump(o, depth)
   local t = type(o)
