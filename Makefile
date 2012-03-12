@@ -120,7 +120,7 @@ ${SSLDIR}/libssl.a: ${SSLDIR}/Makefile
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
-		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src \
+		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -I${SSLDIR}/include \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
 		-DUV_VERSION=\"${UV_VERSION}\" \
