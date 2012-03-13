@@ -77,6 +77,7 @@ function repl.evaluateLine(line)
       return '>>'
     else
       print(err)
+      buffer = ''
     end
   end
 
