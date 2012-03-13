@@ -126,6 +126,7 @@ function Emitter:once(name, callback)
     callback(...)
   end
   self:on(name, wrapped)
+  return self
 end
 
 -- Adds an event listener (`callback`) for the named event `name`.
@@ -144,6 +145,7 @@ function Emitter:on(name, callback)
     rawset(handlers, name, handlers_for_type)
   end
   table.insert(handlers_for_type, callback)
+  return self
 end
 
 -- Emit a named event to all listeners with optional data argument(s).
@@ -166,7 +168,7 @@ function Emitter:emit(name, ...)
       table.remove(handlers_for_type, i)
     end
   end
-
+  return self
 end
 
 -- Remove a listener so that it no longer catches events.
