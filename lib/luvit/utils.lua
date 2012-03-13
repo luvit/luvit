@@ -39,12 +39,12 @@ local colors = {
   Bwhite   = "1;37"
 }
 
-if not _G.useColors then
-  _G.useColors = true
+if utils._useColors == nil then
+  utils._useColors = true
 end
 
 function utils.color(color_name)
-  if _G.useColors then
+  if utils._useColors then
     return "\27[" .. (colors[color_name] or "0") .. "m"
   else
     return ""
@@ -55,14 +55,14 @@ function utils.colorize(color_name, string, reset_name)
   return utils.color(color_name) .. string .. utils.color(reset_name)
 end
 
-local backslash, null, newline, carraige, tab, quote, quote2, obracket, cbracket
+local backslash, null, newline, carriage, tab, quote, quote2, obracket, cbracket
 
 function utils.loadColors (n)
-  if n ~= nil then _G.useColors = n end
+  if n ~= nil then utils._useColors = n end
   backslash = utils.colorize("Bgreen", "\\\\", "green")
   null      = utils.colorize("Bgreen", "\\0", "green")
   newline   = utils.colorize("Bgreen", "\\n", "green")
-  carraige  = utils.colorize("Bgreen", "\\r", "green")
+  carriage  = utils.colorize("Bgreen", "\\r", "green")
   tab       = utils.colorize("Bgreen", "\\t", "green")
   quote     = utils.colorize("Bgreen", '"', "green")
   quote2    = utils.colorize("Bgreen", '"')
@@ -75,7 +75,7 @@ utils.loadColors ()
 function utils.dump(o, depth)
   local t = type(o)
   if t == 'string' then
-    return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carraige):gsub("\t", tab) .. quote2
+    return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carriage):gsub("\t", tab) .. quote2
   end
   if t == 'nil' then
     return utils.colorize("Bblack", "nil")
