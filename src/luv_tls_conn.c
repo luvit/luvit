@@ -24,6 +24,7 @@
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
+#include <openssl/bio.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 
@@ -146,12 +147,12 @@ luvit__lua_tls_conn_create(lua_State *L) {
 
 static int
 tls_handle_ssl_error_x(tls_conn_t *tc, SSL *ssl, int rv, const char *func) {
+  int err;
   if (rv >= 0) {
     return rv;
   }
 
-  int err = SSL_get_error(ssl, rv);
-
+  err = SSL_get_error(ssl, rv);
   if (err == SSL_ERROR_NONE) {
     return 0;
   }

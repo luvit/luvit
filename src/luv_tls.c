@@ -42,10 +42,11 @@ static BIO* _lua_load_bio(lua_State *L, int index) {
   const char *data;
   size_t len;
   int r = -1;
+  BIO *bio;
 
   data = luaL_checklstring(L, index, &len);
 
-  BIO *bio = BIO_new(BIO_s_mem());
+  bio = BIO_new(BIO_s_mem());
   if (!bio) {
     return NULL;
   }
@@ -446,6 +447,7 @@ tls_sc_close(lua_State *L) {
 
 static int
 tls_sc_add_root_certs(lua_State *L) {
+  X509 *x509;
   int i;
   tls_sc_t *ctx = getSC(L);
 
@@ -464,8 +466,7 @@ tls_sc_add_root_certs(lua_State *L) {
       return 1;
     }
 
-    X509 *x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
-
+    x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
     if (x509 == NULL) {
       BIO_free(bp);
       lua_pushboolean(L, 0);
