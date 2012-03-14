@@ -33,6 +33,7 @@
 #ifdef USE_OPENSSL
 #include "luv_tls.h"
 #endif
+#include "luv_zlib.h"
 #include "luv_portability.h"
 #include "lconstants.h"
 #include "lhttp_parser.h"
@@ -188,6 +189,9 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   /* Register constants */
   lua_pushcfunction(L, luaopen_constants);
   lua_setfield(L, -2, "constants");
+  /* Register zlib */
+  lua_pushcfunction(L, luaopen_zlib_native);
+  lua_setfield(L, -2, "zlib_native");
 
   /* We're done with preload, put it away */
   lua_pop(L, 1);
@@ -223,6 +227,9 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 
   lua_pushstring(L, YAJL_VERSIONISH);
   lua_setglobal(L, "YAJL_VERSION");
+
+  lua_pushstring(L, ZLIB_VERSION);
+  lua_setglobal(L, "ZLIB_VERSION");
 
 #ifdef USE_OPENSSL
   lua_pushstring(L, OPENSSL_VERSION_TEXT);

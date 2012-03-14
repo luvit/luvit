@@ -65,6 +65,7 @@ process.versions = {
   uv = native.VERSION_MAJOR .. "." .. native.VERSION_MINOR .. "-" .. UV_VERSION,
   luajit = LUAJIT_VERSION,
   yajl = YAJL_VERSION,
+  zlib = ZLIB_VERSION,
   http_parser = HTTP_VERSION,
   openssl = OPENSSL_VERSION,
 }
@@ -73,6 +74,7 @@ _G.YAJL_VERSION = nil
 _G.LUAJIT_VERSION = nil
 _G.UV_VERSION = nil
 _G.HTTP_VERSION = nil
+_G.ZLIB_VERSION = nil
 _G.OPENSSL_VERSION = nil
 
 -- Add a way to exit programs cleanly
