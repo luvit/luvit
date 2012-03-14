@@ -7,6 +7,7 @@ UVDIR=deps/uv
 UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 -d -)
 HTTPDIR=deps/http-parser
 HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
+SSLDIR=deps/openssl
 BUILDDIR=build
 
 PREFIX?=/usr/local
@@ -39,12 +40,40 @@ LDFLAGS+=-L${BUILDDIR} -lluvit
 LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
+LDFLAGS+=${SSLDIR}/libopenssl.a
 LDFLAGS+=-Wall -lm -ldl -lpthread
 
 ifeq (${OS_NAME},Linux)
 LDFLAGS+= -lrt
 endif
 
+CFLAGS += -DUSE_OPENSSL
+CFLAGS += -DL_ENDIAN
+CFLAGS += -DOPENSSL_THREADS
+CFLAGS += -DPURIFY
+CFLAGS += -D_REENTRANT
+CFLAGS += -DOPENSSL_NO_ASM
+CFLAGS += -DOPENSSL_NO_INLINE_ASM
+CFLAGS += -DOPENSSL_NO_RC2
+CFLAGS += -DOPENSSL_NO_RC5
+CFLAGS += -DOPENSSL_NO_MD4
+CFLAGS += -DOPENSSL_NO_HW
+CFLAGS += -DOPENSSL_NO_GOST
+CFLAGS += -DOPENSSL_NO_CAMELLIA
+CFLAGS += -DOPENSSL_NO_CAPIENG
+CFLAGS += -DOPENSSL_NO_CMS
+CFLAGS += -DOPENSSL_NO_FIPS
+CFLAGS += -DOPENSSL_NO_IDEA
+CFLAGS += -DOPENSSL_NO_MDC2
+CFLAGS += -DOPENSSL_NO_MD2
+CFLAGS += -DOPENSSL_NO_SEED
+CFLAGS += -DOPENSSL_NO_SOCK
+
+ifeq (${MH_NAME},x86_64)
+CFLAGS += -I${SSLDIR}/openssl-configs/x64
+else
+CFLAGS += -I${SSLDIR}/openssl-configs/ia32
+endif
 
 LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_fs.o         \
@@ -56,6 +85,8 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_process.o    \
         ${BUILDDIR}/luv_stream.o     \
         ${BUILDDIR}/luv_tcp.o        \
+        ${BUILDDIR}/luv_tls.o        \
+        ${BUILDDIR}/luv_tls_conn.o   \
         ${BUILDDIR}/luv_pipe.o       \
         ${BUILDDIR}/luv_tty.o        \
         ${BUILDDIR}/luv_misc.o       \
@@ -70,7 +101,8 @@ LUVLIBS=${BUILDDIR}/utils.o          \
 DEPS=${LUADIR}/src/libluajit.a \
      ${YAJLDIR}/yajl.a         \
      ${UVDIR}/uv.a             \
-     ${HTTPDIR}/http_parser.o
+     ${HTTPDIR}/http_parser.o  \
+     ${SSLDIR}/libopenssl.a
 
 all: ${BUILDDIR}/luvit
 
@@ -102,21 +134,35 @@ ${HTTPDIR}/Makefile:
 	git submodule update --init ${HTTPDIR}
 
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
-	${MAKE} -C ${HTTPDIR} http_parser.o
+	$(MAKE) -C ${HTTPDIR} http_parser.o
 
+${SSLDIR}/Makefile.openssl:
+	git submodule update --init ${SSLDIR}
+
+${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
+	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
 
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
-	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
+	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
+		${CFLAGS} \
+		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -I${SSLDIR}/openssl/include \
+		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
+		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
+		-DUV_VERSION=\"${UV_VERSION}\" \
+		-DYAJL_VERSIONISH=\"${YAJL_VERSION}\" \
+		-DLUVIT_VERSION=\"${VERSION}\" \
+		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/libluvit.a: ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 
 ${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o
-	$(CC) -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a ${LDFLAGS}
+	$(CC) ${CFLAGS} -Ideps/openssl/openssl/include -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a ${LDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
+	${MAKE} -C ${SSLDIR} -f Makefile.openssl clean
 	${MAKE} -C ${HTTPDIR} clean
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean

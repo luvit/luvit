@@ -96,11 +96,26 @@ Also it can easily be sub-classed.
 local Emitter = Object:extend()
 core.Emitter = Emitter
 
--- By default, and error events that are not listened for should thow errors
+-- By default, and error events that are not listened for should throw errors
 function Emitter:missingHandlerType(name, ...)
   if name == "error" then
     local args = {...}
-    error(tostring(args[1]))
+    --error(tostring(args[1]))
+    -- we define catchall error handler
+    if self ~= process then
+      -- if process has an error handler
+      local handlers = rawget(process, "handlers")
+      if handlers and handlers["error"] then
+        -- delegate to process error handler
+        process:emit("error", ..., self)
+      else
+        debug("UNHANDLED ERROR", ...)
+        error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
+      end
+    else
+      debug("UNHANDLED ERROR", ...)
+      error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
+    end
   end
 end
 
@@ -111,6 +126,7 @@ function Emitter:once(name, callback)
     callback(...)
   end
   self:on(name, wrapped)
+  return self
 end
 
 -- Adds an event listener (`callback`) for the named event `name`.
@@ -129,6 +145,7 @@ function Emitter:on(name, callback)
     rawset(handlers, name, handlers_for_type)
   end
   table.insert(handlers_for_type, callback)
+  return self
 end
 
 -- Emit a named event to all listeners with optional data argument(s).
@@ -151,7 +168,7 @@ function Emitter:emit(name, ...)
       table.remove(handlers_for_type, i)
     end
   end
-
+  return self
 end
 
 -- Remove a listener so that it no longer catches events.
