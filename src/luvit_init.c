@@ -32,6 +32,7 @@
 #include "luv_dns.h"
 #ifdef USE_OPENSSL
 #include "luv_tls.h"
+#include "lcrypto.h"
 #endif
 #include "luv_zlib.h"
 #include "luv_portability.h"
@@ -170,6 +171,9 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   /* Register tls */
   lua_pushcfunction(L, luaopen_tls);
   lua_setfield(L, -2, "_tls");
+  /* Register tls */
+  lua_pushcfunction(L, luaopen_crypto);
+  lua_setfield(L, -2, "_crypto");
 #endif
   /* Register yajl */
   lua_pushcfunction(L, luaopen_yajl);

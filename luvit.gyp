@@ -9,7 +9,8 @@
        'deps/yajl.gyp:yajl',
        'deps/yajl.gyp:copy_headers',
        'deps/uv/uv.gyp:uv',
-       'deps/zlib/zlib.gyp:zlib'
+       'deps/zlib/zlib.gyp:zlib',
+       'deps/luacrypto.gyp:luacrypto',
      ],
      'export_dependent_settings': [
        'deps/http-parser/http_parser.gyp:http_parser',
@@ -17,6 +18,7 @@
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/uv/uv.gyp:uv',
+       'deps/luacrypto.gyp:luacrypto',
       ],
       'conditions': [
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
