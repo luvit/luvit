@@ -557,6 +557,13 @@ function http.createServer(onConnection)
         return
       end
 
+      --[[ from http_parser documentation:
+        To tell http_parser about EOF, give 0 as the forth parameter to
+        http_parser_execute()
+      ]]--
+      -- don't route empty chunks to the parser
+      if #chunk == 0 then return end
+
       -- Parse the chunk of HTTP, this will syncronously emit several of the
       -- above events and return how many bytes were parsed
       local nparsed = parser:execute(chunk, 0, #chunk)
