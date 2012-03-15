@@ -12,6 +12,9 @@ import shutil
 
 root_dir = os.path.dirname(__file__)
 
+sys.path.insert(0, os.path.join(root_dir, 'tools', 'gyp', 'pylib'))
+import gyp
+
 # parse our options
 parser = optparse.OptionParser()
 
@@ -97,6 +100,21 @@ def configure_luvit(o):
   o['variables']['host_arch'] = host_arch()
   o['variables']['target_arch'] = options.arch if options.arch else target_arch()
   o['variables']['without_ssl'] = 'true' if options.without_ssl else 'false'
+
+  t_os = gyp.common.GetFlavor({})
+  t_arch = o['variables']['target_arch']
+  possible_dirs = ['deps/openssl/openssl-configs/%s-%s' % (t_os, t_arch),
+                   'deps/openssl/openssl-configs/%s' % t_arch,
+                   'deps/openssl/openssl-configs/%s' % t_os]
+  for d in possible_dirs:
+      if os.path.exists(d):
+          return
+
+  print ""
+  print "Error: Unsupported target architecture: %s-%s" % (t_os, t_arch)
+  print ""
+  print "Could not find configuration for openssl in one of: \n  %s" % ('\n  '.join(possible_dirs))
+  sys.exit(1)
 
 print "configure options:", options
 
