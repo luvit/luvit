@@ -128,6 +128,11 @@ local builtinLoader = package.loaders[1]
 local base_path = process.cwd()
 local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. ']+' ..path.sep.. '[^' ..path.sep.. ']+$') ..path.sep.. 'lib' ..path.sep.. 'luvit' ..path.sep
 function module.require(filepath, dirname)
+  local doabort = true
+  if type(dirname)=="boolean" then
+    if not dirname then doabort = false end
+    dirname = nil
+  end
   if not dirname then dirname = base_path end
 
   -- Let module paths always use / even on windows
@@ -145,7 +150,10 @@ function module.require(filepath, dirname)
     if type(loader) == "function" then
       return loader()
     else
-      error("Failed to find module '" .. filepath .."'")
+      if doabort then
+        error("Failed to find module '" .. filepath .."'")
+      end
+      return nil
     end
   end
 
@@ -187,8 +195,10 @@ function module.require(filepath, dirname)
     dir = path.dirname(dir)
   until dir == "."
 
-  error("Failed to find module '" .. filepath .."'" .. table.concat(errors, ""))
-
+  if doabort then
+    error("Failed to find module '" .. filepath .."'" .. table.concat(errors, ""))
+  end
+  return nil
 end
 
 -- Remove the cwd based loaders, we don't want them
