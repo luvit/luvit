@@ -203,12 +203,18 @@ function Response:flushHead(callback)
     elseif lower == "transfer-encoding" and value:lower() == "chunked" then
       self.chunked = true
       self.has_body = true
+    elseif lower == "connection" then
+      self.has_connection = true
     end
     length = length + 1
     head[length] = field .. ": " .. value .. "\r\n"
   end
 
   -- Implement auto headers so people's http server are more spec compliant
+  if not self.has_connection and self.should_keep_alive then
+    length = length + 1
+    head[length] = "Connection: keep-alive\r\n"
+  end
   if not has_server and self.auto_server then
     length = length + 1
     head[length] = "Server: " .. self.auto_server .. "\r\n"

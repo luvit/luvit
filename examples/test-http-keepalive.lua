@@ -38,7 +38,7 @@ server = http.createServer(function(request, response)
     response.should_keep_alive = false
   end
 debug('REQRES1', tostring(request), tostring(response), response.headers, response.headers_sent)
-  local income = ''
+  local income = 'Hello world\n'
   request:on('data', function (data)
     debug('server request data', data)
     income = income .. data
@@ -47,9 +47,6 @@ debug('REQRES1', tostring(request), tostring(response), response.headers, respon
     debug('server request end')
     debug('server response begin')
 debug('REQRES2', tostring(request), tostring(response), response.headers, response.headers_sent)
-    if response.should_keep_alive then
-      response:setHeader('Connection', 'keep-alive')
-    end
     --response:setHeader('Content-Length', #income)
     response:write(income)
     response:finish()
