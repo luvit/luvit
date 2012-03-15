@@ -293,13 +293,19 @@ function Response:finish(chunk, callback)
   if self.chunked then
     self.socket:write('0\r\n\r\n')
   end
-  self.socket:shutdown(function ()
+  if not self.should_keep_alive then
+    self.socket:shutdown(function ()
+      self:emit("end")
+      self:close()
+      if callback then
+        self:on("closed", callback)
+      end
+    end)
+  else
     self:emit("end")
-    self:close()
-    if callback then
-      self:on("closed", callback)
-    end
-  end)
+    -- TODO: cleanup more thoroughly
+    self.socket = nil
+  end
 end
 
 function Response:close(...)
@@ -468,21 +474,18 @@ function http.createServer(onConnection)
   local server
   server = net.createServer(function (client)
 
-    -- Accept the client and build request and response objects
-    local request = Request:new(client)
-    local response = Response:new(client)
-
     -- Convert tcp stream to HTTP stream
+    local request = Request:new(client)
     local current_field
     local parser
+    local url
     local headers
     parser = HttpParser.new("request", {
       onMessageBegin = function ()
         headers = {}
-        request.headers = headers
       end,
-      onUrl = function (url)
-        request.url = url
+      onUrl = function (value)
+        url = value
       end,
       onHeaderField = function (field)
         current_field = field
@@ -492,7 +495,15 @@ function http.createServer(onConnection)
       end,
       onHeadersComplete = function (info)
 
+        -- Accept the client and build request and response objects
+        if request then
+          request = Request:new(client)
+        end
+        local response = Response:new(client)
+
         request.method = info.method
+        request.headers = headers
+        request.url = url
         request.upgrade = info.upgrade
 
         request.version_major = info.version_major
@@ -502,6 +513,11 @@ function http.createServer(onConnection)
         if info.upgrade then
           request.client = client
         end
+
+        request.should_keep_alive = info.should_keep_alive
+        response.should_keep_alive = info.should_keep_alive
+        -- N.B. keep-alive requires explicit message length
+        response.auto_chunked_encoding = false
 
         -- Handle 100-continue requests
         if request.headers.expect
@@ -525,23 +541,24 @@ function http.createServer(onConnection)
       end,
       onMessageComplete = function ()
         request:emit("end")
+        if request.should_keep_alive then
+          parser:finish()
+          --parser:reinitialize("request")
+        end
       end
     })
 
     client:on("data", function (chunk)
 
-      -- Ignore empty chunks
-      if #chunk == 0 then return end
-
       -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
       -- shouldn't send data to the HTTP parser
-      if response.upgrade then
-        response:emit("data", chunk)
+      if request.upgrade then
+        request:emit("data", chunk)
         return
       end
 
       -- Parse the chunk of HTTP, this will syncronously emit several of the
-      -- above events and return how many bytes were parsed.
+      -- above events and return how many bytes were parsed
       local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing

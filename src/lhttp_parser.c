@@ -325,7 +325,7 @@ static int lhttp_parser_parse_url (lua_State *L) {
   struct http_parser_url u;
   int is_connect;
   url = luaL_checklstring(L, 1, &len);
-  is_connect = lua_tointeger(L, 2);  
+  is_connect = lua_tointeger(L, 2);
   if (http_parser_parse_url(url, len, is_connect, &u)) {
     luaL_error(L, "Error parsing url %s", url);
   }
