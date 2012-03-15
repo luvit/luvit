@@ -15,6 +15,13 @@ BINDIR?=${DESTDIR}${PREFIX}/bin
 INCDIR?=${DESTDIR}${PREFIX}/include/luvit
 LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
 
+OPENSSL_LIBS=$(shell pkg-config openssl --libs)
+ifeq (${OPENSSL_LIBS},)
+USE_SYSTEM_SSL?=0
+else
+USE_SYSTEM_SSL?=1
+endif
+
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
@@ -40,7 +47,13 @@ LDFLAGS+=-L${BUILDDIR} -lluvit
 LDFLAGS+=${LUADIR}/src/libluajit.a
 LDFLAGS+=${UVDIR}/uv.a
 LDFLAGS+=${YAJLDIR}/yajl.a
+ifeq (${USE_SYSTEM_SSL},1)
+CFLAGS+=$(shell pkg-config --cflags openssl) -w
+LDFLAGS+=${OPENSSL_LIBS}
+else
+CFLAGS+=-I${SSLDIR}/openssl/include
 LDFLAGS+=${SSLDIR}/libopenssl.a
+endif
 LDFLAGS+=-Wall -lm -ldl -lpthread
 
 ifeq (${OS_NAME},Linux)
@@ -101,8 +114,11 @@ LUVLIBS=${BUILDDIR}/utils.o          \
 DEPS=${LUADIR}/src/libluajit.a \
      ${YAJLDIR}/yajl.a         \
      ${UVDIR}/uv.a             \
-     ${HTTPDIR}/http_parser.o  \
-     ${SSLDIR}/libopenssl.a
+     ${HTTPDIR}/http_parser.o
+
+ifeq (${USE_SYSTEM_SSL},0)
+DEPS+=${SSLDIR}/libopenssl.a
+endif
 
 all: ${BUILDDIR}/luvit
 
@@ -145,9 +161,9 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
-		${CFLAGS} \
-		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -I${SSLDIR}/openssl/include \
+		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
+		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
 		-DUV_VERSION=\"${UV_VERSION}\" \
 		-DYAJL_VERSIONISH=\"${YAJL_VERSION}\" \
@@ -158,7 +174,7 @@ ${BUILDDIR}/libluvit.a: ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 
 ${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o
-	$(CC) ${CFLAGS} -Ideps/openssl/openssl/include -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a ${LDFLAGS}
+	$(CC) ${CFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a ${LDFLAGS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
