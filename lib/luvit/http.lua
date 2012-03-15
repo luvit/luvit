@@ -203,18 +203,12 @@ function Response:flushHead(callback)
     elseif lower == "transfer-encoding" and value:lower() == "chunked" then
       self.chunked = true
       self.has_body = true
-    elseif lower == "connection" then
-      self.has_connection = true
     end
     length = length + 1
     head[length] = field .. ": " .. value .. "\r\n"
   end
 
   -- Implement auto headers so people's http server are more spec compliant
-  if not self.has_connection and self.should_keep_alive then
-    length = length + 1
-    head[length] = "Connection: keep-alive\r\n"
-  end
   if not has_server and self.auto_server then
     length = length + 1
     head[length] = "Server: " .. self.auto_server .. "\r\n"
@@ -494,10 +488,10 @@ function http.createServer(onConnection)
         url = value
       end,
       onHeaderField = function (field)
-        current_field = field
+        current_field = field:lower()
       end,
       onHeaderValue = function (value)
-        headers[current_field:lower()] = value
+        headers[current_field] = value
       end,
       onHeadersComplete = function (info)
 
@@ -520,10 +514,22 @@ function http.createServer(onConnection)
           request.client = client
         end
 
+        -- HTTP keep-alive logic
         request.should_keep_alive = info.should_keep_alive
         response.should_keep_alive = info.should_keep_alive
         -- N.B. keep-alive requires explicit message length
-        response.auto_chunked_encoding = false
+        if info.should_keep_alive then
+          response.auto_chunked_encoding = false
+          -- HTTP/1.0 should insert Connection: keep-alive
+          if info.version_minor < 1 then
+            response:setHeader("Connection", "keep-alive")
+          end
+        else
+          -- HTTP/1.1 should insert Connection: close for last message
+          if info.version_minor >= 1 then
+            response:setHeader("Connection", "close")
+          end
+        end
 
         -- Handle 100-continue requests
         if request.headers.expect
