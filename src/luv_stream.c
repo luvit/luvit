@@ -128,10 +128,11 @@ int luv_listen (lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   luv_ref_t* ref = handle->data;
   luaL_checktype(L, 2, LUA_TFUNCTION);
+  int backlog_size = luaL_optint(L, 3, 128);
 
   luv_register_event(L, 1, "connection", 2);
 
-  if (uv_listen(handle, 128, luv_on_connection)) {
+  if (uv_listen(handle, backlog_size, luv_on_connection)) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     luaL_error(L, "listen: %s", uv_strerror(err));
   }
