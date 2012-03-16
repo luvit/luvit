@@ -297,7 +297,7 @@ static int lhttp_parser_finish (lua_State *L) {
   int rv = http_parser_execute(parser, &lhttp_parser_settings, NULL, 0);
 
   if (rv != 0) {
-    return luaL_error(L, "Parse Error");
+    return luaL_error(L, http_errno_description(HTTP_PARSER_ERRNO(parser)));
   }
 
   return 0;

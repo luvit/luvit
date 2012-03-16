@@ -109,7 +109,8 @@
       [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
         'cflags': [ '-Wall', '-pthread'],
         'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
-        'ldflags': [ '-pthread', '-Wl,-E', ],
+        'ldflags': [ '-pthread', '-Wl,-E' ],
+        'defines': [ '_LARGEFILE_SOURCE', '_FILE_OFFSET_BITS=64' ],
         'conditions': [
           [ 'target_arch=="x64"', {
             'cflags': [ '-fPIC' ],
@@ -120,7 +121,7 @@
             'ldflags': [ '-m32' ],
           }],
           [ 'OS=="linux"', {
-            'libraries': [ '-lm' ],
+            'libraries': [ '-lm', '-lrt' ],
           }],
           [ 'OS=="freebsd"', {
             'ldflags': [ '-lm' ],
