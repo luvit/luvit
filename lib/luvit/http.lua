@@ -299,6 +299,10 @@ function Response:finish(chunk, callback)
   if self.chunked then
     self.socket:write('0\r\n\r\n')
   end
+  self:done(callback)
+end
+
+function Response:done(callback)
   if not self.should_keep_alive then
     self.socket:shutdown(function ()
       self:emit("end")
