@@ -229,7 +229,7 @@ function iStream:pipe(target)
   end)
 
   function onclose()
-    target:close()
+    --target:close()
   end
 
   function onend()
