@@ -475,7 +475,7 @@ function http.createServer(onConnection)
   server = net.createServer(function (client)
 
     -- Convert tcp stream to HTTP stream
-    local request = Request:new(client)
+    local request
     local current_field
     local parser
     local url
@@ -496,9 +496,7 @@ function http.createServer(onConnection)
       onHeadersComplete = function (info)
 
         -- Accept the client and build request and response objects
-        if request then
-          request = Request:new(client)
-        end
+        request = Request:new(client)
         local response = Response:new(client)
 
         request.method = info.method
@@ -555,7 +553,6 @@ function http.createServer(onConnection)
         request:emit("end")
         if request.should_keep_alive then
           parser:finish()
-          --parser:reinitialize("request")
         end
       end
     })
@@ -564,7 +561,7 @@ function http.createServer(onConnection)
 
       -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
       -- shouldn't send data to the HTTP parser
-      if request.upgrade then
+      if request and request.upgrade then
         request:emit("data", chunk)
         return
       end
@@ -581,7 +578,7 @@ function http.createServer(onConnection)
       local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
-      if nparsed < #chunk then
+      if nparsed < #chunk and request then
         request:emit("error", "parse error")
       end
 
@@ -593,7 +590,7 @@ function http.createServer(onConnection)
 
     client:once("error", function (err)
       parser:finish()
-      request:emit("error", err)
+      if request then request:emit("error", err) end
     end)
 
   end)
