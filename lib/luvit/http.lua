@@ -517,7 +517,12 @@ function http.createServer(onConnection)
         response.should_keep_alive = info.should_keep_alive
         -- N.B. keep-alive requires explicit message length
         if info.should_keep_alive then
-          response.auto_chunked_encoding = false
+          --[[
+            In order to remain persistent, all messages on the connection MUST
+            have a self-defined message length (i.e., one not defined by closure
+            of the connection)
+          ]]
+          response.auto_content_length = false
           -- HTTP/1.0 should insert Connection: keep-alive
           if info.version_minor < 1 then
             response:setHeader("Connection", "keep-alive")
@@ -551,6 +556,7 @@ function http.createServer(onConnection)
       end,
       onMessageComplete = function ()
         request:emit("end")
+        request:removeListener("end")
         if request.should_keep_alive then
           parser:finish()
         end
@@ -585,12 +591,35 @@ function http.createServer(onConnection)
     end)
 
     client:once("end", function ()
+      if request then
+        request:emit("end")
+        request:removeListener("end")
+      end
       parser:finish()
     end)
 
-    client:once("error", function (err)
+    client:once("closed", function ()
+      if request then
+        request:emit("end")
+        request:removeListener("end")
+      end
       parser:finish()
-      if request then request:emit("error", err) end
+    end)
+
+l   client:once("error", function (err)
+      parser:finish()
+      -- read from closed client
+      if err.code == "ECONNRESET" then
+        -- ???
+      -- written to closed client
+      elseif err.code == "EPIPE" then
+        -- ???
+      -- other errors
+      else
+        if request then
+          request:emit("error", err)
+         end
+      end
     end)
 
   end)
