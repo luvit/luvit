@@ -177,8 +177,8 @@ function Emitter:removeListener(name, callback)
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then return end
-  for i = 1, #handlers_for_type do
-    if handlers_for_type[i] == callback then
+  for i = #handlers_for_type, 1, -1 do
+    if handlers_for_type[i] == callback or callback == nil then
       handlers_for_type[i] = nil
     end
   end
@@ -229,7 +229,7 @@ function iStream:pipe(target)
   end)
 
   function onclose()
-    target:close()
+    --target:close()
   end
 
   function onend()
