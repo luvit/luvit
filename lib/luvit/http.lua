@@ -616,7 +616,7 @@ function http.createServer(onConnection)
       parser:finish()
     end)
 
-l   client:once("error", function (err)
+    client:once("error", function (err)
       parser:finish()
       -- read from closed client
       if err.code == "ECONNRESET" then
