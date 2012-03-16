@@ -299,6 +299,10 @@ function Response:finish(chunk, callback)
   if self.chunked then
     self.socket:write('0\r\n\r\n')
   end
+  self:done(callback)
+end
+
+function Response:done(callback)
   if not self.should_keep_alive then
     self.socket:shutdown(function ()
       self:emit("end")
@@ -481,7 +485,7 @@ function http.createServer(onConnection)
   server = net.createServer(function (client)
 
     -- Convert tcp stream to HTTP stream
-    local request = Request:new(client)
+    local request
     local current_field
     local parser
     local url
@@ -494,17 +498,15 @@ function http.createServer(onConnection)
         url = value
       end,
       onHeaderField = function (field)
-        current_field = field
+        current_field = field:lower()
       end,
       onHeaderValue = function (value)
-        headers[current_field:lower()] = value
+        headers[current_field] = value
       end,
       onHeadersComplete = function (info)
 
         -- Accept the client and build request and response objects
-        if request then
-          request = Request:new(client)
-        end
+        request = Request:new(client)
         local response = Response:new(client)
 
         request.method = info.method
@@ -520,10 +522,27 @@ function http.createServer(onConnection)
           request.client = client
         end
 
+        -- HTTP keep-alive logic
         request.should_keep_alive = info.should_keep_alive
         response.should_keep_alive = info.should_keep_alive
         -- N.B. keep-alive requires explicit message length
-        response.auto_chunked_encoding = false
+        if info.should_keep_alive then
+          --[[
+            In order to remain persistent, all messages on the connection MUST
+            have a self-defined message length (i.e., one not defined by closure
+            of the connection)
+          ]]
+          response.auto_content_length = false
+          -- HTTP/1.0 should insert Connection: keep-alive
+          if info.version_minor < 1 then
+            response:setHeader("Connection", "keep-alive")
+          end
+        else
+          -- HTTP/1.1 should insert Connection: close for last message
+          if info.version_minor >= 1 then
+            response:setHeader("Connection", "close")
+          end
+        end
 
         -- Handle 100-continue requests
         if request.headers.expect
@@ -547,9 +566,9 @@ function http.createServer(onConnection)
       end,
       onMessageComplete = function ()
         request:emit("end")
+        request:removeListener("end")
         if request.should_keep_alive then
           parser:finish()
-          --parser:reinitialize("request")
         end
       end
     })
@@ -558,7 +577,7 @@ function http.createServer(onConnection)
 
       -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
       -- shouldn't send data to the HTTP parser
-      if request.upgrade then
+      if request and request.upgrade then
         request:emit("data", chunk)
         return
       end
@@ -575,19 +594,42 @@ function http.createServer(onConnection)
       local nparsed = parser:execute(chunk, 0, #chunk)
 
       -- If it wasn't all parsed then there was an error parsing
-      if nparsed < #chunk then
+      if nparsed < #chunk and request then
         request:emit("error", "parse error")
       end
 
     end)
 
     client:once("end", function ()
+      if request then
+        request:emit("end")
+        request:removeListener("end")
+      end
+      parser:finish()
+    end)
+
+    client:once("closed", function ()
+      if request then
+        request:emit("end")
+        request:removeListener("end")
+      end
       parser:finish()
     end)
 
     client:once("error", function (err)
       parser:finish()
-      request:emit("error", err)
+      -- read from closed client
+      if err.code == "ECONNRESET" then
+        -- ???
+      -- written to closed client
+      elseif err.code == "EPIPE" then
+        -- ???
+      -- other errors
+      else
+        if request then
+          request:emit("error", err)
+         end
+      end
     end)
 
   end)
