@@ -9,6 +9,7 @@
        'deps/yajl.gyp:yajl',
        'deps/yajl.gyp:copy_headers',
        'deps/uv/uv.gyp:uv',
+       'deps/zlib/zlib.gyp:zlib'
      ],
      'export_dependent_settings': [
        'deps/http-parser/http_parser.gyp:http_parser',
@@ -55,6 +56,7 @@
        'src/luv_timer.c',
        'src/luv_tty.c',
        'src/luv_udp.c',
+       'src/luv_zlib.c',
        'src/luvit_init.c',
        'src/lyajl.c',
        'src/utils.c',
@@ -79,6 +81,7 @@
        'lib/luvit/url.lua',
        'lib/luvit/utils.lua',
        'lib/luvit/uv.lua',
+       'lib/luvit/zlib.lua',
      ],
      'defines': [
        'LUVIT_OS="<(OS)"',
