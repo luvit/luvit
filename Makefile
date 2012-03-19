@@ -7,6 +7,7 @@ UVDIR=deps/uv
 UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 -d -)
 HTTPDIR=deps/http-parser
 HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
+ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
 
@@ -54,6 +55,7 @@ else
 CFLAGS+=-I${SSLDIR}/openssl/include
 LDFLAGS+=${SSLDIR}/libopenssl.a
 endif
+LDFLAGS+=${ZLIBDIR}/libz.a
 LDFLAGS+=-Wall -lm -ldl -lpthread
 
 ifeq (${OS_NAME},Linux)
@@ -109,11 +111,13 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/lenv.o           \
         ${BUILDDIR}/lyajl.o          \
         ${BUILDDIR}/los.o            \
+        ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
 DEPS=${LUADIR}/src/libluajit.a \
      ${YAJLDIR}/yajl.a         \
      ${UVDIR}/uv.a             \
+     ${ZLIBDIR}/libz.a         \
      ${HTTPDIR}/http_parser.o
 
 ifeq (${USE_SYSTEM_SSL},0)
@@ -152,6 +156,13 @@ ${HTTPDIR}/Makefile:
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	$(MAKE) -C ${HTTPDIR} http_parser.o
 
+${ZLIBDIR}/Makefile:
+	git submodule update --init ${ZLIBDIR}
+
+${ZLIBDIR}/libz.a: ${ZLIBDIR}/Makefile
+	( cd ${ZLIBDIR} ; ./configure )
+	$(MAKE) -C ${ZLIBDIR}
+
 ${SSLDIR}/Makefile.openssl:
 	git submodule update --init ${SSLDIR}
 
@@ -161,7 +172,7 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
-		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src \
+		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -I${ZLIBDIR} \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
