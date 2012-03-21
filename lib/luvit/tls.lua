@@ -702,46 +702,46 @@ function connect(...)
   local socket = options.socket or Socket:new()
   local sslcontext = Credential:new(options)
 
-  function onconnect()
-    local pair = SecurePair:new(sslcontext, false, true, false, {
-      servername = options.servername or options.host
-    })
+  socket:connect(options.port, options.host)
 
-    if options.session then
-      pair.ssl.setSession(options.session)
-    end
+  local pair = SecurePair:new(sslcontext, false, true, false, {
+    servername = options.servername or options.host
+  })
 
-    local cleartext = pipe(pair, socket)
-    if callback then
-      cleartext:on('secureConnect', function()
-        callback(nil, cleartext)
-      end)
-    end
+  if options.session then
+    pair.ssl.setSession(options.session)
+  end
 
-    pair:on('secure', function()
-      local verifyError = pair.ssl:verifyError()
-      if verifyError then
-        cleartext.authorized = false
-        cleartext.authorizationError = verifyError
-        if pair._rejectUnauthorized == true then
-          cleartext:emit('error', verifyError)
-          pair:destroy()
-        else
-          cleartext.authorized = true
-          cleartext:emit('secureConnect')
-        end
+  local cleartext = pipe(pair, socket)
+  if callback then
+    cleartext:on('secureConnect', function()
+      callback(nil, cleartext)
+    end)
+  end
+
+  pair:on('secure', function()
+    local verifyError = pair.ssl:verifyError()
+    if verifyError then
+      cleartext.authorized = false
+      cleartext.authorizationError = verifyError
+      if pair._rejectUnauthorized == true then
+        cleartext:emit('error', verifyError)
+        pair:destroy()
       else
         cleartext.authorized = true
         cleartext:emit('secureConnect')
       end
-    end)
+    else
+      cleartext.authorized = true
+      cleartext:emit('secureConnect')
+    end
+  end)
 
-    pair:on('error', function(err)
-      cleartext:emit('error', err)
-    end)
-  end
+  pair:on('error', function(err)
+    cleartext:emit('error', err)
+  end)
 
-  return socket:connect(options.port, options.host, onconnect)
+  return cleartext
 end
 
 local exports = {}
