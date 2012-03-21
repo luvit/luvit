@@ -71,6 +71,17 @@ end
 
 function Socket:write(data, callback)
   self.bytesWritten = self.bytesWritten + #data
+
+  if self._connecting == true then
+    self._connectQueueSize = self._connectQueueSize + #data 
+    if self._connectQueue then
+      table.insert(self._connectQueue({data, callback}))
+    else
+      self._connectQueue = { {data, callback} }
+    end
+    return false
+  end
+
   return self:_write(data, callback)
 end
 
@@ -155,13 +166,26 @@ function Socket:connect(...)
     options.host = '0.0.0.0'
   end
 
+  self._connecting = true
+
   self._handle:on('connect', function()
     if self._connectTimer then
       timer.clearTimer(self._connectTimer)
       self._connectTimer = nil
     end
+    self._connecting = false
+
+    if self._connectQueue then
+      for i=1, #self._connectQueue do
+        self:_write(self._connectQueue[i][1], self._connectQueue[i][2])
+      end
+      self._connectQueue = nil
+    end
+
     self._handle:readStart()
-    callback()
+    if callback then
+      callback()
+    end
   end)
 
   dns.lookup(options.host, function(err, ip, addressType)
@@ -191,6 +215,8 @@ function Socket:initialize(handle)
   self._connectTimer = Timer:new()
   self._handle = handle or Tcp:new()
   self._pendingWriteRequests = 0
+  self._connecting = false
+  self._connectQueueSize = 0
   self.bytesWritten = 0
   self.bytesRead = 0
   self.readable = true
