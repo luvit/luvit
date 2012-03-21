@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+import shutil
 
 # TODO: release/debug
 
@@ -27,11 +28,19 @@ def test():
     luvit = os.path.join(root, 'out', 'Debug', 'luvit')
 
   test_dir = os.path.join(root, 'tests')
+  test_tmp_dir = 'tmp'
   old_cwd = os.getcwd()
   os.chdir(test_dir)
+
+  try:
+    os.mkdir(test_tmp_dir)
+  except OSError:
+    pass
+
   cmd = '%s runner.lua' % luvit
   print cmd
   rc = subprocess.call(cmd, shell=True)
+  shutil.rmtree(test_tmp_dir)
   os.chdir(old_cwd)
   sys.exit(rc)
 
