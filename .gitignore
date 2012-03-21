@@ -9,4 +9,3 @@ options.gypi
 *.xcodeproj
 out/
 *.swp
-tests/tmp/*
