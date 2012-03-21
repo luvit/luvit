@@ -33,8 +33,7 @@
         },
       },
       'Release': {
-        'defines': [ 'NDEBUG' ],
-        'cflags': [ '-Os' ],
+        'cflags': [ '-O3', '-fdata-sections', '-ffunction-sections' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'target_conditions': [
