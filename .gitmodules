@@ -16,3 +16,6 @@
 [submodule "deps/openssl"]
 	path = deps/openssl
 	url = https://github.com/luvit/openssl.git
+[submodule "deps/luacrypto"]
+	path = deps/luacrypto
+	url = http://github.com/racker/luacrypto
