@@ -106,7 +106,6 @@ function JSON.parse(string, options)
   end, options)
   parser:parse(string)
   parser:complete()
-  parser:free()
   return unpack(values)
 end
 
@@ -160,9 +159,7 @@ function JSON.stringify(value, options)
     end
   end
   add(value)
-  local buf = generator:getBuf()
-  generator:free()
-  return buf
+  return generator:getBuf()
 end
 
 return JSON
