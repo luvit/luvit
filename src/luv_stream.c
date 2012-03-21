@@ -127,8 +127,9 @@ int luv_shutdown(lua_State* L) {
 int luv_listen (lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   luv_ref_t* ref = handle->data;
+  int backlog_size;
   luaL_checktype(L, 2, LUA_TFUNCTION);
-  int backlog_size = luaL_optint(L, 3, 128);
+  backlog_size = luaL_optint(L, 3, 128);
 
   luv_register_event(L, 1, "connection", 2);
 
