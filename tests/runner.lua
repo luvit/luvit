@@ -39,7 +39,7 @@ local function runTest(filename, callback)
   results[filename].stderr_data = ''
   results[filename].filename = filename
 
-  process.stdout:write(utils.color("Bwhite") .. filename .. utils.color())
+  process.stdout:write(utils.color("B") .. filename .. utils.color())
 
   ports = ports + 100
 
