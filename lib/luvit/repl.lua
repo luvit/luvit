@@ -95,7 +95,7 @@ function repl.start()
     process.stdout:write(prompt .. ' ', noop)
   end
 
-  print(c("Bwhite") .. "Welcome to the " .. repl.colored_name() .. c("Bwhite") .. " repl" .. c())
+  print(c("B") .. "Welcome to the " .. repl.colored_name() .. c("B") .. " repl" .. c())
 
   displayPrompt '>'
 
