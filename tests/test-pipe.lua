@@ -17,13 +17,12 @@ limitations under the License.
 --]]
 
 require("helper")
-local path = require("path")
+local path = require('path')
 local fs = require('fs')
 
 local tmp_file = path.join(__dirname, 'tmp', 'test_pipe')
-
-
 fs.writeFileSync(tmp_file, "")
+
 local fp = fs.createReadStream('test-pipe.lua')
 local null = fs.createWriteStream(tmp_file)
 fp:pipe(null)
