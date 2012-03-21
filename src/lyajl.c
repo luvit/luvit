@@ -28,6 +28,18 @@
 
 static void* yjajl_js_null;
 
+#define JSON_PARSER_HANDLE "llyajl_parser_handle"
+#define JSON_GENERATOR_HANDLE "llyajl_generator_handle"
+
+typedef struct luvit_parser_t {
+  luv_ref_t *ref;
+  yajl_handle handle;
+} luvit_parser_t;
+
+typedef struct luvit_generator_t {
+  yajl_gen gen;
+} luvit_generator_t;
+
 static int lyajl_on_null (void * ctx) {
   /* Load the callback */
   luv_ref_t* ref = ctx;
@@ -213,58 +225,59 @@ static yajl_callbacks lyajl_callbacks = {
   lyajl_on_start_array, lyajl_on_end_array
 };
 
+luvit_parser_t* parser_get(lua_State *L, int index) {
+  return luaL_checkudata(L, index, JSON_PARSER_HANDLE);
+}
+
+luvit_parser_t* parser_new(lua_State *L) {
+  luvit_parser_t *parser = lua_newuserdata(L, sizeof(*parser));
+  return parser;
+}
+
+luvit_generator_t* generator_get(lua_State *L, int index) {
+  return luaL_checkudata(L, index, JSON_GENERATOR_HANDLE);
+}
+
+luvit_generator_t* generator_new(lua_State *L) {
+  luvit_generator_t *generator = lua_newuserdata(L, sizeof(*generator));
+  generator->gen = yajl_gen_alloc(NULL);
+  luaL_getmetatable(L, JSON_GENERATOR_HANDLE);
+  lua_setmetatable(L, -2);
+  return generator;
+}
+
 static int lyajl_parse (lua_State *L) {
   size_t len;
   const char *chunk;
-  yajl_handle handle;
+  luvit_parser_t *parser;
   yajl_status stat;
 
   /* Process the args */
-  luaL_checktype(L, 1, LUA_TTABLE);
+  parser = parser_get(L, 1);
   chunk = luaL_checklstring(L, 2, &len);
 
-  /* Load the yajl_handle */
-  lua_getfield(L, 1, "handle");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "handle is not a proper light userdata");
-  }
-
-  handle = (yajl_handle)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-
-  stat = yajl_parse(handle, (const unsigned char*)chunk, len);
+  stat = yajl_parse(parser->handle, (const unsigned char*)chunk, len);
 
   if (stat != yajl_status_ok) {
-    unsigned char * str = yajl_get_error(handle, 1, (const unsigned char*)chunk, len);
+    unsigned char * str = yajl_get_error(parser->handle, 1, (const unsigned char*)chunk, len);
     luaL_error(L, (const char *) str);
-    yajl_free_error(handle, str); /* This doesn't actually happen */
+    yajl_free_error(parser->handle, str); /* This doesn't actually happen */
   }
 
   return 0;
 }
 
 static int lyajl_complete_parse (lua_State *L) {
-  yajl_handle handle;
   yajl_status stat;
+  luvit_parser_t *parser = parser_get(L, 1);
 
   /* Process the args */
-  luaL_checktype(L, 1, LUA_TTABLE);
-
-  /* Load the yajl_handle */
-  lua_getfield(L, 1, "handle");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "handle is not a proper light userdata");
-  }
-
-  handle = (yajl_handle)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-
-  stat = yajl_complete_parse(handle);
+  stat = yajl_complete_parse(parser->handle);
 
   if (stat != yajl_status_ok) {
-    unsigned char * str = yajl_get_error(handle, 1, (const unsigned char*)0, 0);
+    unsigned char * str = yajl_get_error(parser->handle, 1, (const unsigned char*)0, 0);
     luaL_error(L, (const char *) str);
-    yajl_free_error(handle, str); /* This doesn't actually happen */
+    yajl_free_error(parser->handle, str); /* This doesn't actually happen */
   }
 
   return 0;
@@ -272,31 +285,18 @@ static int lyajl_complete_parse (lua_State *L) {
 
 static int lyajl_config (lua_State *L) {
   const char* option;
-  yajl_handle handle;
-
-  /* Process the args */
-  luaL_checktype(L, 1, LUA_TTABLE);
-  option = luaL_checkstring(L, 2);
-
-  /* Load the yajl_handle */
-  lua_getfield(L, 1, "handle");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "handle is not a proper light userdata");
-  }
-
-  handle = (yajl_handle)lua_touserdata(L, -1);
-  lua_pop(L, 1);
+  luvit_parser_t *parser = parser_get(L, 1);
 
   if (strcmp(option, "allow_comments") == 0) {
-    yajl_config(handle, yajl_allow_comments, lua_toboolean(L, 3));
+    yajl_config(parser->handle, yajl_allow_comments, lua_toboolean(L, 3));
   } else if (strcmp(option, "dont_validate_strings") == 0) {
-    yajl_config(handle, yajl_dont_validate_strings, lua_toboolean(L, 3));
+    yajl_config(parser->handle, yajl_dont_validate_strings, lua_toboolean(L, 3));
   } else if (strcmp(option, "allow_trailing_garbage") == 0) {
-    yajl_config(handle, yajl_allow_trailing_garbage, lua_toboolean(L, 3));
+    yajl_config(parser->handle, yajl_allow_trailing_garbage, lua_toboolean(L, 3));
   } else if (strcmp(option, "allow_multiple_values") == 0) {
-    yajl_config(handle, yajl_allow_multiple_values, lua_toboolean(L, 3));
+    yajl_config(parser->handle, yajl_allow_multiple_values, lua_toboolean(L, 3));
   } else if (strcmp(option, "allow_partial_values") == 0) {
-    yajl_config(handle, yajl_allow_partial_values, lua_toboolean(L, 3));
+    yajl_config(parser->handle, yajl_allow_partial_values, lua_toboolean(L, 3));
   } else {
     luaL_error(L, "Invalid config option %s", option);
   }
@@ -305,185 +305,92 @@ static int lyajl_config (lua_State *L) {
 
 
 static int lyajl_new_parser (lua_State *L) {
-  luv_ref_t* ref;
-  yajl_handle handle;
-
-  luaL_checktype(L, 1, LUA_TTABLE);
-
-  /* Use the input as a new table */
-  lua_pushvalue(L, 1);
-
-  /* Create a reference to the table */
-  lua_pushvalue(L, 1);
-
-  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-
-  /* Allocate the handle and set as "handle" */
-  handle = yajl_alloc(&lyajl_callbacks, NULL, (void*)ref);
-  lua_pushlightuserdata(L, handle);
-  lua_setfield(L, -2, "handle");
-
-  lua_getfield(L, LUA_REGISTRYINDEX, "yajl_parser_meta");
+  int r = luaL_ref(L, LUA_REGISTRYINDEX);
+  luvit_parser_t *parser = parser_new(L);
+  parser->ref = malloc(sizeof(luv_ref_t));
+  parser->ref->L = L;
+  parser->ref->r = r;
+  parser->handle = yajl_alloc(&lyajl_callbacks, NULL, (void*)parser->ref);
+  luaL_getmetatable(L, JSON_PARSER_HANDLE);
   lua_setmetatable(L, -2);
-
   return 1;
 }
 
-static int lyajl_parser_free (lua_State *L) {
-  yajl_handle handle;
+static int lyajl_new_generator (lua_State *L) {
+  generator_new(L);
+  return 1;
+}
 
-  /* Process the args */
-  luaL_checktype(L, 1, LUA_TTABLE);
-
-  /* Load the yajl_handle */
-  lua_getfield(L, 1, "handle");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "handle is not a proper light userdata");
-  }
-
-  handle = (yajl_handle)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_free(handle);
-
+static int lyajl_parser_gc (lua_State *L) {
+  luvit_parser_t *parser = parser_get(L, 1);
+  yajl_free(parser->handle);
+  free(parser->ref);
   return 0;
 }
 
 static int lyajl_gen_null (lua_State *L) {
-  yajl_gen generator;
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_null(generator);
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_null(generator->gen);
   return 0;
 }
 
 static int lyajl_gen_boolean (lua_State *L) {
   int value;
-  yajl_gen generator;
-  luaL_checktype(L, 1, LUA_TTABLE);
-  luaL_checktype(L, 2, LUA_TBOOLEAN);
+  luvit_generator_t *generator = generator_get(L, 1);
   value = lua_toboolean(L, 2);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_bool(generator, value);
+  yajl_gen_bool(generator->gen, value);
   return 0;
 }
 
 static int lyajl_gen_number (lua_State *L) {
   size_t len;
   const char *value;
-  yajl_gen generator;
-
-  luaL_checktype(L, 1, LUA_TTABLE);
-
+  luvit_generator_t *generator = generator_get(L, 1);
   value = luaL_checklstring(L, 2, &len);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_number(generator, value, len);
+  yajl_gen_number(generator->gen, value, len);
   return 0;
 }
 
 static int lyajl_gen_string (lua_State *L) {
   size_t len;
   const char *value;
-  yajl_gen generator;
-
-  luaL_checktype(L, 1, LUA_TTABLE);
-
+  luvit_generator_t *generator = generator_get(L, 1);
   value = luaL_checklstring(L, 2, &len);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_string(generator, (const unsigned char*)value, len);
+  yajl_gen_string(generator->gen, (const unsigned char*)value, len);
   return 0;
 }
 
 static int lyajl_gen_map_open (lua_State *L) {
-  yajl_gen generator;
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_map_open(generator);
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_map_open(generator->gen);
   return 0;
 }
 
 static int lyajl_gen_map_close (lua_State *L) {
-  yajl_gen generator;
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_map_close(generator);
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_map_close(generator->gen);
   return 0;
 }
 
 static int lyajl_gen_array_open (lua_State *L) {
-  yajl_gen generator;
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_array_open(generator);
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_array_open(generator->gen);
   return 0;
 }
 
 static int lyajl_gen_array_close (lua_State *L) {
-  yajl_gen generator;
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_array_close(generator);
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_array_close(generator->gen);
   return 0;
 }
 
 static int lyajl_gen_get_buf (lua_State *L) {
-  yajl_gen generator;
   const unsigned char *buf;
   size_t len;
-
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-
-  yajl_gen_get_buf(generator, &buf, &len);
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_get_buf(generator->gen, &buf, &len);
   lua_pushlstring(L, (const char*)buf, len);
-  yajl_gen_clear(generator);
+  yajl_gen_clear(generator->gen);
   return 1;
 }
 
@@ -499,22 +406,13 @@ int lyajl_gen_on_print(void* ctx, const char* string, size_t len) {
 
 static int lyajl_gen_config (lua_State *L) {
   const char *option;
-  yajl_gen generator;
   luv_ref_t* ref;
-
-  luaL_checktype(L, 1, LUA_TTABLE);
-  option = luaL_checkstring(L, 2);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
+  luvit_generator_t *generator = generator_get(L, 1);
 
   if (strcmp(option, "beautify") == 0) {
-    yajl_gen_config(generator, yajl_gen_beautify, lua_toboolean(L, 3));
+    yajl_gen_config(generator->gen, yajl_gen_beautify, lua_toboolean(L, 3));
   } else if (strcmp(option, "indent_string") == 0) {
-    yajl_gen_config(generator, yajl_gen_indent_string, luaL_checkstring(L, 3));
+    yajl_gen_config(generator->gen, yajl_gen_indent_string, luaL_checkstring(L, 3));
   } else if (strcmp(option, "print_callback") == 0) {
     if (lua_isfunction (L, 3) == 0) {
       luaL_error(L, "Print callback config must be a function");
@@ -524,50 +422,28 @@ static int lyajl_gen_config (lua_State *L) {
     ref->L = L;
     lua_pushvalue(L, 3);
     ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-    yajl_gen_config(generator, yajl_gen_print_callback, lyajl_gen_on_print, (void*)ref);
+    yajl_gen_config(generator->gen, yajl_gen_print_callback, lyajl_gen_on_print, (void*)ref);
   } else if (strcmp(option, "validate_utf8") == 0) {
-    yajl_gen_config(generator, yajl_gen_validate_utf8, lua_toboolean(L, 3));
+    yajl_gen_config(generator->gen, yajl_gen_validate_utf8, lua_toboolean(L, 3));
   } else if (strcmp(option, "escape_solidus") == 0) {
-    yajl_gen_config(generator, yajl_gen_escape_solidus, lua_toboolean(L, 3));
+    yajl_gen_config(generator->gen, yajl_gen_escape_solidus, lua_toboolean(L, 3));
   } else {
     luaL_error(L, "Invalid configuration option %s", option);
   }
   return 0;
 }
 
-static int lyajl_gen_free(lua_State *L) {
-  yajl_gen generator;
-
-  luaL_checktype(L, 1, LUA_TTABLE);
-  lua_getfield(L, 1, "generator");
-  if (!lua_islightuserdata(L, -1)) {
-    luaL_error(L, "generator is not a proper light userdata");
-  }
-  generator = (yajl_gen)lua_touserdata(L, -1);
-  lua_pop(L, 1);
-  yajl_gen_free(generator);
+static int lyajl_gen_gc(lua_State *L) {
+  luvit_generator_t *generator = generator_get(L, 1);
+  yajl_gen_free(generator->gen);
   return 0;
-}
-
-static int lyajl_new_generator (lua_State *L) {
-  yajl_gen generator;
-  lua_newtable(L);
-
-  generator = yajl_gen_alloc(NULL);
-  lua_pushlightuserdata(L, generator);
-  lua_setfield(L, -2, "generator");
-
-  lua_getfield(L, LUA_REGISTRYINDEX, "yajl_generator_meta");
-  lua_setmetatable(L, -2);
-
-  return 1;
 }
 
 static const luaL_reg lyajl_parser_m[] = {
   {"parse", lyajl_parse},
   {"complete", lyajl_complete_parse},
   {"config", lyajl_config},
-  {"free", lyajl_parser_free},
+  {"__gc", lyajl_parser_gc},
   {NULL, NULL}
 };
 
@@ -582,34 +458,33 @@ static const luaL_reg lyajl_gen_m[] = {
   {"arrayClose", lyajl_gen_array_close},
   {"getBuf", lyajl_gen_get_buf},
   {"config", lyajl_gen_config},
-  {"free", lyajl_gen_free},
+  {"__gc", lyajl_gen_gc},
+  {NULL, NULL}
+};
+
+static const luaL_reg lyajl_lib[] = {
+  {"newParser", lyajl_new_parser},
+  {"newGenerator", lyajl_new_generator},
   {NULL, NULL}
 };
 
 LUALIB_API int luaopen_yajl (lua_State *L) {
 
-  /* Build parser metatable */
-  lua_newtable(L);
-  lua_newtable(L);
-  luaL_register(L, NULL, lyajl_parser_m);
-  lua_setfield(L, -2, "__index");
-  lua_setfield(L, LUA_REGISTRYINDEX, "yajl_parser_meta");
+  luaL_newmetatable(L, JSON_PARSER_HANDLE);
+  lua_pushliteral(L, "__index");
+  lua_pushvalue(L, -2);  /* push metatable */
+  lua_rawset(L, -3);  /* metatable.__index = metatable */
+  luaL_openlib(L, NULL, lyajl_parser_m, 0);
+  lua_pushvalue(L, -1);
 
-  /* Build generator metatable */
-  lua_newtable(L);
-  lua_newtable(L);
-  luaL_register(L, NULL, lyajl_gen_m);
-  lua_setfield(L, -2, "__index");
-  lua_setfield(L, LUA_REGISTRYINDEX, "yajl_generator_meta");
+  luaL_newmetatable(L, JSON_GENERATOR_HANDLE);
+  lua_pushliteral(L, "__index");
+  lua_pushvalue(L, -2);  /* push metatable */
+  lua_rawset(L, -3);  /* metatable.__index = metatable */
+  luaL_openlib(L, NULL, lyajl_gen_m, 0);
+  lua_pushvalue(L, -1);
 
-  /* Create a new exports table */
-  lua_newtable(L);
-
-  /* With a single function */
-  lua_pushcfunction(L, lyajl_new_parser);
-  lua_setfield(L, -2, "newParser");
-  lua_pushcfunction(L, lyajl_new_generator);
-  lua_setfield(L, -2, "newGenerator");
+  luaL_openlib(L, "_yajl", lyajl_lib, 1);
 
   /* And version info */
   lua_pushnumber(L, YAJL_MAJOR);
