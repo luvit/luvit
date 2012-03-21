@@ -29,6 +29,7 @@ local colors = {
   magenta = "0;35",
   cyan    = "0;36",
   white   = "0;37",
+  B        = "1;",
   Bblack   = "1;30",
   Bred     = "1;31",
   Bgreen   = "1;32",
@@ -66,8 +67,8 @@ function utils.loadColors (n)
   tab       = utils.colorize("Bgreen", "\\t", "green")
   quote     = utils.colorize("Bgreen", '"', "green")
   quote2    = utils.colorize("Bgreen", '"')
-  obracket  = utils.colorize("white", '[')
-  cbracket  = utils.colorize("white", ']')
+  obracket  = utils.colorize("B", '[')
+  cbracket  = utils.colorize("B", ']')
 end
 
 utils.loadColors ()
