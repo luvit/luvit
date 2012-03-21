@@ -193,24 +193,6 @@ function fs.createReadStream(path, options)
   return ReadStream:new(path, options)
 end
 
-local write_options = {
-  flags = "w",
-  mode = "0644",
-  chunk_size = CHUNK_SIZE,
-  offset = 0,
-}
-local write_meta = {__index=write_options}
-
-function fs.createWriteStream(path, options)
-  if not options then
-    options = write_options
-  else
-    setmetatable(options, write_meta)
-  end
-
-  error("TODO: Implement write_stream")
-end
-
 function fs.readFileSync(path)
   local fd = fs.openSync(path, "r", "0666")
   local parts = {}
@@ -293,6 +275,37 @@ end
 
 function SyncWriteStream:close(chunk, callback)
   fs.closeSync(self.fd)
+end
+
+-- TODO: Create non-sync writestream
+local WriteStream = SyncWriteStream:extend()
+fs.WriteStream = WriteStream
+
+local write_options = {
+  flags = "w",
+  mode = "0644",
+  chunk_size = CHUNK_SIZE,
+  offset = 0,
+}
+local write_meta = {__index=write_options}
+
+function fs.createWriteStream(path, options)
+  if not options then
+    options = write_options
+  else
+    setmetatable(options, write_meta)
+  end
+
+  if (options.fd ~= nil) then
+    return WriteStream:new(options.fd)
+  end
+
+  fd = fs.openSync(path, options.flags, options.mode)
+  return WriteStream:new(fd)
+end
+
+function WriteStream:open(fd)
+  self:initialize(fd)
 end
 
 return fs
