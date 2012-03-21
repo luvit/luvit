@@ -81,8 +81,9 @@ static int lz_stream_write(lua_State *L) {
 }
 
 static int lz_stream_delete(lua_State *L) {
+  z_t *z;
   lua_getfield(L, -1, "stream");
-  z_t *z = (z_t *)lua_touserdata(L, -1);
+  z = (z_t *)lua_touserdata(L, -1);
   lua_pop(L, 2);
   z->end(&z->stream);
   free(z);
@@ -90,11 +91,12 @@ static int lz_stream_delete(lua_State *L) {
 }
 
 static int lz_stream_new(lua_State *L) {
+  int method;
 
   z_t *z = (z_t *)malloc(sizeof(*z));
   memset(z, 0, sizeof(*z));
 
-  int method = luaL_checkoption(L, 1, NULL, methods);
+  method = luaL_checkoption(L, 1, NULL, methods);
   if (method == 0) {
     int window_size = lua_isnumber(L, 2) ? lua_tonumber(L, 2) : MAX_WBITS + 32;
     int rc = inflateInit2(&z->stream, window_size);
