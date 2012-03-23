@@ -10,6 +10,7 @@ HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
 ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
+CRYPTODIR=deps/luacrypto
 
 PREFIX?=/usr/local
 BINDIR?=${DESTDIR}${PREFIX}/bin
@@ -159,9 +160,9 @@ ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 ${ZLIBDIR}/Makefile:
 	git submodule update --init ${ZLIBDIR}
 
-${ZLIBDIR}/libz.a: ${ZLIBDIR}/Makefile
-	( cd ${ZLIBDIR} ; ./configure )
-	$(MAKE) -C ${ZLIBDIR}
+${ZLIBDIR}/libz.a:
+	cd ${ZLIBDIR} && ${CC} -c *.c && \
+	$(AR) rvs libz.a *.o
 
 ${SSLDIR}/Makefile.openssl:
 	git submodule update --init ${SSLDIR}
@@ -169,10 +170,14 @@ ${SSLDIR}/Makefile.openssl:
 ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
 
+${CRYPTODIR}/src/lcrypto.c:
+	git submodule update --init ${CRYPTODIR}
+
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
-		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -I${ZLIBDIR} \
+		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api \
+		-I${YAJLDIR}/src -I${ZLIBDIR} -I${CRYPTODIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
@@ -184,8 +189,13 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 ${BUILDDIR}/libluvit.a: ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 
-${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o
-	$(CC) ${CFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a ${LDFLAGS}
+${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/src/lcrypto.c
+	${CC} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
+		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
+
+${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
+	$(CC) ${CFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
+		${CRYPTODIR}/src/lcrypto.o ${LDFLAGS} 
 
 clean:
 	${MAKE} -C ${LUADIR} clean
@@ -212,7 +222,6 @@ install: all
 	mkdir -p ${INCDIR}/uv
 	cp ${UVDIR}/include/uv.h ${INCDIR}/uv/
 	cp src/*.h ${INCDIR}/
-
 
 bundle: build/luvit ${BUILDDIR}/libluvit.a
 	build/luvit tools/bundler.lua
