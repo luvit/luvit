@@ -183,7 +183,7 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 		-DLUVIT_VERSION=\"${VERSION}\" \
 		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
-${BUILDDIR}/libluvit.a: ${CRYPTODIR}/src/lcrypto.o ${LUVLIBS} ${DEPS}
+${BUILDDIR}/libluvit.a: ${LUVLIBS} ${CRYPTODIR}/src/lcrypto.o ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 
 ${CRYPTODIR}/Makefile:
