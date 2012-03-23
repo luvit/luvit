@@ -50,7 +50,7 @@ static int lz_stream_write(lua_State *L) {
   z = (z_t *)lua_touserdata(L, -1);
   lua_pop(L, 1);
 
-  z->stream.next_in = (uint8_t *)luaL_checklstring(L, 2, &z->stream.avail_in);
+  z->stream.next_in = (uint8_t *)luaL_checklstring(L, 2, (size_t*)&z->stream.avail_in);
 
   flush = luaL_checkoption(L, 3, flush_opts[3], flush_opts);
   if (flush) flush++;
