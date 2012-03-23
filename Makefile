@@ -17,7 +17,7 @@ BINDIR?=${DESTDIR}${PREFIX}/bin
 INCDIR?=${DESTDIR}${PREFIX}/include/luvit
 LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
 
-OPENSSL_LIBS=$(shell pkg-config openssl --libs)
+OPENSSL_LIBS=$(shell pkg-config openssl --libs 2> /dev/null)
 ifeq (${OPENSSL_LIBS},)
 USE_SYSTEM_SSL?=0
 else
