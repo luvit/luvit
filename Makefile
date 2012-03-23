@@ -170,9 +170,6 @@ ${SSLDIR}/Makefile.openssl:
 ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
 
-${CRYPTODIR}/src/lcrypto.c:
-	git submodule update --init ${CRYPTODIR}
-
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
@@ -186,10 +183,13 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 		-DLUVIT_VERSION=\"${VERSION}\" \
 		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
-${BUILDDIR}/libluvit.a: ${LUVLIBS} ${DEPS}
+${BUILDDIR}/libluvit.a: ${CRYPTODIR}/src/lcrypto.o ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 
-${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/src/lcrypto.c
+${CRYPTODIR}/Makefile:
+	git submodule update --init ${CRYPTODIR}
+
+${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 	${CC} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
