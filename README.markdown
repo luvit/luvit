@@ -2,11 +2,16 @@
 
 [![Build Status](https://secure.travis-ci.org/luvit/luvit.png)](http://travis-ci.org/luvit/luvit)
 
-Luvit is an attempt to do something crazy by taking node.js' awesome architecture and dependencies and seeing how it fits in the Lua language.
+Luvit is an attempt to do something crazy by taking node.js' awesome
+architecture and dependencies and seeing how it fits in the Lua language.
 
-This project is still under heavy development, but it's showing promise. In initial benchmarking with a hello world server, this is between 2 and 4 times faster than node.js. Version 0.2.0 is the first stable release.
+This project is still under heavy development, but it's showing promise. In
+initial benchmarking with a hello world server, this is between 2 and 4 times
+faster than node.js. Version 0.2.0 is the first stable release.
 
-Do you have a question/want to learn more? Make sure to check out the [mailing list](http://groups.google.com/group/luvit/) and drop by our IRC channel, #luvit on Freenode.
+Do you have a question/want to learn more? Make sure to check out the [mailing
+list](http://groups.google.com/group/luvit/) and drop by our IRC channel, #luvit
+on Freenode.
 
 ```lua
 -- Load the http library
@@ -26,3 +31,61 @@ end):listen(8080)
 print("Server listening at http://localhost:8080/")
 ```
 
+## Debugging
+
+Luvit contains an extremely useful debug API. Lua contains a stack which is used
+to manipulate the virtual machine and return values to 'C'. It is often very
+useful to display this stack to aid in debugging. In fact, this API is
+accessible via C or from Lua.
+
+### Stackwalk
+
+```lua
+require('_debug').stackwalk(errorString)
+```
+
+Displays a backtrace of the current Lua state. Useful when an error happens and
+you want to get a call stack.
+
+example output:
+
+```text
+Lua stack backtrace: error
+    in Lua code at luvit/tests/test-crypto.lua:69 fn()
+    in Lua code at luvit/lib/luvit/module.lua:67 myloadfile()
+    in Lua code at luvit/lib/luvit/luvit.lua:285 (null)()
+    in native code
+    in Lua code at luvit/lib/luvit/luvit.lua:185 (null)()
+    in native code
+    in Lua code at [string "    local path = require('uv_native').execpat..."]:1 (null)()
+```
+
+### Stackdump
+
+```lua
+require('_debug').stackdump(string)
+```
+
+```c
+luv_lua_debug_stackdump(L, "a message");
+```
+
+Stackdump is extremly useful from within C modules.
+
+### Debugger
+
+```lua
+require('_debug').debugger()
+```
+
+Supports the following commands:
+
+* quit
+* exit
+* break
+* clear
+* clearall
+* trace
+* bt
+
+The debugger will execute any arbitrary Lua statement by default.

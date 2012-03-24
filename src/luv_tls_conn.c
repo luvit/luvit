@@ -46,11 +46,17 @@
 
 /* TLS object that maps to an individual connection */
 typedef struct tls_conn_t {
+  lua_State *L;
+
   BIO *bio_read;
   BIO *bio_write;
   SSL *ssl;
   int is_server;
   int error;
+
+  /* SNI Support */
+  const char *server_name;
+  int sni_callback_ref;
 } tls_conn_t;
 
 static const int X509_NAME_FLAGS = ASN1_STRFLGS_ESC_CTRL
@@ -65,6 +71,36 @@ static const int X509_NAME_FLAGS = ASN1_STRFLGS_ESC_CTRL
 #else
 #define DBG(...)
 #endif
+
+/* SNI Support */
+static int 
+sni_context_callback(SSL *s, int *ad, void *arg) {
+  const char *server_name = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
+  tls_conn_t *tc = SSL_get_app_data(s);
+  lua_State *L = tc->L;
+
+  lua_pop(L, 1);
+
+  if (server_name) {
+    if (tc->server_name) {
+      free(tc->server_name);
+    }
+    tc->server_name = strdup(server_name);
+    if (tc->sni_callback_ref) {
+      lua_rawgeti(L, LUA_REGISTRYINDEX, tc->sni_callback_ref);
+      luaL_unref(L, LUA_REGISTRYINDEX, tc->sni_callback_ref);
+      lua_pushstring(tc->L, server_name);
+      lua_pcall(L, 1, 1, 0);
+      if (lua_touserdata(L, 1)) {
+        tls_sc_t *sc = luvit__lua_tls_sc_get(L, 1);
+        SSL_set_SSL_CTX(s, sc->ctx);
+        lua_pop(L, 1);
+      }
+    }
+  }
+
+  return SSL_TLSEXT_ERR_OK;
+}
 
 /**
  * TLS Connection Methods
@@ -90,16 +126,25 @@ newCONN(lua_State *L)
 {
   tls_sc_t* sc = luvit__lua_tls_sc_get(L, 1);
   int is_server = lua_toboolean(L, 2);
-  int is_request_cert = lua_toboolean(L, 3);
+  int is_request_cert = FALSE;
+  const char *server_name = NULL;
   int is_reject_unauthorized = lua_toboolean(L, 4);
   tls_conn_t* tc;
   int verify_mode;
 
+  if (lua_isboolean(L, 3)) {
+    is_request_cert = lua_toboolean(L, 3);
+  } else {
+    server_name = luaL_checkstring(L, 3);
+  }
+
   tc = lua_newuserdata(L, sizeof(tls_conn_t));
+  tc->L = L;
   tc->bio_read = BIO_new(BIO_s_mem());
   tc->bio_write = BIO_new(BIO_s_mem());
   tc->ssl = SSL_new(sc->ctx);
   tc->is_server = is_server;
+  tc->server_name = NULL;
   tc->error = 0;
 
   if (tc->is_server) {
@@ -128,6 +173,15 @@ newCONN(lua_State *L)
   else {
     SSL_set_connect_state(tc->ssl);
   }
+
+  /* SNI Support */
+#ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
+  if (tc->is_server) {
+    SSL_CTX_set_tlsext_servername_callback(sc->ctx, sni_context_callback);
+  } else {
+    SSL_set_tlsext_host_name(tc->ssl, server_name);
+  }
+#endif
 
   luaL_getmetatable(L, TLS_CONNECTION_HANDLE);
   lua_setmetatable(L, -2);
@@ -649,6 +703,36 @@ tls_conn_get_peer_certificate(lua_State *L)
   return 1;
 }
 
+#ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
+
+static int
+tls_conn_get_server_name(lua_State *L) {
+  tls_conn_t *tc = getCONN(L, 1);
+
+  if (tc->is_server && tc->server_name) {
+    lua_pushstring(L, tc->server_name);
+  }
+  else {
+    lua_pushnil(L);
+  }
+
+  return 1;
+}
+
+static int
+tls_conn_set_sni_callback(lua_State *L) {
+  tls_conn_t *tc = getCONN(L, 1);
+
+  if (lua_isfunction(L, 2)) {
+    lua_pushvalue(L, 2);
+    tc->sni_callback_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+  }
+
+  return 0;
+}
+
+#endif
+
 static int
 tls_conn_gc(lua_State *L) {
   return tls_conn_close(L);
@@ -669,6 +753,10 @@ static const luaL_reg tls_conn_lib[] = {
   {"getSession", tls_conn_get_session},
   {"setSession", tls_conn_set_session},
 */
+#ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
+  {"getServerName", tls_conn_get_server_name},
+  {"setSNICallback", tls_conn_set_sni_callback},
+#endif
   {"isInitFinished", tls_conn_is_init_finished},
   {"shutdown", tls_conn_shutdown},
   {"start", tls_conn_start},

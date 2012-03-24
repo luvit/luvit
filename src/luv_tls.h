@@ -28,6 +28,8 @@
 
 #define LUVIT_OPENSSL_VERSION_NUMBER 0x1000005fL
 
+#define TLS_SECURE_CONTEXT_HANDLE "ltls_secure_context"
+
 #define LUVIT_DEFINE_CONSTANT(L, constant) \
   lua_pushnumber(L, constant);             \
   lua_setfield(L, -2, #constant)

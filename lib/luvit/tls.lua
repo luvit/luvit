@@ -19,11 +19,12 @@ local tlsbinding = require('_tls')
 local Buffer = require('buffer').Buffer
 local Object = require('core').Object
 local Emitter = require('core').Emitter
-local Stream = require('uv').Stream
+local iStream = require('core').iStream
 local Socket = require('net').Socket
 local timer = require('timer')
 local table = require('table')
 local net = require('net')
+local bind = require('utils').bind
 
 local fmt = require('string').format
 
@@ -113,7 +114,7 @@ end
 
 --[[ CryptoStream ]]--
 
-local CryptoStream = Stream:extend()
+local CryptoStream = iStream:extend()
 function CryptoStream:initialize(pair, typeString)
   self.pair = pair
   self.readable = true
@@ -203,28 +204,28 @@ function CryptoStream:destroySoon()
   if self.writable == true then
     self:done()
   else
-    self:destroy()
+    self:close()
   end
 end
 
---function CryptoStream:done(d)
---  dbg('done')
---  if self.pair._doneFlag then
---    return
---  end
---
---  if self.writable == false then
---    return
---  end
---
---  if d then
---    self:write(d);
---  end
---
---  self.writable = false
---
---  self.pair:cycle()
---end
+function CryptoStream:done(d)
+  dbg('done')
+  if self.pair._doneFlag then
+    return
+  end
+
+  if self.writable == false then
+    return
+  end
+
+  if d then
+    self:write(d);
+  end
+
+  self.writable = false
+
+  self.pair:cycle()
+end
 
 function CryptoStream:getPeerCertificate()
   if self.pair.ssl then
@@ -236,12 +237,12 @@ function CryptoStream:getPeerCertificate()
   return nil
 end
 
-function CryptoStream:destroy()
+function CryptoStream:close()
   dbg('destroy')
   if self.pair._doneFlag == true then
     return
   end
-  self.pair:destroy()
+  self.pair:close()
 end
 
 function CryptoStream:_done()
@@ -254,7 +255,7 @@ function CryptoStream:_done()
     if self.pair._secureEstablished == false then
       self.pair:err()
     else
-      self.pair:destroy()
+      self.pair:close()
     end
   end
 end
@@ -361,8 +362,12 @@ function CleartextStream:initialize(pair)
 end
 
 function CleartextStream:_internallyPendingBytes()
-  dbg('CleartextStream_internallyPendingBytes')
-  return self.pair.ssl:clearPending()
+  if self.pair.ssl then
+    dbg('CleartextStream_internallyPendingBytes')
+    return self.pair.ssl:clearPending()
+  else
+    return 0
+  end
 end
 
 function CleartextStream:_puller(d)
@@ -373,6 +378,12 @@ end
 function CleartextStream:_pusher()
   dbg('CleartextStream:_pusher')
   return self.pair.ssl:clearOut()
+end
+
+function CleartextStream:close()
+  if self.socket then
+    self.socket:close()
+  end
 end
 
 --[[ EncryptedStream ]]--
@@ -413,7 +424,7 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
     requestCert = true
   end
 
-  self.requestCert = requestCert or false
+  self._requestCert = requestCert or false
 
   self._cycleEncryptedPullLock = false
   self._cycleEncryptedPushLock = false
@@ -426,9 +437,23 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
     self.credentials = createCredentials()
   end
 
+  local certOrServerName
+  if self._isServer == true then
+    certOrServerName = self._requestCert
+  else
+    certOrServerName = options.servername
+  end
+
   self.ssl = tlsbinding.connection(self.credentials.context,
-    self._isServer, self._isServer and self._requestCert or options.servername,
-    self._rejectUnauthorized)
+    self._isServer == true,
+    certOrServerName,
+    self._rejectUnauthorized
+  )
+
+  -- setup SNI
+  if self._isServer == true and options.SNICallback then
+    self.ssl:setSNICallback(options.SNICallback)
+  end
 
   self.cleartext = CleartextStream:new(self)
   self.encrypted = EncryptedStream:new(self)
@@ -490,12 +515,13 @@ function SecurePair:maybeInitFinished()
   dbg('maybeInitFinished')
   if self.ssl and self._secureEstablished == false and self.ssl:isInitFinished() == true then
     self._secureEstablished = true
+    self.serverName = self.ssl:getServerName()
     self:emit('secure')
   end
 end
 
-function SecurePair:destroy()
-  dbg('SecurePair:destroy')
+function SecurePair:close()
+  dbg('SecurePair:close')
   if self._doneFlag == true then
     return
   end
@@ -524,7 +550,7 @@ function SecurePair:err()
       err = Error:new('socket hang up')
       err.code = 'ECONNRESET'
     end
-    self:destroy()
+    self:close()
     self:emit('error', err)
   else
     local err = self.ssl:getError()
@@ -580,6 +606,7 @@ function Server:initialize(...)
     listener = args[1]
   end
 
+  self._contexts = {}
   self:setOptions(options)
 
   local sharedCreds = createCredentials({
@@ -587,32 +614,64 @@ function Server:initialize(...)
     passphrase = self.passphrase,
     cert = self.cert,
     ca = self.ca,
+    crl = self.crl,
     ciphers = self.ciphers or 'RC4-SHA:AES128-SHA:AES256-SHA',
     secureProtocol = self.secureProtocol,
     secureOptions = self.secureOptions,
-    crl = self.crl,
     sessionIdContext = self.sessionIdContext
   });
 
   -- Constructor
   net.Server.initialize(self, function(socket)
     local creds = createCredentials(nil, sharedCreds.context)
-    local pair = SecurePair:new(creds, true, self.requestCert, self.rejectUnauthorized, nil)
+    local pair = SecurePair:new(creds, true, self.requestCert, self.rejectUnauthorized, {
+      SNICallback = bind(Server.SNICallback, self)
+    })
     local cleartext = pipe(pair, socket)
+    cleartext.socket = socket
     pair:on('secure', function()
-      self:emit('secureConnection', cleartext, pair.encrypted)
+      cleartext.serverName = pair.serverName
+      pair.cleartext.authorized = false
+      pair.cleartext.serverName = pair.serverName
+
+      if self.requestCert == false then
+        self:emit('secureConnection', cleartext, pair.encrypted)
+      else
+        local verifyError = pair.ssl:verifyError()
+        if verifyError then
+          pair.cleartext.verificationError = verifyError
+          if self.rejectUnauthorized == true then
+            socket:close()
+            pair:destroy()
+          else
+            self:emit('secureConnection', cleartext, pair.encrypted)
+          end
+        else
+          pair.cleartext.authorized = true
+          self:emit('secureConnection', cleartext, pair.encrypted)
+        end
+      end
+
     end)
     pair:on('error', function(err)
       dbg('on error' .. err)
     end)
   end)
 
-  self:on('connection', function(client)
-  end)
-
   if listener then
     self:on('secureConnection', listener)
   end
+end
+
+function Server:addContext(serverName, credentials)
+  if not serverName then
+    error('ServerName is a required parameter')
+  end
+  self._contexts[serverName] = createCredentials(credentials).context
+end
+
+function Server:SNICallback(serverName)
+  return self._contexts[serverName]
 end
 
 function Server:setOptions(options)
@@ -667,6 +726,9 @@ function Server:setOptions(options)
   end
 
   -- TODO NPN and SNI support
+  if options.SNICallback then
+    self.SNICallback = options.SNICallback
+  end
 
   if options.sessionIdContext then
     self.sessionIdContext = options.sessionIdContext
@@ -700,12 +762,12 @@ function connect(...)
   end
 
   local socket = options.socket or Socket:new()
-  local sslcontext = Credential:new(options)
+  local sslcontext = createCredentials(options)
 
   socket:connect(options.port, options.host)
 
-  local pair = SecurePair:new(sslcontext, false, true, false, {
-    servername = options.servername or options.host
+  local pair = SecurePair:new(sslcontext, false, true, options.rejectUnauthorized == true, {
+    servername = options.servername or options.host,
   })
 
   if options.session then
@@ -726,9 +788,8 @@ function connect(...)
       cleartext.authorizationError = verifyError
       if pair._rejectUnauthorized == true then
         cleartext:emit('error', verifyError)
-        pair:destroy()
+        pair:close()
       else
-        cleartext.authorized = true
         cleartext:emit('secureConnect')
       end
     else

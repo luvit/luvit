@@ -14,19 +14,12 @@
  *  limitations under the License.
  *
  */
+#ifndef LUV_DEBUG
+#define LUV_DEBUG
 
-#ifndef LUV
-#define LUV
+#include "luv.h"
 
-#include "lua.h"
-#include "lauxlib.h"
-#include "luv_debug.h"
-#include "utils.h"
-
-LUALIB_API int luaopen_uv_native (lua_State *L);
-
-int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[]);
-int luvit_run(lua_State *L);
+int luaopen_debugger(lua_State *L);
+void luv_lua_debug_stackdump(lua_State *L, const char *msg);
 
 #endif
-
