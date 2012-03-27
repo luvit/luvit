@@ -157,7 +157,7 @@ ${HTTPDIR}/Makefile:
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	$(MAKE) -C ${HTTPDIR} http_parser.o
 
-${ZLIBDIR}/Makefile:
+${ZLIBDIR}/zlib.gyp:
 	git submodule update --init ${ZLIBDIR}
 
 ${ZLIBDIR}/libz.a: ${ZLIBDIR}/Makefile
