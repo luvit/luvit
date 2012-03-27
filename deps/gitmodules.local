@@ -13,3 +13,9 @@
 [submodule "deps/zlib"]
         path = deps/zlib
         url = ../deps/zlib/.git
+[submodule "deps/luacrypto"]
+        path = deps/luacrypto
+        url = ../deps/luacrypto/.git
+[submodule "deps/openssl"]
+        path = deps/openssl
+        url = ../deps/openssl/.git
