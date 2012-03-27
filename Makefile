@@ -160,7 +160,7 @@ ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 ${ZLIBDIR}/zlib.gyp:
 	git submodule update --init ${ZLIBDIR}
 
-${ZLIBDIR}/libz.a: ${ZLIBDIR}/Makefile
+${ZLIBDIR}/libz.a: ${ZLIBDIR}/zlib.gyp
 	cd ${ZLIBDIR} && ${CC} -c *.c && \
 	$(AR) rvs libz.a *.o
 
