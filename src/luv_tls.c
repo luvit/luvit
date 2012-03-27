@@ -38,7 +38,6 @@
 #endif
 #endif
 
-#define TLS_SECURE_CONTEXT_HANDLE "ltls_secure_context"
 #define getSC(L) luvit__lua_tls_sc_get(L, 1)
 
 static BIO* _lua_load_bio(lua_State *L, int index) {
@@ -102,8 +101,7 @@ newSC(lua_State *L)
 tls_sc_t*
 luvit__lua_tls_sc_get(lua_State *L, int index)
 {
-  tls_sc_t *ctx = luaL_checkudata(L, index, TLS_SECURE_CONTEXT_HANDLE);
-  return ctx;
+  return luaL_checkudata(L, index, TLS_SECURE_CONTEXT_HANDLE);
 }
 
 static int
@@ -526,10 +524,8 @@ int tls_sc_add_ca_cert(lua_State *L)
 
   if (!ctx->ca_store) {
     ctx->ca_store = X509_STORE_new();
-    SSL_CTX_set_cert_store(ctx->ctx, ctx->ca_store);
     newCAStore = TRUE;
   }
-
 
   x509 = _lua_load_x509(L, 2);
   if (!x509) {

@@ -30,6 +30,7 @@
 #include "los.h"
 #include "luv.h"
 #include "luv_dns.h"
+#include "luv_debug.h"
 #ifdef USE_OPENSSL
 #include "luv_tls.h"
 #include "lcrypto.h"
@@ -178,6 +179,9 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   /* Register yajl */
   lua_pushcfunction(L, luaopen_yajl);
   lua_setfield(L, -2, "yajl");
+  /* Register debug */
+  lua_pushcfunction(L, luaopen_debugger);
+  lua_setfield(L, -2, "_debug");
   /* Register os */
   lua_pushcfunction(L, luaopen_os_binding);
   lua_setfield(L, -2, "os_binding");

@@ -191,7 +191,7 @@ function utils.bind(fun, self, ...)
     for i=#bind_args,1,-1 do
       table.insert(args, 1, bind_args[i])
     end
-    fun(self, unpack(args))
+    return fun(self, unpack(args))
   end
 end
 

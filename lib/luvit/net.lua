@@ -200,6 +200,9 @@ function Socket:connect(...)
 end
 
 function Socket:destroy()
+  if self.destroyed == true then
+    return
+  end
   self.readable = false
   self.writable = false
   if self._handle then
@@ -209,6 +212,8 @@ function Socket:destroy()
   timer.setTimeout(0, function()
     self:emit('close')
   end)
+
+  self.destroyed = true
 end
 
 function Socket:initialize(handle)
@@ -221,6 +226,7 @@ function Socket:initialize(handle)
   self.bytesRead = 0
   self.readable = true
   self.writable = true
+  self.destroyed = false
 
   self:_initEmitters()
 end
@@ -261,10 +267,15 @@ function Server:listen(port, ... --[[ ip, callback --]] )
     local client = Tcp:new()
     self._handle:accept(client)
     local sock = Socket:new(client)
+    sock:on('end', function()
+      sock:close()
+    end)
     sock:resume()
     self:emit('connection', sock)
     sock:emit('connect')
   end)
+
+  return self
 end
 
 function Server:_emitClosedIfDrained()
@@ -273,16 +284,18 @@ function Server:_emitClosedIfDrained()
   end)
 end
 
-function Server:close()
+function Server:close(callback)
   if not self._handle then
-    return
+    error('Not running')
   end
   if self._connectTimer then
     timer.clearTimer(self._connectTimer)
     self._connectTimer = nil
   end
+  if callback then
+    self:once('close', callback)
+  end
   self._handle:close()
-  self._handle = nil
   self:_emitClosedIfDrained()
 end
 
@@ -324,8 +337,7 @@ end
 net.create = net.createConnection
 
 net.createServer = function(connectionCallback)
-  local s = Server:new(connectionCallback)
-  return s
+  return Server:new(connectionCallback)
 end
 
 return net

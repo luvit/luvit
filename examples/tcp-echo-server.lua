@@ -1,6 +1,7 @@
 local net = require('net')
 
-net.createServer(function (client)
+local server
+server = net.createServer(function (client)
 
   -- Echo everything the client says back to itself
   client:pipe(client)
@@ -9,5 +10,5 @@ net.createServer(function (client)
   client:pipe(process.stdout)
 
 end):listen(8080)
-     
+
 print("TCP echo server listening on port 8080")

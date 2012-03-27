@@ -49,6 +49,7 @@
        'src/luv_fs.c',
        'src/luv_fs_watcher.c',
        'src/luv_dns.c',
+       'src/luv_debug.c',
        'src/luv_handle.c',
        'src/luv_misc.c',
        'src/luv_pipe.c',
