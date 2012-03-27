@@ -16,6 +16,8 @@ limitations under the License.
 
 --]]
 
+local fs = require('fs')
+
 local certPem = [[
 -----BEGIN CERTIFICATE-----
 MIIDXDCCAsWgAwIBAgIJAKL0UG+mRkSPMA0GCSqGSIb3DQEBBQUAMH0xCzAJBgNV
@@ -80,9 +82,19 @@ dhU2Sz3Q60DwJEL1VenQHiVYlWWtqXBThe9ggqRPnCfsCRTP8qifKkjk45zWPcpN
 -----END CERTIFICATE-----
 ]]
 
+function filenamePEM(n)
+  return require('path').join(__dirname, '..', 'fixtures', 'keys', n .. '.pem')
+end
+
+function loadPEM(n)
+  return fs.readFileSync(filenamePEM(n))
+end
+
 local exports = {}
 exports.caPem = caPem
 exports.keyPem = keyPem
 exports.certPem = certPem
 exports.commonPort = 12456
+exports.loadPEM = loadPEM
+exports.filenamePEM = filenamePEM
 return exports

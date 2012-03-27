@@ -26,7 +26,8 @@ local table = require('table')
 local net = require('net')
 local bind = require('utils').bind
 
-local fmt = require('string').format
+local string = require('string')
+local fmt = string.format
 
 local END_OF_FILE = 42
 local DEBUG = false
@@ -83,8 +84,8 @@ local function createCredentials(options, context)
   if options.ca then
     dbg('Setting CA')
     if type(options.ca) == 'table' then
-      for i=1,#options.ca do
-        c.context:addCACert(options.ca[i])
+      for _, v in pairs(options.ca) do
+        c.context:addCACert(v)
       end
     else
       c.context:addCACert(options.ca)
@@ -96,8 +97,8 @@ local function createCredentials(options, context)
   if options.crl then
     dbg('Setting CRL')
     if type(options.crl) == 'table' then
-      for i=1,#options.crl do
-        c.context:addCRL(options.crl[i])
+      for _, v in pairs(options.crl) do
+        c.context:addCRL(v)
       end
     else
       c.context:addCRL(options.crl)
@@ -353,6 +354,45 @@ function CryptoStream:_pull()
   end
 end
 
+function string:split(sep)
+  local sep, fields = sep or ":", {}
+  local pattern = string.format("([^%s]+)", sep)
+  self:gsub(pattern, function(c) fields[#fields+1] = c end)
+  return fields
+end
+
+function parseCertString(s)
+  local out = {}
+  local parts = s:split('\n')
+  for i, k in ipairs(parts) do
+    local sepIndex = parts[i]:find('=')
+    if sepIndex then
+      local key = parts[i]:sub(0, sepIndex - 1)
+      local value = parts[i]:sub(sepIndex + 1)
+      if out[key] then
+        if type(out[key]) ~= 'table' then
+          out[key] = { out[key] }
+        end
+        table.insert(out[key], value)
+      else
+        out[key] = value
+      end
+    end
+  end
+  return out
+end
+
+function CryptoStream:getPeerCertificate()
+  if self.pair.ssl then
+    local c = self.pair.ssl:getPeerCertificate()
+    if c then
+      if c.issuer then c.issuer = parseCertString(c.issuer) end
+      if c.subject then c.subject = parseCertString(c.subject) end
+    end
+    return c
+  end
+  return nil
+end
 
 --[[ CleartextStream ]]--
 
@@ -639,10 +679,9 @@ function Server:initialize(...)
       else
         local verifyError = pair.ssl:verifyError()
         if verifyError then
-          pair.cleartext.verificationError = verifyError
+          pair.cleartext.authorizationError = verifyError
           if self.rejectUnauthorized == true then
-            socket:close()
-            pair:destroy()
+            pair:close()
           else
             self:emit('secureConnection', cleartext, pair.encrypted)
           end
@@ -681,10 +720,10 @@ function Server:setOptions(options)
     self.requestCert = false
   end
 
-  if type(options.requestUnauthorized) == 'boolean' then
-    self.requestUnauthorized = options.requestUnauthorized
+  if type(options.rejectUnauthorized) == 'boolean' then
+    self.rejectUnauthorized = options.rejectUnauthorized
   else
-    self.requestUnauthorized = false
+    self.rejectUnauthorized = false
   end
 
   if options.key then
