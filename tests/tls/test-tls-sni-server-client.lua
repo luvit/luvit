@@ -20,47 +20,39 @@ local childprocess = require('childprocess')
 local table = require('table')
 local tls = require('tls')
 
-function filenamePEM(n)
-  return require('path').join(__dirname, '..', 'fixtures', 'keys', n .. '.pem')
-end
-
-function loadPEM(n)
-  return fs.readFileSync(filenamePEM(n))
-end
-
 local options = {
-  key = loadPEM('agent2-key'),
-  cert = loadPEM('agent2-cert')
+  key = fixture.loadPEM('agent2-key'),
+  cert = fixture.loadPEM('agent2-cert')
 }
 
 local SNIContexts = {}
 SNIContexts['a.example.com'] = {
-  key = loadPEM('agent1-key'),
-  cert = loadPEM('agent1-cert')
+  key = fixture.loadPEM('agent1-key'),
+  cert = fixture.loadPEM('agent1-cert')
 }
 SNIContexts['asterisk.test.com'] = {
-  key = loadPEM('agent3-key'),
-  cert = loadPEM('agent3-cert')
+  key = fixture.loadPEM('agent3-key'),
+  cert = fixture.loadPEM('agent3-cert')
 }
 
 local clientsOptions = {
   {
     port = fixture.commonPort,
-    key = loadPEM('agent1-key'),
-    cert = loadPEM('agent1-cert'),
-    ca = loadPEM('ca1-cert'),
+    key = fixture.loadPEM('agent1-key'),
+    cert = fixture.loadPEM('agent1-cert'),
+    ca = fixture.loadPEM('ca1-cert'),
     servername = 'a.example.com'
   },{
     port = fixture.commonPort,
-    key = loadPEM('agent2-key'),
-    cert = loadPEM('agent2-cert'),
-    ca = loadPEM('ca2-cert'),
+    key = fixture.loadPEM('agent2-key'),
+    cert = fixture.loadPEM('agent2-cert'),
+    ca = fixture.loadPEM('ca2-cert'),
     servername = 'b.test.com'
   },{
     port = fixture.commonPort,
-    key = loadPEM('agent3-key'),
-    cert = loadPEM('agent3-cert'),
-    ca = loadPEM('ca1-cert'),
+    key = fixture.loadPEM('agent3-key'),
+    cert = fixture.loadPEM('agent3-cert'),
+    ca = fixture.loadPEM('ca1-cert'),
     servername = 'c.wrong.com'
   }
 }

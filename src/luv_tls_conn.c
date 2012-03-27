@@ -698,7 +698,6 @@ tls_conn_get_peer_certificate(lua_State *L)
     lua_settable(L, -3);
   }
 
-  BIO_free(bio);
   X509_free(peer_cert);
   return 1;
 }
