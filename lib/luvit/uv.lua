@@ -195,6 +195,9 @@ Timer.setRepeat = native.timerSetRepeat
 -- Timer:getRepeat()
 Timer.getRepeat = native.timerGetRepeat
 
+-- Timer.now
+Timer.now = native.now
+
 --------------------------------------------------------------------------------
 
 local Process = Handle:extend()
