@@ -22,7 +22,7 @@ local table = require('table')
 
 local lists = {}
 
-function insert(item, msecs, ...)
+function _insert(item, msecs, ...)
   local args = {...}
 
   item._idleStart = Timer.now()
@@ -77,6 +77,7 @@ function unenroll(item)
   item._idleTimeout = -1
 end
 
+-- does not start the timer, just initializes the item
 function enroll(item, msecs)
   if item._idleNext then
     unenroll(item)
@@ -84,12 +85,13 @@ function enroll(item, msecs)
   item._idleTimeout = msecs
 end
 
+-- call this whenever the item is active (not idle)
 function active(item)
   local msecs = item._idleTimeout
   if msecs and msecs >= 0 then
     local list = lists[msecs]
     if not list or #list.items == 0 then
-      insert(item, msecs)
+      _insert(item, msecs)
     else
       item._idleStart = Timer.now()
     end
