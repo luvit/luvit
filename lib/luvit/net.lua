@@ -43,25 +43,25 @@ function Socket:_connect(address, port, addressType)
   end
 end
 
-function Socket:setTimeout(msecs, callback)
-  callback = callback or function() end
-  if not self._connectTimer then
-    self._connectTimer = Timer:new()
-  end
+function Socket:_onTimeoutReal()
+  self:emit('timeout')
+end
 
-  self._connectTimer:start(msecs, 0, function(status)
-    self._connectTimer:close()
-    callback()
-  end)
+function Socket:setTimeout(msecs, callback)
+  if msecs > 0 then
+    timer.enroll(self, msecs)
+    timer.active(self)
+    if callback then
+      self:once('timeout', callback)
+    end
+  elseif msecs == 0 then
+    timer.unenroll(self)
+  end
 end
 
 function Socket:close()
   if self._handle then
     self._handle:close()
-  end
-  if self._connectTimer then
-    timer.clearTimer(self._connectTimer)
-    self._connectTimer = nil
   end
 end
 
@@ -86,12 +86,14 @@ function Socket:write(data, callback)
 end
 
 function Socket:_write(data, callback)
+  timer.active(self)
   self._pendingWriteRequests = self._pendingWriteRequests + 1
   self._handle:write(data, function(err)
     if err then
       self:emit('error', err);
       return
     end
+    timer.active(self)
     self._pendingWriteRequests = self._pendingWriteRequests - 1
     if self._pendingWriteRequests == 0 then
       self:emit('drain');
@@ -133,6 +135,7 @@ function Socket:_initEmitters()
   end)
 
   self._handle:on('data', function(data)
+    timer.active(self)
     self.bytesRead = self.bytesRead + #data
     self:emit('data', data)
   end)
@@ -166,13 +169,10 @@ function Socket:connect(...)
     options.host = '0.0.0.0'
   end
 
+  timer.active(self)
   self._connecting = true
 
   self._handle:on('connect', function()
-    if self._connectTimer then
-      timer.clearTimer(self._connectTimer)
-      self._connectTimer = nil
-    end
     self._connecting = false
 
     if self._connectQueue then
@@ -193,6 +193,7 @@ function Socket:connect(...)
       callback(err)
       return
     end
+    timer.active(self)
     self:_connect(ip, options.port, addressType)
   end)
 
@@ -203,6 +204,7 @@ function Socket:destroy()
   if self.destroyed == true then
     return
   end
+  timer.unenroll(self)
   self.readable = false
   self.writable = false
   if self._handle then
@@ -217,7 +219,7 @@ function Socket:destroy()
 end
 
 function Socket:initialize(handle)
-  self._connectTimer = Timer:new()
+  self._onTimeout = utils.bind(Socket._onTimeoutReal, self)
   self._handle = handle or Tcp:new()
   self._pendingWriteRequests = 0
   self._connecting = false
@@ -287,10 +289,6 @@ end
 function Server:close(callback)
   if not self._handle then
     error('Not running')
-  end
-  if self._connectTimer then
-    timer.clearTimer(self._connectTimer)
-    self._connectTimer = nil
   end
   if callback then
     self:once('close', callback)

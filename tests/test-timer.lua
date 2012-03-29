@@ -21,6 +21,19 @@ require("helper")
 local timer = require('timer')
 
 expect("timeout")
-timer.setTimeout(200, function ()
+timer.setTimeout(200, function (arg1)
   fulfill("timeout")
-end)
+  assert(arg1 == 'test1')
+end, "test1")
+
+expect("interval")
+local count = 0
+local interval
+interval = timer.setInterval(200, function(arg1)
+  count = count + 1
+  assert(arg1 == 'test2')
+  if count == 2 then
+    fulfill("interval")
+    timer.clearTimer(interval)
+  end
+end, 'test2')
