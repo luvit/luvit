@@ -28,12 +28,12 @@ OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
 ifeq (${MH_NAME},x86_64)
-LDFLAGS=-framework CoreServices -pagezero_size 10000 -image_base 100000000
+LDFLAGS+=-framework CoreServices -pagezero_size 10000 -image_base 100000000
 else
-LDFLAGS=-framework CoreServices
+LDFLAGS+=-framework CoreServices
 endif
 else ifeq (${OS_NAME},Linux)
-LDFLAGS=-Wl,-E
+LDFLAGS+=-Wl,-E
 endif
 # LUAJIT CONFIGURATION #
 #XCFLAGS=-g
@@ -45,50 +45,51 @@ export XCFLAGS
 export Q=
 MAKEFLAGS+=-e
 
-LDFLAGS+=-L${BUILDDIR} -lluvit
-LDFLAGS+=${LUADIR}/src/libluajit.a
-LDFLAGS+=${UVDIR}/uv.a
-LDFLAGS+=${YAJLDIR}/yajl.a
+LDFLAGS+=-L${BUILDDIR} 
+LIBS += -lluvit -lm -ldl -lpthread \
+	${ZLIBDIR}/libz.a \
+	${YAJLDIR}/yajl.a \
+	${UVDIR}/uv.a \
+	${LUADIR}/src/libluajit.a
 ifeq (${USE_SYSTEM_SSL},1)
-CFLAGS+=$(shell pkg-config --cflags openssl) -w
-LDFLAGS+=${OPENSSL_LIBS}
+CFLAGS+=-Wall -w
+CPPFLAGS+=$(shell pkg-config --cflags openssl)
+LIBS+=${OPENSSL_LIBS}
 else
-CFLAGS+=-I${SSLDIR}/openssl/include
-LDFLAGS+=${SSLDIR}/libopenssl.a
+CPPFLAGS+=-I${SSLDIR}/openssl/include
+LIBS+=${SSLDIR}/libopenssl.a
 endif
-LDFLAGS+=${ZLIBDIR}/libz.a
-LDFLAGS+=-Wall -lm -ldl -lpthread
 
 ifeq (${OS_NAME},Linux)
-LDFLAGS+= -lrt
+LIBS+=-lrt
 endif
 
-CFLAGS += -DUSE_OPENSSL
-CFLAGS += -DL_ENDIAN
-CFLAGS += -DOPENSSL_THREADS
-CFLAGS += -DPURIFY
-CFLAGS += -D_REENTRANT
-CFLAGS += -DOPENSSL_NO_ASM
-CFLAGS += -DOPENSSL_NO_INLINE_ASM
-CFLAGS += -DOPENSSL_NO_RC2
-CFLAGS += -DOPENSSL_NO_RC5
-CFLAGS += -DOPENSSL_NO_MD4
-CFLAGS += -DOPENSSL_NO_HW
-CFLAGS += -DOPENSSL_NO_GOST
-CFLAGS += -DOPENSSL_NO_CAMELLIA
-CFLAGS += -DOPENSSL_NO_CAPIENG
-CFLAGS += -DOPENSSL_NO_CMS
-CFLAGS += -DOPENSSL_NO_FIPS
-CFLAGS += -DOPENSSL_NO_IDEA
-CFLAGS += -DOPENSSL_NO_MDC2
-CFLAGS += -DOPENSSL_NO_MD2
-CFLAGS += -DOPENSSL_NO_SEED
-CFLAGS += -DOPENSSL_NO_SOCK
+CPPFLAGS += -DUSE_OPENSSL
+CPPFLAGS += -DL_ENDIAN
+CPPFLAGS += -DOPENSSL_THREADS
+CPPFLAGS += -DPURIFY
+CPPFLAGS += -D_REENTRANT
+CPPFLAGS += -DOPENSSL_NO_ASM
+CPPFLAGS += -DOPENSSL_NO_INLINE_ASM
+CPPFLAGS += -DOPENSSL_NO_RC2
+CPPFLAGS += -DOPENSSL_NO_RC5
+CPPFLAGS += -DOPENSSL_NO_MD4
+CPPFLAGS += -DOPENSSL_NO_HW
+CPPFLAGS += -DOPENSSL_NO_GOST
+CPPFLAGS += -DOPENSSL_NO_CAMELLIA
+CPPFLAGS += -DOPENSSL_NO_CAPIENG
+CPPFLAGS += -DOPENSSL_NO_CMS
+CPPFLAGS += -DOPENSSL_NO_FIPS
+CPPFLAGS += -DOPENSSL_NO_IDEA
+CPPFLAGS += -DOPENSSL_NO_MDC2
+CPPFLAGS += -DOPENSSL_NO_MD2
+CPPFLAGS += -DOPENSSL_NO_SEED
+CPPFLAGS += -DOPENSSL_NO_SOCK
 
 ifeq (${MH_NAME},x86_64)
-CFLAGS += -I${SSLDIR}/openssl-configs/x64
+CPPFLAGS += -I${SSLDIR}/openssl-configs/x64
 else
-CFLAGS += -I${SSLDIR}/openssl-configs/ia32
+CPPFLAGS += -I${SSLDIR}/openssl-configs/ia32
 endif
 
 LUVLIBS=${BUILDDIR}/utils.o          \
@@ -173,7 +174,7 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
-	$(CC) ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
+	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
 		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api \
 		-I${YAJLDIR}/src -I${ZLIBDIR} -I${CRYPTODIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
@@ -195,8 +196,8 @@ ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
 ${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
-	$(CC) ${CFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
-		${CRYPTODIR}/src/lcrypto.o ${LDFLAGS} 
+	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
+		${CRYPTODIR}/src/lcrypto.o ${LIBS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean
@@ -228,7 +229,7 @@ bundle: build/luvit ${BUILDDIR}/libluvit.a
 	build/luvit tools/bundler.lua
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_exports.c -o bundle/luvit_exports.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_main.c -o bundle/luvit_main.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
-	$(CC) -g -o bundle/luvit ${BUILDDIR}/libluvit.a `ls bundle/*.o` ${LDFLAGS}
+	$(CC) ${LDFLAGS} -g -o bundle/luvit ${BUILDDIR}/libluvit.a `ls bundle/*.o` ${LIBS}
 
 test: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
