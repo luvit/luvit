@@ -78,8 +78,12 @@ _G.ZLIB_VERSION = nil
 _G.OPENSSL_VERSION = nil
 
 -- Add a way to exit programs cleanly
+local exiting = false
 function process.exit(exit_code)
-  process:emit('exit', exit_code)
+  if exiting == false then
+    exiting = true
+    process:emit('exit', exit_code or 0)
+  end
   exitProcess(exit_code or 0)
 end
 

@@ -52,20 +52,24 @@ function _G.fulfill(name)
   expectations[name] = false
 end
 
-process:on('exit', function (code, signal)
-  local errors = {}
-  for name, value in pairs(expectations) do
-    if value then
-      errors[#errors + 1] = "\n\tExpectation '" .. name .. "' was never fulfilled." 
+process:on('exit', function(code)
+  -- run after the process:exit() in the tests
+  process:on('exit', function()
+    local errors = {}
+    local return_code = 0
+    for name, value in pairs(expectations) do
+      if value then
+        errors[#errors + 1] = "\n\tExpectation '" .. name .. "' was never fulfilled." 
+      end
     end
-  end
-  if #errors > 0 then
-    printStderr(utils.color("Bred") .. "FAIL" .. utils.color() .. "\n")
-    error("\n" .. source .. ":on_exit:" .. table.concat(errors, ""))
-    exitProcess(1)
-  end
-  printStderr(utils.color("Bgreen") .. "PASS" .. utils.color() .. "\n")
-  exitProcess(0)
+    if #errors > 0 then
+      printStderr(utils.color("Bred") .. "FAIL" .. utils.color() .. "\n")
+      error("\n" .. source .. ":on_exit:" .. table.concat(errors, ""))
+      return_code = 1
+    end
+    printStderr(utils.color("Bgreen") .. "PASS" .. utils.color() .. "\n")
+    process.exit(return_code)
+  end)
 end)
 
 _G.equal = function(a, b)

@@ -41,3 +41,7 @@ server:listen(fixture.commonPort, function()
     server:close()
   end)
 end)
+
+process:on('exit', function()
+  assert(verified == true)
+end)
