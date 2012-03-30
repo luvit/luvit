@@ -82,8 +82,16 @@ dhU2Sz3Q60DwJEL1VenQHiVYlWWtqXBThe9ggqRPnCfsCRTP8qifKkjk45zWPcpN
 -----END CERTIFICATE-----
 ]]
 
+function filename(n)
+  return require('path').join(__dirname, '..', 'fixtures', 'keys', n)
+end
+
 function filenamePEM(n)
-  return require('path').join(__dirname, '..', 'fixtures', 'keys', n .. '.pem')
+  return filename(n) .. '.pem'
+end
+
+function loadFile(n)
+  return fs.readFileSync(filename(n))
 end
 
 function loadPEM(n)
@@ -95,6 +103,8 @@ exports.caPem = caPem
 exports.keyPem = keyPem
 exports.certPem = certPem
 exports.commonPort = 12456
+exports.loadFile = loadFile
 exports.loadPEM = loadPEM
 exports.filenamePEM = filenamePEM
+exports.filename = filename
 return exports
