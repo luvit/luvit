@@ -426,6 +426,10 @@ function CleartextStream:close()
   end
 end
 
+function CleartextStream:address()
+  return self.socket and self.socket:address()
+end
+
 --[[ EncryptedStream ]]--
 
 local EncryptedStream = CryptoStream:extend()

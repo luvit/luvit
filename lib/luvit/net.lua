@@ -47,6 +47,13 @@ function Socket:_onTimeoutReal()
   self:emit('timeout')
 end
 
+function Socket:address()
+  if self._handle then
+    return self._handle:getsockname()
+  end
+  return nil
+end
+
 function Socket:setTimeout(msecs, callback)
   if msecs > 0 then
     timer.enroll(self, msecs)
@@ -284,6 +291,13 @@ function Server:_emitClosedIfDrained()
   timer.setTimeout(0, function()
     self:emit('close')
   end)
+end
+
+function Server:address()
+  if self._handle then
+    return self._handle:getsockname()
+  end
+  return nil
 end
 
 function Server:close(callback)
