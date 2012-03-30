@@ -137,6 +137,10 @@ function Socket:_initEmitters()
     self:emit('timeout')
   end)
 
+  self._handle:on('connect', function()
+    self:emit('connect')
+  end)
+
   self._handle:on('end', function()
     self:emit('end')
   end)
