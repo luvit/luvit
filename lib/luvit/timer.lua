@@ -20,11 +20,11 @@ local Timer = require('uv').Timer
 local os = require('os')
 local table = require('table')
 
+local TIMEOUT_MAX = 2147483647
+
 local lists = {}
 
-function _insert(item, msecs, ...)
-  local args = {...}
-
+function _insert(item, msecs)
   item._idleStart = Timer.now()
   item._idleTimeout = msecs
 
@@ -34,17 +34,13 @@ function _insert(item, msecs, ...)
   if lists[msecs] then
     list = lists[msecs]
   else
-    list = {}
-    list.items = {}
-    list.timer = Timer:new()
-    lists[msecs] = list
     function expiration()
       local now = Timer.now()
       -- pull out the element from back to front, so we can remove elements safely
       for i=#list.items, 1, -1 do
         local elem = list.items[i]
         local diff = now - elem._idleStart;
-        if ((diff + 1) < msecs) == true then
+        if diff + 1 < msecs == true then
           list.timer:start(msecs - diff, 0, expiration)
           return
         else
@@ -55,13 +51,14 @@ function _insert(item, msecs, ...)
         end
       end
 
-      if list.timer then
-        list.timer:stop()
-        list.timer:close()
-        list.timer = nil
-      end
+      list.timer:close()
       lists[msecs] = nil
     end
+
+    list = {}
+    list.items = {}
+    list.timer = Timer:new()
+    lists[msecs] = list
     list.timer:start(msecs, 0, expiration)
   end
 
@@ -94,6 +91,7 @@ function active(item)
       _insert(item, msecs)
     else
       item._idleStart = Timer.now()
+      table.insert(list.items, item)
     end
   end
 end
@@ -101,6 +99,11 @@ end
 function setTimeout(duration, callback, ...)
   local args = {...}
   local timer = {}
+
+  if duration < 1 or duration > TIMEOUT_MAX then
+    duration = 1
+  end
+
   timer._idleTimeout = duration
   timer._onTimeout = function()
     callback(unpack(args))

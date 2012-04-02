@@ -37,3 +37,20 @@ interval = timer.setInterval(200, function(arg1)
     timer.clearTimer(interval)
   end
 end, 'test2')
+
+-- nextTick
+local zeroTimeoutTriggered = false
+timer.setTimeout(500, function()
+  zeroTimeoutTriggered = true
+end)
+
+-- nextTick
+local zeroTimeoutTriggered2 = false
+timer.setTimeout(500, function()
+  zeroTimeoutTriggered2 = true
+end)
+
+process:on('exit', function()
+  assert(zeroTimeoutTriggered == true)
+  assert(zeroTimeoutTriggered2 == true)
+end)
