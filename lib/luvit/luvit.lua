@@ -28,6 +28,7 @@ _G.argv = nil
 require = require('module').require
 
 local Emitter = require('core').Emitter
+local timer = require('timer')
 local env = require('env')
 local constants = require('constants')
 local uv = require('uv')
@@ -103,6 +104,9 @@ function process:missingHandlerType(name, ...)
   end
 end
 
+function process.nextTick(callback)
+  timer.setTimeout(0, callback)
+end
 
 -- Add global access to the environment variables using a dynamic table
 process.env = setmetatable({}, {
