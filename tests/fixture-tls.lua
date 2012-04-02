@@ -83,7 +83,7 @@ dhU2Sz3Q60DwJEL1VenQHiVYlWWtqXBThe9ggqRPnCfsCRTP8qifKkjk45zWPcpN
 ]]
 
 function filename(n)
-  return require('path').join(__dirname, '..', 'fixtures', 'keys', n)
+  return require('path').join(__dirname, 'fixtures', 'keys', n)
 end
 
 function filenamePEM(n)
