@@ -36,10 +36,16 @@ function Socket:_connect(address, port, addressType)
   end
   self.remoteAddress = address
 
+  local connectionReq = nil
   if addressType == 4 then
-    self._handle:connect(address, port)
+    connectionReq = self._handle:connect(address, port)
   elseif addressType == 6 then
-    self._handle:connect6(address, port)
+    connectionReq = self._handle:connect6(address, port)
+  end
+
+  -- connect only returns an error or nothing
+  if (connectionReq ~= nil) then
+    self:destroy(err)
   end
 end
 
@@ -152,6 +158,10 @@ function Socket:_initEmitters()
   end)
 
   self._handle:on('error', function(err)
+    -- destroy on ECONNREFUSED
+    if (err.code == 'ECONNREFUSED') then
+      self:destroy(err)
+    end
     self:emit('error', err)
   end)
 end
@@ -201,17 +211,20 @@ function Socket:connect(...)
 
   dns.lookup(options.host, function(err, ip, addressType)
     if err then
-      callback(err)
-      return
+      process.nextTick(function()
+        self.emit('error', err);
+        self.destroy();
+      end)
+    else
+      timer.active(self)
+      self:_connect(ip, options.port, addressType)
     end
-    timer.active(self)
-    self:_connect(ip, options.port, addressType)
   end)
 
   return self
 end
 
-function Socket:destroy()
+function Socket:destroy(exception)
   if self.destroyed == true then
     return
   end
@@ -222,7 +235,10 @@ function Socket:destroy()
     self._handle:close()
     self._handle = nil
   end
-  timer.setTimeout(0, function()
+  process.nextTick(function()
+    if (exception) then
+      self:emit('error', exception)
+    end
     self:emit('close')
   end)
 
