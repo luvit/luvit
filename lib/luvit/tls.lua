@@ -206,7 +206,7 @@ function CryptoStream:destroySoon()
   if self.writable == true then
     self:done()
   else
-    self:close()
+    self:destroy()
   end
 end
 
@@ -239,12 +239,12 @@ function CryptoStream:getPeerCertificate()
   return nil
 end
 
-function CryptoStream:close()
+function CryptoStream:destroy()
   dbg('destroy')
   if self.pair._doneFlag == true then
     return
   end
-  self.pair:close()
+  self.pair:destroy()
 end
 
 function CryptoStream:_done()
@@ -257,7 +257,7 @@ function CryptoStream:_done()
     if self.pair._secureEstablished == false then
       self.pair:err()
     else
-      self.pair:close()
+      self.pair:destroy()
     end
   end
 end
@@ -279,6 +279,7 @@ function CryptoStream:_push()
       chunkBytes, tmpData = self:_pusher()
 
       if self.pair.ssl and self.pair.ssl:getError() then
+        p('push error')
         self.pair:err()
         return
       end
@@ -319,6 +320,7 @@ function CryptoStream:_pull()
       local rv = self:_puller(tmp)
 
       if self.pair.ssl and self.pair.ssl:getError() then
+        p('error function')
         self.pair:err()
         return
       end
@@ -421,9 +423,9 @@ function CleartextStream:_pusher()
   return self.pair.ssl:clearOut()
 end
 
-function CleartextStream:close()
+function CleartextStream:destroy()
   if self.socket and self._closing ~= true then
-    self.socket:close()
+    self.socket:destroy()
   end
   self._closing = true
 end
@@ -566,8 +568,8 @@ function SecurePair:maybeInitFinished()
   end
 end
 
-function SecurePair:close()
-  dbg('SecurePair:close')
+function SecurePair:destroy()
+  dbg('SecurePair:destroy')
   if self._doneFlag == true then
     return
   end
@@ -596,8 +598,8 @@ function SecurePair:err()
       err = Error:new('socket hang up')
       err.code = 'ECONNRESET'
     end
-    self:close()
     self:emit('error', err)
+    self:destroy()
   else
     local err = self.ssl:getError()
     self.ssl:clearError()
@@ -687,7 +689,7 @@ function Server:initialize(...)
         if verifyError then
           pair.cleartext.authorizationError = verifyError
           if self.rejectUnauthorized == true then
-            pair:close()
+            pair:destroy()
           else
             self:emit('secureConnection', cleartext, pair.encrypted)
           end
@@ -705,6 +707,7 @@ function Server:initialize(...)
 
   if listener then
     self:on('secureConnection', listener)
+    self:on('secureConnection', function() p('secureConnection') end)
   end
 end
 
@@ -833,7 +836,7 @@ function connect(...)
       cleartext.authorizationError = verifyError
       if pair._rejectUnauthorized == true then
         cleartext:emit('error', verifyError)
-        pair:close()
+        pair:destroy()
       else
         cleartext:emit('secureConnect')
       end

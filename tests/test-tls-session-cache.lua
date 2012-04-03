@@ -34,7 +34,7 @@ local requestCount = 0
 local server
 server = tls.createServer(options, function(cleartext)
   requestCount = requestCount + 1
-  cleartext.socket:close()
+  cleartext.socket:destroy()
 end)
 
 function clientConnect(callback)

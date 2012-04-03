@@ -31,6 +31,9 @@ local net = {}
 local Socket = iStream:extend()
 
 function Socket:_connect(address, port, addressType)
+  if self.destroyed then
+    return
+  end
   if port then
     self.remotePort = port
   end
@@ -77,6 +80,9 @@ function Socket:pipe(destination)
 end
 
 function Socket:write(data, callback)
+  if self.destroyed then
+    return
+  end
   self.bytesWritten = self.bytesWritten + #data
 
   if self._connecting == true then
@@ -321,7 +327,9 @@ function Server:close(callback)
   if callback then
     self:once('close', callback)
   end
-  self._handle:close()
+  if self._handle then
+    self._handle:close()
+  end
   self:_emitClosedIfDrained()
 end
 
