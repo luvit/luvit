@@ -90,8 +90,8 @@ function Request:initialize(socket)
   self.socket = socket
 end
 
-function Request:close(...)
-  return self.socket:close(...)
+function Request:destroy(...)
+  return self.socket:destroy(...)
 end
 
 --------------------------------------------------------------------------------
@@ -306,7 +306,7 @@ function Response:done(callback)
   if not self.should_keep_alive then
     self.socket:shutdown(function ()
       self:emit("end")
-      self:close()
+      self:destroy()
       if callback then
         self:on("closed", callback)
       end
@@ -318,8 +318,8 @@ function Response:done(callback)
   end
 end
 
-function Response:close(...)
-  return self.socket:close(...)
+function Response:destroy(...)
+  return self.socket:destroy(...)
 end
 
 --------------------------------------------------------------------------------
@@ -472,7 +472,7 @@ function http.request(options, callback)
     end
     if callback then callback() end
   end
-  client.close = function (self, chunk, callback)
+  client.destroy = function (self, chunk, callback)
     self.done = true
     self:write(chunk, callback)
   end

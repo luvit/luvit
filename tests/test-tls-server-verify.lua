@@ -222,7 +222,7 @@ function runTest(testIndex, done)
     end
     c:on('data', function(chunk)
       if chunk:find('goodbye') then
-        c:close()
+        c:destroy()
       end
     end)
   end)

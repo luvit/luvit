@@ -19,7 +19,7 @@ server:listen(fixture.commonPort, function()
   local client1, client2
   client1 = tls.connect({port = fixture.commonPort, host = '127.0.0.1'}, {}, function()
     clientConnected = clientConnected + 1
-    client1:close()
+    client1:destroy()
     server:close()
     assert(serverConnected == 1)
   end)

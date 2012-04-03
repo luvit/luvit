@@ -16,7 +16,7 @@ local response = ''
 
 local server = tls.createServer(options, function(conn)
   conn:write(reply)
-  conn.socket:close()
+  conn.socket:destroy()
   nconns = nconns + 1
 end)
 
