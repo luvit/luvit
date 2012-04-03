@@ -125,6 +125,7 @@ function CryptoStream:initialize(pair, typeString)
   self._pendingCallbacks = {}
   self._pendingBytes = 0
   self._needDrain = false
+  self._closing = false
   self._type = typeString
 end
 
@@ -421,9 +422,10 @@ function CleartextStream:_pusher()
 end
 
 function CleartextStream:close()
-  if self.socket then
+  if self.socket and self._closing ~= true then
     self.socket:close()
   end
+  self._closing = true
 end
 
 function CleartextStream:address()
