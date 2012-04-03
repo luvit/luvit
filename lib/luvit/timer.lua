@@ -76,7 +76,6 @@ expiration = function(timer, msecs)
       local elem = peek(timer)
       local diff = now - elem._idleStart;
       if ((diff + 1) < msecs) == true then
-        p('restart ' .. msecs - diff)
         timer:start(msecs - diff, 0, expiration(timer, msecs))
         return
       else
