@@ -114,7 +114,7 @@ end
 
 function unenroll(item)
   local list = lists[item._idleTimeout]
-  if list and #list.items == 0 then
+  if list and isEmpty(list) then
     -- empty list
     lists[item._idleTimeout] = nil
   end
