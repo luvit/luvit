@@ -74,7 +74,7 @@ function connectClient(options, callback)
   local client
   client = tls.connect(options, function()
     table.insert(clientResults, client.authorized)
-    client:close()
+    client:destroy()
     callback()
   end)
 end

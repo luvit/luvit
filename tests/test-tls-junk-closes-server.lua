@@ -25,18 +25,19 @@ local options = {
 
 local server
 server = tls.createServer(options, function(s)
-  s:write('welcome!\n')
-  s:pipe(s)
+  assert(false)
 end)
 
 server:listen(fixture.commonPort, function()
   local c
   c = net.createConnection({port = fixture.commonPort, host = '127.0.0.1'})
   c:on('connect', function()
+    p('connect')
     c:write('blah\nblah\nblah\n')
   end)
   c:on('end', function()
-    c:close()
+    p('end')
+    c:destroy()
     server:close()
   end)
 end)

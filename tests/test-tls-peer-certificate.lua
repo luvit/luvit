@@ -27,7 +27,7 @@ local verified = false
 local server
 server = tls.createServer(options, function(cleartext)
   cleartext:write('world')
-  cleartext:close()
+  cleartext:destroy()
 end)
 
 server:listen(fixture.commonPort, function()
@@ -37,7 +37,7 @@ server:listen(fixture.commonPort, function()
     assert(peercert.subject.subjectAltName == 'uniformResourceIdentifier:http://localhost:8000/alice.foaf#me')
     verified = true
     socket:write('Hello')
-    socket:close()
+    socket:destroy()
     server:close()
   end)
 end)

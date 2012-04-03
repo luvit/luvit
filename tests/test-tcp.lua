@@ -32,7 +32,7 @@ local server = net.createServer(function (client)
       p("server:client:write")
       assert(err == nil)
 
-      client:close()
+      client:destroy()
     end)
   end)
 end)
