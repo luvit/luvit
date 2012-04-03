@@ -178,16 +178,49 @@ uv.Timer = Timer
 
 function Timer:initialize()
   self.userdata = native.newTimer()
+  self._active = false
+  -- uv_timer_init adds a loop reference. (That is, it calls uv_ref.) This
+  -- is not the behavior we want in Node. Timers should not increase the
+  -- ref count of the loop except when active.
+  native.unref()
+end
+
+function Timer:_update()
+  local was_active = self._active
+  self._active = native.timerGetActive(self)
+  if was_active == false and self._active == true then
+    native.ref()
+  elseif was_active == true and self._active == false then
+    native.unref()
+  end
 end
 
 -- Timer:start(timeout, interval, callback)
-Timer.start = native.timerStart
+function Timer:start(timeout, interval, callback)
+  native.timerStart(self, timeout, interval, function()
+    callback()
+  end)
+  self:_update()
+end
+
+function Timer:close()
+  Handle.close(self)
+  if self._active == false then
+    native.ref()
+  end
+end
 
 -- Timer:stop()
-Timer.stop = native.timerStop
+function Timer:stop()
+  native.timerStop(self)
+  self:_update()
+end
 
 -- Timer:again()
-Timer.again = native.timerAgain
+function Timer:again()
+  native.timerAgain(self)
+  self:_update()
+end
 
 -- Timer:setRepeat(interval)
 Timer.setRepeat = native.timerSetRepeat

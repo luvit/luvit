@@ -62,6 +62,7 @@ static const luaL_reg luv_f[] = {
   {"timerAgain", luv_timer_again},
   {"timerSetRepeat", luv_timer_set_repeat},
   {"timerGetRepeat", luv_timer_get_repeat},
+  {"timerGetActive", luv_timer_get_active},
 
   /* Process functions */
   {"spawn", luv_spawn},

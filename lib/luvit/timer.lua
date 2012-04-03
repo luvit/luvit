@@ -45,8 +45,8 @@ function remove(item)
     item._idlePrev._idleNext = item._idleNext
   end
 
-  item._idleNext = 0
-  item._idlePrev = 0
+  item._idleNext = nil
+  item._idlePrev = nil
 end
 
 function shift(list)
@@ -68,15 +68,16 @@ function isEmpty(list)
 end
 
 local expiration
-expiration = function(msecs)
+expiration = function(timer, msecs)
   return function()
     local now = Timer.now()
     -- pull out the element from back to front, so we can remove elements safely
-    while peek(lists[msecs]) do
-      local elem = peek(lists[msecs])
+    while peek(timer) do
+      local elem = peek(timer)
       local diff = now - elem._idleStart;
       if ((diff + 1) < msecs) == true then
-        lists[msecs]:start(msecs - diff, 0, expiration)
+        p('restart ' .. msecs - diff)
+        timer:start(msecs - diff, 0, expiration(timer, msecs))
         return
       else
         remove(elem)
@@ -85,8 +86,8 @@ expiration = function(msecs)
         end
       end
     end
-
-    lists[msecs]:close()
+    timer:stop()
+    timer:close()
     lists[msecs] = nil
   end
 end
@@ -105,7 +106,7 @@ function _insert(item, msecs)
   else
     list = Timer:new()
     init(list)
-    list:start(msecs, 0, expiration(msecs))
+    list:start(msecs, 0, expiration(list, msecs))
     lists[msecs] = list
   end
 
@@ -133,8 +134,9 @@ end
 -- call this whenever the item is active (not idle)
 function active(item)
   local msecs = item._idleTimeout
-  if msecs >= 0 then
-    if not lists[msecs] or isEmpty(lists[msecs]) then
+  if msecs and msecs >= 0 then
+    local list = lists[msecs]
+    if not list or isEmpty(list) then
       _insert(item, msecs)
     else
       item._idleStart = Timer.now()

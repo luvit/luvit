@@ -25,7 +25,8 @@ int luv_new_timer (lua_State* L) {
   int before = lua_gettop(L);
   luv_ref_t* ref;
   uv_timer_t* handle = (uv_timer_t*)lua_newuserdata(L, sizeof(uv_timer_t));
-  uv_timer_init(luv_get_loop(L), handle);
+  uv_loop_t *loop = luv_get_loop(L);
+  uv_timer_init(loop, handle);
 
   /* Set metatable for type */
   luaL_getmetatable(L, "luv_timer");
@@ -60,6 +61,7 @@ void luv_on_timer(uv_timer_t* handle, int status) {
   } else {
     luv_emit_event(L, "timeout", 0);
   }
+
   assert(lua_gettop(L) == before);
 }
 
@@ -126,6 +128,17 @@ int luv_timer_get_repeat(lua_State* L) {
 
   int64_t repeat = uv_timer_get_repeat(timer);
   lua_pushinteger(L, repeat);
+
+  assert(lua_gettop(L) == before + 1);
+  return 1;
+}
+
+int luv_timer_get_active(lua_State* L) {
+  int before = lua_gettop(L);
+  uv_timer_t* timer = (uv_timer_t*)luv_checkudata(L, 1, "timer");
+
+  int active = uv_is_active((uv_handle_t*)timer);
+  lua_pushboolean(L, active);
 
   assert(lua_gettop(L) == before + 1);
   return 1;
