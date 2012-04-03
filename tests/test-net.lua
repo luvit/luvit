@@ -30,7 +30,7 @@ local server = net.createServer(function(client)
   end)
 
   client:on("end", function()
-    client:close()
+    client:destroy()
   end)
 
 end)
@@ -44,7 +44,7 @@ server:listen(PORT, HOST, function(err)
     client:on('data', function(data)
       assert(#data == 5)
       assert(data == 'hello')
-      client:close()
+      client:destroy()
       server:close()
     end)
 

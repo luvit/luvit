@@ -17,5 +17,5 @@ conn:on('error', function(err)
 end)
 
 doesnt_throw(function()
-  conn:close()
+  conn:destroy()
 end)

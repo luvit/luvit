@@ -72,12 +72,6 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:close()
-  if self._handle then
-    self._handle:close()
-  end
-end
-
 function Socket:pipe(destination)
   self._handle:pipe(destination)
 end
@@ -297,7 +291,7 @@ function Server:listen(port, ... --[[ ip, callback --]] )
     self._handle:accept(client)
     local sock = Socket:new(client)
     sock:on('end', function()
-      sock:close()
+      sock:destroy()
     end)
     sock:resume()
     self:emit('connection', sock)
