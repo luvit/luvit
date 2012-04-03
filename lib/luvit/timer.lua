@@ -24,30 +24,69 @@ local TIMEOUT_MAX = 2147483647
 
 local lists = {}
 
+function init(list)
+  list._idleNext = list
+  list._idlePrev = list
+end
+
+function peek(list)
+  if list._idlePrev == list then
+    return nil
+  end
+  return list._idlePrev
+end
+
+function remove(item)
+  if item._idleNext then
+    item._idleNext._idlePrev = item._idlePrev
+  end
+
+  if item._idlePrev then
+    item._idlePrev._idleNext = item._idleNext
+  end
+
+  item._idleNext = 0
+  item._idlePrev = 0
+end
+
+function shift(list)
+  local elem = list._idlePrev
+  remove(elem)
+  return elem
+end
+
+function append(list, item)
+  remove(item)
+  item._idleNext = list._idleNext
+  list._idleNext._idlePrev = item
+  item._idlePrev = list
+  list._idleNext = item
+end
+
+function isEmpty(list)
+  return list._idleNext == list
+end
+
 local expiration
 expiration = function(msecs)
   return function()
     local now = Timer.now()
     -- pull out the element from back to front, so we can remove elements safely
-    for i=#lists[msecs].items, 1, -1 do
-      local elem = lists[msecs].items[i]
+    while peek(lists[msecs]) do
+      local elem = peek(lists[msecs])
       local diff = now - elem._idleStart;
-      p('diff = ' .. diff)
-      p('msecs = ' .. msecs)
       if ((diff + 1) < msecs) == true then
-        p('in timer.start')
-        lists[msecs].timer:start(msecs - diff, 0, expiration)
+        lists[msecs]:start(msecs - diff, 0, expiration)
         return
       else
-        table.remove(lists[msecs].items, i)
+        remove(elem)
         if elem._onTimeout then
           elem._onTimeout()
         end
       end
     end
 
-    p(msecs .. ' list empty')
-    lists[msecs].timer:close()
+    lists[msecs]:close()
     lists[msecs] = nil
   end
 end
@@ -59,15 +98,18 @@ function _insert(item, msecs)
 
   if msecs < 0 then return end
 
-  if not lists[msecs] then
-    local list = {}
-    list.items = { item }
-    list.timer = Timer:new()
-    lists[msecs] = list
-    list.timer:start(msecs, 0, expiration(msecs))
+  local list
+
+  if lists[msecs] then
+    list = lists[msecs]
   else
-    table.insert(lists[msecs].items, item)
+    list = Timer:new()
+    init(list)
+    list:start(msecs, 0, expiration(msecs))
+    lists[msecs] = list
   end
+
+  append(list, item)
 end
 
 function unenroll(item)
@@ -85,20 +127,18 @@ function enroll(item, msecs)
     unenroll(item)
   end
   item._idleTimeout = msecs
+  init(item)
 end
 
 -- call this whenever the item is active (not idle)
 function active(item)
   local msecs = item._idleTimeout
   if msecs >= 0 then
-    if not lists[msecs] then
-      p('_insert')
+    if not lists[msecs] or isEmpty(lists[msecs]) then
       _insert(item, msecs)
     else
-      p('_append')
       item._idleStart = Timer.now()
-      table.insert(lists[msecs].items, item)
-      p(lists[msecs].items)
+      append(lists[msecs], item)
     end
   end
 end
@@ -115,7 +155,6 @@ function setTimeout(duration, callback, ...)
   timer._idleNext = timer
   timer._idlePrev = timer
   timer._onTimeout = function()
-    p('_onTimeout')
     callback(unpack(args))
   end
   active(timer)
