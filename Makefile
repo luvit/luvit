@@ -46,11 +46,11 @@ export Q=
 MAKEFLAGS+=-e
 
 LDFLAGS+=-L${BUILDDIR} 
-LIBS += -lluvit -lm -ldl -lpthread \
-	${ZLIBDIR}/libz.a \
+LIBS += ${ZLIBDIR}/libz.a \
 	${YAJLDIR}/yajl.a \
 	${UVDIR}/uv.a \
-	${LUADIR}/src/libluajit.a
+	${LUADIR}/src/libluajit.a \
+	-lluvit -lm -ldl -lpthread 
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
 CPPFLAGS+=$(shell pkg-config --cflags openssl)
