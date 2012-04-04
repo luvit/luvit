@@ -50,7 +50,15 @@ timer.setTimeout(500, function()
   zeroTimeoutTriggered2 = true
 end)
 
+-- test cancelled timer
+local cancelledTimerTriggered = false
+local cancelledTimer = timer.setTimeout(10000, function()
+  cancelledTimerTriggered = true
+end)
+timer.clearTimer(cancelledTimer)
+
 process:on('exit', function()
   assert(zeroTimeoutTriggered == true)
   assert(zeroTimeoutTriggered2 == true)
+  assert(cancelledTimerTriggered == false)
 end)
