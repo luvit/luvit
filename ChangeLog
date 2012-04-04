@@ -1,0 +1,32 @@
+
+* Changes between 0.2.0 to 0.3.0
+
+	API Changes
+
+	* Stream objects now call destroy() instead of close()
+
+	New Features
+
+	* TLS/SSL Support (Ryan Phillips)
+	* Crypto Support (Brandon Philips)
+	* Zlib Binding (Vladimir Dronnikov)
+	* Chaining Emitters (Vladimir Dronnikov)
+	* Socket Timeout (Ryan Phillips)
+	* Socket Drain (Ryan Phillips)
+	* OS Path Module (Brandon Philips)
+	* Suppress color output (-n switch) (radare)
+	* Listen() now supports backlog size (Bladimir Dronnikov)
+	* obj:removeListener(name, nil) will remove all listeners (Vladimir Dronnikov)
+	* Buffer writes before a connect (Ryan Phillips)
+	* Debug Interface (Ryan Phillips)
+	* Add process.nextTick() (Brandon Philips)
+
+	Bug Fixes
+
+	* Timer (Ryan Phillips)
+	* Module loading with relative paths (Brandon Philips)
+	* Chunking HTTP Fixes (Vladimir Dronnikov)
+	* HTTP Parser Fixes (Paul Querna)
+	* Keep Alive EPIPE Fix (Vladimir Dronnikov)
+	* Windows Fixes (Brandon Philips)
+	* Socket error handling (Brandon Philips)
