@@ -197,9 +197,7 @@ end
 
 -- Timer:start(timeout, interval, callback)
 function Timer:start(timeout, interval, callback)
-  native.timerStart(self, timeout, interval, function()
-    callback()
-  end)
+  native.timerStart(self, timeout, interval, callback)
   self:_update()
 end
 
@@ -207,8 +205,6 @@ function Timer:close()
   Handle.close(self)
   if self._active == false then
     native.ref()
-  else
-    native.unref()
   end
 end
 

@@ -37,7 +37,7 @@ interval = timer.setInterval(200, function(arg1)
     timer.clearTimer(interval)
   end
 end, 'test2')
-
+--
 -- nextTick
 local zeroTimeoutTriggered = false
 timer.setTimeout(500, function()

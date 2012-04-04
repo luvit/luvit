@@ -181,6 +181,8 @@ function clearTimer(timer)
     else
       unenroll(timer)
     end
+  else
+    timer:close()
   end
 end
 
