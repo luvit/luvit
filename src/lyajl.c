@@ -287,6 +287,8 @@ static int lyajl_config (lua_State *L) {
   const char* option;
   luvit_parser_t *parser = parser_get(L, 1);
 
+  option = luaL_checkstring(L, 2);
+
   if (strcmp(option, "allow_comments") == 0) {
     yajl_config(parser->handle, yajl_allow_comments, lua_toboolean(L, 3));
   } else if (strcmp(option, "dont_validate_strings") == 0) {
@@ -408,6 +410,7 @@ static int lyajl_gen_config (lua_State *L) {
   const char *option;
   luv_ref_t* ref;
   luvit_generator_t *generator = generator_get(L, 1);
+  option = luaL_checkstring(L, 2);
 
   if (strcmp(option, "beautify") == 0) {
     yajl_gen_config(generator->gen, yajl_gen_beautify, lua_toboolean(L, 3));

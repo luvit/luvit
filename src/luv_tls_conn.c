@@ -55,7 +55,7 @@ typedef struct tls_conn_t {
   int error;
 
   /* SNI Support */
-  const char *server_name;
+  char *server_name;
   int sni_callback_ref;
 } tls_conn_t;
 
@@ -83,7 +83,7 @@ sni_context_callback(SSL *s, int *ad, void *arg) {
 
   if (server_name) {
     if (tc->server_name) {
-      free(tc->server_name);
+      free((void*)tc->server_name);
     }
     tc->server_name = strdup(server_name);
     if (tc->sni_callback_ref) {

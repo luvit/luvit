@@ -192,7 +192,7 @@ ${CRYPTODIR}/Makefile:
 	git submodule update --init ${CRYPTODIR}
 
 ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
-	${CC} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
+	${CC} ${CPPFLAGS} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
 ${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
