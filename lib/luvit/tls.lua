@@ -707,7 +707,6 @@ function Server:initialize(...)
 
   if listener then
     self:on('secureConnection', listener)
-    self:on('secureConnection', function() p('secureConnection') end)
   end
 end
 
