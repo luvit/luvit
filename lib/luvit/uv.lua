@@ -180,7 +180,7 @@ function Timer:initialize()
   self.userdata = native.newTimer()
   self._active = false
   -- uv_timer_init adds a loop reference. (That is, it calls uv_ref.) This
-  -- is not the behavior we want in Node. Timers should not increase the
+  -- is not the behavior we want in Luvit. Timers should not increase the
   -- ref count of the loop except when active.
   native.unref()
 end
