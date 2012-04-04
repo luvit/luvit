@@ -51,15 +51,6 @@
 
 char scratchbuf[64 * 1024];
 
-static int retvalString(lua_State *L, const char *str)
-{
-  if (str != NULL)
-    lua_pushstring(L, str);
-  else
-    lua_pushnil(L);
-  return 1;
-}
-
 static int snprintfcat(char **ptr, size_t *len, const char *fmt, ...)
 {
   int bw = 0;
