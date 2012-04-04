@@ -113,9 +113,11 @@ function _insert(item, msecs)
 end
 
 function unenroll(item)
+  remove(item)
   local list = lists[item._idleTimeout]
   if list and isEmpty(list) then
     -- empty list
+    list:close()
     lists[item._idleTimeout] = nil
   end
   item._idleTimeout = -1
@@ -172,8 +174,14 @@ function setInterval(period, callback, ...)
 end
 
 function clearTimer(timer)
-  timer._onTimeout = nil
-  timer:close()
+  if timer and timer._onTimeout then
+    timer._onTimeout = nil
+    if timer.close then
+      timer:close()
+    else
+      unenroll(timer)
+    end
+  end
 end
 
 local exports = {}

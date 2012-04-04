@@ -207,6 +207,8 @@ function Timer:close()
   Handle.close(self)
   if self._active == false then
     native.ref()
+  else
+    native.unref()
   end
 end
 
