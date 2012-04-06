@@ -45,12 +45,12 @@ export XCFLAGS
 export Q=
 MAKEFLAGS+=-e
 
-LDFLAGS+=-L${BUILDDIR} 
+LDFLAGS+=-L${BUILDDIR}
 LIBS += ${ZLIBDIR}/libz.a \
 	${YAJLDIR}/yajl.a \
 	${UVDIR}/uv.a \
 	${LUADIR}/src/libluajit.a \
-	-lluvit -lm -ldl -lpthread 
+	-lluvit -lm -ldl -lpthread
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
 CPPFLAGS+=$(shell pkg-config --cflags openssl)
@@ -222,7 +222,7 @@ install: all
 	mkdir -p ${INCDIR}/http_parser
 	cp ${HTTPDIR}/http_parser.h ${INCDIR}/http_parser/
 	mkdir -p ${INCDIR}/uv
-	cp ${UVDIR}/include/uv.h ${INCDIR}/uv/
+	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
 	cp src/*.h ${INCDIR}/
 
 bundle: build/luvit ${BUILDDIR}/libluvit.a
