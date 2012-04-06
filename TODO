@@ -1,0 +1,9 @@
+* Cross Platform Buffer
+* Modify the TLS code to use the Cross Platform Buffer
+* More tests ported from node
+* Use the low level crypto API to mimic node's crypto API
+* Fixup YAJL to parse a table of strings
+* Optional running of dependent deps tests
+* Improve the debugger to dump lua line numbers in stack traces
+* UDP/Datagram Support
+
