@@ -1,8 +1,9 @@
-* Changes between 0.3.0 to {}
+* Changes between 0.3.0 to 0.3.1
 
   Bug Fixes
 
-  * clearTimer fix
+  * Fix socket double 'error' emit
+  * Fix clearTimer
 
 * Changes between 0.2.0 to 0.3.0
 
