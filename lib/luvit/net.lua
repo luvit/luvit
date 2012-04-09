@@ -160,7 +160,7 @@ function Socket:_initEmitters()
   self._handle:on('error', function(err)
     -- destroy on ECONNREFUSED
     if (err.code == 'ECONNREFUSED') then
-      self:destroy(err)
+      self:destroy()
     end
     self:emit('error', err)
   end)
@@ -212,8 +212,8 @@ function Socket:connect(...)
   dns.lookup(options.host, function(err, ip, addressType)
     if err then
       process.nextTick(function()
-        self.emit('error', err);
-        self.destroy();
+        self:emit('error', err)
+        self:destroy()
       end)
     else
       timer.active(self)

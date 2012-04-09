@@ -71,7 +71,6 @@ local expiration
 expiration = function(timer, msecs)
   return function()
     local now = Timer.now()
-    -- pull out the element from back to front, so we can remove elements safely
     while peek(timer) do
       local elem = peek(timer)
       local diff = now - elem._idleStart;
