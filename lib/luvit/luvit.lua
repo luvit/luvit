@@ -141,6 +141,7 @@ package.preload.os_binding = nil
 package.loaded.os_binding = nil
 OS_BINDING.date = OLD_OS.date
 OS_BINDING.time = OLD_OS.time
+OS_BINDING.clock = OLD_OS.clock
 
 
 -- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
