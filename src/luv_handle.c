@@ -71,6 +71,9 @@ void luv_after_connect(uv_connect_t* req, int status) {
     luv_emit_event(L, "connect", 0);
   }
 
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+  free(ref);
+
   assert(lua_gettop(L) == before);
 }
 
