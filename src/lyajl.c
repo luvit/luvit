@@ -274,6 +274,9 @@ static int lyajl_complete_parse (lua_State *L) {
   /* Process the args */
   stat = yajl_complete_parse(parser->handle);
 
+  /* Unreference the callback */
+  luaL_unref(L, LUA_REGISTRYINDEX, parser->ref->r);
+
   if (stat != yajl_status_ok) {
     unsigned char * str = yajl_get_error(parser->handle, 1, (const unsigned char*)0, 0);
     luaL_error(L, (const char *) str);
