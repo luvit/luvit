@@ -24,19 +24,19 @@ local TIMEOUT_MAX = 2147483647
 
 local lists = {}
 
-function init(list)
+local function init(list)
   list._idleNext = list
   list._idlePrev = list
 end
 
-function peek(list)
+local function peek(list)
   if list._idlePrev == list then
     return nil
   end
   return list._idlePrev
 end
 
-function remove(item)
+local function remove(item)
   if item._idleNext then
     item._idleNext._idlePrev = item._idlePrev
   end
@@ -49,13 +49,13 @@ function remove(item)
   item._idlePrev = nil
 end
 
-function shift(list)
+local function shift(list)
   local elem = list._idlePrev
   remove(elem)
   return elem
 end
 
-function append(list, item)
+local function append(list, item)
   remove(item)
   item._idleNext = list._idleNext
   list._idleNext._idlePrev = item
@@ -63,7 +63,7 @@ function append(list, item)
   list._idleNext = item
 end
 
-function isEmpty(list)
+local function isEmpty(list)
   return list._idleNext == list
 end
 
@@ -91,7 +91,7 @@ expiration = function(timer, msecs)
 end
 
 
-function _insert(item, msecs)
+local function _insert(item, msecs)
   item._idleStart = Timer.now()
   item._idleTimeout = msecs
 
@@ -111,7 +111,7 @@ function _insert(item, msecs)
   append(list, item)
 end
 
-function unenroll(item)
+local function unenroll(item)
   remove(item)
   local list = lists[item._idleTimeout]
   if list and isEmpty(list) then
@@ -123,7 +123,7 @@ function unenroll(item)
 end
 
 -- does not start the timer, just initializes the item
-function enroll(item, msecs)
+local function enroll(item, msecs)
   if item._idleNext then
     unenroll(item)
   end
@@ -132,7 +132,7 @@ function enroll(item, msecs)
 end
 
 -- call this whenever the item is active (not idle)
-function active(item)
+local function active(item)
   local msecs = item._idleTimeout
   if msecs and msecs >= 0 then
     local list = lists[msecs]
@@ -145,7 +145,7 @@ function active(item)
   end
 end
 
-function setTimeout(duration, callback, ...)
+local function setTimeout(duration, callback, ...)
   local args = {...}
 
   if duration < 1 or duration > TIMEOUT_MAX then
@@ -163,7 +163,7 @@ function setTimeout(duration, callback, ...)
   return timer
 end
 
-function setInterval(period, callback, ...)
+local function setInterval(period, callback, ...)
   local args = {...}
   local timer = Timer:new()
   timer:start(period, period, function (status)
@@ -172,7 +172,7 @@ function setInterval(period, callback, ...)
   return timer
 end
 
-function clearTimer(timer)
+local function clearTimer(timer)
   if timer and timer._onTimeout then
     timer._onTimeout = nil
     if timer.close then
