@@ -18,6 +18,8 @@ limitations under the License.
 
 require("helper")
 
+local os = require('os')
+
 local timer = require('timer')
 local math = require('math')
 
@@ -64,10 +66,14 @@ function calcJitter(n, jitter)
 end
 
 local recursiveTimerCount = 0
+local recursiveTime = 0
+local st = 0
 function start()
-  local timeout = calcJitter(1000,5000)
+  local timeout = 2000
+  st = os.time()
   return timer.setTimeout(timeout, function()
     recursiveTimerCount = recursiveTimerCount + 1
+    recursiveTime = recursiveTime + os.time() - st
     if recursiveTimerCount < 3 then
       start()
     end
@@ -80,4 +86,5 @@ process:on('exit', function()
   assert(zeroTimeoutTriggered2 == true)
   assert(cancelledTimerTriggered == false)
   assert(recursiveTimerCount == 3)
+  assert(recursiveTime >= 6)
 end)
