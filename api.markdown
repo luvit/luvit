@@ -158,7 +158,7 @@ Half-closes the socket. i.e., it sends a FIN packet. It is possible the
 server will still send some data.
 
 If `data` is specified, it is equivalent to calling
-`socket:write(data)` followed by `socket.end()`.
+`socket:write(data)` followed by `socket:finish()`.
 
 #### Socket:initialize(options)
 
