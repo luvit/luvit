@@ -221,7 +221,7 @@ function CryptoStream:done(d)
   end
 
   if d then
-    self:write(d);
+    self:write(d)
   end
 
   self.writable = false
@@ -305,7 +305,7 @@ function CryptoStream:_push()
     else
       dbg('cleartext emit data with ' .. #data .. ' bytes')
     end
-    self:emit('data', data);
+    self:emit('data', data)
   end
 end
 
@@ -632,7 +632,7 @@ function pipe(pair, socket)
     cleartext:emit('timeout')
   end
 
-  socket:on('error', onerror);
+  socket:on('error', onerror)
   socket:on('end', onend)
   socket:on('timeout', ontimeout)
 
@@ -667,7 +667,7 @@ function Server:initialize(...)
     secureProtocol = self.secureProtocol,
     secureOptions = self.secureOptions,
     sessionIdContext = self.sessionIdContext
-  });
+  })
 
   -- Constructor
   net.Server.initialize(self, function(socket)
@@ -766,7 +766,7 @@ function Server:setOptions(options)
     self.secureProtocol = options.secureProtocol
   end
 
-  self.secureOptions = options.secureOptions or 0;
+  self.secureOptions = options.secureOptions or 0
 
   if options.honorCipherOrder then
     -- TODO
