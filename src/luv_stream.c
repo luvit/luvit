@@ -22,9 +22,8 @@
 
 void luv_on_connection(uv_stream_t* handle, int status) {
   /* load the lua state and the userdata */
-  luv_ref_t* ref = handle->data;
-  lua_State *L = ref->L;
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_State* L = luv_handle_get_lua(handle->data);
+
   if (status == -1) {
     luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "on_connection", NULL);
     luv_emit_event(L, "error", 1);
@@ -34,11 +33,8 @@ void luv_on_connection(uv_stream_t* handle, int status) {
 }
 
 void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
-
   /* load the lua state and the userdata */
-  luv_ref_t* ref = handle->data;
-  lua_State *L = ref->L;
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_State* L = luv_handle_get_lua(handle->data);
 
   if (nread >= 0) {
 
@@ -60,15 +56,29 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
   free(buf.base);
 }
 
+void luv_after_connect(uv_connect_t* req, int status) {
+  /* load the lua state and the userdata */
+  lua_State* L = luv_handle_get_lua(req->handle->data);
+
+  if (status == -1) {
+    luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "after_connect", NULL);
+    luv_emit_event(L, "error", 1);
+  } else {
+    luv_emit_event(L, "connect", 0);
+  }
+  free(req);
+
+}
 
 
 void luv_after_shutdown(uv_shutdown_t* req, int status) {
-
-  /* load the lua state and the callback */
-  luv_shutdown_ref_t* ref = req->data;
-  lua_State *L = ref->L;
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+  /* load the lua state and the userdata */
+  lua_State *L = luv_handle_get_lua(req->handle->data);
+  lua_pop(L, 1); /* We don't need the userdata */
+  /* load the request callback */
+  lua_rawgeti(L, LUA_REGISTRYINDEX, req->data);
+  luaL_unref(L, LUA_REGISTRYINDEX, req->data);
+  
 
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
@@ -80,17 +90,20 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   } else {
     lua_pop(L, 1);
   }
-
-  free(ref);/* We're done with the ref object, free it */
+  
+  luv_handle_unref(L, req->handle->data);
+  free(req);
 }
 
 void luv_after_write(uv_write_t* req, int status) {
 
-  /* load the lua state and the callback */
-  luv_write_ref_t* ref = req->data;
-  lua_State *L = ref->L;
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
+  /* load the lua state and the userdata */
+  lua_State *L = luv_handle_get_lua(req->handle->data);
+  lua_pop(L, 1); /* We don't need the userdata */
+  /* load the callback */
+  lua_rawgeti(L, LUA_REGISTRYINDEX, req->data);
+  luaL_unref(L, LUA_REGISTRYINDEX, req->data);
+
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
       luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "after_write", NULL);
@@ -102,31 +115,28 @@ void luv_after_write(uv_write_t* req, int status) {
     lua_pop(L, 1);
   }
 
-  free(ref);/* We're done with the ref object, free it */
-
+  luv_handle_unref(L, req->handle->data);
+  free(req);
 }
 
 int luv_shutdown(lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
 
-  luv_shutdown_ref_t* ref = (luv_shutdown_ref_t*)malloc(sizeof(luv_shutdown_ref_t));
+  uv_shutdown_t* req = (uv_shutdown_t*)malloc(sizeof(uv_shutdown_t));
 
   /* Store a reference to the callback */
-  ref->L = L;
   lua_pushvalue(L, 2);
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
+  req->data = luaL_ref(L, LUA_REGISTRYINDEX);
+  
+  luv_handle_ref(L, handle->data, 1);
 
-  /* Give the shutdown_req access to this */
-  ref->shutdown_req.data = ref;
-
-  uv_shutdown(&ref->shutdown_req, handle, luv_after_shutdown);
+  uv_shutdown(req, handle, luv_after_shutdown);
 
   return 0;
 }
 
 int luv_listen (lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
-  luv_ref_t* ref = handle->data;
   int backlog_size;
   luaL_checktype(L, 2, LUA_TFUNCTION);
   backlog_size = luaL_optint(L, 3, 128);
@@ -138,8 +148,10 @@ int luv_listen (lua_State* L) {
     luaL_error(L, "listen: %s", uv_strerror(err));
   }
 
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_pushvalue(L, 1);
   luv_emit_event(L, "listening", 0);
+
+  luv_handle_ref(L, handle->data, 1);
 
   return 0;
 }
@@ -158,6 +170,7 @@ int luv_accept (lua_State* L) {
 int luv_read_start (lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   uv_read_start(handle, luv_on_alloc, luv_on_read);
+  luv_handle_ref(L, handle->data, 1);
   return 0;
 }
 
@@ -168,6 +181,7 @@ int luv_read_start2(lua_State* L) {
 int luv_read_stop(lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   uv_read_stop(handle);
+  luv_handle_unref(L, handle->data);
   return 0;
 }
 
@@ -177,28 +191,25 @@ int luv_write_queue_size(lua_State* L) {
   return 1;
 }
 
-int luv_write (lua_State* L) {
+int luv_write(lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
 
-  luv_write_ref_t* ref = (luv_write_ref_t*)malloc(sizeof(luv_write_ref_t));
+  uv_write_t* req = (uv_write_t*)malloc(sizeof(uv_write_t));
 
   /* Store a reference to the callback */
-  ref->L = L;
   lua_pushvalue(L, 3);
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-
-  /* Give the write_req access to this */
-  ref->write_req.data = ref;
+  req->data = luaL_ref(L, LUA_REGISTRYINDEX);
+  
+  luv_handle_ref(L, handle->data, 1);
 
   /* Store the chunk
    * TODO: this is probably unsafe, should investigate
    */
-  ref->refbuf.base = (char*)chunk;
-  ref->refbuf.len = len;
+  uv_buf_t buf = uv_buf_init((char*)chunk, len);
 
-  uv_write(&ref->write_req, handle, &ref->refbuf, 1, luv_after_write);
+  uv_write(req, handle, &buf, 1, luv_after_write);
   return 0;
 }
 

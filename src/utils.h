@@ -46,14 +46,41 @@ void luv_push_async_error_raw(lua_State* L, const char *code, const char *msg, c
 /* An alternative to luaL_checkudata that takes inheritance into account for polymorphism
  * Make sure to not call with long type strings or strcat will overflow
  */
-void* luv_checkudata(lua_State* L, int index, const char* type);
+uv_handle_t* luv_checkudata(lua_State* L, int index, const char* type);
 
 const char* luv_handle_type_to_string(uv_handle_type type);
 
-
+/* luv handles are used as the userdata type that points to uv handles. 
+ * The luv handle is considered strong when it's "active" or has non-zero 
+ * reqCount.  When this happens ref will contain a luaL_ref to the userdata.
+ */
 typedef struct {
-  lua_State* L;
-  int r;
-} luv_ref_t;
+  uv_handle_t* handle; /* The actual uv handle. memory managed by luv */
+  int refCount;        /* a count of all pending request to know strength */
+  lua_State* L;        /* L and ref together form a reference to the userdata */
+  int ref;             /* ref is null when refCount is 0 meaning we're weak */
+  const char* type;
+} luv_handle_t;
+
+/* Create a new luv_handle.  Input is the lua state and the size of the desired 
+ * uv struct.  A new userdata is created and pushed onto the stack.  The luv
+ * handle and the uv handle are interlinked.
+ */
+luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type);
+
+/* Convenience wrappers */
+uv_udp_t* luv_create_udp(lua_State* L);
+uv_fs_event_t* luv_create_fs_watcher(lua_State* L);
+uv_timer_t* luv_create_timer(lua_State* L);
+uv_process_t* luv_create_process(lua_State* L);
+uv_tcp_t* luv_create_tcp(lua_State* L);
+uv_pipe_t* luv_create_pipe(lua_State* L);
+uv_tty_t* luv_create_tty(lua_State* L);
+
+/**/
+lua_State* luv_handle_get_lua(luv_handle_t* lhandle);
+
+void luv_handle_ref(lua_State* L, luv_handle_t* lhandle, int index);
+void luv_handle_unref(lua_State* L, luv_handle_t* lhandle);
 
 #endif
