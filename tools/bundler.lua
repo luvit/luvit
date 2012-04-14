@@ -48,7 +48,7 @@ local exports_c = [[
 
 const void *luvit_ugly_hack = NULL;
 
-]] .. mapcat(names, function (name) return "extern const char **luaJIT_BC_" .. name .. ";\n" end) .. [[
+]] .. mapcat(names, function (name) return "extern const char *luaJIT_BC_" .. name .. "[];\n" end) .. [[
 
 const void *luvit__suck_in_symbols(void)
 {
@@ -86,12 +86,12 @@ FS.mkdir("bundle", "0755", function (err)
       end
     end
   end
-  
+
   FS.writeFile("src/luvit_exports.c", exports_c, pend())
   FS.writeFile("src/luvit_exports.h", exports_h, pend())
   for i, file in ipairs(files) do
     ChildProcess.execFile("deps/luajit/src/luajit", {"-b", "lib/luvit/" .. file, "bundle/" .. names[i] .. ".o"}, {}, pend())
   end
-  
+
 end);
 
