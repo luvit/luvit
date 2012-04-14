@@ -78,7 +78,7 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   /* load the request callback */
   lua_rawgeti(L, LUA_REGISTRYINDEX, req->data);
   luaL_unref(L, LUA_REGISTRYINDEX, req->data);
-  
+
 
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
@@ -90,7 +90,7 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   } else {
     lua_pop(L, 1);
   }
-  
+
   luv_handle_unref(L, req->handle->data);
   free(req);
 }
@@ -127,7 +127,7 @@ int luv_shutdown(lua_State* L) {
   /* Store a reference to the callback */
   lua_pushvalue(L, 2);
   req->data = luaL_ref(L, LUA_REGISTRYINDEX);
-  
+
   luv_handle_ref(L, handle->data, 1);
 
   uv_shutdown(req, handle, luv_after_shutdown);
@@ -192,6 +192,7 @@ int luv_write_queue_size(lua_State* L) {
 }
 
 int luv_write(lua_State* L) {
+  uv_buf_t buf;
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
@@ -201,13 +202,13 @@ int luv_write(lua_State* L) {
   /* Store a reference to the callback */
   lua_pushvalue(L, 3);
   req->data = luaL_ref(L, LUA_REGISTRYINDEX);
-  
+
   luv_handle_ref(L, handle->data, 1);
 
   /* Store the chunk
    * TODO: this is probably unsafe, should investigate
    */
-  uv_buf_t buf = uv_buf_init((char*)chunk, len);
+  buf = uv_buf_init((char*)chunk, len);
 
   uv_write(req, handle, &buf, 1, luv_after_write);
   return 0;
