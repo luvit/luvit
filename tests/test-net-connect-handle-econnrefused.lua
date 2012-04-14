@@ -31,8 +31,9 @@ end)
 
 local gotError = false
 c:on('error', function (err)
-  assert('ECONNREFUSED' == err.code)
-  gotError = true;
+  assert('ECONNREFUSED' == err.code or 'EADDRNOTAVAIL' == err.code)
+  gotError = true
+  c:destroy()
 end)
 
 process:on('exit', function()
