@@ -28,6 +28,12 @@
 
 static void* yjajl_js_null;
 
+typedef struct {
+  lua_State* L;
+  int r;
+} luv_ref_t;
+
+
 #define JSON_PARSER_HANDLE "llyajl_parser_handle"
 #define JSON_GENERATOR_HANDLE "llyajl_generator_handle"
 

@@ -57,23 +57,6 @@ void luv_emit_event(lua_State* L, const char* name, int nargs) {
   assert(lua_gettop(L) == before - nargs - 1);
 }
 
-void luv_after_connect(uv_connect_t* req, int status) {
-  /* load the lua state and the userdata */
-  luv_connect_ref_t* ref = req->data;
-  lua_State *L = ref->L;
-  int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
-
-  if (status == -1) {
-    luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "after_connect", NULL);
-    luv_emit_event(L, "error", 1);
-  } else {
-    luv_emit_event(L, "connect", 0);
-  }
-
-  assert(lua_gettop(L) == before);
-}
-
 uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size) {
   uv_buf_t buf;
   buf.base = malloc(suggested_size);
@@ -82,27 +65,39 @@ uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size) {
 }
 
 void luv_on_close(uv_handle_t* handle) {
-
+/*  printf("on_close\tlhandle=%p handle=%p\n", handle->data, handle);*/
   /* load the lua state and the userdata */
-  luv_ref_t* ref = handle->data;
-  lua_State *L = ref->L;
+  luv_handle_t* lhandle = handle->data;
+  lua_State *L = lhandle->L;
   int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, lhandle->ref);
 
   luv_emit_event(L, "closed", 0);
 
+  luv_handle_unref(L, handle->data);
+  
+  if (lhandle->ref != LUA_NOREF) {
+    assert(lhandle->refCount);
+/*    fprintf(stderr, "WARNING: closed %s with %d extra refs lhandle=%p handle=%p\n", lhandle->type, lhandle->refCount, handle->data, handle);*/
+    lhandle->refCount = 1;
+    luv_handle_unref(L, handle->data);    
+  }
+  assert(lhandle->ref == LUA_NOREF);
   /* This handle is no longer valid, clean up memory */
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
-  free(ref);
+  lhandle->handle = 0;
+  free(handle);
 
   assert(lua_gettop(L) == before);
 }
 
 int luv_close (lua_State* L) {
   int before = lua_gettop(L);
-  uv_handle_t* handle = (uv_handle_t*)luv_checkudata(L, 1, "handle");
+  uv_handle_t* handle = luv_checkudata(L, 1, "handle");
+/*  printf("close   \tlhandle=%p handle=%p\n", handle->data, handle);*/
   uv_close(handle, luv_on_close);
+  luv_handle_ref(L, handle->data, 1);
   assert(lua_gettop(L) == before);
+  luv_handle_t* lhandle = handle->data;
   return 0;
 }
 
