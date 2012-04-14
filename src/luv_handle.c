@@ -75,12 +75,12 @@ void luv_on_close(uv_handle_t* handle) {
   luv_emit_event(L, "closed", 0);
 
   luv_handle_unref(L, handle->data);
-  
+
   if (lhandle->ref != LUA_NOREF) {
     assert(lhandle->refCount);
 /*    fprintf(stderr, "WARNING: closed %s with %d extra refs lhandle=%p handle=%p\n", lhandle->type, lhandle->refCount, handle->data, handle);*/
     lhandle->refCount = 1;
-    luv_handle_unref(L, handle->data);    
+    luv_handle_unref(L, handle->data);
   }
   assert(lhandle->ref == LUA_NOREF);
   /* This handle is no longer valid, clean up memory */
@@ -91,13 +91,14 @@ void luv_on_close(uv_handle_t* handle) {
 }
 
 int luv_close (lua_State* L) {
+  luv_handle_t* lhandle;
   int before = lua_gettop(L);
   uv_handle_t* handle = luv_checkudata(L, 1, "handle");
 /*  printf("close   \tlhandle=%p handle=%p\n", handle->data, handle);*/
   uv_close(handle, luv_on_close);
   luv_handle_ref(L, handle->data, 1);
   assert(lua_gettop(L) == before);
-  luv_handle_t* lhandle = handle->data;
+  lhandle = handle->data;
   return 0;
 }
 
