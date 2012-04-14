@@ -20,6 +20,10 @@ local childprocess = require('childprocess')
 local table = require('table')
 local tls = require('tls')
 
+if require('os').type() == 'win32' then
+  return
+end
+
 --[[
  This is a rather complex test which sets up various TLS servers with node
  and connects to them using the 'openssl s_client' command line utility

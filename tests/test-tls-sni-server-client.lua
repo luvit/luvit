@@ -20,6 +20,10 @@ local childprocess = require('childprocess')
 local table = require('table')
 local tls = require('tls')
 
+if require('os').type() == 'win32' then
+  return
+end
+
 local options = {
   key = fixture.loadPEM('agent2-key'),
   cert = fixture.loadPEM('agent2-cert')

@@ -10,6 +10,10 @@ local options = {
   ciphers = 'NULL-MD5'
 }
 
+if require('os').type() == 'win32' then
+  return
+end
+
 local reply = 'I AM THE WALRUS'
 local nconns = 0
 local response = ''
