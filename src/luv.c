@@ -161,6 +161,17 @@ static const luaL_reg luv_f[] = {
   {NULL, NULL}
 };
 
+/* When the lhandle is freed, do some helpful sanity checks */
+static int luv_handle_gc(lua_State* L) {
+  luv_handle_t* lhandle = (luv_handle_t*)lua_touserdata(L, 1);
+/*  printf("__gc %s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  /* If the handle is still there, they forgot to close */
+  if (lhandle->handle) {
+    fprintf(stderr, "WARNING: forgot to close %s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);
+    uv_close(uv_default_loop(), lhandle->handle);
+  }
+  return 0;
+}
 
 LUALIB_API int luaopen_uv_native (lua_State* L) {
   int before = lua_gettop(L);
@@ -168,116 +179,9 @@ LUALIB_API int luaopen_uv_native (lua_State* L) {
   /* metatable for handle userdata types */
   /* It is it's own __index table to save space */
   luaL_newmetatable(L, "luv_handle");
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_handle"); /* Tag for polymorphic type checking */
-  lua_pushvalue(L, -1); /* copy the metatable/table so it's still on the stack */
-  lua_setfield(L, -2, "__index");
+  lua_pushcfunction(L, luv_handle_gc);
+  lua_setfield(L, -2, "__gc");
   lua_pop(L, 1);
-
-  /* Metatable for udp */
-  luaL_newmetatable(L, "luv_udp");
-  /* Create table of udp methods */
-  lua_newtable(L); /* udp_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_udp"); /* Tag for polymorphic type checking */
-  /* Load the parent metatable so we can inherit it's methods */
-  luaL_newmetatable(L, "luv_handle");
-  lua_setmetatable(L, -2);
-  /* use method table in metatable's __index */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_udp */
-
-  /* Metatable for fs_watcher */
-  luaL_newmetatable(L, "luv_fs_watcher");
-  /* Create table of fs_watcher methods */
-  lua_newtable(L); /* fs_watcher_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_fs_watcher"); /* Tag for polymorphic type checking */
-  /* Load the parent metatable so we can inherit it's methods */
-  luaL_newmetatable(L, "luv_handle");
-  lua_setmetatable(L, -2);
-  /* use method table in metatable's __index */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_fs_watcher */
-
-  /* Metatable for timer */
-  luaL_newmetatable(L, "luv_timer");
-  /* Create table of timer methods */
-  lua_newtable(L); /* timer_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_timer"); /* Tag for polymorphic type checking */
-  /* Load the parent metatable so we can inherit it's methods */
-  luaL_newmetatable(L, "luv_handle");
-  lua_setmetatable(L, -2);
-  /* use method table in metatable's __index */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_timer */
-
-  /* Metatable for process */
-  luaL_newmetatable(L, "luv_process");
-  /* Create table of process methods */
-  lua_newtable(L); /* process_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_process"); /* Tag for polymorphic type checking */
-  /* Load the parent metatable so we can inherit it's methods */
-  luaL_newmetatable(L, "luv_handle");
-  lua_setmetatable(L, -2);
-  /* use method table in metatable's __index */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_process */
-
-  /* Metatable for streams */
-  luaL_newmetatable(L, "luv_stream");
-  /* Create table of stream methods */
-  lua_newtable(L); /* stream_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_stream"); /* Tag for polymorphic type checking */
-  /* Load the parent metatable so we can inherit it's methods */
-  luaL_newmetatable(L, "luv_handle");
-  lua_setmetatable(L, -2);
-  /* use method table in metatable's __index */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_stream */
-
-  /* metatable for tcp userdata */
-  luaL_newmetatable(L, "luv_tcp");
-  /* table for methods */
-  lua_newtable(L); /* tcp_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_tcp"); /* Tag for polymorphic type checking */
-  /* Inherit from streams */
-  luaL_newmetatable(L, "luv_stream");
-  lua_setmetatable(L, -2);
-  /* Use as __index and pop metatable */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_tcp */
-
-  /* metatable for pipe userdata */
-  luaL_newmetatable(L, "luv_pipe");
-  /* table for methods */
-  lua_newtable(L); /* pipe_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_pipe"); /* Tag for polymorphic type checking */
-  /* Inherit from streams */
-  luaL_newmetatable(L, "luv_stream");
-  lua_setmetatable(L, -2);
-  /* Use as __index and pop metatable */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_pipe */
-
-  /* metatable for tty userdata */
-  luaL_newmetatable(L, "luv_tty");
-  /* table for methods */
-  lua_newtable(L); /* tty_m */
-  lua_pushboolean(L, TRUE);
-  lua_setfield(L, -2, "is_tty"); /* Tag for polymorphic type checking */
-  /* Inherit from streams */
-  luaL_newmetatable(L, "luv_stream");
-  lua_setmetatable(L, -2);
-  /* Use as __index and pop metatable */
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1); /* we're done with luv_tty */
-
 
   /* Create a new exports table with functions and constants */
   lua_newtable (L);

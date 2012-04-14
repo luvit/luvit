@@ -27,28 +27,8 @@ void luv_on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct socka
 }
 
 int luv_new_udp (lua_State* L) {
-  int before = lua_gettop(L);
-  luv_ref_t* ref;
-  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
+  uv_udp_t* handle = luv_create_udp(L);
   uv_udp_init(luv_get_loop(L), handle);
-
-  /* Set metatable for type */
-  luaL_getmetatable(L, "luv_udp");
-  lua_setmetatable(L, -2);
-
-  /* Create a local environment for storing stuff */
-  lua_newtable(L);
-  lua_setfenv (L, -2);
-
-  /* Store a reference to the userdata in the handle */
-  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  handle->data = ref;
-
-  assert(lua_gettop(L) == before + 1);
-  /* return the userdata */
   return 1;
 }
 

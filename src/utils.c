@@ -88,10 +88,7 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
   luv_push_async_error_raw(L, code, msg, source, path);
 }
 
-/* An alternative to luaL_checkudata that takes inheritance into account for polymorphism
- * Make sure to not call with long type strings or strcat will overflow
- */
-void* luv_checkudata(lua_State* L, int index, const char* type) {
+uv_handle_t* luv_checkudata(lua_State* L, int index, const char* type) {
   char key[32];
 
   /* Check for table wrappers as well and replace it with the userdata it points to */
@@ -99,20 +96,10 @@ void* luv_checkudata(lua_State* L, int index, const char* type) {
     lua_getfield(L, index, "userdata");
     lua_replace(L, index);
   }
+
   luaL_checktype(L, index, LUA_TUSERDATA);
 
-  /* prefix with is_ before looking up property */
-  strcpy(key, "is_");
-  strcat(key, type);
-
-  lua_getfield(L, index, key);
-  if (lua_isnil(L, -1)) {
-    lua_pop(L, 1);
-    luaL_argerror(L, index, key);
-  };
-  lua_pop(L, 1);
-
-  return lua_touserdata(L, index);
+  return ((luv_handle_t*)lua_touserdata(L, index))->handle;
 }
 
 const char* luv_handle_type_to_string(uv_handle_type type) {
@@ -147,6 +134,90 @@ uv_loop_t* luv_get_loop(lua_State *L) {
   lua_pop(L, 1);
   return loop;
 }
+
+
+
+/* Initialize a new lhandle and push the new userdata on the stack. */
+luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
+
+  /* Create the userdata and set it's metatable */
+  luv_handle_t* lhandle = (luv_handle_t*)lua_newuserdata(L, sizeof(luv_handle_t));
+  
+  /* Set metatable for type */
+  luaL_getmetatable(L, "luv_handle");
+  lua_setmetatable(L, -2);
+  
+  /* Create a local environment for storing stuff */
+  lua_newtable(L);
+  lua_setfenv (L, -2);
+
+  /* Initialize and return the lhandle */
+  lhandle->handle = (uv_handle_t*)malloc(size);
+  lhandle->handle->data = lhandle; /* Point back to lhandle from handle */
+  lhandle->refCount = 0;
+  lhandle->L = L;
+  lhandle->ref = LUA_NOREF;
+  lhandle->type = type;
+  return lhandle;
+}
+
+uv_udp_t* luv_create_udp(lua_State* L) {
+  return (uv_udp_t*)luv_handle_create(L, sizeof(uv_udp_t), "luv_udp")->handle;
+}
+uv_fs_event_t* luv_create_fs_watcher(lua_State* L) {
+  return (uv_fs_event_t*)luv_handle_create(L, sizeof(uv_fs_event_t), "luv_fs_watcher")->handle;
+}
+uv_timer_t* luv_create_timer(lua_State* L) {
+  return (uv_timer_t*)luv_handle_create(L, sizeof(uv_timer_t), "luv_timer")->handle;
+}
+uv_process_t* luv_create_process(lua_State* L) {
+  return (uv_process_t*)luv_handle_create(L, sizeof(uv_process_t), "luv_process")->handle;
+}
+uv_tcp_t* luv_create_tcp(lua_State* L) {
+  return (uv_tcp_t*)luv_handle_create(L, sizeof(uv_tcp_t), "luv_tcp")->handle;
+}
+uv_pipe_t* luv_create_pipe(lua_State* L) {
+  return (uv_pipe_t*)luv_handle_create(L, sizeof(uv_pipe_t), "luv_pipe")->handle;
+}
+uv_tty_t* luv_create_tty(lua_State* L) {
+  return (uv_tty_t*)luv_handle_create(L, sizeof(uv_tty_t), "luv_tty")->handle;
+}
+
+/* This needs to be called when an async function is started on a lhandle. */
+void luv_handle_ref(lua_State* L, luv_handle_t* lhandle, int index) {
+/*  printf("luv_handle_ref\t%s %p:%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  /* If it's inactive, store a ref. */
+  if (!lhandle->refCount) {
+    lua_pushvalue(L, index);
+    lhandle->ref = luaL_ref(L, LUA_REGISTRYINDEX);
+/*    printf("makeStrong\t%s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  }
+  lhandle->refCount++;
+}
+
+/* This needs to be called when an async callback fires on a lhandle. */
+void luv_handle_unref(lua_State* L, luv_handle_t* lhandle) {
+/*  printf("luv_handle_unref\t%s %p:%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  lhandle->refCount--;
+  assert(lhandle->refCount >= 0);
+  /* If it's now inactive, clear the ref */
+  if (!lhandle->refCount) {
+    luaL_unref(L, LUA_REGISTRYINDEX, lhandle->ref);
+    lhandle->ref = LUA_NOREF;
+/*    printf("makeWeak\t%s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  }
+}
+
+
+/* extract the lua_State* and push the userdata on the stack */
+lua_State* luv_handle_get_lua(luv_handle_t* lhandle) {
+/*  printf("luv_handle_get_lua\t%s %p:%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  assert(lhandle->refCount); /* sanity check */
+  assert(lhandle->ref != LUA_NOREF); /* the ref should be there */
+  lua_rawgeti(lhandle->L, LUA_REGISTRYINDEX, lhandle->ref);
+  return lhandle->L;
+}
+
 
 void luv_set_ares_channel(lua_State *L, ares_channel channel) {
   lua_pushlightuserdata(L, channel);

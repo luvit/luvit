@@ -24,16 +24,13 @@
 
 void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal) {
   /* load the lua state and the userdata */
-  luv_ref_t* ref = handle->data;
-  lua_State *L = ref->L;
-  int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  lua_State *L = luv_handle_get_lua(handle->data);
 
   lua_pushinteger(L, exit_status);
   lua_pushinteger(L, term_signal);
   luv_emit_event(L, "exit", 2);
+  luv_handle_unref(L, handle->data);
 
-  assert(lua_gettop(L) == before);
 }
 
 
@@ -52,7 +49,6 @@ int luv_spawn(lua_State* L) {
   uv_process_options_t options;
   uv_process_t* handle;
   int r;
-  luv_ref_t* ref;
 
   luaL_checktype(L, 5, LUA_TTABLE); /* args */
   luaL_checktype(L, 6, LUA_TTABLE); /* options */
@@ -99,7 +95,8 @@ int luv_spawn(lua_State* L) {
   options.stderr_stream = stderr_stream;
 
   /* Create the userdata */
-  handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
+  handle = luv_create_process(L);
+  luv_handle_ref(L, handle->data, -1);
   r = uv_spawn(luv_get_loop(L), handle, options);
   free(args);
   if (env) free(env);
@@ -107,21 +104,6 @@ int luv_spawn(lua_State* L) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "spawn: %s", uv_strerror(err));
   }
-
-  /* Set metatable for type */
-  luaL_getmetatable(L, "luv_process");
-  lua_setmetatable(L, -2);
-
-  /* Create a local environment for storing stuff */
-  lua_newtable(L);
-  lua_setfenv (L, -2);
-
-  /* Store a reference to the userdata in the handle */
-  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  handle->data = ref;
 
   assert(lua_gettop(L) == before + 1);
   /* return the userdata */

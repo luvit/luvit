@@ -23,29 +23,8 @@
 #include "utils.h"
 
 int luv_new_tcp (lua_State* L) {
-  int before = lua_gettop(L);
-  luv_ref_t* ref;
-
-  uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
+  uv_tcp_t* handle = luv_create_tcp(L);
   uv_tcp_init(luv_get_loop(L), handle);
-
-  /* Set metatable for type */
-  luaL_getmetatable(L, "luv_tcp");
-  lua_setmetatable(L, -2);
-
-  /* Create a local environment for storing stuff */
-  lua_newtable(L);
-  lua_setfenv (L, -2);
-
-  /* Store a reference to the userdata in the handle */
-  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  handle->data = ref;
-
-  assert(lua_gettop(L) == before + 1);
-  /* return the userdata */
   return 1;
 }
 
@@ -193,20 +172,14 @@ int luv_tcp_connect(lua_State* L) {
 
   struct sockaddr_in address = uv_ip4_addr(ip_address, port);
 
-  luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
+  uv_connect_t* req = (uv_connect_t*)malloc(sizeof(uv_connect_t));
 
-  /* Store a reference to the userdata */
-  ref->L = L;
-  lua_pushvalue(L, 1);
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-
-  /* Give the connect_req access to this */
-  ref->connect_req.data = ref;
-
-  if (uv_tcp_connect(&ref->connect_req, handle, address, luv_after_connect)) {
+  if (uv_tcp_connect(req, handle, address, luv_after_connect)) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_connect: %s", uv_strerror(err));
   }
+
+  luv_handle_ref(L, handle->data, 1);
 
   assert(lua_gettop(L) == before);
   return 0;
@@ -221,17 +194,9 @@ int luv_tcp_connect6(lua_State* L) {
 
   struct sockaddr_in6 address = uv_ip6_addr(ip_address, port);
 
-  luv_connect_ref_t* ref = (luv_connect_ref_t*)malloc(sizeof(luv_connect_ref_t));
+  uv_connect_t* req = (uv_connect_t*)malloc(sizeof(uv_connect_t));
 
-  /* Store a reference to the userdata */
-  ref->L = L;
-  lua_pushvalue(L, 1);
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-
-  /* Give the connect_req access to this */
-  ref->connect_req.data = ref;
-
-  if (uv_tcp_connect6(&ref->connect_req, handle, address, luv_after_connect)) {
+  if (uv_tcp_connect6(req, handle, address, luv_after_connect)) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_connect6: %s", uv_strerror(err));
   }

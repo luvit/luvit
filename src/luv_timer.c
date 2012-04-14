@@ -22,38 +22,14 @@
 #include "utils.h"
 
 int luv_new_timer (lua_State* L) {
-  int before = lua_gettop(L);
-  luv_ref_t* ref;
-  uv_timer_t* handle = (uv_timer_t*)lua_newuserdata(L, sizeof(uv_timer_t));
-  uv_loop_t *loop = luv_get_loop(L);
-  uv_timer_init(loop, handle);
-
-  /* Set metatable for type */
-  luaL_getmetatable(L, "luv_timer");
-  lua_setmetatable(L, -2);
-
-  /* Create a local environment for storing stuff */
-  lua_newtable(L);
-  lua_setfenv (L, -2);
-
-  /* Store a reference to the userdata in the handle */
-  ref = (luv_ref_t*)malloc(sizeof(luv_ref_t));
-  ref->L = L;
-  lua_pushvalue(L, -1); /* duplicate so we can _ref it */
-  ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
-  handle->data = ref;
-
-  assert(lua_gettop(L) == before + 1);
-  /* return the userdata */
+  uv_timer_t* handle = luv_create_timer(L);
+  uv_timer_init(luv_get_loop(L), handle);
   return 1;
 }
 
 void luv_on_timer(uv_timer_t* handle, int status) {
-  /* load the lua state and the userdata */
-  luv_ref_t* ref = handle->data;
-  lua_State *L = ref->L;
-  int before = lua_gettop(L);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
+  /* load the lua state and put the userdata on the stack */
+  lua_State* L = luv_handle_get_lua(handle->data);
 
   if (status == -1) {
     luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "on_timer", NULL);
@@ -62,7 +38,6 @@ void luv_on_timer(uv_timer_t* handle, int status) {
     luv_emit_event(L, "timeout", 0);
   }
 
-  assert(lua_gettop(L) == before);
 }
 
 int luv_timer_start(lua_State* L) {
@@ -78,6 +53,7 @@ int luv_timer_start(lua_State* L) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "timer_start: %s", uv_strerror(err));
   }
+  luv_handle_ref(L, handle->data, 1);
 
   assert(lua_gettop(L) == before);
   return 0;
@@ -92,6 +68,7 @@ int luv_timer_stop(lua_State* L) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "timer_stop: %s", uv_strerror(err));
   }
+  luv_handle_unref(L, handle->data);
 
   assert(lua_gettop(L) == before);
   return 0;
