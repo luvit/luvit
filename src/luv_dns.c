@@ -31,17 +31,14 @@ typedef struct {
 
 /* Utility for storing the callback in the dns_req token */
 static luv_dns_ref_t* luv_dns_store_callback(lua_State* L, int index) {
-  int before;
   luv_dns_ref_t* ref;
 
-  before = lua_gettop(L);
   ref = calloc(1, sizeof(luv_dns_ref_t));
   ref->L = L;
   if (lua_isfunction(L, index)) {
     lua_pushvalue(L, index); /* Store the callback */
     ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   }
-  assert(lua_gettop(L) == before);
   return ref;
 }
 

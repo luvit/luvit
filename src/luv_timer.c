@@ -16,7 +16,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "luv_tcp.h"
 #include "utils.h"
@@ -41,7 +40,6 @@ void luv_on_timer(uv_timer_t* handle, int status) {
 }
 
 int luv_timer_start(lua_State* L) {
-  int before = lua_gettop(L);
   uv_timer_t* handle = (uv_timer_t*)luv_checkudata(L, 1, "timer");
   int64_t timeout = luaL_checklong(L, 2);
   int64_t repeat = luaL_checklong(L, 3);
@@ -55,13 +53,11 @@ int luv_timer_start(lua_State* L) {
   }
   luv_handle_ref(L, handle->data, 1);
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 
 int luv_timer_stop(lua_State* L) {
-  int before = lua_gettop(L);
   uv_timer_t* handle = (uv_timer_t*)luv_checkudata(L, 1, "timer");
 
   if (uv_timer_stop(handle)) {
@@ -70,12 +66,10 @@ int luv_timer_stop(lua_State* L) {
   }
   luv_handle_unref(L, handle->data);
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_timer_again(lua_State* L) {
-  int before = lua_gettop(L);
   uv_timer_t* handle = (uv_timer_t*)luv_checkudata(L, 1, "timer");
 
   if (uv_timer_again(handle)) {
@@ -83,41 +77,34 @@ int luv_timer_again(lua_State* L) {
     return luaL_error(L, "timer_again: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_timer_set_repeat(lua_State* L) {
-  int before = lua_gettop(L);
   uv_timer_t* handle = (uv_timer_t*)luv_checkudata(L, 1, "timer");
   int64_t repeat = luaL_checklong(L, 2);
 
   uv_timer_set_repeat(handle, repeat);
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 /*int64_t uv_timer_get_repeat(uv_timer_t* timer); */
 int luv_timer_get_repeat(lua_State* L) {
-  int before = lua_gettop(L);
   uv_timer_t* timer = (uv_timer_t*)luv_checkudata(L, 1, "timer");
 
   int64_t repeat = uv_timer_get_repeat(timer);
   lua_pushinteger(L, repeat);
 
-  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
 int luv_timer_get_active(lua_State* L) {
-  int before = lua_gettop(L);
   uv_timer_t* timer = (uv_timer_t*)luv_checkudata(L, 1, "timer");
 
   int active = uv_is_active((uv_handle_t*)timer);
   lua_pushboolean(L, active);
 
-  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 

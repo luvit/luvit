@@ -16,7 +16,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "luv_pipe.h"
 #include "utils.h"
@@ -29,18 +28,15 @@ int luv_new_pipe (lua_State* L) {
 }
 
 int luv_pipe_open(lua_State* L) {
-  int before = lua_gettop(L);
   uv_pipe_t* handle = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
   uv_file file = luaL_checkint(L, 2);
 
   uv_pipe_open(handle, file);
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_pipe_bind(lua_State* L) {
-  int before = lua_gettop(L);
   uv_pipe_t* handle = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
   const char* name = luaL_checkstring(L, 2);
 
@@ -49,7 +45,6 @@ int luv_pipe_bind(lua_State* L) {
     return luaL_error(L, "pipe_bind: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -58,7 +53,6 @@ int luv_pipe_bind(lua_State* L) {
  *    const char* name, uv_connect_cb cb);
  */
 int luv_pipe_connect(lua_State* L) {
-  int before = lua_gettop(L);
   uv_pipe_t* handle = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
   const char* name = luaL_checkstring(L, 2);
 
@@ -66,7 +60,6 @@ int luv_pipe_connect(lua_State* L) {
 
   uv_pipe_connect(req, handle, name, luv_after_connect);
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 

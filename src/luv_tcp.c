@@ -54,7 +54,6 @@ int luv_tcp_keepalive (lua_State* L) {
 
 
 int luv_tcp_bind (lua_State* L) {
-  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
   const char* host = luaL_checkstring(L, 2);
   int port = luaL_checkint(L, 3);
@@ -66,12 +65,10 @@ int luv_tcp_bind (lua_State* L) {
     return luaL_error(L, "tcp_bind: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_tcp_bind6(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
   const char* host = luaL_checkstring(L, 2);
   int port = luaL_checkint(L, 3);
@@ -83,12 +80,10 @@ int luv_tcp_bind6(lua_State* L) {
     return luaL_error(L, "tcp_bind6: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_tcp_getsockname(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
   int port = 0;
   char ip[INET6_ADDRSTRLEN];
@@ -121,12 +116,10 @@ int luv_tcp_getsockname(lua_State* L) {
   lua_pushstring(L, ip);
   lua_setfield(L, -2, "address");
 
-  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
 int luv_tcp_getpeername(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
   int port = 0;
   char ip[INET6_ADDRSTRLEN];
@@ -159,12 +152,10 @@ int luv_tcp_getpeername(lua_State* L) {
   lua_pushstring(L, ip);
   lua_setfield(L, -2, "address");
 
-  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
 int luv_tcp_connect(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
 
   const char* ip_address = luaL_checkstring(L, 2);
@@ -181,12 +172,10 @@ int luv_tcp_connect(lua_State* L) {
 
   luv_handle_ref(L, handle->data, 1);
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_tcp_connect6(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tcp_t* handle = (uv_tcp_t*)luv_checkudata(L, 1, "tcp");
 
   const char* ip_address = luaL_checkstring(L, 2);
@@ -201,7 +190,6 @@ int luv_tcp_connect6(lua_State* L) {
     return luaL_error(L, "tcp_connect6: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 

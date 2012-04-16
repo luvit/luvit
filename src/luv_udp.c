@@ -16,7 +16,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "luv_portability.h"
 #include "luv_udp.h"
@@ -33,7 +32,6 @@ int luv_new_udp (lua_State* L) {
 }
 
 int luv_udp_bind(lua_State* L) {
-  int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   const char* host = luaL_checkstring(L, 2);
   int port = luaL_checkint(L, 3);
@@ -46,12 +44,10 @@ int luv_udp_bind(lua_State* L) {
     return luaL_error(L, "udp_bind: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_udp_bind6(lua_State* L) {
-  int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   const char* host = luaL_checkstring(L, 2);
   int port = luaL_checkint(L, 3);
@@ -64,7 +60,6 @@ int luv_udp_bind6(lua_State* L) {
     return luaL_error(L, "udp_bind: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -73,7 +68,6 @@ static const char *const luv_membership_options[] = {"join", "leave", NULL};
 /*int uv_udp_set_membership(uv_udp_t* handle, const char* multicast_addr,*/
 /*  const char* interface_addr, uv_membership membership);*/
 int luv_udp_set_membership(lua_State* L) {
-  int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
 /*  const char* multicast_addr = luaL_checkstring(L, 2);*/
   const char* interface_addr = luaL_checkstring(L, 3);
@@ -86,12 +80,10 @@ int luv_udp_set_membership(lua_State* L) {
     return luaL_error(L, "udp_set_membership: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_udp_getsockname(lua_State* L) {
-  int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   int family;
   int port = 0;
@@ -124,7 +116,6 @@ int luv_udp_getsockname(lua_State* L) {
   lua_pushstring(L, ip);
   lua_setfield(L, -2, "address");
 
-  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
@@ -137,18 +128,14 @@ int luv_udp_send6(lua_State* L) {
 }
 
 int luv_udp_recv_start(lua_State* L) {
-  int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   uv_udp_recv_start(handle, luv_on_alloc, luv_on_udp_recv);
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
 int luv_udp_recv_stop(lua_State* L) {
-  int before = lua_gettop(L);
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   uv_udp_recv_stop(handle);
-  assert(lua_gettop(L) == before);
   return 0;
 }
 

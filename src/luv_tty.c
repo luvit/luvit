@@ -30,7 +30,6 @@ int luv_new_tty (lua_State* L) {
 }
 
 int luv_tty_set_mode(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tty_t* handle = (uv_tty_t*)luv_checkudata(L, 1, "tty");
   int mode = luaL_checkint(L, 2);
 
@@ -39,7 +38,6 @@ int luv_tty_set_mode(lua_State* L) {
     return luaL_error(L, "tcp_set_mode: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before);
   return 0;
 }
 
@@ -49,7 +47,6 @@ int luv_tty_reset_mode(lua_State* L) {
 }
 
 int luv_tty_get_winsize(lua_State* L) {
-  int before = lua_gettop(L);
   uv_tty_t* handle = (uv_tty_t*)luv_checkudata(L, 1, "tty");
 
   int width, height;
@@ -61,7 +58,7 @@ int luv_tty_get_winsize(lua_State* L) {
 
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
-  assert(lua_gettop(L) == before + 2);
+
   return 2;
 }
 

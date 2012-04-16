@@ -18,7 +18,6 @@
 #include "luv.h"
 #include "uv.h"
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include "uv-private/ev.h"
 
@@ -174,8 +173,6 @@ static int luv_handle_gc(lua_State* L) {
 }
 
 LUALIB_API int luaopen_uv_native (lua_State* L) {
-  int before = lua_gettop(L);
-
   /* metatable for handle userdata types */
   /* It is it's own __index table to save space */
   luaL_newmetatable(L, "luv_handle");
@@ -192,7 +189,6 @@ LUALIB_API int luaopen_uv_native (lua_State* L) {
   lua_pushnumber(L, UV_VERSION_MINOR);
   lua_setfield(L, -2, "VERSION_MINOR");
 
-  assert(lua_gettop(L) == before + 1);
   return 1;
 }
 
