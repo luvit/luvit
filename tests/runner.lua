@@ -43,7 +43,10 @@ local function runTest(filename, callback)
 
   ports = ports + 100
 
-  local child = childprocess.spawn(process.argv[0], {filename}, {env = { PORT = "" .. ports}})
+  local lenv = {}
+  lenv.PORT = "" .. ports
+  lenv.PATH = process.env.PATH
+  local child = childprocess.spawn(process.argv[0], {filename}, {env = lenv})
   child:on('exit', function (exit_status, term_signal)
     results[filename].exit_status = exit_status
     if exit_status ~= 0 then

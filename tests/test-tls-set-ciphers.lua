@@ -1,6 +1,7 @@
 require('helper')
 local fixture = require('./fixture-tls')
 local childprocess = require('childprocess')
+local os = require('os')
 local tls = require('tls')
 
 local options = {
@@ -9,10 +10,6 @@ local options = {
   port = fixture.commonPort,
   ciphers = 'NULL-MD5'
 }
-
-if require('os').type() == 'win32' then
-  return
-end
 
 local reply = 'I AM THE WALRUS'
 local nconns = 0
@@ -23,14 +20,13 @@ local server = tls.createServer(options, function(conn)
   conn.socket:destroy()
   nconns = nconns + 1
 end)
-
 server:listen(fixture.commonPort, '127.0.0.1', function()
-  local cmd = {
+  local args = {
     's_client',
     '-cipher', 'NULL-MD5',
     '-connect', '127.0.0.1:' .. fixture.commonPort
   }
-  local child = childprocess.spawn('openssl', cmd, {})
+  local child = childprocess.spawn('openssl', args)
   child:on('error', function(err)
     p(err)
   end)

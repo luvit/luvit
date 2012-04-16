@@ -20,10 +20,6 @@ local childprocess = require('childprocess')
 local table = require('table')
 local tls = require('tls')
 
-if require('os').type() == 'win32' then
-  return
-end
-
 local options = {
   key = fixture.loadPEM('agent2-key'),
   cert = fixture.loadPEM('agent2-cert')
@@ -70,12 +66,9 @@ server:on('secureConnection', function(conn)
   table.insert(serverResults, conn.serverName)
 end)
 
-server:addContext('a.example.com', SNIContexts['a.example.com'])
-server:addContext('b.test.com', SNIContexts['asterisk.test.com']);
-server:listen(fixture.commonPort, '127.0.0.1')
-
 function connectClient(options, callback)
   local client
+  options.host = '127.0.0.1'
   client = tls.connect(options, function()
     table.insert(clientResults, client.authorized)
     client:destroy()
@@ -83,10 +76,14 @@ function connectClient(options, callback)
   end)
 end
 
-connectClient(clientsOptions[1], function()
-  connectClient(clientsOptions[2], function()
-    connectClient(clientsOptions[3], function()
-      server:close()
+server:addContext('a.example.com', SNIContexts['a.example.com'])
+server:addContext('b.test.com', SNIContexts['asterisk.test.com']);
+server:listen(fixture.commonPort, '127.0.0.1', function()
+  connectClient(clientsOptions[1], function()
+    connectClient(clientsOptions[2], function()
+      connectClient(clientsOptions[3], function()
+        server:close()
+      end)
     end)
   end)
 end)

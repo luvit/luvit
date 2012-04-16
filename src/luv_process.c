@@ -68,7 +68,7 @@ int luv_spawn(lua_State* L) {
   lua_pop(L, 1);
 
   /* Get the env */
-  lua_getfield(L, 6, "env");
+  lua_getfield(L, 6, "envPairs");
   env = NULL;
   if (lua_type(L, -1) == LUA_TTABLE) {
     argc = lua_objlen(L, -1);

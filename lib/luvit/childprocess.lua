@@ -21,6 +21,22 @@ local table = require('table')
 local childProcess = {}
 
 function childProcess.spawn(command, args, options)
+  local env
+  local envPairs = {}
+  options = options or {}
+  args = args or {}
+  if options and options.env then
+    env = options.env
+  else
+    env = process.env
+  end
+
+  for k, v in pairs(env) do
+    table.insert(envPairs, k .. '=' .. v)
+  end
+
+  options.envPairs = envPairs
+
   return Process:new(command, args, options)
 end
 
