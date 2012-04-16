@@ -595,7 +595,11 @@ function http.createServer(onConnection)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk and request then
-        request:emit("error", "parse error")
+        if request.upgrade then
+          request:emit("data", chunk:sub(nparsed + 1))
+        else
+          request:emit("error", "parse error: " .. chunk)
+        end
       end
 
     end)
