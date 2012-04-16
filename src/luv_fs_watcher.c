@@ -16,7 +16,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "luv_fs_watcher.h"
 #include "luv_fs.h"

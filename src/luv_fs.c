@@ -175,7 +175,6 @@ int luv_process_fs_result(lua_State* L, uv_fs_t* req) {
 void luv_after_fs(uv_fs_t* req) {
   luv_fs_ref_t* ref = req->data;
   lua_State *L = ref->L;
-  int before = lua_gettop(L);
   int argc;
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
   luaL_unref(L, LUA_REGISTRYINDEX, ref->r);
@@ -186,12 +185,10 @@ void luv_after_fs(uv_fs_t* req) {
 
   uv_fs_req_cleanup(req);
   free(ref); /* We're done with the ref object, free it */
-  assert(lua_gettop(L) == before);
 }
 
 /* Utility for storing the callback in the fs_req token */
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
-  int before = lua_gettop(L);
 
   luv_fs_ref_t* ref = malloc(sizeof(luv_fs_ref_t));
   ref->L = L;
@@ -200,7 +197,6 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
     ref->r = luaL_ref(L, LUA_REGISTRYINDEX);
   }
   ref->fs_req.data = ref;
-  assert(lua_gettop(L) == before);
   return &ref->fs_req;
 }
 

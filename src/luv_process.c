@@ -16,7 +16,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "luv_process.h"
 #include "luv_portability.h"
@@ -36,7 +35,6 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
 
 /* Initializes uv_process_t and starts the process. */
 int luv_spawn(lua_State* L) {
-  int before = lua_gettop(L);
   uv_pipe_t* stdin_stream = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
   uv_pipe_t* stdout_stream = (uv_pipe_t*)luv_checkudata(L, 2, "pipe");
   uv_pipe_t* stderr_stream = (uv_pipe_t*)luv_checkudata(L, 3, "pipe");
@@ -105,7 +103,6 @@ int luv_spawn(lua_State* L) {
     return luaL_error(L, "spawn: %s", uv_strerror(err));
   }
 
-  assert(lua_gettop(L) == before + 1);
   /* return the userdata */
   return 1;
 }
