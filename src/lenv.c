@@ -99,7 +99,7 @@ static int lenv_set(lua_State* L) {
   int overwrite = luaL_checkint(L, 3);
 
 #ifdef _WIN32
-  if (SetEnvironmentVariable(name, value) != 0) {
+  if (SetEnvironmentVariable(name, value) == 0) {
     return luaL_error(L, "Failed to set environment variable");
   }
 #else
