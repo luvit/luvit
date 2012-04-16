@@ -17,7 +17,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "lhttp_parser.h"
 #include "http_parser.h"
 

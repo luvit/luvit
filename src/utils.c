@@ -25,14 +25,11 @@
  * Uses the main loop and event source
  */
 void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
-  int beforeC = lua_gettop(C);
-  int beforeL;
   lua_State* L;
 
   /* Get the main thread without cheating */
   lua_getfield(C, LUA_REGISTRYINDEX, "main_thread");
   L = lua_tothread(C, -1);
-  beforeL = lua_gettop(L);
   lua_pop(C, 1);
 
   /* If C is not main then move to main */
@@ -41,7 +38,6 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
     lua_pushstring(L, source);
     lua_xmove (C, L, nargs + 1);
     lua_call(L, nargs + 2, nresults);
-    assert(lua_gettop(L) == beforeL);
   } else {
 
     /* Wrap the call with the eventSource function */
@@ -52,8 +48,6 @@ void luv_acall(lua_State *C, int nargs, int nresults, const char* source) {
     lua_insert(L, -offset);
     lua_call(L, nargs + 2, nresults);
   }
-  assert(lua_gettop(C) == beforeC - nargs - 1);
-
 }
 
 /* Pushes an error object onto the stack */
@@ -142,11 +136,11 @@ luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
 
   /* Create the userdata and set it's metatable */
   luv_handle_t* lhandle = (luv_handle_t*)lua_newuserdata(L, sizeof(luv_handle_t));
-  
+
   /* Set metatable for type */
   luaL_getmetatable(L, "luv_handle");
   lua_setmetatable(L, -2);
-  
+
   /* Create a local environment for storing stuff */
   lua_newtable(L);
   lua_setfenv (L, -2);

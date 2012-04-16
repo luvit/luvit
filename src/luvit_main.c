@@ -16,7 +16,6 @@
  */
 
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <limits.h> /* PATH_MAX */
 
