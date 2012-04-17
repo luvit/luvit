@@ -167,7 +167,7 @@ static int luv_handle_gc(lua_State* L) {
   /* If the handle is still there, they forgot to close */
   if (lhandle->handle) {
     fprintf(stderr, "WARNING: forgot to close %s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);
-    uv_close(uv_default_loop(), lhandle->handle);
+    uv_close(lhandle->handle, luv_on_close);
   }
   return 0;
 }

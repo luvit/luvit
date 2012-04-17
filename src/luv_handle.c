@@ -82,12 +82,10 @@ void luv_on_close(uv_handle_t* handle) {
 }
 
 int luv_close (lua_State* L) {
-  luv_handle_t* lhandle;
   uv_handle_t* handle = luv_checkudata(L, 1, "handle");
 /*  printf("close   \tlhandle=%p handle=%p\n", handle->data, handle);*/
   uv_close(handle, luv_on_close);
   luv_handle_ref(L, handle->data, 1);
-  lhandle = handle->data;
   return 0;
 }
 

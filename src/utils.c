@@ -83,7 +83,6 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
 }
 
 uv_handle_t* luv_checkudata(lua_State* L, int index, const char* type) {
-  char key[32];
 
   /* Check for table wrappers as well and replace it with the userdata it points to */
   if (lua_istable (L, index)) {
