@@ -75,8 +75,8 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   lua_State *L = luv_handle_get_lua(req->handle->data);
   lua_pop(L, 1); /* We don't need the userdata */
   /* load the request callback */
-  lua_rawgeti(L, LUA_REGISTRYINDEX, (long)req->data);
-  luaL_unref(L, LUA_REGISTRYINDEX, (long)req->data);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
+  luaL_unref(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
 
 
   if (lua_isfunction(L, -1)) {
@@ -100,8 +100,8 @@ void luv_after_write(uv_write_t* req, int status) {
   lua_State *L = luv_handle_get_lua(req->handle->data);
   lua_pop(L, 1); /* We don't need the userdata */
   /* load the callback */
-  lua_rawgeti(L, LUA_REGISTRYINDEX, (long)req->data);
-  luaL_unref(L, LUA_REGISTRYINDEX, (long)req->data);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
+  luaL_unref(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
 
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
@@ -125,7 +125,7 @@ int luv_shutdown(lua_State* L) {
 
   /* Store a reference to the callback */
   lua_pushvalue(L, 2);
-  req->data = (void*)(long)luaL_ref(L, LUA_REGISTRYINDEX);
+  req->data = (void*)(uintptr_t)luaL_ref(L, LUA_REGISTRYINDEX);
 
   luv_handle_ref(L, handle->data, 1);
 
