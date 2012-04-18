@@ -61,6 +61,7 @@
           '<(SHARED_INTERMEDIATE_DIR)/yajl/yajl_version.h',
         ],
         'action': [
+          'python',
           '../tools/lame_sed.py',
           '<@(_inputs)',
           '<@(_outputs)',
