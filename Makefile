@@ -1,12 +1,7 @@
-VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
-LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
 YAJLDIR=deps/yajl
-YAJL_VERSION=$(shell git --git-dir ${YAJLDIR}/.git describe --tags)
 UVDIR=deps/uv
-UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 -d -)
 HTTPDIR=deps/http-parser
-HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
 ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
@@ -127,7 +122,10 @@ ifeq (${USE_SYSTEM_SSL},0)
 DEPS+=${SSLDIR}/libopenssl.a
 endif
 
-all: ${BUILDDIR}/luvit
+all: config ${BUILDDIR}/luvit
+
+config:
+	tools/build.py config
 
 ${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
@@ -176,14 +174,9 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
 		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api \
-		-I${YAJLDIR}/src -I${ZLIBDIR} -I${CRYPTODIR}/src \
+		-I${YAJLDIR}/src -I${ZLIBDIR} -I${CRYPTODIR}/src -Iinclude\
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
-		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
-		-DUV_VERSION=\"${UV_VERSION}\" \
-		-DYAJL_VERSIONISH=\"${YAJL_VERSION}\" \
-		-DLUVIT_VERSION=\"${VERSION}\" \
-		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/libluvit.a: ${CRYPTODIR}/Makefile ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
@@ -207,6 +200,7 @@ clean:
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
 	rm -rf build bundle
+	rm include/config.h
 
 install: all
 	mkdir -p ${BINDIR}
@@ -227,8 +221,8 @@ install: all
 
 bundle: build/luvit ${BUILDDIR}/libluvit.a
 	build/luvit tools/bundler.lua
-	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_exports.c -o bundle/luvit_exports.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
-	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_main.c -o bundle/luvit_main.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
+	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_exports.c -o bundle/luvit_exports.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_main.c -o bundle/luvit_main.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
 	$(CC) ${LDFLAGS} -g -o bundle/luvit ${BUILDDIR}/libluvit.a `ls bundle/*.o` ${LIBS}
 
 test: ${BUILDDIR}/luvit
@@ -250,14 +244,8 @@ tarball:
 	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
 	cd ${DIST_FOLDER} ; git submodule update --init
 	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
-	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
-            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
-            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
-            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
-            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
-	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install all api.markdown bundle tarball
+.PHONY: test install all api.markdown bundle tarball config
 

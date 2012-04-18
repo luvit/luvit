@@ -9,6 +9,25 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 build_dir = os.path.join(root, 'out')
 
+def config():
+    define_template = '#define %s \"%s\"\n'
+    cmd_template = 'git --git-dir %s/.git describe --tags --always --long'
+    versions = [
+        ('LUVIT_VERSION', '.'),
+        ('HTTP_VERSION', 'deps/http-parser'),
+        ('UV_VERSION', 'deps/uv'),
+        ('LUAJIT_VERSION', 'deps/luajit'),
+        ('YAJL_VERSIONISH', 'deps/yajl'),
+    ]
+    config_h = open(os.path.join('include', 'config.h'), 'w')
+
+    for name, directory in versions:
+        cmd = cmd_template % (directory)
+        p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        out = out.rstrip()
+        config_h.write(define_template % (name, out))
+
 def build():
     if sys.platform.find('freebsd') == 0:
         cmd = 'gmake -C %s' % build_dir
@@ -38,6 +57,7 @@ def test():
 commands = {
     'build': build,
     'test': test,
+    'config': config,
 }
 
 def usage():
