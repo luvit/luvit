@@ -79,10 +79,10 @@ end):listen(PORT, HOST)
 
 cat | nc 127.0.0.1 10080 <<_EOF
 GET /
-Connection: keep
+Connection: keep-alive
 
 GET /123
-Connection: keep
+Connection: keep-alive
 
 GET /456
 Connection: close
