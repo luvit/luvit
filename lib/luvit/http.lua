@@ -105,6 +105,16 @@ function Response:initialize(socket)
   self.header_names = {}
   self.headers_sent = false
   self.socket = socket
+  -- register this response in pipeline
+  if not socket._pipeline then
+    socket._pipeline = {}
+    socket._pipeline.first = 0
+    socket._pipeline.last = -1
+  end
+  self._outBuffer = {}
+  local last = socket._pipeline.last + 1
+  socket._pipeline[last] = self
+  socket._pipeline.last = last
 end
 
 Response.auto_date = true
@@ -147,6 +157,27 @@ function Response:unsetHeader(name)
   if not name then return end
   self.headers[name] = nil
   self.header_names[lower] = nil
+end
+
+function Response:__write(data, callback)
+  self._outBuffer[#self._outBuffer + 1] = data
+  if callback then callback() end
+end
+
+function Response:__flushPipeline(callback)
+  local p = self.socket._pipeline
+  while p.first <= p.last do
+    local resp = p[p.first]
+    if resp.finished then
+      resp.socket:write(table.concat(resp._outBuffer), function()
+        resp:done(callback)
+      end)
+      p[p.first] = nil -- collect popped element
+      p.first = p.first + 1
+    else
+      break
+    end
+  end
 end
 
 function Response:flushHead(callback)
@@ -236,7 +267,7 @@ function Response:flushHead(callback)
   end
 
   head = table.concat(head, "") .. "\r\n"
-  self.socket:write(head, callback)
+  self:__write(head, callback)
   self.headers_sent = true
 end
 
@@ -255,7 +286,7 @@ function Response:writeHead(code, headers, callback)
 end
 
 function Response:writeContinue(callback)
-  self.socket:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
+  self:__write('HTTP/1.1 100 Continue\r\n\r\n', callback)
 end
 
 function Response:write(chunk, callback)
@@ -265,11 +296,11 @@ function Response:write(chunk, callback)
     self:flushHead()
   end
   if self.chunked and #chunk > 0 then
-    self.socket:write(stringFormat("%x\r\n", #chunk))
-    self.socket:write(chunk)
-    return self.socket:write("\r\n", callback)
+    self:__write(stringFormat("%x\r\n", #chunk))
+    self:__write(chunk)
+    return self:__write("\r\n", callback)
   end
-  return self.socket:write(chunk, callback)
+  return self:__write(chunk, callback)
 end
 
 function Response:finish(chunk, callback)
@@ -294,12 +325,13 @@ function Response:finish(chunk, callback)
     chunk = nil
   end
   if chunk then
-    self:write(chunk)
+    self:__write(chunk)
   end
   if self.chunked then
-    self.socket:write('0\r\n\r\n')
+    self:__write('0\r\n\r\n')
   end
-  self:done(callback)
+  self.finished = true -- mark response as done
+  self:__flushPipeline(callback)
 end
 
 function Response:done(callback)
