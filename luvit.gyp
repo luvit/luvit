@@ -114,7 +114,7 @@
          ],
          'action': [
            '<(PRODUCT_DIR)/luajit',
-           '-b', '<(RULE_INPUT_PATH)',
+           '-b', '-g', '<(RULE_INPUT_PATH)',
            '<(SHARED_INTERMEDIATE_DIR)/generated/<(RULE_INPUT_ROOT)_jit.c',
          ],
          'process_outputs_as_sources': 1,
