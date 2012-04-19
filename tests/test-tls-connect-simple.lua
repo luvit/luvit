@@ -13,6 +13,9 @@ local clientConnected = 0
 local server
 server = tls.createServer(options, function(conn)
   serverConnected = serverConnected + 1
+  if (serverConnected == 2) then
+    server:close()
+  end
 end)
 
 server:listen(fixture.commonPort, function()
@@ -20,7 +23,15 @@ server:listen(fixture.commonPort, function()
   client1 = tls.connect({port = fixture.commonPort, host = '127.0.0.1'}, {}, function()
     clientConnected = clientConnected + 1
     client1:destroy()
-    server:close()
-    assert(serverConnected == 1)
   end)
+
+  client2 = tls.connect({port = fixture.commonPort, host = '127.0.0.1'}, {}, function()
+    clientConnected = clientConnected + 1
+    client2:destroy()
+  end)
+end)
+
+process:on('exit', function()
+  assert(serverConnected == 2)
+  assert(clientConnected == 2)
 end)
