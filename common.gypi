@@ -125,6 +125,11 @@
           [ 'OS=="freebsd"', {
             'ldflags': [ '-lm' ],
           }],
+          [ 'OS=="solaris"', {
+            'defines': [ '__EXTENSIONS__' ],
+            'ldflags!': [ '-Wl,-E' ], # solaris ld doesn't have --export-dynamic
+            'libraries': [ '-lm' ],
+          }],
         ],
       }],
       ['OS=="mac"', {

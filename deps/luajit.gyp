@@ -9,7 +9,7 @@
         'asm_format': 'machasm',
         'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
       }],
-      ['OS == "linux" or OS == "freebsd"', {
+      ['OS == "linux" or OS == "freebsd" or OS == "solaris"', {
         'asm_format': 'elfasm',
         'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
       }]
