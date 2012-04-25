@@ -41,6 +41,7 @@
 #include "lhttp_parser.h"
 #include "lyajl.h"
 #include "lenv.h"
+#include "config.h"
 
 static int luvit_exit(lua_State* L) {
   int exit_code = luaL_checkint(L, 1);

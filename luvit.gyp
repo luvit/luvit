@@ -88,11 +88,6 @@
      ],
      'defines': [
        'LUVIT_OS="<(OS)"',
-       'LUVIT_VERSION="<!(git --git-dir .git describe --tags)"',
-       'HTTP_VERSION="<!(git --git-dir deps/http-parser/.git describe --tags)"',
-       'UV_VERSION="<!(git --git-dir deps/uv/.git describe --all --tags --always --long)"',
-       'LUAJIT_VERSION="<!(git --git-dir deps/luajit/.git describe --tags)"',
-       'YAJL_VERSIONISH="<!(git --git-dir deps/yajl/.git describe --tags)"',
        'BUNDLE=1',
      ],
      'include_dirs': [

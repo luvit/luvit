@@ -167,6 +167,7 @@ else:
     code = os.system("tools/gyp_luvit")
 
 if code == 0:
+    os.system("tools/build.py config")
     print ""
     print "Done!"
     print ""
