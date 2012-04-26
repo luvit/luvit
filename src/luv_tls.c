@@ -440,6 +440,10 @@ tls_sc_close(lua_State *L) {
   if (ctx->ctx) {
     SSL_CTX_free(ctx->ctx);
     ctx->ctx = NULL;
+  }
+
+  if (ctx->ca_store) {
+    X509_STORE_free(ctx->ca_store);
     ctx->ca_store = NULL;
   }
 
