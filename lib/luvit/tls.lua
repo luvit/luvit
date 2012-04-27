@@ -26,6 +26,8 @@ local table = require('table')
 local net = require('net')
 local bind = require('utils').bind
 
+local Error = require('core').Error
+
 local string = require('string')
 local fmt = string.format
 
@@ -279,7 +281,6 @@ function CryptoStream:_push()
       chunkBytes, tmpData = self:_pusher()
 
       if self.pair.ssl and self.pair.ssl:getError() then
-        p('push error')
         self.pair:err()
         return
       end
@@ -593,10 +594,14 @@ end
 function SecurePair:err()
   dbg('SecurePair:err')
   if self._secureEstablished == false then
-    local err = self.ssl:getError()
-    if not err then
+    local ssl_err, ssl_err_str = self.ssl:getError()
+    local err = nil
+    if not ssl_err then
       err = Error:new('socket hang up')
       err.code = 'ECONNRESET'
+    else
+      err = Error:new(ssl_err_str)
+      err.code = ssl_err
     end
     self:emit('error', err)
     self:destroy()
@@ -701,7 +706,7 @@ function Server:initialize(...)
 
     end)
     pair:on('error', function(err)
-      dbg('on error' .. err)
+      self:emit('clientError', err)
     end)
   end)
 
