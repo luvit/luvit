@@ -421,6 +421,9 @@ end
 
 function CleartextStream:_pusher()
   dbg('CleartextStream:_pusher')
+  if not self.pair.ssl then
+    return -1
+  end
   return self.pair.ssl:clearOut()
 end
 
@@ -455,6 +458,9 @@ end
 
 function EncryptedStream:_pusher()
   dbg('EncryptedStream:_pusher')
+  if not self.pair.ssl then
+    return -1
+  end
   return self.pair.ssl:encOut()
 end
 
