@@ -421,6 +421,9 @@ end
 
 function CleartextStream:_pusher()
   dbg('CleartextStream:_pusher')
+  if not self.pair.ssl then
+    return -1
+  end
   return self.pair.ssl:clearOut()
 end
 
@@ -455,6 +458,9 @@ end
 
 function EncryptedStream:_pusher()
   dbg('EncryptedStream:_pusher')
+  if not self.pair.ssl then
+    return -1
+  end
   return self.pair.ssl:encOut()
 end
 
@@ -490,6 +496,9 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
   if self._isServer == true then
     certOrServerName = self._requestCert
   else
+    if not options.servername then
+      error('servername is a required parameter')
+    end
     certOrServerName = options.servername
   end
 
@@ -818,8 +827,12 @@ function connect(...)
 
   socket:connect(options.port, options.host)
 
+  local servername = options.servername or options.host
+  if not servername then
+    error('host is a required parameter')
+  end
   local pair = SecurePair:new(sslcontext, false, true, options.rejectUnauthorized == true, {
-    servername = options.servername or options.host,
+    servername = servername
   })
 
   if options.session then
