@@ -18,6 +18,10 @@
 #ifndef WIN32
 #include <unistd.h>
 #include <sys/utsname.h>
+#include <time.h>
+#include <sys/time.h>
+#else
+#include <windows.h>
 #endif
 #include "los.h"
 #include "luv_misc.h"
@@ -53,7 +57,33 @@ static int los_release(lua_State* L) {
   return 1;
 }
 
+#ifdef WIN32
+double los_gettime(void) {
+    FILETIME ft;
+    double t;
+    GetSystemTimeAsFileTime(&ft);
+    /* Windows file time (time since January 1, 1601 (UTC)) */
+    t  = ft.dwLowDateTime/1.0e7 + ft.dwHighDateTime*(4294967296.0/1.0e7);
+    /* convert to Unix Epoch time (time since January 1, 1970 (UTC)) */
+    return (t - 11644473600.0);
+}
+#else
+double los_gettime(void) {
+    struct timeval v;
+    gettimeofday(&v, (struct timezone *) NULL);
+    /* Unix Epoch time (time since January 1, 1970 (UTC)) */
+    return v.tv_sec + v.tv_usec/1.0e6;
+}
+#endif
+
+static int los_time(lua_State *L)
+{
+    lua_pushnumber(L, los_gettime());
+    return 1;
+}
+
 /******************************************************************************/
+
 
 static const luaL_reg los_f[] = {
   {"hostname", los_hostname},
@@ -65,6 +95,7 @@ static const luaL_reg los_f[] = {
   {"type", los_type},
   {"release", los_release},
   {"networkInterfaces", luv_interface_addresses},
+  {"time", los_time},
   {NULL, NULL}
 };
 
