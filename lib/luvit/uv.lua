@@ -202,10 +202,10 @@ function Timer:start(timeout, interval, callback)
 end
 
 function Timer:close()
-  Handle.close(self)
   if self._active == false then
     native.ref()
   end
+  Handle.close(self)
 end
 
 -- Timer:stop()
