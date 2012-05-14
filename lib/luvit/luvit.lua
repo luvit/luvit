@@ -313,4 +313,4 @@ end, traceback))
 -- Start the event loop
 native.run()
 -- trigger exit handlers and exit cleanly
-process.exit(0)
+process.exit(process.exitCode or 0)
