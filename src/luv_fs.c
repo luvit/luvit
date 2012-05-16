@@ -278,11 +278,12 @@ int luv_fs_write(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);
   off_t offset = luaL_checkint(L, 2);
   size_t length;
+  uv_fs_t* req;
   void* chunk = (void*)luaL_checklstring(L, 3, &length);
   luv_fs_ref_t* ref = luv_fs_ref_alloc(L);
   luv_fs_ref_string(ref, 3);
   luv_fs_ref_callback(ref, 4);
-  uv_fs_t* req = &ref->fs_req;
+  req = &ref->fs_req;
   FS_CALL(write, 4, NULL, file, chunk, length, offset);
 }
 
