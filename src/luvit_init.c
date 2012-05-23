@@ -245,7 +245,8 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 #endif
 
   /* Hold a reference to the main thread in the registry */
-  assert(lua_pushthread(L) == 1);
+  rc = lua_pushthread(L);
+  assert(rc == 1);
   lua_setfield(L, LUA_REGISTRYINDEX, "main_thread");
 
   /* Store the loop within the registry */
