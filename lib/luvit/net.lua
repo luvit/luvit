@@ -23,6 +23,7 @@ local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
 local iStream = require('core').iStream
+local table = require('table')
 
 local net = {}
 
@@ -100,6 +101,7 @@ end
 
 function Socket:_write(data, callback)
   timer.active(self)
+  table.insert( self.tmpwbuf, data ) 
   self._pendingWriteRequests = self._pendingWriteRequests + 1
   self._handle:write(data, function(err)
     if err then
@@ -110,6 +112,7 @@ function Socket:_write(data, callback)
     self._pendingWriteRequests = self._pendingWriteRequests - 1
     if self._pendingWriteRequests == 0 then
       self:emit('drain');
+      self.tmpwbuf = {}
     end
     if callback then
       callback()
@@ -257,6 +260,7 @@ function Socket:initialize(handle)
   self.writable = true
   self.destroyed = false
 
+  self.tmpwbuf = {} -- avoiding GCs on a chunk given to Socket:_write()
   self:_initEmitters()
 end
 
