@@ -66,7 +66,8 @@ static const luaL_reg luv_f[] = {
   /* Process functions */
   {"spawn", luv_spawn},
   {"processKill", luv_process_kill},
-
+  {"getpid", luv_getpid},
+  
   /* Stream functions */
   {"shutdown", luv_shutdown},
   {"listen", luv_listen},

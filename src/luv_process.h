@@ -26,5 +26,6 @@
 
 int luv_spawn(lua_State* L);
 int luv_process_kill(lua_State* L);
+int luv_getpid(lua_State* L);
 
 #endif
