@@ -32,6 +32,14 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
 
 }
 
+/* Retrieves Process ID */
+int luv_getpid(lua_State* L){
+  int pid = getpid();
+  lua_pushinteger(L, pid);
+  return 1;
+
+}
+
 
 /* Initializes uv_process_t and starts the process. */
 int luv_spawn(lua_State* L) {
