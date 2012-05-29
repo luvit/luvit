@@ -134,8 +134,7 @@ process.env = setmetatable({}, {
 })
 
 --Retrieve PID
-process.getpid = native.getpid
-process.pid = process.getpid()
+process.pid = native.getpid()
 
 -- Copy date and time over from lua os module into luvit os module
 local OLD_OS = require('os')
