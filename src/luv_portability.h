@@ -20,6 +20,7 @@
 
 #if _MSC_VER
 #define snprintf _snprintf
+#define getpid _getpid
 #endif
 
 #if defined(__OpenBSD__) || defined(__MINGW32__) || defined(_MSC_VER)
