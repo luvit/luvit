@@ -23,6 +23,8 @@ end
 
 test()
 
+assert(process.pid ~= nil)
+
 process:on('exit', function()
   assert(environmentTestResult == true)
 end)
