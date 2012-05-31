@@ -226,6 +226,11 @@ install: all
 	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
 	cp src/*.h ${INCDIR}/
 
+uninstall:
+	rm -f ${BINDIR}/luvit
+	rm -rf ${LIBDIR}
+	rm -rf ${INCDIR}
+
 bundle: bundle/luvit
 
 bundle/luvit: build/luvit ${BUILDDIR}/libluvit.a
