@@ -227,9 +227,9 @@ install: all
 	cp src/*.h ${INCDIR}/
 
 uninstall:
-	rm -f ${BINDIR}/luvit
-	rm -rf ${LIBDIR}
-	rm -rf ${INCDIR}
+	test -f ${BINDIR}/luvit && rm -f ${BINDIR}/luvit
+	test -d ${LIBDIR} && rm -rf ${LIBDIR}
+	test -d ${INCDIR} && rm -rf ${INCDIR}
 
 bundle: bundle/luvit
 
