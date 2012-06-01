@@ -239,8 +239,26 @@ bundle/luvit: build/luvit ${BUILDDIR}/libluvit.a
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_main.c -o bundle/luvit_main.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 	$(CC) ${LDFLAGS} -g -o bundle/luvit ${BUILDDIR}/libluvit.a `ls bundle/*.o` ${LIBS} ${CRYPTODIR}/src/lcrypto.o
 
-test: ${BUILDDIR}/luvit
+# Test section
+
+test: test-lua test-install test-uninstall
+
+test-lua: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
+
+ifeq ($(MAKECMDGOALS),test)
+DESTDIR=test_install
+endif
+
+test-install: install
+	test -f ${BINDIR}/luvit
+	test -d ${INCDIR}
+	test -d ${LIBDIR}
+
+test-uninstall: uninstall
+	test ! -f ${BINDIR}/luvit
+	test ! -d ${INCDIR}
+	test ! -d ${LIBDIR}
 
 api: api.markdown
 
@@ -267,5 +285,5 @@ tarball:
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install all api.markdown bundle tarball
+.PHONY: test install uninstall all api.markdown bundle tarball
 
