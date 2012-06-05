@@ -17,6 +17,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 
 #include "luv_process.h"
