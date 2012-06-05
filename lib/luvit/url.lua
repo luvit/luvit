@@ -16,9 +16,11 @@ limitations under the License.
 
 --]]
 
+local querystring = require('querystring')
+
 local url = {}
 
-function url.parse(url)
+function url.parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
@@ -33,7 +35,11 @@ function url.parse(url)
   local pathname = url:match("^[^?]*")
   local search = url:sub((pathname and #pathname or 0) + 1)
   local query = search:sub(2)
-  
+
+  if parseQueryString then
+    query = querystring.parse(query)
+  end
+
   return {
     href = href,
     protocol = protocol,
