@@ -16,6 +16,8 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "luv_process.h"
 #include "luv_portability.h"
@@ -56,6 +58,8 @@ int luv_spawn(lua_State* L) {
 
   luaL_checktype(L, 5, LUA_TTABLE); /* args */
   luaL_checktype(L, 6, LUA_TTABLE); /* options */
+
+  memset(&options, 0, sizeof(uv_process_options_t));
 
   /* Parse the args array */
   argc = lua_objlen(L, 5) + 1;
