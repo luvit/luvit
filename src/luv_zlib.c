@@ -42,7 +42,7 @@ static int lz_stream_write(lua_State *L) {
 
   z_t *z;
   int flush;
-  int rc;
+  int rc = Z_OK;
   luaL_Buffer buff;
 
   lua_getfield(L, 1, "stream");
