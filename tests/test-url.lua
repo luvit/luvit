@@ -5,8 +5,6 @@ local url = require('url')
 local path = '/somepath?test=bar&ponies=foo'
 
 local parsed = url.parse(path)
-print(parsed.pathname)
-print(parsed.query)
 assert(parsed.pathname == '/somepath')
 assert(parsed.query == 'test=bar&ponies=foo')
 
