@@ -465,7 +465,6 @@ function http.request(options, callback)
   -- while connecting, we want to buffer writes and closes
   client.write = function (self, chunk, callback)
     chunk = chunk and chunk or ''
-
     if #chunk > 0 then
       if headers["Transfer-Encoding"] == "chunked" then
         content[#content + 1] = stringFormat("%x\r\n%s\r\n", #chunk, chunk)
