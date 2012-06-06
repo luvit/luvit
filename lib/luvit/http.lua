@@ -369,6 +369,7 @@ function http.request(options, callback)
     client.chunked = headers["Transfer-Encoding"] == "chunked"
     if client.chunked then
       client.write = function (self, chunk, callback)
+        chunk = chunk and chunk or ''
         if #chunk > 0 then
           original_write(self, stringFormat("%x\r\n", #chunk))
           original_write(self, chunk)
@@ -463,6 +464,7 @@ function http.request(options, callback)
   original_write = client.write
   -- while connecting, we want to buffer writes and closes
   client.write = function (self, chunk, callback)
+    chunk = chunk and chunk or ''
     if #chunk > 0 then
       if headers["Transfer-Encoding"] == "chunked" then
         content[#content + 1] = stringFormat("%x\r\n%s\r\n", #chunk, chunk)
