@@ -62,9 +62,8 @@ int luv_fs_fchown(lua_State* L);
 
 typedef struct {
   lua_State* L;
-  int rcb; /* callback ref */
-  int rstr; /* string ref */
   uv_fs_t fs_req;
+  luv_io_ctx_t cbs;
   void* buf;
 } luv_fs_ref_t;
 
