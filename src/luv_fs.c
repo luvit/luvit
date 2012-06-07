@@ -177,11 +177,8 @@ void luv_after_fs(uv_fs_t* req) {
   lua_State *L = ref->L;
   int argc;
 
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->rstr);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->rstr);
-
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->rcb);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref->rcb);
+  luv_io_ctx_callback_rawgeti(L, &ref->cbs);
+  luv_io_ctx_unref(L, &ref->cbs);
 
   argc = luv_process_fs_result(L, req);
 
@@ -195,29 +192,14 @@ static luv_fs_ref_t* luv_fs_ref_alloc(lua_State* L) {
   luv_fs_ref_t* ref = malloc(sizeof(luv_fs_ref_t));
   ref->L = L;
   ref->fs_req.data = ref;
-  ref->rcb = LUA_NOREF;
-  ref->rstr = LUA_NOREF;
   return ref;
-}
-
-static void luv_fs_ref_callback(luv_fs_ref_t* ref, int index) {
-  if (lua_isfunction(ref->L, index)) {
-    lua_pushvalue(ref->L, index); /* Store the callback */
-    ref->rcb = luaL_ref(ref->L, LUA_REGISTRYINDEX);
-  }
-}
-
-static void luv_fs_ref_string(luv_fs_ref_t* ref, int index) {
-  if (lua_isstring(ref->L, index)) {
-    lua_pushvalue(ref->L, index);
-    ref->rstr = luaL_ref(ref->L, LUA_REGISTRYINDEX);
-  }
 }
 
 /* Utility for storing the callback in the fs_req token */
 uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
   luv_fs_ref_t* ref = luv_fs_ref_alloc(L);
-  luv_fs_ref_callback(ref, index);
+  luv_io_ctx_init(&ref->cbs);
+  luv_io_ctx_callback_add(L, &ref->cbs, index);
   return &ref->fs_req;
 }
 
@@ -281,8 +263,9 @@ int luv_fs_write(lua_State* L) {
   uv_fs_t* req;
   void* chunk = (void*)luaL_checklstring(L, 3, &length);
   luv_fs_ref_t* ref = luv_fs_ref_alloc(L);
-  luv_fs_ref_string(ref, 3);
-  luv_fs_ref_callback(ref, 4);
+  luv_io_ctx_init(&ref->cbs);
+  luv_io_ctx_add(L, &ref->cbs, 3);
+  luv_io_ctx_callback_add(L, &ref->cbs, 4);
   req = &ref->fs_req;
   FS_CALL(write, 4, NULL, file, chunk, length, offset);
 }

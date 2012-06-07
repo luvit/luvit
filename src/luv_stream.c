@@ -71,13 +71,15 @@ void luv_after_connect(uv_connect_t* req, int status) {
 
 
 void luv_after_shutdown(uv_shutdown_t* req, int status) {
+  luv_io_ctx_t *cbs = req->data;
+
   /* load the lua state and the userdata */
   lua_State *L = luv_handle_get_lua(req->handle->data);
   lua_pop(L, 1); /* We don't need the userdata */
-  /* load the request callback */
-  lua_rawgeti(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
-  luaL_unref(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
 
+  /* load the request callback */
+  luv_io_ctx_callback_rawgeti(L, cbs);
+  luv_io_ctx_unref(L, cbs);
 
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
@@ -91,17 +93,20 @@ void luv_after_shutdown(uv_shutdown_t* req, int status) {
   }
 
   luv_handle_unref(L, req->handle->data);
+  free(req->data);
   free(req);
 }
 
 void luv_after_write(uv_write_t* req, int status) {
+  luv_io_ctx_t *cbs = req->data;
 
   /* load the lua state and the userdata */
   lua_State *L = luv_handle_get_lua(req->handle->data);
   lua_pop(L, 1); /* We don't need the userdata */
-  /* load the callback */
-  lua_rawgeti(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
-  luaL_unref(L, LUA_REGISTRYINDEX, (uintptr_t)req->data);
+
+  /* load the request callback */
+  luv_io_ctx_callback_rawgeti(L, cbs);
+  luv_io_ctx_unref(L, cbs);
 
   if (lua_isfunction(L, -1)) {
     if (status == -1) {
@@ -115,17 +120,21 @@ void luv_after_write(uv_write_t* req, int status) {
   }
 
   luv_handle_unref(L, req->handle->data);
+  free(req->data);
   free(req);
 }
 
 int luv_shutdown(lua_State* L) {
+  luv_io_ctx_t *cbs;
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
 
   uv_shutdown_t* req = (uv_shutdown_t*)malloc(sizeof(uv_shutdown_t));
+  cbs = malloc(sizeof(luv_io_ctx_t));
+  luv_io_ctx_init(cbs);
 
   /* Store a reference to the callback */
-  lua_pushvalue(L, 2);
-  req->data = (void*)(uintptr_t)luaL_ref(L, LUA_REGISTRYINDEX);
+  luv_io_ctx_callback_add(L, cbs, 2);
+  req->data = (void*)cbs;
 
   luv_handle_ref(L, handle->data, 1);
 
@@ -194,19 +203,20 @@ int luv_write(lua_State* L) {
   uv_buf_t buf;
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   size_t len;
+  luv_io_ctx_t *cbs;
   const char* chunk = luaL_checklstring(L, 2, &len);
 
   uv_write_t* req = (uv_write_t*)malloc(sizeof(uv_write_t));
+  cbs = malloc(sizeof(luv_io_ctx_t));
+  luv_io_ctx_init(cbs);
 
   /* Store a reference to the callback */
-  lua_pushvalue(L, 3);
-  req->data = (void*)(long)luaL_ref(L, LUA_REGISTRYINDEX);
+  luv_io_ctx_add(L, cbs, 2);
+  luv_io_ctx_callback_add(L, cbs, 3);
+
+  req->data = (void*)cbs;
 
   luv_handle_ref(L, handle->data, 1);
-
-  /* Store the chunk
-   * TODO: this is probably unsafe, should investigate
-   */
   buf = uv_buf_init((char*)chunk, len);
 
   uv_write(req, handle, &buf, 1, luv_after_write);
