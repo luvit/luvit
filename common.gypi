@@ -1,4 +1,7 @@
 {
+  'variables': {
+    'luvit_skinny': 'false',
+  },
   'make_global_settings': [
     # chrome normally links using the C++ compiler, but all of our code
     # is pure C, and we don't want to link in libstdc++.
