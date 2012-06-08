@@ -235,7 +235,7 @@ int luv_now(lua_State* L) {
 
 int luv_hrtime(lua_State* L) {
   double now = (double) uv_hrtime() / 1000000.0;
-  lua_pushinteger(L, now);
+  lua_pushnumber(L, now);
   return 1;
 }
 
