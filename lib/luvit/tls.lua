@@ -825,9 +825,9 @@ function connect(...)
   local socket = options.socket or Socket:new()
   
   if options.context then
-    sslcontext = createcredentials(options, options.context)
+    sslcontext = createCredentials(options, options.context)
   else
-    sslcontext = createcredentials(options)
+    sslcontext = createCredentials(options)
   end
 
   socket:connect(options.port, options.host)
