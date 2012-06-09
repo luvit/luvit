@@ -19,3 +19,6 @@
 [submodule "deps/luacrypto"]
 	path = deps/luacrypto
 	url = http://github.com/luvit/luacrypto
+[submodule "tools/gyp"]
+	path = tools/gyp
+	url = http://git.chromium.org/external/gyp.git
