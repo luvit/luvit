@@ -9,6 +9,7 @@ import json
 import sys
 import glob
 import shutil
+import subprocess
 
 root_dir = os.path.dirname(__file__)
 
@@ -166,25 +167,36 @@ def render_openssl_symlinks(src, dest):
             shutil.copy2(srcf, destf)
 
 def build_ninja():
-    if os.access("ninja", os.X_OK):
+
+    ninja_base = "ninja"
+    if sys.platform == "win32":
+      ninja_base = "ninja.exe"
+
+    if os.access(ninja_base, os.X_OK):
         return 0
-    bootstrap_path = os.path.join("tools", "ninja", "bootstrap.py")
-    ninja_path = os.path.join("tools", "ninja", "ninja")
-    code = os.system("python %s" % bootstrap_path)
+
+    if sys.platform == "win32":
+      code = subprocess.call('tools\\ninja_win_build.bat', shell=True)
+    else:
+      bootstrap_path = os.path.join("tools", "ninja", "bootstrap.py")
+      code = os.system("python tools/ninja/bootstrap.py")
+
+
     if code == 0:
-      shutil.copy2(ninja_path, "ninja")
+      ninja_path = os.path.join("tools", "ninja", ninja_base)
+      shutil.copy2(ninja_path, ninja_base)
     return code
 
 code = build_ninja()
 if code == 0:
-    code = os.system("tools/gyp_luvit")
+    code = os.system("python %s" % os.path.join("tools/gyp_luvit"))
 
 if code == 0:
     print ""
     print "Done! Now run ninja to build"
     print ""
     if sys.platform == "win32":
-        print ".\ninja -C out\Debug"
+        print "ninja.exe -C out\Debug"
     else:
         print "./ninja -C out/Debug"
     print ""
