@@ -165,24 +165,30 @@ def render_openssl_symlinks(src, dest):
             # use copy2, so we preserve mtimes, reducing rebuilds
             shutil.copy2(srcf, destf)
 
-if sys.platform == "win32":
-    render_openssl_symlinks('deps/openssl/openssl/include/openssl',
-        'deps/openssl/openssl-configs/realized/openssl')
-    code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=2010")
-else:
+def build_ninja():
+    if os.access("ninja", os.X_OK):
+        return 0
+    bootstrap_path = os.path.join("tools", "ninja", "bootstrap.py")
+    ninja_path = os.path.join("tools", "ninja", "ninja")
+    code = os.system("python %s" % bootstrap_path)
+    if code == 0:
+      shutil.copy2(ninja_path, "ninja")
+    return code
+
+code = build_ninja()
+if code == 0:
     code = os.system("tools/gyp_luvit")
 
 if code == 0:
     print ""
-    print "Done!"
+    print "Done! Now run ninja to build"
     print ""
     if sys.platform == "win32":
-        print "Now run `python build.py` to build!"
+        print ".\ninja -C out\Debug"
     else:
-        print "Now run `make -C out` to build!"
+        print "./ninja -C out/Debug"
     print ""
 else:
     print ""
     print "Error occured. Please investigate details above."
     print ""
-
