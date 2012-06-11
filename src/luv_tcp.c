@@ -190,6 +190,8 @@ int luv_tcp_connect6(lua_State* L) {
     return luaL_error(L, "tcp_connect6: %s", uv_strerror(err));
   }
 
+  luv_handle_ref(L, handle->data, 1);
+
   return 0;
 }
 
