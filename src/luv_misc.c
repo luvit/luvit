@@ -228,8 +228,8 @@ int luv_update_time(lua_State* L) {
 }
 
 int luv_now(lua_State* L) {
-  int64_t now = uv_now(luv_get_loop(L));
-  lua_pushinteger(L, now);
+  double now = (double)uv_now(luv_get_loop(L));
+  lua_pushnumber(L, now);
   return 1;
 }
 
