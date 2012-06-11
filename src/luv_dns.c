@@ -499,7 +499,11 @@ static void luv_dns_getaddrinfo_callback(uv_getaddrinfo_t* res, int status,
 
   for (curr=start; curr; curr=curr->ai_next) {
     if (curr->ai_family == AF_INET || curr->ai_family == AF_INET6) {
-      addr = (char*) &((struct sockaddr_in*) curr->ai_addr)->sin_addr;
+      if (curr->ai_family == AF_INET) {
+        addr = (char*) &((struct sockaddr_in*) curr->ai_addr)->sin_addr;
+      } else {
+        addr = (char*) &((struct sockaddr_in6*) curr->ai_addr)->sin6_addr;
+      }
       uv_inet_ntop(curr->ai_family, addr, ip, INET6_ADDRSTRLEN);
       lua_pushstring(ref->L, ip);
       lua_rawseti(ref->L, -2, n++);
