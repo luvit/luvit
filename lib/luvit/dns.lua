@@ -109,11 +109,11 @@ function dns.isIp(ip)
   return native.dnsIsIp(ip)
 end
 
-function dns.isIpV4(ip)
+function dns.isIPv4(ip)
   return native.dnsIsIpV4(ip)
 end
 
-function dns.isIpV6(ip)
+function dns.isIPv6(ip)
   return native.dnsIsIpV6(ip)
 end
 
