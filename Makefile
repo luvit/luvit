@@ -263,7 +263,7 @@ tarball:
             -e 's/LUAJIT_VERSION=".*/LUAJIT_VERSION=\"${LUAJIT_VERSION}\"'\'',/' \
             -e 's/UV_VERSION=".*/UV_VERSION=\"${UV_VERSION}\"'\'',/' \
             -e 's/HTTP_VERSION=".*/HTTP_VERSION=\"${HTTP_VERSION}\"'\'',/' \
-            -e 's/YAJL_VERSION=".*/YAJL_VERSION=\"${YAJL_VERSION}\"'\'',/' < ${DIST_FOLDER}/luvit.gyp > ${DIST_FOLDER}/luvit.gyp.patched
+            -e 's/YAJL_VERSIONISH=".*/YAJL_VERSIONISH=\"${YAJL_VERSION}\"'\'',/' < ${DIST_FOLDER}/luvit.gyp > ${DIST_FOLDER}/luvit.gyp.patched
 	mv ${DIST_FOLDER}/luvit.gyp.patched ${DIST_FOLDER}/luvit.gyp
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
