@@ -105,16 +105,22 @@ function dns.lookup(domain, family, callback)
   end)
 end
 
-function dns.isIp(ip)
-  return native.dnsIsIp(ip)
+function dns.isIP(ip)
+  print('dns.isIP is deprecated, use net.isIP')
+  local net = require('net')
+  return net.isIP(ip)
 end
 
-function dns.isIpV4(ip)
-  return native.dnsIsIpV4(ip)
+function dns.isIPv4(ip)
+  print('dns.isIPv4 is deprecated, use net.isIPv4')
+  local net = require('net')
+  return net.isIPv4(ip)
 end
 
-function dns.isIpV6(ip)
-  return native.dnsIsIpV6(ip)
+function dns.isIPv6(ip)
+  print('dns.isIPv6 is deprecated, use net.isIPv6')
+  local net = require('net')
+  return net.isIPv6(ip)
 end
 
 return dns
