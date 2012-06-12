@@ -1,3 +1,35 @@
+* Changes between 0.3.1 to 0.3.2
+
+  New Features
+
+  * Memory usage improvements (Ryan Phillips, Paul Querna, Brandon Philips, Tim Caswell)
+  * Callback State infrastructure (Brandon Philips)
+  * TLS Ticketing (Michael Kandrashoff)
+  * Reference counting (Tim Caswell)
+  * Improve timers (Ryan Phillips)
+  * Add os.clock (Tadeusz Wojcik)
+  * process.pid (Michael Kandrashoff)
+
+  Upgrade
+
+  * zlib (Paul Querna)
+  * OpenSSL  w/ Skinny Option (Paul Querna)
+
+  Bug Fixes
+
+  * C89 Improvements (Antal Szabó)
+  * Assertion fixes (Antal Szabó)
+  * url.parse parseQueryString (Tomaz Muraus)
+  * process.spawn environment passing on windows (Ryan Phillips)
+  * Solaris build fixes (Ben Noordhuis)
+  * DNS IPv6 resolving (Ryan Phillips)
+  * TCP Connect IPv6 (Ryan Phillips)
+  * TLS Fixes (Brandon Philips)
+  * TLS Tests (Brandon Philips)
+  * Various Windows fixes (Brandon Philips, Ryan Phillips)
+  * luv_zlib uninitialized variable (Paul Querna)
+  * Use gyp submodule (Brandon Philips)
+
 * Changes between 0.3.0 to 0.3.1
 
   Bug Fixes
