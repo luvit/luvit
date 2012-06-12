@@ -16,6 +16,7 @@ limitations under the License.
 
 --]]
 
+local native = require('uv_native')
 local dns = require('dns')
 local Tcp = require('uv').Tcp
 local Timer = require('uv').Timer
@@ -372,6 +373,18 @@ net.create = net.createConnection
 
 net.createServer = function(connectionCallback)
   return Server:new(connectionCallback)
+end
+
+net.isIP = function(ip)
+  return native.dnsIsIp(ip)
+end
+
+net.isIPv4 = function(ip)
+  return native.dnsIsIpV4(ip)
+end
+
+net.isIPv6 = function(ip)
+  return native.dnsIsIpV6(ip)
 end
 
 return net
