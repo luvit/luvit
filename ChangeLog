@@ -1,4 +1,8 @@
-* Changes between 0.3.1 to 0.3.2
+* Changes between 0.3.1 to 0.4.0
+
+  API Changes
+
+  * dns.isIPv* has been renamed and moved to net.*
 
   New Features
 
