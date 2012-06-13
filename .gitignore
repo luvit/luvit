@@ -9,3 +9,5 @@ options.gypi
 *.xcodeproj
 out/
 *.swp
+tools/ninja
+ninja

@@ -9,6 +9,7 @@ import json
 import sys
 import glob
 import shutil
+import subprocess
 
 root_dir = os.path.dirname(__file__)
 
@@ -165,24 +166,41 @@ def render_openssl_symlinks(src, dest):
             # use copy2, so we preserve mtimes, reducing rebuilds
             shutil.copy2(srcf, destf)
 
-if sys.platform == "win32":
-    render_openssl_symlinks('deps/openssl/openssl/include/openssl',
-        'deps/openssl/openssl-configs/realized/openssl')
-    code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=2010")
-else:
-    code = os.system("tools/gyp_luvit")
+def build_ninja():
+
+    ninja_base = "ninja"
+    if sys.platform == "win32":
+      ninja_base = "ninja.exe"
+
+    if os.access(ninja_base, os.X_OK):
+        return 0
+
+    if sys.platform == "win32":
+      code = subprocess.call('tools\\ninja_win_build.bat', shell=True)
+    else:
+      bootstrap_path = os.path.join("tools", "ninja", "bootstrap.py")
+      code = os.system("python tools/ninja/bootstrap.py")
+
+
+    if code == 0:
+      ninja_path = os.path.join("tools", "ninja", ninja_base)
+      shutil.copy2(ninja_path, ninja_base)
+    return code
+
+code = build_ninja()
+if code == 0:
+    code = os.system("python %s" % os.path.join("tools/gyp_luvit"))
 
 if code == 0:
     print ""
-    print "Done!"
+    print "Done! Now run ninja to build"
     print ""
     if sys.platform == "win32":
-        print "Now run `python build.py` to build!"
+        print "ninja.exe -C out\Debug"
     else:
-        print "Now run `make -C out` to build!"
+        print "./ninja -C out/Debug"
     print ""
 else:
     print ""
     print "Error occured. Please investigate details above."
     print ""
-

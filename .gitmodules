@@ -22,3 +22,6 @@
 [submodule "tools/gyp"]
 	path = tools/gyp
 	url = https://github.com/luvit/gyp.git
+[submodule "tools/ninja"]
+	path = tools/ninja
+	url = https://github.com/luvit/ninja.git
