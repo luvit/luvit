@@ -70,7 +70,7 @@ local function run(callback)
     test_files = {}
 
     for i, v in ipairs(files) do
-      local _, _, ext = string.find(v, 'test-.*%.(.*)') 
+      local _, _, ext = string.find(v, '^test-.*%.(.*)')
       if ext == 'lua' then
         table.insert(test_files, v)
       end
