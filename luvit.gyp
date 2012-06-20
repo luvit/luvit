@@ -70,6 +70,7 @@
        'lib/luvit/fiber.lua',
        'lib/luvit/fs.lua',
        'lib/luvit/http.lua',
+       'lib/luvit/https.lua',
        'lib/luvit/json.lua',
        'lib/luvit/luvit.lua',
        'lib/luvit/mime.lua',
