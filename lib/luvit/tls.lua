@@ -438,6 +438,18 @@ function CleartextStream:address()
   return self.socket and self.socket:address()
 end
 
+function CleartextStream:shutdown()
+  if self.socket then
+    self.socket:shutdown()
+  end
+end
+
+function CleartextStream:close()
+  if self.socket then
+    self.socket:destroy()
+  end
+end
+
 --[[ EncryptedStream ]]--
 
 local EncryptedStream = CryptoStream:extend()

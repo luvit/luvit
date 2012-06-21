@@ -322,6 +322,10 @@ function Response:destroy(...)
   return self.socket:destroy(...)
 end
 
+function Response:close()
+  self.socket:close()
+end
+
 --------------------------------------------------------------------------------
 
 function http.request(options, callback)
@@ -350,9 +354,14 @@ function http.request(options, callback)
   -- placeholders for original client methods.
   -- we restore them upon connection callback fired
   local original_write
+  local createConnection = net.create
+
+  if options.createConnection then
+    createConnection = options.createConnection
+  end
 
   local client
-  client = net.create(port, host, function (err)
+  client = createConnection(port, host, function(err)
 
     if err then
       client:emit("error", err)
