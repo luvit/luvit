@@ -19,40 +19,53 @@ limitations under the License.
 require("helper")
 
 local http = require('http')
+local string = require('string')
 
 local HOST = "127.0.0.1"
 local PORT = process.env.PORT or 10080
+local MB = 1024 * 1024
 local server = nil
 local client = nil
 
+local a = string.rep('a', 1024)
+local data = string.rep(a, 1024)
+
 server = http.createServer(function(request, response)
   p('server:onConnection')
-  p(request)
-  assert(request.method == "GET")
+  local postBuffer = ''
+  assert(request.method == "POST")
   assert(request.url == "/foo")
-  -- Fails because header parsing is busted
-  -- assert(request.headers.bar == "cats")
-  p(response)
-  response:write("Hello")
-  response:finish()
-  server:close()
+  assert(request.headers.bar == "cats")
+  request:on('data', function(chunk)
+    postBuffer = postBuffer .. chunk
+  end)
+  request:on('end', function()
+    assert(postBuffer == data)
+    response:write("Hello")
+    response:finish()
+    server:close()
+  end)
 end)
 
 server:listen(PORT, HOST, function()
+  local headers = {
+    bar = 'cats',
+    ['Content-Length'] = MB
+  }
   local req = http.request({
     host = HOST,
     port = PORT,
+    method = 'POST',
     path = "/foo",
-    headers = {bar = "cats"}
+    headers = headers
   }, function(response)
-    p('client:onResponse')
-    p(response)
     assert(response.status_code == 200)
     assert(response.version_major == 1)
     assert(response.version_minor == 1)
     -- TODO: fix refcount so this isn't needed.
     process.exit()
   end)
+  req:write(data)
   req:done()
 end)
 
