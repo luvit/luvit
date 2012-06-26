@@ -1,3 +1,15 @@
+* Changes between 0.4.0 to 0.5.0
+
+  API Changes
+
+  * http module has been largely refactored/rewritten to be node-like.
+
+  New Features
+
+  * New http module - posts, chunking, and headers now work (Ryan Phillips)
+  * New https module - leverages the new http submodule (Ryan Phillips)
+  * Improved fiber module (Tim Caswell)
+
 * Changes between 0.3.1 to 0.4.0
 
   API Changes
