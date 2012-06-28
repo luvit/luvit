@@ -81,8 +81,8 @@ end
 
 -- Make sure value is converted to a valid string representation
 -- for querystring use
-function toquerystring(val)
-  local vtype = type(val)
+function toquerystring(val, vtype)
+  vtype = vtype or type(val)
 
   if 'table' == vtype then
     return ''
@@ -95,9 +95,8 @@ end
 
 -- Insert a item into a querystring result table
 function insertqueryitem(ret, key, val, sep, eq)
-  p(ret, key, val, sep, eq)
   local vtype = nil -- string
-  local skey = nil -- string
+  local skey = nil -- string (Safe key)
   local count = 0
 
   vtype = type(val)
@@ -119,7 +118,7 @@ function insertqueryitem(ret, key, val, sep, eq)
 
     count = 0
   else
-    val = querystring.urlencodecomponent(toquerystring(val), sep, eq)
+    val = querystring.urlencodecomponent(toquerystring(val, vtype), sep, eq)
     table.insert(ret, table.concat({skey, val}, eq))
   end
 end
