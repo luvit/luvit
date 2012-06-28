@@ -38,7 +38,7 @@ for input, output in pairs(tests) do
   end
 end
 
-local qsTestCases = {
+local sTests = {
   [{['foo'] = '918854443121279438895193'}] = 'foo=918854443121279438895193',
   [{['foo'] = 'bar'}] = 'foo=bar',
   [{['foo'] = {'bar', 'quux'}}] = 'foo=bar&foo=quux',
@@ -54,8 +54,29 @@ local qsTestCases = {
   [{['foo'] = '%zx'}] = 'foo=%25zx'
 }
 
-for input, output in pairs(qsTestCases) do
+for input, output in pairs(sTests) do
   local str = stringify(input)
+
+  if output ~= str then
+    p("Expected", output)
+    p("But got", str)
+    error("Test failed " .. input)
+  end
+end
+
+-- Test ordering
+local soTest = {
+  str = 'foo',
+  arr = {1, 2, 3},
+  somenull = '',
+  undef = ''
+}
+local soOrder = {
+  [{ 'str', 'arr', 'somenull', 'undef' }] = 'str=foo&arr=1&arr=2&arr=3&somenull=&undef='
+}
+
+for input, output in pairs(soOrder) do
+  local str = stringify(soTest, input, nil, nil)
 
   if output ~= str then
     p("Expected", output)

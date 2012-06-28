@@ -79,12 +79,58 @@ function querystring.parse(str, sep, eq)
   return vars
 end
 
+-- Make sure value is converted to a valid string representation
+-- for querystring use
+function toquerystring(val)
+  local vtype = type(val)
+
+  if 'table' == vtype then
+    return ''
+  elseif 'string' == vtype then
+    return val
+  end
+
+  return tostring(val)
+end
+
+-- Insert a item into a querystring result table
+function insertqueryitem(ret, key, val, sep, eq)
+  p(ret, key, val, sep, eq)
+  local vtype = nil -- string
+  local skey = nil -- string
+  local count = 0
+
+  vtype = type(val)
+  skey = querystring.urlencodecomponent(key, sep, eq)
+
+  -- only use numeric keys for table values
+  if 'table' == vtype then
+    for i, v in ipairs(val) do
+      if nil ~= val then
+        count = count + 1
+        v = querystring.urlencodecomponent(toquerystring(v), sep, eq)
+        table.insert(ret, table.concat({skey, v}, eq))
+      end
+    end
+
+    if 0 == count then
+      table.insert(ret, table.concat({skey, ''}, eq))
+    end
+
+    count = 0
+  else
+    val = querystring.urlencodecomponent(toquerystring(val), sep, eq)
+    table.insert(ret, table.concat({skey, val}, eq))
+  end
+end
+
 -- Create a querystring from the given table.
-function querystring.stringify(params, sep, eq)
+function querystring.stringify(params, order, sep, eq)
   if not params then
     return ''
   end
 
+  order = order or nil
   sep = sep or '&'
   eq = eq or '='
   local ret = {}
@@ -92,29 +138,15 @@ function querystring.stringify(params, sep, eq)
   local count = 0
   local skey = nil -- string
 
-  for key, val in pairs(params) do
-    vtype = type(val)
-    skey = querystring.urlencodecomponent(key, sep, eq)
-
-    -- only use numeric keys for table values
-    if 'table' == vtype then
-      for i, v in ipairs(val) do
-        count = count + 1
-        table.insert(ret, table.concat({skey, querystring.urlencodecomponent(v, sep, eq)}, eq))
-      end
-
-      if 0 == count then
-        table.insert(ret, table.concat({skey, ''}, eq))
-      end
-
-      count = 0
-    else
-      if 'string' ~= vtype then
-        val = tostring(val)
-      end
-
-      val = querystring.urlencodecomponent(val)
-      table.insert(ret, table.concat({skey, val}, eq))
+  if order then
+    local val = nil -- mixed
+    for i, key in ipairs(order) do
+      val = params[key]
+      insertqueryitem(ret, key, val, sep, eq)
+    end
+  else
+    for key, val in pairs(params) do
+      insertqueryitem(ret, key, val, sep, eq)
     end
   end
 
