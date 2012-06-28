@@ -20,6 +20,7 @@ limitations under the License.
 -- querystring helpers
 local querystring = {}
 
+local table = require('table')
 local string = require('string')
 local find = string.find
 local gsub = string.gsub
@@ -37,6 +38,7 @@ function querystring.urldecode(str)
   str = gsub(str, '\r\n', '\n')
   return str
 end
+querystring.urldecodecomponent = querystring.urldecode
 
 function querystring.urlencode(str)
   if str then
@@ -45,6 +47,16 @@ function querystring.urlencode(str)
       return format('%%%02X', byte(c))
     end)
     str = gsub(str, ' ', '+')
+  end
+  return str
+end
+
+function querystring.urlencodecomponent(str)
+  if str then
+    str = gsub(str, '\n', '\r\n')
+    str = gsub(str, '([^%w])', function(c)
+      return format('%%%02X', byte(c))
+    end)
   end
   return str
 end
@@ -65,6 +77,52 @@ function querystring.parse(str, sep, eq)
     end
   end
   return vars
+end
+
+-- Create a querystring from the given table.
+function querystring.stringify(params, sep, eq)
+  if not params then
+    return ''
+  end
+
+  sep = sep or '&'
+  eq = eq or '='
+  local ret = {}
+  local vtype = nil -- string
+  local count = 0
+  local skey = nil -- string
+
+  for key, val in pairs(params) do
+    vtype = type(val)
+    skey = querystring.urlencodecomponent(key, sep, eq)
+
+    -- only use numeric keys for table values
+    if 'table' == vtype then
+      for i, v in ipairs(val) do
+        count = count + 1
+        table.insert(ret, table.concat({skey, querystring.urlencodecomponent(v, sep, eq)}, eq))
+      end
+
+      if 0 == count then
+        table.insert(ret, table.concat({skey, ''}, eq))
+      end
+
+      count = 0
+    else
+      if 'string' ~= vtype then
+        val = tostring(val)
+      end
+
+      val = querystring.urlencodecomponent(val)
+      table.insert(ret, table.concat({skey, val}, eq))
+    end
+  end
+
+  if 0 == #ret then
+    return ''
+  end
+
+  return table.concat(ret, sep)
 end
 
 -- module
