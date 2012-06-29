@@ -31,6 +31,32 @@ end):listen(8080)
 print("Server listening at http://localhost:8080/")
 ```
 
+### Building from git
+
+Grab a copy of the source code:
+
+`git clone https://github.com/luvit/luvit.git --recursive`
+
+To use the gyp build system run:
+
+```
+cd luvit
+./configure
+make -C out
+tools/build.py test
+./out/Debug/luvit
+```
+
+To use the Makefile build system (for embedded systems without python)
+run:
+
+```
+cd luvit
+make
+make test
+./build/luvit
+```
+
 ## Debugging
 
 Luvit contains an extremely useful debug API. Lua contains a stack which is used
