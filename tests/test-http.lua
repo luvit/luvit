@@ -34,7 +34,7 @@ server = http.createServer(function(request, response)
   -- assert(request.headers.bar == "cats")
   p(response)
   response:write("Hello")
-  response:finish()
+  response:done()
   server:close()
 end)
 

@@ -29,7 +29,7 @@ server = http.createServer(function(req, res)
   assert('/foo?bar' == req.url)
   res:writeHead(200, {['Content-Type'] = 'text/plain'})
   res:write('hello\n')
-  res:finish()
+  res:done()
   server:close()
   seen_req = true
 end)

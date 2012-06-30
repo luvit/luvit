@@ -494,15 +494,10 @@ function OutgoingMessage:done(data, encoding)
 
   self.finished = true
   if #self.output == 0 then
-    self:_finish()
+    self:emit('finish')
   end
 
   return ret
-end
-
-
-function OutgoingMessage:_finish()
-  self:emit('finish')
 end
 
 function OutgoingMessage:_flush()
@@ -521,7 +516,7 @@ function OutgoingMessage:_flush()
   end
 
   if self.finished then
-    self:_finish()
+    self:emit('finish')
   elseif ret then
     self:emit('drain')
   end
@@ -992,7 +987,7 @@ function Response:write(chunk, callback)
   return self.socket:write(chunk, callback)
 end
 
-function Response:finish(chunk, callback)
+function Response:done(chunk, callback)
   if chunk and self.has_body == false then error ("Body not allowed") end
   if not self.headers_sent then
     if self.has_body == nil then
@@ -1019,10 +1014,7 @@ function Response:finish(chunk, callback)
   if self.chunked then
     self.socket:write('0\r\n\r\n')
   end
-  self:done(callback)
-end
 
-function Response:done(callback)
   if not self.should_keep_alive then
     self.socket:shutdown(function ()
       self:emit("end")
