@@ -9,13 +9,13 @@ local options = {
 }
 local req
 req = http.request(options, function(res)
-  p("on_connect", {status_code = res.status_code, headers = res.headers})
+  p("on_connect", {status_code = res.statusCode, headers = res.headers})
   res:on('data', function (chunk)
     p("on_data", #chunk)
   end)
   res:on("end", function ()
     p("on_end")
-    req:close()
+    req:done()
   end)
 end)
 

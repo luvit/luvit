@@ -49,7 +49,7 @@ debug('REQRES1', tostring(request), tostring(response), response.headers, respon
 debug('REQRES2', tostring(request), tostring(response), response.headers, response.headers_sent)
     --response:setHeader('Content-Length', #income)
     response:write(income)
-    response:finish()
+    response:done()
     --response = nil
   end)
   request:on('error', function (err)

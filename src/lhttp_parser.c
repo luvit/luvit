@@ -318,6 +318,20 @@ static int lhttp_parser_reinitialize (lua_State *L) {
   return 0;
 }
 
+static int lhttp_parser_get_type (lua_State *L) {
+  http_parser* parser = (http_parser *)luaL_checkudata(L, 1, "lhttp_parser");
+
+  if (HTTP_REQUEST == parser->type) {
+    lua_pushstring(L, "request");
+  } else if (HTTP_RESPONSE == parser->type) {
+    lua_pushstring(L, "response");
+  } else {
+    return luaL_error(L, "Parser type was not request or response");
+  }
+
+  return 1;
+}
+
 static int lhttp_parser_parse_url (lua_State *L) {
   size_t len;
   const char *url;
@@ -364,6 +378,7 @@ static const luaL_reg lhttp_parser_m[] = {
   {"execute", lhttp_parser_execute},
   {"finish", lhttp_parser_finish},
   {"reinitialize", lhttp_parser_reinitialize},
+  {"getType", lhttp_parser_get_type},
   {NULL, NULL}
 };
 

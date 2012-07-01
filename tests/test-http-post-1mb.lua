@@ -59,9 +59,9 @@ server:listen(PORT, HOST, function()
     path = "/foo",
     headers = headers
   }, function(response)
-    assert(response.status_code == 200)
-    assert(response.version_major == 1)
-    assert(response.version_minor == 1)
+    assert(response.statusCode == 200)
+    assert(response.httpVersionMajor == 1)
+    assert(response.httpVersionMinor == 1)
     -- TODO: fix refcount so this isn't needed.
     process.exit()
   end)

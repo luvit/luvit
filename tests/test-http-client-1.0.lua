@@ -16,29 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+require('helper')
 
 local http = require('http')
 local PORT = process.env.PORT or 10080
 
-local seen_req = false
-
-local server
-server = http.createServer(function(req, res)
-  assert('GET' == req.method)
-  assert('/foo?bar' == req.url)
-  res:writeHead(200, {['Content-Type'] = 'text/plain'})
-  res:write('hello\n')
-  res:done()
-  server:close()
-  seen_req = true
-end)
-
-server:listen(PORT, function()
-  http.get('http://127.0.0.1:' .. PORT .. '/foo?bar', function (res)
-  end)
-end)
-
-process:on('exit', function()
-  assert(seen_req);
-end)
+function test ()
+end

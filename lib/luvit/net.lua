@@ -173,6 +173,7 @@ end
 
 function Socket:destroySoon()
   self.writable = false
+  self._destroySoon = true
 
   if self._pendingWriteRequests == 0 then
     self:destroy()

@@ -93,6 +93,9 @@ function split (str, sep)
     while true do
       start, stop = string.find(str, sep, init)
       if nil == start then
+        if init < len then
+          ret[#ret + 1] = string.sub(str, init)
+        end
         break
       end
       ret[#ret + 1] = string.sub(str, init, start - 1)
@@ -119,6 +122,7 @@ end
 
   function responseValidator (res, eof, timeout)
     local m = split(table.concat(res), '\r\n\r\n')
+    p(res, m)
     assert(BODY == m[2])
     assert(true == eof)
     assert(false == timeout)
