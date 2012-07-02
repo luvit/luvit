@@ -41,98 +41,6 @@ local OugoingMessage = nil
 local ServerResponse = nil
 local ClientRequest = nil
 
-local function parserOnUrl(self, url)
-  self.ref.url = url
-end
-
-local function parserOnHeaderField(self, field)
-  self.ref._currentField = field
-end
-
-local function parserOnHeaderValue(self, value)
-  self = self.ref
-
-  local exists = self.headers[self._currentField]
-
-  -- Turn multiple values into an table
-  if exists then
-    if 'table' ~= type(exists) then
-      self.headers[self._currentField] = { exists }
-      exists = self.headers[self._currentField]
-    end
-    exists[#exists + 1] = value
-    return
-  end
-
-  self.headers[self._currentField] = value
-end
-
-local function parserOnHeadersComplete(self, info)
-  self = self.ref
-
-  self.incoming = IncomingMessage:new(self.socket)
-  local incoming = self.incoming
-
-  incoming.httpVersionMajor = info.version_major
-  incoming.httpVersionMinor = info.version_minor
-  incoming.url = self.url
-  incoming.upgrade = info.upgrade
-
-  for key, value in pairs(self.headers) do
-    incoming:_addHeaderLine(key, value)
-  end
-
-  self.headers = {}
-  self.url = ''
-
-  if info.method then
-    incoming.method = info.method
-  else
-    incoming.statusCode = info.status_code
-  end
-
-  local skipBody = false
-
-  if not info.upgrade then
-    skipBody = self:onIncoming(incoming, info.should_keep_alive)
-  end
-
-  return skipBody
-end
-
-local function parserOnBody(self, data)
-  self.ref.incoming:emit('data', data)
-end
-
-local function parserOnMessageComplete(self)
-  self = self.ref
-  local incoming = self.incoming
-  local socket = self.socket
-
-  incoming.complete = true
-
-  -- Trailing headers
-  if #self.headers > 0 then
-    for key, value in pairs(self.headers) do
-      incoming:_addHeaderLine(key, value)
-    end
-    self.headers = {}
-  end
-
-  if not incoming.upgrade then
-    local pendings = incoming._pendings
-    if incoming._paused or 0 < pendings:length() then
-      pendings.push(END_OF_FILE)
-    else
-      incoming.readable = false
-      incoming:_emitEnd()
-    end
-  end
-
-  if socket.readable then
-    socket:resume()
-  end
-end
 
 local Parser = {}
 
@@ -161,7 +69,7 @@ end
 local parsers = Freelist:new('parsers', 1000, function ()
   local currentField = nil -- string
   local parser = setmetatable({
-    parser = parser,
+    parser = nil,
     socket = nil, -- net.Socket
     incoming = nil, -- IncomingMessage
     onIncoming = nil, -- function
@@ -170,13 +78,85 @@ local parsers = Freelist:new('parsers', 1000, function ()
   }, { __index = Parser })
 
   parser.parser = HttpParser.new("request", {
-    ref = parser,
-    onUrl = parserOnUrl,
-    onHeaderField = parserOnHeaderField,
-    onHeaderValue = parserOnHeaderValue,
-    onHeadersComplete = parserOnHeadersComplete,
-    onBody = parserOnBody,
-    onMessageComplete = parserOnMessageComplete
+    onUrl = function (url)
+      parser.url = url
+    end,
+    onHeaderField = function (field)
+      parser._currentField = field
+    end,
+    onHeaderValue = function (value)
+      local exists = parser.headers[parser._currentField]
+
+      -- Turn multiple values into an table
+      if exists then
+        if 'table' ~= type(exists) then
+          parser.headers[parser._currentField] = { exists }
+          exists = parser.headers[parser._currentField]
+        end
+        exists[#exists + 1] = value
+        return
+      end
+
+      parser.headers[parser._currentField] = value
+    end,
+    onHeadersComplete = function (info)
+      parser.incoming = IncomingMessage:new(parser.socket)
+      local incoming = parser.incoming
+
+      incoming.httpVersionMajor = info.version_major
+      incoming.httpVersionMinor = info.version_minor
+      incoming.url = parser.url
+      incoming.upgrade = info.upgrade
+
+      for key, value in pairs(parser.headers) do
+        incoming:_addHeaderLine(key, value)
+      end
+
+      if info.method then
+        incoming.method = info.method
+      else
+        incoming.statusCode = info.status_code
+      end
+
+      local skipBody = false
+
+      if not info.upgrade then
+        skipBody = parser:onIncoming(incoming, info.should_keep_alive)
+      end
+
+      return skipBody
+    end,
+    onBody = function (data)
+      parser.incoming:emit('data', data)
+    end,
+    onMessageComplete = function ()
+      local incoming = parser.incoming
+      local socket = parser.socket
+
+      incoming.complete = true
+
+      -- Trailing headers
+      if #parser.headers > 0 then
+        for key, value in pairs(parser.headers) do
+          incoming:_addHeaderLine(key, value)
+        end
+        parser.headers = {}
+      end
+
+      if not incoming.upgrade then
+        local pendings = incoming._pendings
+        if incoming._paused or 0 < pendings:length() then
+          pendings.push(END_OF_FILE)
+        else
+          incoming.readable = false
+          incoming:_emitEnd()
+        end
+      end
+
+      if socket.readable then
+        socket:resume()
+      end
+    end
   })
 
   return parser
@@ -1204,155 +1184,150 @@ http.Server = Server
   ]]--
 function Server:initialize(onRequest)
   net.Server.initialize(self)
+  local server = self
 
   if onRequest then
     self:on('request', onRequest)
   end
 
-  -- Make sure we pass along self
-  function self._onConnectionEvent(socket)
-    self:_onConnection(socket)
-  end
+  --[[
+    Called when we have an incoming socket
+    ]]--
+  local function onConnection(socket)
+    httpSocketSetup(socket)
 
-  self:on('connection', self._onConnectionEvent)
-end
-
---[[
-  Called when we have an incoming socket
-  ]]--
-function Server:_onConnection(socket)
-  local server = self
-  httpSocketSetup(socket)
-
-  -- 2 minute timeout
-  socket:setTimeout(2 * 60 * 1000)
-  socket:on('timeout', function ()
-    socket:destroy()
-  end)
-
-  socket:on('error', function (err)
-    self:emit('clientError', err)
-  end)
-
-  local incoming = Queue:new()
-  local outgoing = Queue:new()
-
-  local parser = parsers:alloc()
-  parser:cleanup()
-  parser.parser:reinitialize('request')
-  parser.socket = socket
-
-  local function abortincoming()
-    local req = nil
-    local length = incoming:length()
-    while length > 0 do
-      req = incoming:pop()
-      length = length - 1
-      req:emit('aborted')
-      req:emit('close')
-    end
-  end
-
-  local function ondata(data)
-    local length = #data
-    if 0 == length then return end
-
-    local bytes = parser.parser:execute(data, 0, length)
-
-    if bytes < length then
-      socket:emit('error', 'http parse error')
+    -- 2 minute timeout
+    socket:setTimeout(2 * 60 * 1000)
+    socket:on('timeout', function ()
       socket:destroy()
-    elseif parser.incoming and parser.incoming.upgrade then
-      socket:removeListener('data', ondata)
-      socket:removeListener('end', onend)
-      socket:removeListener('close', onSocketClose)
-      parser.parser:finish()
-
-      local event = ''
-      local handlers = rawget(request, 'handlers')
-      if parser.incoming.method == 'CONNECT' then
-        event = 'connect'
-      else
-        event = 'upgrade'
-      end
-
-      if handlers[event] and 0 < #handlers[event] then
-        self:emit(event, request, socket, chunk)
-      else
-        socket:destroy()
-      end
-      parser:cleanup()
-      parsers:free(parser)
-    end
-  end
-
-  local function onend()
-    parser.parser:finish()
-
-    if 0 < outgoing:length() then
-      outgoing[outgoing.tail]._last = true
-    elseif socket._httpMessage then
-      socket._httpMessage._last = true
-    elseif socket.writable then
-      socket:done()
-    end
-  end
-
-  local function onclose()
-    parser:cleanup()
-    parsers:free(parser)
-    abortincoming()
-  end
-
-  socket:on('data', ondata)
-  socket:on('end', onend)
-  socket:on('close', onclose)
-
-  function parser:onIncoming(request, shouldkeepalive)
-    incoming:push(request)
-
-    local response = ServerResponse:new(request)
-    response.shouldKeepAlive = shouldkeepalive
-
-    if socket._httpMessage then
-      outgoing:push(response)
-    else
-      response:assignSocket(socket)
-    end
-
-    -- After writing the response checkout to see if it is the last one.
-    -- We will procede to destroy it if so.
-    response:on('finish', function ()
-      incoming:pop()
-      response:detachSocket(socket)
-
-      if response._last then
-        socket:destroySoon()
-      else
-        local msg = outgoing:pop()
-        if msg then
-          msg:assignSocket(socket)
-        end
-      end
     end)
 
-    local handlers = rawget(server, 'handlers')
+    socket:on('error', function (err)
+      self:emit('clientError', err)
+    end)
 
-    -- expect continue
-    if request.headers['expect'] and (request.httpVersionMajor == 1 and request.httpVersionMinor == 1) and
-       request.headers['expect']:lower() == continueExpression then
-      response._expectContinue = true
+    local incoming = Queue:new()
+    local outgoing = Queue:new()
 
-      if handlers['checkContinue'] and 0 < #handlers['checkContinue'] then
-        server:emit('checkContinue', request, response)
+    local parser = parsers:alloc()
+    parser:cleanup()
+    parser.parser:reinitialize('request')
+    parser.socket = socket
+
+    local function abortincoming()
+      local req = nil
+      local length = incoming:length()
+      while length > 0 do
+        req = incoming:pop()
+        length = length - 1
+        req:emit('aborted')
+        req:emit('close')
+      end
+    end
+
+    local function ondata(data)
+      local length = #data
+      if 0 == length then return end
+
+      local bytes = parser.parser:execute(data, 0, length)
+
+      if bytes < length then
+        socket:emit('error', 'http parse error')
+        socket:destroy()
+      elseif parser.incoming and parser.incoming.upgrade then
+        socket:removeListener('data', ondata)
+        socket:removeListener('end', onend)
+        socket:removeListener('close', onSocketClose)
+        parser.parser:finish()
+
+        local event = ''
+        local handlers = rawget(request, 'handlers')
+        if parser.incoming.method == 'CONNECT' then
+          event = 'connect'
+        else
+          event = 'upgrade'
+        end
+
+        if handlers[event] and 0 < #handlers[event] then
+          self:emit(event, request, socket, chunk)
+        else
+          socket:destroy()
+        end
+        parser:cleanup()
+        parsers:free(parser)
+      end
+    end
+
+    local function onend()
+      parser.parser:finish()
+
+      if 0 < outgoing:length() then
+        outgoing[outgoing.tail]._last = true
+      elseif socket._httpMessage then
+        socket._httpMessage._last = true
+      elseif socket.writable then
+        socket:done()
+      end
+    end
+
+    local function onclose()
+      parser:cleanup()
+      parsers:free(parser)
+      abortincoming()
+    end
+
+    socket:on('data', ondata)
+    socket:on('end', onend)
+    socket:on('close', onclose)
+
+    function parser:onIncoming(request, shouldkeepalive)
+      incoming:push(request)
+
+      local response = ServerResponse:new(request)
+      response.shouldKeepAlive = shouldkeepalive
+
+      if socket._httpMessage then
+        outgoing:push(response)
       else
-        response:writeContinue()
+        response:assignSocket(socket)
+      end
+
+      -- After writing the response checkout to see if it is the last one.
+      -- We will procede to destroy it if so.
+      response:on('finish', function ()
+        incoming:pop()
+        response:detachSocket(socket)
+
+        if response._last then
+          socket:destroySoon()
+        else
+          local msg = outgoing:pop()
+          if msg then
+            msg:assignSocket(socket)
+          end
+        end
+      end)
+
+      local handlers = rawget(server, 'handlers')
+
+      -- expect continue
+      if request.headers['expect'] and (request.httpVersionMajor == 1 and request.httpVersionMinor == 1) and
+         request.headers['expect']:lower() == continueExpression then
+        response._expectContinue = true
+
+        if handlers['checkContinue'] and 0 < #handlers['checkContinue'] then
+          server:emit('checkContinue', request, response)
+        else
+          response:writeContinue()
+          server:emit('request', request, response)
+        end
+      else
         server:emit('request', request, response)
       end
-    else
-      server:emit('request', request, response)
     end
   end
+
+  self:on('connection', onConnection)
 end
 
 --------------------------------------------------------------------------------
