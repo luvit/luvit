@@ -144,9 +144,8 @@ local parsers = Freelist:new('parsers', 1000, function ()
       end
 
       if not incoming.upgrade then
-        local pendings = incoming._pendings
-        if incoming._paused or 0 < pendings:length() then
-          pendings.push(END_OF_FILE)
+        if incoming._paused or 0 < incoming._pendings:length() then
+          incoming._pendings:push(END_OF_FILE)
         else
           incoming.readable = false
           incoming:_emitEnd()
@@ -302,24 +301,24 @@ function IncomingMessage:_addHeaderLine(field, value)
   end
 
   local function default()
-    if field:sub(1,2) == 'x-' then
-      if dest[field] then
-        dest[field] = dest[field] .. ', ' .. value
-      else
+    if field:sub(1, 2) ~= 'x-' then
+      if not dest[field] then
         dest[field] = value
       end
     else
-      if not dest[field] then
+      if dest[field] then
+        dest[field] = dest[field] .. ', ' .. value
+      else
         dest[field] = value
       end
     end
   end
 
   local function setCoookie()
-    if dest[field] then
-      dest[field][#desk[field] + 1] = value
-    else
+    if not dest[field] then
       dest[field] = { value }
+    else
+      dest[field][#desk[field] + 1] = value
     end
   end
 
@@ -455,19 +454,31 @@ function OutgoingMessage:_storeHeader(firstLine, headers)
   end
 
   if headers then
-    local isArray = headers[1]
-    for field, value in pairs(headers) do
-      if isArray then
-        field = headers[field][0]
-        value = headers[value][1]
-      end
-
-      if type(value) == 'table' and value[1] then -- isArray
-        for k, v in pairs(value) do
-          store(field, v)
+    if not headers[1] then
+      for field, value in pairs(headers) do
+        if type(value) ~= 'table' then
+          store(field, value)
+        else
+          for i = 1, #value do
+            store(field, value[i])
+          end
         end
-      else
-        store(field, value)
+      end
+    else
+      local header = nil
+      local value = nil
+      local field = nil
+      for i = 1, #headers do
+        header = headers[i]
+        field = header[1]
+        value = header[2]
+        if type(value) == 'table' then
+          for j = 1, #value do
+            store(field, value[j])
+          end
+        else
+          store(field, value)
+        end
       end
     end
   end
@@ -724,12 +735,14 @@ function ServerResponse:writeHead(statusCode, ...)
 
   local obj = args[1]
 
-  if obj and self._headers then
+  if obj and not self._headers then
+    headers = obj
+  elseif obj and self._headers then
     headers = self:_renderHeaders()
     local field
     if obj[1] then
-      for i, val in pairs(obj) do
-        field = val[1]
+      for i = 1, #obj do
+        field = val[i][1]
         if headers[field] then
           tinsert(obj, {field, headers[field]})
         end
@@ -742,8 +755,6 @@ function ServerResponse:writeHead(statusCode, ...)
     end
   elseif self._headers then
     headers = self:_renderHeaders()
-  else
-    headers = obj
   end
 
   local statusLine = tconcat({ 'HTTP/1.1 ', tostring(statusCode), ' ', reasonPhrase, CRLF })
