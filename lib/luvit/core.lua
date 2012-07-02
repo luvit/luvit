@@ -268,8 +268,6 @@ function Queue:pop()
   local head = self.head
   local tail = self.tail
 
-  if head > tail then return nil end
-
   local value = self[head]
   self[head] = nil
   self.head = head + 1
