@@ -29,6 +29,7 @@ local stringFormat = require('string').format
 local Object = require('core').Object
 local Emitter = require('core').Emitter
 local iStream = require('core').iStream
+local SimpleQueue = require('core').SimpleQueue
 local Queue = require('core').Queue
 local url = require('url')
 
@@ -234,7 +235,7 @@ function IncomingMessage:initialize(socket)
   self.socket = socket
   self.readable = true
   self._endEmitted = false
-  self._pendings = Queue:new()
+  self._pendings = SimpleQueue:new()
   self.headers = {}
   self.trailers = {}
   self.complete = false
@@ -357,7 +358,7 @@ local OutgoingMessage = IncomingMessage:extend()
 function OutgoingMessage:initialize()
   IncomingMessage.initialize(self)
 
-  self.output = Queue:new()
+  self.output = SimpleQueue:new()
 
   self.writable = true
 
@@ -1217,8 +1218,8 @@ function Server:initialize(onRequest)
       self:emit('clientError', err)
     end)
 
-    local incoming = Queue:new()
-    local outgoing = Queue:new()
+    local incoming = SimpleQueue:new()
+    local outgoing = SimpleQueue:new()
 
     local parser = parsers:alloc()
     parser:cleanup()

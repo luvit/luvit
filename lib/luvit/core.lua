@@ -246,6 +246,45 @@ end
 
 --------------------------------------------------------------------------------
 
+--[[
+  These Queue tables help reduce the performance hit of using table.insert and 
+  table.remove for push / pop operations on tables.
+
+  SimpleQueue negates the extra check to see if an item is removed.
+  ]]--
+local SimpleQueue = Object:extend()
+core.SimpleQueue = SimpleQueue
+
+function SimpleQueue:initialize()
+  self.tail = 0
+  self.head = 1
+end
+
+function SimpleQueue:length()
+  return self.tail - self.head + 1
+end
+
+function SimpleQueue:push(value)
+  self.tail = self.tail + 1
+  self[self.tail] = value
+end
+
+function SimpleQueue:pop()
+  local head = self.head
+  local tail = self.tail
+
+  local value = self[head]
+  self[head] = nil
+  self.head = head + 1
+
+  if head == tail then
+    self.head = 1
+    self.tail = 0
+  end
+
+  return value
+end
+
 local Queue = Object:extend()
 core.Queue = Queue
 
@@ -272,14 +311,14 @@ function Queue:pop()
   self[head] = nil
   self.head = head + 1
 
-  if head + 1 > tail then
+  if head == tail then
     self.head = 1
     self.tail = 0
   end
 
   if value == nil and 0 < self.removed then
     self.removed = self.removed - 1
-    return self:pop()
+    value = self:pop()
   end
 
   return value
