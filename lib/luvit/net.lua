@@ -124,6 +124,14 @@ function Socket:shutdown(callback)
   self._handle:shutdown(callback)
 end
 
+function Socket:nodelay(enable)
+  self._handle:nodelay(enable)
+end
+
+function Socket:keepalive(enable, delay)
+  self._handle:keepalive(enable, delay)
+end
+
 function Socket:pause()
   self._handle:readStop()
 end
