@@ -121,6 +121,9 @@ function Socket:_write(data, callback)
 end
 
 function Socket:shutdown(callback)
+  if self.destroyed then
+    return
+  end
   self._handle:shutdown(callback)
 end
 
