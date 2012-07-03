@@ -36,6 +36,42 @@ local server = net.createServer(function(client)
 end)
 
 server:listen(PORT, HOST, function(err)
+  local function test_keepalive(on_done)    -- test :keepalive(enable, delay)
+    local client
+    client = net.createConnection(PORT, HOST, function(err)
+      client:keepalive(true, 10)
+      if err then
+        assert(err)
+      end
+      client:on('data', function(data)
+        assert(#data == 5)
+        assert(data == 'hello')
+        client:destroy()
+        if on_done then on_done() end
+      end)
+
+      client:write('hello')
+    end)
+  end
+
+  local function test_nodelay(on_done)    -- test :nodelay(enable) function
+    local client
+    client = net.createConnection(PORT, HOST, function(err)
+      client:nodelay(true)
+      if err then
+        assert(err)
+      end
+      client:on('data', function(data)
+        assert(#data == 5)
+        assert(data == 'hello')
+        client:destroy()
+        if on_done then on_done() end
+      end)
+
+      client:write('hello')
+    end)
+  end
+
   local client
   client = net.createConnection(PORT, HOST, function(err)
     if err then
@@ -45,7 +81,11 @@ server:listen(PORT, HOST, function(err)
       assert(#data == 5)
       assert(data == 'hello')
       client:destroy()
-      server:close()
+      test_nodelay(function()
+		test_keepalive(function()
+		  server:close()
+		end)
+      end)
     end)
 
     client:write('hello')
