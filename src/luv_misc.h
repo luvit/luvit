@@ -37,6 +37,8 @@ int luv_uptime(lua_State* L);
 int luv_cpu_info(lua_State* L);
 int luv_interface_addresses(lua_State* L);
 int luv_execpath(lua_State* L);
+int luv_get_process_title(lua_State* L);
+int luv_set_process_title(lua_State* L);
 int luv_handle_type(lua_State* L);
 
 #endif
