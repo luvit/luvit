@@ -301,21 +301,21 @@
         'outputs': ['<(INTERMEDIATE_DIR)/buildvm_arch.h'],
         'inputs': [ '<(PRODUCT_DIR)/minilua' ],
         'variables': {
-          'DASM_FLAGS': [ '-D', 'JIT', '-D', 'FPU' ],
           'conditions': [
-            ['target_arch == "ia32" or target_arch == "x86"', {
+            ['target_arch == "ia32" or target_arch == "x64"', {
               'DASM_ARCH': 'x86'
             }],
             ['target_arch == "arm"', {
               'DASM_ARCH': 'arm'
             }],
-            ['target_arch == "x64" and OS == "win"', {
-               'DASM_FLAGS': ['-D', 'X64WIN']
-            }],
             ['target_arch == "x64" and OS != "win"', {
-               'DASM_FLAGS': ['-D', 'X64']
+               'DASM_FLAGS': ['-D', 'P64']
             }],
-          ]
+            ['OS == "win"', {
+               'DASM_FLAGS': ['-D', 'WIN']
+            }],
+          ],
+          'DASM_FLAGS': [ '-D', 'JIT', '-D', 'FPU' ],
         },
         'action': [
           '<(PRODUCT_DIR)/minilua', 'luajit/dynasm/dynasm.lua', '<@(DASM_FLAGS)', '-o', '<(INTERMEDIATE_DIR)/buildvm_arch.h', 'luajit/src/vm_<(DASM_ARCH).dasc'
