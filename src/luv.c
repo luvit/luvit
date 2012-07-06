@@ -157,6 +157,8 @@ static const luaL_reg luv_f[] = {
   {"cpuInfo", luv_cpu_info},
   {"interfaceAddresses", luv_interface_addresses},
   {"execpath", luv_execpath},
+  {"getProcessTitle", luv_get_process_title},
+  {"setProcessTitle", luv_set_process_title},
   {"handleType", luv_handle_type},
   {"activateSignalHandler", luv_activate_signal_handler},
   {NULL, NULL}

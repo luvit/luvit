@@ -77,14 +77,14 @@
      {
        'destination': '<(PRODUCT_DIR)/lua/jit',
        'files': [
-          '../deps/luajit/lib/bc.lua',
-          '../deps/luajit/lib/bcsave.lua',
-          '../deps/luajit/lib/dis_arm.lua',
-          '../deps/luajit/lib/dis_ppc.lua',
-          '../deps/luajit/lib/dis_x86.lua',
-          '../deps/luajit/lib/dis_x64.lua',
-          '../deps/luajit/lib/dump.lua',
-          '../deps/luajit/lib/v.lua',
+          '../deps/luajit/src/jit/bc.lua',
+          '../deps/luajit/src/jit/bcsave.lua',
+          '../deps/luajit/src/jit/dis_arm.lua',
+          '../deps/luajit/src/jit/dis_ppc.lua',
+          '../deps/luajit/src/jit/dis_x86.lua',
+          '../deps/luajit/src/jit/dis_x64.lua',
+          '../deps/luajit/src/jit/dump.lua',
+          '../deps/luajit/src/jit/v.lua',
       ]
     }],
   },
@@ -249,14 +249,33 @@
       ],
     },
     {
-      'target_name': 'buildvm',
+      'target_name': 'minilua',
       'type': 'executable',
       'sources': [
-        'luajit/src/buildvm.c',
-        'luajit/src/buildvm_asm.c',
-        'luajit/src/buildvm_peobj.c',
-        'luajit/src/buildvm_lib.c',
-        'luajit/src/buildvm_fold.c',
+        'luajit/src/host/minilua.c',
+      ],
+      'include_dirs': [
+        '<(INTERMEDIATE_DIR)',
+        'luajit/src',
+      ],
+    },
+    {
+      'target_name': 'buildvm',
+      'type': 'executable',
+      'dependencies': [
+        'minilua',
+      ],
+      'sources': [
+        'luajit/src/host/buildvm.c',
+        'luajit/src/host/buildvm_asm.c',
+        'luajit/src/host/buildvm_peobj.c',
+        'luajit/src/host/buildvm_lib.c',
+        'luajit/src/host/buildvm_fold.c',
+        '<(INTERMEDIATE_DIR)/buildvm_arch.h',
+      ],
+      'include_dirs': [
+        '<(INTERMEDIATE_DIR)',
+        'luajit/src',
       ],
       'rules': [
       {
@@ -275,6 +294,33 @@
         'process_outputs_as_sources': 0,
         'message': 'dynasm <(RULE_INPUT_PATH)'
       }
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_host_buildvm_arch',
+        'outputs': ['<(INTERMEDIATE_DIR)/buildvm_arch.h'],
+        'inputs': [ '<(PRODUCT_DIR)/minilua' ],
+        'variables': {
+          'conditions': [
+            ['target_arch == "ia32" or target_arch == "x64"', {
+              'DASM_ARCH': 'x86'
+            }],
+            ['target_arch == "arm"', {
+              'DASM_ARCH': 'arm'
+            }],
+            ['target_arch == "x64" and OS != "win"', {
+               'DASM_FLAGS': ['-D', 'P64']
+            }],
+            ['OS == "win"', {
+               'DASM_FLAGS': ['-D', 'WIN', '-L']
+            }],
+          ],
+          'DASM_FLAGS': [ '-D', 'JIT', '-D', 'FPU' ],
+        },
+        'action': [
+          '<(PRODUCT_DIR)/minilua', 'luajit/dynasm/dynasm.lua', '<@(DASM_FLAGS)', '-o', '<(INTERMEDIATE_DIR)/buildvm_arch.h', 'luajit/src/vm_<(DASM_ARCH).dasc'
+          ]
+      },
       ],
     },
     ],

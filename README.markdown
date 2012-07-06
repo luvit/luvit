@@ -7,7 +7,7 @@ architecture and dependencies and seeing how it fits in the Lua language.
 
 This project is still under heavy development, but it's showing promise. In
 initial benchmarking with a hello world server, this is between 2 and 4 times
-faster than node.js. Version 0.3.1 is the latest release version.
+faster than node.js. Version 0.5.0 is the latest release version.
 
 Do you have a question/want to learn more? Make sure to check out the [mailing
 list](http://groups.google.com/group/luvit/) and drop by our IRC channel, #luvit
@@ -29,6 +29,32 @@ end):listen(8080)
 
 -- Give a friendly message
 print("Server listening at http://localhost:8080/")
+```
+
+### Building from git
+
+Grab a copy of the source code:
+
+`git clone https://github.com/luvit/luvit.git --recursive`
+
+To use the gyp build system run:
+
+```
+cd luvit
+./configure
+make -C out
+tools/build.py test
+./out/Debug/luvit
+```
+
+To use the Makefile build system (for embedded systems without python)
+run:
+
+```
+cd luvit
+make
+make test
+./build/luvit
 ```
 
 ## Debugging

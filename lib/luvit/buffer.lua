@@ -142,4 +142,9 @@ function Buffer:readInt32BE(offset)
   return bit.tobit(self:readUInt32BE(offset))
 end
 
+function Buffer:toString(i, j)
+  local offset = i and i - 1 or 0
+  return ffi.string(self.ctype + offset, (j or self.length) - offset)
+end
+
 return buffer
