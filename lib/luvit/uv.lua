@@ -284,20 +284,23 @@ end
 
 uv.createReadableStdioStream = function(fd)
   local fd_type = native.handleType(fd);
+  local stdin
   if (fd_type == "TTY") then
-    local tty = Tty:new(fd)
-    native.unref()
-    return tty
+    stdin = Tty:new(fd)
   elseif (fd_type == "FILE") then
-    return fs.createReadStream(nil, {fd = fd})
+    stdin = fs.createReadStream(nil, {fd = fd})
   elseif (fd_type == "NAMED_PIPE") then
-    local pipe = Pipe:new(nil)
-    pipe:open(fd)
-    native.unref()
-    return pipe
+    stdin = Pipe:new(nil)
+    stdin:open(fd)
   else
     error("Unknown stream file type " .. fd)
   end
+
+  -- unref the event loop so that we don't block unless the user
+  -- wants stdin. This follows node's logic.
+  stdin:pause()
+
+  return stdin
 end
 
 function Process:initialize(command, args, options)
