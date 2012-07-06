@@ -39,6 +39,7 @@ setmetatable(process, Emitter.meta)
 -- Replace lua's stdio with luvit's
 -- leave stderr using lua's blocking implementation
 process.stdin = uv.createReadableStdioStream(0)
+process.stdin:readStop()
 process.stdout = uv.createWriteableStdioStream(1)
 process.stderr = uv.createWriteableStdioStream(2)
 
