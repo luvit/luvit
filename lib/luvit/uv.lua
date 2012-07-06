@@ -264,14 +264,12 @@ uv.createReadableStdioStream = function(fd)
   local fd_type = native.handleType(fd);
   if (fd_type == "TTY") then
     local tty = Tty:new(fd)
-    native.unref()
     return tty
   elseif (fd_type == "FILE") then
     return fs.createReadStream(nil, {fd = fd})
   elseif (fd_type == "NAMED_PIPE") then
     local pipe = Pipe:new(nil)
     pipe:open(fd)
-    native.unref()
     return pipe
   else
     error("Unknown stream file type " .. fd)
