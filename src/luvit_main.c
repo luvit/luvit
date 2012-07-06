@@ -38,10 +38,10 @@
 
 int main(int argc, char *argv[])
 {
-  argv = uv_setup_args(argc, argv);
-
   lua_State *L;
   uv_loop_t *loop;
+
+  argv = uv_setup_args(argc, argv);
 
   L = luaL_newstate();
   if (L == NULL) {
