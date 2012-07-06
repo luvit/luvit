@@ -312,7 +312,7 @@
                'DASM_FLAGS': ['-D', 'P64']
             }],
             ['OS == "win"', {
-               'DASM_FLAGS': ['-D', 'WIN']
+               'DASM_FLAGS': ['-D', 'WIN', '-L']
             }],
           ],
           'DASM_FLAGS': [ '-D', 'JIT', '-D', 'FPU' ],
