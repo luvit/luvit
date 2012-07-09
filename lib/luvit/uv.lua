@@ -203,6 +203,8 @@ function Tty:pause()
   self:readStop()
 end
 
+-- TODO: The readStop() implementation assumes a reference is being held. This
+-- will go away with a libuv upgrade.
 function Tty:pauseNoRef()
   native.unref()
   self:readStopNoRef()
