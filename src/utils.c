@@ -240,7 +240,9 @@ void luv_handle_ref(lua_State* L, luv_handle_t* lhandle, int index) {
 
 /* This needs to be called when an async callback fires on a lhandle. */
 void luv_handle_unref(lua_State* L, luv_handle_t* lhandle) {
-/*  printf("luv_handle_unref\t%s %p:%p\n", lhandle->type, lhandle, lhandle->handle);*/
+  if (lhandle->refCount <= 0) {
+    return;
+  }
   lhandle->refCount--;
   assert(lhandle->refCount >= 0);
   /* If it's now inactive, clear the ref */
