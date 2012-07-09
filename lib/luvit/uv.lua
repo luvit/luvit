@@ -61,16 +61,6 @@ Stream.readStart = native.readStart
 -- Stream:readStop()
 Stream.readStop = native.readStop
 
--- Stream:pause()
-function Stream:pause()
-  self:readStop()
-end
-
--- Stream:resume()
-function Stream:resume()
-  self:readStart()
-end
-
 -- Stream:write(chunk, callback)
 Stream.write = native.write
 
@@ -163,16 +153,6 @@ Pipe.bind = native.pipeBind
 -- Pipe:connect(name)
 Pipe.connect = native.pipeConnect
 
-function Pipe:pause()
-  native.unref()
-  self:readStop()
-end
-
-function Pipe:resume()
-  native.ref()
-  self:readStart()
-end
-
 --------------------------------------------------------------------------------
 
 local Tty = Stream:extend()
@@ -190,12 +170,12 @@ Tty.getWinsize = native.ttyGetWinsize
 
 Tty.resetMode = native.ttyResetMode
 
-function Tty:pause()
+Tty.pause = function(self)
   native.unref()
   self:readStop()
 end
 
-function Tty:resume()
+Tty.resume = function(self)
   native.ref()
   self:readStart()
 end
