@@ -193,6 +193,9 @@ int luv_read_stop(lua_State* L) {
   return 0;
 }
 
+/* TODO: this is needed because we haven't done the libuv upgrade yet to see if
+ * a handle is actually being held by the event loop. The plan is to remove this
+ * function after the upgrade. */
 int luv_read_stop_noref(lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   uv_read_stop(handle);
