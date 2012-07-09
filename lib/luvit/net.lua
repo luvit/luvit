@@ -121,7 +121,18 @@ function Socket:_write(data, callback)
 end
 
 function Socket:shutdown(callback)
+  if self.destroyed then
+    return
+  end
   self._handle:shutdown(callback)
+end
+
+function Socket:nodelay(enable)
+  self._handle:nodelay(enable)
+end
+
+function Socket:keepalive(enable, delay)
+  self._handle:keepalive(enable, delay)
 end
 
 function Socket:pause()
