@@ -176,6 +176,11 @@ function Pipe:pause()
   self:readStop()
 end
 
+function Pipe:pauseNoRef()
+  native.unref()
+  self:readStopNoRef()
+end
+
 function Pipe:resume()
   native.ref()
   self:readStart()
