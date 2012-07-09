@@ -40,7 +40,6 @@ setmetatable(process, Emitter.meta)
 -- leave stderr using lua's blocking implementation
 process.stdin = uv.createReadableStdioStream(0)
 process.stdin:readStop()
-native.unref()
 process.stdout = uv.createWriteableStdioStream(1)
 process.stderr = uv.createWriteableStdioStream(2)
 
@@ -317,6 +316,5 @@ end, traceback))
 
 -- Start the event loop
 native.run()
-
 -- trigger exit handlers and exit cleanly
 process.exit(process.exitCode or 0)

@@ -171,12 +171,10 @@ Tty.getWinsize = native.ttyGetWinsize
 Tty.resetMode = native.ttyResetMode
 
 Tty.pause = function(self)
-  native.unref()
   self:readStop()
 end
 
 Tty.resume = function(self)
-  native.ref()
   self:readStart()
 end
 
