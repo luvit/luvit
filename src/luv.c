@@ -75,6 +75,7 @@ static const luaL_reg luv_f[] = {
   {"readStart", luv_read_start},
   {"readStart2", luv_read_start2},
   {"readStop", luv_read_stop},
+  {"readStopNoRef", luv_read_stop_noref},
   {"writeQueueSize", luv_write_queue_size},
   {"write", luv_write},
   {"write2", luv_write2},

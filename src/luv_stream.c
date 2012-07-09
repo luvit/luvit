@@ -193,6 +193,12 @@ int luv_read_stop(lua_State* L) {
   return 0;
 }
 
+int luv_read_stop_noref(lua_State* L) {
+  uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
+  uv_read_stop(handle);
+  return 0;
+}
+
 int luv_write_queue_size(lua_State* L) {
   uv_stream_t* handle = (uv_stream_t*)luv_checkudata(L, 1, "stream");
   lua_pushnumber(L, handle->write_queue_size);

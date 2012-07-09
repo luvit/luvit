@@ -36,6 +36,7 @@ int luv_accept (lua_State* L);
 int luv_read_start (lua_State* L);
 int luv_read_start2(lua_State* L);
 int luv_read_stop(lua_State* L);
+int luv_read_stop_noref(lua_State* L);
 int luv_write (lua_State* L);
 int luv_write2(lua_State* L);
 int luv_write_queue_size(lua_State* L);

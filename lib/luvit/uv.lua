@@ -61,9 +61,17 @@ Stream.readStart = native.readStart
 -- Stream:readStop()
 Stream.readStop = native.readStop
 
+-- Stream:readStopNoRef()
+Stream.readStopNoRef = native.readStopNoRef
+
 -- Stream:pause()
 function Stream:pause()
   self:readStop()
+end
+
+-- Stream:pauseNoRef()
+function Stream:pauseNoRef()
+  self:readStopNoRef()
 end
 
 -- Stream:resume()
@@ -195,6 +203,11 @@ function Tty:pause()
   self:readStop()
 end
 
+function Tty:pauseNoRef()
+  native.unref()
+  self:readStopNoRef()
+end
+
 function Tty:resume()
   native.ref()
   self:readStart()
@@ -298,7 +311,7 @@ uv.createReadableStdioStream = function(fd)
 
   -- unref the event loop so that we don't block unless the user
   -- wants stdin. This follows node's logic.
-  stdin:pause()
+  stdin:pauseNoRef()
 
   return stdin
 end
