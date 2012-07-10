@@ -700,78 +700,76 @@ function ClientRequest:setTimeout(msecs, callback)
 end
 
 function ClientRequest:onSocket(socket)
-  process.nextTick(function()
-    local response = ServerResponse:new(self)
-    response.socket = socket
+  local response = ServerResponse:new(self)
+  response.socket = socket
 
-    self.socket = socket
+  self.socket = socket
 
-    self.parser = HttpParser.new("response", {
-      onMessageBegin = function ()
-        headers = {}
-      end,
-      onUrl = function (url)
-      end,
-      onHeaderField = function (field)
-        current_field = field
-      end,
-      onHeaderValue = function (value)
-        headers[current_field:lower()] = value
-      end,
-      onHeadersComplete = function (info)
-        response.headers = headers
-        response.statusCode = info.status_code
-        response.status_code = info.status_code
-        response.version_minor = info.version_minor
-        response.version_major = info.version_major
-        response.httpVersionMinor = info.version_minor
-        response.httpVersionMajor = info.version_major
-        self:emit('response', response)
-      end,
-      onBody = function (chunk)
-        response:emit("data", chunk)
-      end,
-      onMessageComplete = function ()
-        response:emit("end")
-      end
-    })
-    socket._httpMessage = self
+  self.parser = HttpParser.new("response", {
+    onMessageBegin = function ()
+      headers = {}
+    end,
+    onUrl = function (url)
+    end,
+    onHeaderField = function (field)
+      current_field = field
+    end,
+    onHeaderValue = function (value)
+      headers[current_field:lower()] = value
+    end,
+    onHeadersComplete = function (info)
+      response.headers = headers
+      response.statusCode = info.status_code
+      response.status_code = info.status_code
+      response.version_minor = info.version_minor
+      response.version_major = info.version_major
+      response.httpVersionMinor = info.version_minor
+      response.httpVersionMajor = info.version_major
+      self:emit('response', response)
+    end,
+    onBody = function (chunk)
+      response:emit("data", chunk)
+    end,
+    onMessageComplete = function ()
+      response:emit("end")
+    end
+  })
+  socket._httpMessage = self
 
-    socket:on('drain', function()
-      if self._httpMessage then
-        self._httpMessage:emit('drain')
-      end
-    end)
-    socket:on('close', function()
-    end)
-    socket:on('end', function()
-      self.socket:destroy()
-    end)
-    socket:on('timeout', function()
-      self:emit('timeout')
-    end)
-    socket:on('data', function(chunk)
-      -- Ignore empty chunks
-      if #chunk == 0 then return end
-
-      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
-      -- shouldn't send data to the HTTP parser
-      if response.upgrade then
-        response:emit("data", chunk)
-        return
-      end
-
-      local nparsed = self.parser:execute(chunk, 0, #chunk)
-      -- If it wasn't all parsed then there was an error parsing
-      if nparsed < #chunk then
-        response:emit("error", "parse error")
-      end
-    end)
-    socket:on('error', function(err)
-      self:emit('error', err)
-    end)
-    self:emit('socket', socket)
+  socket:on('drain', function()
+    if self._httpMessage then
+      self._httpMessage:emit('drain')
+    end
   end)
+  socket:on('close', function()
+  end)
+  socket:on('end', function()
+    self.socket:destroy()
+  end)
+  socket:on('timeout', function()
+    self:emit('timeout')
+  end)
+  socket:on('data', function(chunk)
+    -- Ignore empty chunks
+    if #chunk == 0 then return end
+
+    -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+    -- shouldn't send data to the HTTP parser
+    if response.upgrade then
+      response:emit("data", chunk)
+      return
+    end
+
+    local nparsed = self.parser:execute(chunk, 0, #chunk)
+    -- If it wasn't all parsed then there was an error parsing
+    if nparsed < #chunk then
+      response:emit("error", "parse error")
+    end
+  end)
+  socket:on('error', function(err)
+    self:emit('error', err)
+  end)
+  self:emit('socket', socket)
 end
 
 function ClientRequest:_deferToConnect(callback)
