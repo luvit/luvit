@@ -179,11 +179,11 @@ OS_BINDING.clock = OLD_OS.clock
 -- These shouldn't hold open the event loop
 if OS_BINDING.type() ~= "win32" then
   native.activateSignalHandler(constants.SIGPIPE)
-  native.unref()
+--  native.unref()
   native.activateSignalHandler(constants.SIGINT)
-  native.unref()
+--  native.unref()
   native.activateSignalHandler(constants.SIGTERM)
-  native.unref()
+--  native.unref()
 end
 
 local traceback = require('debug').traceback
@@ -334,7 +334,7 @@ assert(xpcall(function ()
 
   if interactive or showrepl then
     if OS_BINDING.type() == "win32" then
-      native.ref()
+      --native.ref()
     end
     repl.start()
   end

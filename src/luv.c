@@ -38,6 +38,8 @@ static const luaL_reg luv_f[] = {
 
   /* Handle functions */
   {"close", luv_close},
+  {"ref", luv_ref},
+  {"unref", luv_unref},
   {"setHandler", luv_set_handler},
 
   /* UDP functions */

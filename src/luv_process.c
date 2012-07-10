@@ -103,9 +103,11 @@ int luv_spawn(lua_State* L) {
 
   options.env = env ? env : luv_os_environ();
   options.cwd = cwd;
+#if 0
   options.stdin_stream = stdin_stream;
   options.stdout_stream = stdout_stream;
   options.stderr_stream = stderr_stream;
+#endif
 
   /* Create the userdata */
   handle = luv_create_process(L);
