@@ -34,7 +34,35 @@ local constants = require('constants')
 local uv = require('uv')
 local utils = require('utils')
 
-setmetatable(process, Emitter.meta)
+setmetatable(process, {
+  __index = function (table, key)
+    if key == "title" then
+      return native.getProcessTitle()
+    else
+      return Emitter[key]
+    end
+  end,
+  __newindex = function (table, key, value)
+    if key == "title" then
+      return native.setProcessTitle(value)
+    else
+      return rawset(table, key, value)
+    end
+  end,
+  __pairs = function (table)
+    local key = "title"
+    return function (...)
+      if key == "title" then
+        key = next(table)
+        return "title", table.title
+      end
+      if not key then return nil end
+      local lastkey = key
+      key = next(table, key)
+      return lastkey, table[lastkey]
+    end
+  end
+})
 
 -- Replace lua's stdio with luvit's
 -- leave stderr using lua's blocking implementation
