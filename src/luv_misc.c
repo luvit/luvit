@@ -216,16 +216,6 @@ int luv_run(lua_State* L) {
   return 0;
 }
 
-int luv_ref (lua_State* L) {
-  uv_ref(luv_get_loop(L));
-  return 0;
-}
-
-int luv_unref(lua_State* L) {
-  uv_unref(luv_get_loop(L));
-  return 0;
-}
-
 int luv_update_time(lua_State* L) {
   uv_update_time(luv_get_loop(L));
   return 0;

@@ -49,6 +49,12 @@ uv.Stream = Stream
 -- Stream:shutdown(callback)
 Stream.shutdown = native.shutdown
 
+-- Stream:ref()
+Stream.ref = native.ref
+
+-- Stream:unref()
+Stream.unref = native.unref
+
 -- Stream:listen(callback)
 Stream.listen = native.listen
 
@@ -184,17 +190,17 @@ Pipe.bind = native.pipeBind
 Pipe.connect = native.pipeConnect
 
 function Pipe:pause()
-  native.unref()
+  self:unref()
   self:readStop()
 end
 
 function Pipe:pauseNoRef()
-  native.unref()
+  self:unref()
   self:readStopNoRef()
 end
 
 function Pipe:resume()
-  native.ref()
+  self:ref()
   self:readStart()
 end
 
@@ -216,19 +222,19 @@ Tty.getWinsize = native.ttyGetWinsize
 Tty.resetMode = native.ttyResetMode
 
 function Tty:pause()
-  native.unref()
+  self:unref()
   self:readStop()
 end
 
 -- TODO: The readStop() implementation assumes a reference is being held. This
 -- will go away with a libuv upgrade.
 function Tty:pauseNoRef()
-  native.unref()
+  self:unref()
   self:readStopNoRef()
 end
 
 function Tty:resume()
-  native.ref()
+  self:ref()
   self:readStart()
 end
 
@@ -244,16 +250,16 @@ function Timer:initialize()
   -- uv_timer_init adds a loop reference. (That is, it calls uv_ref.) This
   -- is not the behavior we want in Luvit. Timers should not increase the
   -- ref count of the loop except when active.
-  native.unref()
+  self:unref()
 end
 
 function Timer:_update()
   local was_active = self._active
   self._active = native.timerGetActive(self)
   if was_active == false and self._active == true then
-    native.ref()
+    self:ref()
   elseif was_active == true and self._active == false then
-    native.unref()
+    self:unref()
   end
 end
 
@@ -266,7 +272,7 @@ end
 function Timer:close()
   Handle.close(self)
   if self._active == false then
-    native.ref()
+    self:ref()
   end
 end
 
@@ -300,14 +306,14 @@ uv.createWriteableStdioStream = function(fd)
   local fd_type = native.handleType(fd);
   if (fd_type == "TTY") then
     local tty = Tty:new(fd)
-    native.unref()
+    tty:unref()
     return tty
   elseif (fd_type == "FILE") then
     return fs.SyncWriteStream:new(fd)
   elseif (fd_type == "NAMED_PIPE") then
     local pipe = Pipe:new(nil)
     pipe:open(fd)
-    native.unref()
+    pipe:unref()
     return pipe
   else
     error("Unknown stream file type " .. fd)

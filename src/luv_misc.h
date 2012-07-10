@@ -25,8 +25,6 @@
 
 int luv_activate_signal_handler(lua_State* L);
 int luv_run(lua_State* L);
-int luv_ref (lua_State* L);
-int luv_unref(lua_State* L);
 int luv_update_time(lua_State* L);
 int luv_now(lua_State* L);
 int luv_hrtime(lua_State* L);
