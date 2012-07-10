@@ -58,9 +58,7 @@ setmetatable(process, {
       end
       if not key then return nil end
       local lastkey = key
-      if table[key] then
-        key = next(table, key)
-      end
+      key = next(table, key)
       return lastkey, table[lastkey]
     end
   end
