@@ -16,29 +16,33 @@ limitations under the License.
 
 --]]
 
-require("helper")
+local Object = require('core').Object
+local table = require('table')
 
-local http = require('http')
-local PORT = process.env.PORT or 10080
+local Freelist = Object:extend()
 
-local seen_req = false
+function Freelist:initialize(name, max, factory)
+  self.name = name
+  self.factory = factory
+  self.max = max
+  self.list = {}
+  self.length = 0
+end
 
-local server
-server = http.createServer(function(req, res)
-  assert('GET' == req.method)
-  assert('/foo?bar' == req.url)
-  res:writeHead(200, {['Content-Type'] = 'text/plain'})
-  res:write('hello\n')
-  res:done()
-  server:close()
-  seen_req = true
-end)
+function Freelist:alloc(...)
+  if 0 < self.length then
+    self.length = self.length - 1
+    return table.remove(self.list, 1)
+  end
 
-server:listen(PORT, function()
-  http.get('http://127.0.0.1:' .. PORT .. '/foo?bar', function (res)
-  end)
-end)
+  return self.factory(...)
+end
 
-process:on('exit', function()
-  assert(seen_req);
-end)
+function Freelist:free(instance)
+  if self.length < self.max then
+    self.length = self.length + 1
+    self.list[self.length] = instance
+  end
+end
+
+return Freelist

@@ -19,7 +19,7 @@ http.createServer(function (req, res)
       ["Content-Type"] = "text/plain",
       ["Content-Length"] = #body
     })
-    res:finish(body)
+    res:done(body)
   end)
     
 end):listen(8080)

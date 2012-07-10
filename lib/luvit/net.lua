@@ -116,11 +116,15 @@ function Socket:_write(data, callback)
     if callback then
       callback()
     end
+    if self._pendingWriteRequests == 0 and self._destroySoon then
+      self:destroy()
+    end
   end)
   return self._handle:writeQueueSize() == 0
 end
 
 function Socket:shutdown(callback)
+  self._shutdownQueued = false
   self._handle:shutdown(callback)
 end
 
@@ -130,6 +134,50 @@ end
 
 function Socket:resume()
   self._handle:readStart()
+end
+
+function Socket:done(data, callback)
+  if self._connecting and not self._shutdownQueued then
+    if data then
+      self:write(data, callback)
+    end
+    self.writable = false
+    self._shutdownQueued = true
+  end
+
+  if not self.writable then
+    return false
+  end
+  self.writable = false
+
+  if data then
+    self:write(data, callback)
+  end
+
+  if not self.readable then
+    self:destroySoon()
+  else
+    self:shutdown(function ()
+      if self.destoyed then
+        return
+      end
+
+      if self._gotEof and not self.readable then
+        self:destroy()
+      end
+    end)
+  end
+
+  return true
+end
+
+function Socket:destroySoon()
+  self.writable = false
+  self._destroySoon = true
+
+  if self._pendingWriteRequests == 0 then
+    self:destroy()
+  end
 end
 
 function Socket:_initEmitters()
@@ -150,6 +198,8 @@ function Socket:_initEmitters()
   end)
 
   self._handle:on('end', function()
+    self.readable = false
+    self._gotEof = true
     self:emit('end')
   end)
 
@@ -214,6 +264,11 @@ function Socket:connect(...)
     if callback then
       callback()
     end
+
+    if self._shutdownQueued then
+      self._shutdownQueued = false
+      self:done()
+    end
   end)
 
   dns.lookup(options.host, function(err, ip, addressType)
@@ -232,6 +287,7 @@ function Socket:connect(...)
 end
 
 function Socket:destroy(exception)
+  self._destroySoon = false
   if self.destroyed == true then
     return
   end
@@ -258,6 +314,9 @@ function Socket:initialize(handle)
   self._pendingWriteRequests = 0
   self._connecting = false
   self._connectQueueSize = 0
+  self._shutdownQueued = false
+  self._destroySoon = false
+  self._gotEof = false
   self.bytesWritten = 0
   self.bytesRead = 0
   self.readable = true
@@ -288,8 +347,14 @@ function Server:listen(port, ... --[[ ip, callback --]] )
   end
   ip = ip or '0.0.0.0'
 
+  self._handle:on('listening', function()
+    self:emit('listening')
+  end)
+  if callback then
+    self:once('listening', callback)
+  end
+
   self._handle:bind(ip, port)
-  self._handle:on('listening', callback)
   self._handle:on('error', function(err)
     return self:emit("error", err)
   end)

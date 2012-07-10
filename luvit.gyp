@@ -68,6 +68,7 @@
        'lib/luvit/core.lua',
        'lib/luvit/dns.lua',
        'lib/luvit/fiber.lua',
+       'lib/luvit/freelist.lua',
        'lib/luvit/fs.lua',
        'lib/luvit/http.lua',
        'lib/luvit/https.lua',

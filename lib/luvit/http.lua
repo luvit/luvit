@@ -17,19 +17,151 @@ limitations under the License.
 --]]
 
 local net = require('net')
+local Freelist = require('freelist')
 local HttpParser = require('http_parser')
 local table = require('table')
+local tinsert = table.insert
+local tremove = table.remove
+local tconcat = table.concat
 local osDate = require('os').date
 local string = require('string')
 local stringFormat = require('string').format
 local Object = require('core').Object
+local Emitter = require('core').Emitter
+local iStream = require('core').iStream
+local SimpleQueue = require('core').SimpleQueue
+local Queue = require('core').Queue
 local url = require('url')
 
 local END_OF_FILE = 0
 local CRLF = '\r\n'
 
-local iStream = require('core').iStream
 local http = {}
+local IncomingMessage = nil
+local OugoingMessage = nil
+local ServerResponse = nil
+local ClientRequest = nil
+
+
+local Parser = {}
+
+function Parser:cleanup(ondata, onend)
+  if self.incoming then
+    self.incoming.parser = nil
+    self.incoming.response = nil
+  end
+  self.incoming = nil
+
+  if self.socket then
+    if ondata then
+      self.socket:removeListener('data', ondata)
+    end
+    if onend then
+      self.socket:removeListener('end', onend)
+    end
+  end
+  self.socket = nil
+
+  self.onIncoming = nil
+  self.headers = {}
+  self.url = ''
+end
+
+local parsers = Freelist:new('parsers', 1000, function ()
+  local currentField = nil -- string
+  local parser = setmetatable({
+    parser = nil,
+    socket = nil, -- net.Socket
+    incoming = nil, -- IncomingMessage
+    onIncoming = nil, -- function
+    headers = {},
+    url = ''
+  }, { __index = Parser })
+
+  parser.parser = HttpParser.new("request", {
+    onUrl = function (url)
+      parser.url = url
+    end,
+    onHeaderField = function (field)
+      parser._currentField = field
+    end,
+    onHeaderValue = function (value)
+      local exists = parser.headers[parser._currentField]
+
+      -- Turn multiple values into an table
+      if exists then
+        if 'table' ~= type(exists) then
+          parser.headers[parser._currentField] = { exists }
+          exists = parser.headers[parser._currentField]
+        end
+        exists[#exists + 1] = value
+        return
+      end
+
+      parser.headers[parser._currentField] = value
+    end,
+    onHeadersComplete = function (info)
+      parser.incoming = IncomingMessage:new(parser.socket)
+      local incoming = parser.incoming
+
+      incoming.httpVersionMajor = info.version_major
+      incoming.httpVersionMinor = info.version_minor
+      incoming.url = parser.url
+      incoming.upgrade = info.upgrade
+
+      for key, value in pairs(parser.headers) do
+        incoming:_addHeaderLine(key, value)
+      end
+
+      if info.method then
+        incoming.method = info.method
+      else
+        incoming.statusCode = info.status_code
+      end
+
+      local skipBody = false
+
+      if not info.upgrade then
+        skipBody = parser:onIncoming(incoming, info.should_keep_alive)
+      end
+
+      return skipBody
+    end,
+    onBody = function (data)
+      parser.incoming:emit('data', data)
+    end,
+    onMessageComplete = function ()
+      local incoming = parser.incoming
+      local socket = parser.socket
+
+      incoming.complete = true
+
+      -- Trailing headers
+      if #parser.headers > 0 then
+        for key, value in pairs(parser.headers) do
+          incoming:_addHeaderLine(key, value)
+        end
+        parser.headers = {}
+      end
+
+      if not incoming.upgrade then
+        if incoming._paused or 0 < incoming._pendings:length() then
+          incoming._pendings:push(END_OF_FILE)
+        else
+          incoming.readable = false
+          incoming:_emitEnd()
+        end
+      end
+
+      if socket.readable then
+        socket:resume()
+      end
+    end
+  })
+
+  return parser
+end)
+http.parsers = parsers
 
 local connectionExpression = 'connection'
 local transferEncodingExpression = 'transfer-encoding'
@@ -98,12 +230,15 @@ http.STATUS_CODES = STATUS_CODES
 
 --------------------------------------------------------------------------------
 --[[ Incoming Message Base Class ]]--
-local IncomingMessage = iStream:extend()
+IncomingMessage = iStream:extend()
 function IncomingMessage:initialize(socket)
   self.socket = socket
   self.readable = true
   self._endEmitted = false
-  self._pendings = {}
+  self._pendings = SimpleQueue:new()
+  self.headers = {}
+  self.trailers = {}
+  self.complete = false
 end
 
 function IncomingMessage:destroy(...)
@@ -126,8 +261,9 @@ end
 function IncomingMessage:_emitPending(callback)
   if #self._pendings > 0 then
     process.nextTick(function()
-      while self._paused == false and #self._pendings > 0 do
-        local chunk = table.remove(self._pendings)
+      local pendings = self._pendings
+      while self._paused == false and pendings:length() > 0 do
+        local chunk = pendings:pop()
         if chunk ~= END_OF_FILE then
           self:_emitData(chunk)
         else
@@ -157,7 +293,7 @@ function IncomingMessage:_addHeaderLine(field, value)
   local headerMap = {}
   field = field:lower()
 
-  function commaSeparate()
+  local function commaSeparate()
     if dest[field] then
       dest[field] = dest[field] .. ', ' .. value
     else
@@ -165,25 +301,25 @@ function IncomingMessage:_addHeaderLine(field, value)
     end
   end
 
-  function default()
-    if field:sub(1,2) == 'x-' then
+  local function default()
+    if field:sub(1, 2) ~= 'x-' then
+      if not dest[field] then
+        dest[field] = value
+      end
+    else
       if dest[field] then
         dest[field] = dest[field] .. ', ' .. value
       else
         dest[field] = value
       end
-    else
-      if not dest[field] then
-        dest[field] = value
-      end
     end
   end
 
-  function setCoookie()
-    if dest[field] then
-      table.insert(dest[field], value)
-    else
+  local function setCoookie()
+    if not dest[field] then
       dest[field] = { value }
+    else
+      dest[field][#desk[field] + 1] = value
     end
   end
 
@@ -204,12 +340,25 @@ function IncomingMessage:_addHeaderLine(field, value)
   func()
 end
 
+--[[ Setup HTTP socket ]]--
+local function httpSocketSetup(socket)
+  if socket._onDrain then
+    return
+  end
+  function socket._onDrain()
+    if socket._httpMessage then
+      socket._httpMessage:emit('drain')
+    end
+  end
+  socket:on('drain', socket._onDrain)
+end
+
 --[[ Outgoing Message ]]--
 local OutgoingMessage = IncomingMessage:extend()
 function OutgoingMessage:initialize()
   IncomingMessage.initialize(self)
 
-  self.output = {}
+  self.output = SimpleQueue:new()
 
   self.writable = true
 
@@ -217,7 +366,7 @@ function OutgoingMessage:initialize()
   self.chunkedEncoding = false
   self.shouldKeepAlive = true
   self.useChunkedEncodingByDefault = true
-  self.sendDate = false
+  self.sendDate = true
 
   self._hasBody = true
   self._headerSent = false
@@ -232,11 +381,7 @@ end
 
 function OutgoingMessage:_send(data, encoding)
   if self._headerSent == false then
-    if type(data) == 'string' then
-      data = self._header .. data
-    else
-      table.insert(self.output, self._header)
-    end
+    data = tconcat({ self._header, data })
     self._headerSent = true
   end
   return self:_writeRaw(data, encoding)
@@ -248,38 +393,28 @@ function OutgoingMessage:_writeRaw(data, encoding)
     return true
   end
 
-  if self.socket and self.socket.writable == true then
-    while #self.output > 0 do
-      if self.socket.writable == false then
+  local socket = self.socket
+  local output = self.output
+
+  if socket and socket.writable == true then
+    local length = output:length()
+    while length > 0 do
+      if socket.writable == false then
         -- buffer
-        self:_buffer(data, encoding)
+        output:push(data)
         return false
       end
 
-      local c = table.remove(self.output)
-      self.socket:write(c)
+      local c = output:pop()
+      length = length - 1
+      socket:write(c)
     end
 
-    return self.socket:write(data, encoding)
+    return socket:write(data, encoding)
   else
-    self:_buffer(data, encoding)
+    output:push(data)
     return false
   end
-end
-
-function OutgoingMessage:_buffer(data, encoding)
-  if #data == 0 then
-    return
-  end
-
-  local length = #self.output
-  if length == 0 or type(data) ~= 'string' then
-    table.insert(self.output, data)
-    return false
-  end
-
-  table.insert(self.output, data)
-  return false
 end
 
 function OutgoingMessage:_storeHeader(firstLine, headers)
@@ -289,12 +424,15 @@ function OutgoingMessage:_storeHeader(firstLine, headers)
   local sentDateHeader = false
   local sentExpect = false
 
-  local messageHeader = firstLine
+  local messageHeader = { firstLine }
+  local length = #messageHeader
   local field, value
 
-  function store(field, value)
+  local function store(field, value)
+    length = length + 1
+    messageHeader[length] = field .. ': ' .. value .. CRLF
+
     local matchField = field:lower()
-    messageHeader = messageHeader .. field .. ': ' .. value .. CRLF
     if matchField == connectionExpression then
       sentConnectionHeader = true
       if value == closeExpression then
@@ -317,40 +455,57 @@ function OutgoingMessage:_storeHeader(firstLine, headers)
   end
 
   if headers then
-    local isArray = headers[1]
-    for k, v in pairs(headers) do
-      if isArray then
-        field = headers[k][0]
-        value = headers[k][1]
-      else
-        field = k
-        value = v
-      end
-
-      if type(value) == 'table' and value[1] then -- isArray
-        for k, v in pairs(value) do
-          store(field, v)
+    if not headers[1] then
+      for field, value in pairs(headers) do
+        if type(value) ~= 'table' then
+          store(field, value)
+        else
+          for i = 1, #value do
+            store(field, value[i])
+          end
         end
-      else
-        store(field, value)
+      end
+    else
+      local header = nil
+      local value = nil
+      local field = nil
+      for i = 1, #headers do
+        header = headers[i]
+        field = header[1]
+        value = header[2]
+        if type(value) == 'table' then
+          for j = 1, #value do
+            store(field, value[j])
+          end
+        else
+          store(field, value)
+        end
       end
     end
+  end
+
+  if self.sendDate == true and sentDateHeader == false then
+    length = length + 1
+    messageHeader[length] = osDate("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
   end
 
   if sentConnectionHeader == false then
     local shouldSendKeepAlive = self.shouldKeepAlive and (sentContentLengthHeader or self.useChunkedEncodingByDefault)
     if shouldSendKeepAlive == true then
-      messageHeader = messageHeader .. 'Connection: keep-alive\r\n'
+      length = length + 1
+      messageHeader[length] = 'Connection: keep-alive\r\n'
     else
       self._last = true
-      messageHeader = messageHeader .. 'Connection: close\r\n'
+      length = length + 1
+      messageHeader[length] = 'Connection: close\r\n'
     end
   end
 
   if sentContentLengthHeader == false and sentTransferEncodingHeader == false then
     if self._hasBody == true then
       if self.useChunkedEncodingByDefault == true then
-        messageHeader = messageHeader .. 'Transfer-Encoding: chunked\r\n'
+        length = length + 1
+        messageHeader[length] = 'Transfer-Encoding: chunked\r\n'
         self.chunkedEncoding = true
       else
         self._last = true
@@ -360,7 +515,11 @@ function OutgoingMessage:_storeHeader(firstLine, headers)
     end
   end
 
-  self._header = messageHeader .. CRLF
+
+  length = length + 1
+  messageHeader[length] = CRLF
+
+  self._header = tconcat(messageHeader)
   self._headerSent = false
 
   if sentExpect then
@@ -424,7 +583,7 @@ function OutgoingMessage:write(chunk, encoding)
   local ret
   if self.chunkedEncoding then
     local len = #chunk
-    chunk = tostring(tonumber(len, 16)) .. CRLF .. chunk .. CRLF
+    chunk = tconcat({ stringFormat('%x', #chunk), CRLF, chunk, CRLF })
     ret = self:_send(chunk, encoding)
   else
     ret = self:_send(chunk, encoding)
@@ -437,7 +596,7 @@ function OutgoingMessage:addTrailers(headers)
   self._trailer = ''
   local isArray = headers[1]
   local field, value
-  for k, v in headers do
+  for k, v in pairs(headers) do
     if isArray then
       field = headers[k][0]
       value = headers[k][1]
@@ -446,7 +605,7 @@ function OutgoingMessage:addTrailers(headers)
       value = headers[k]
     end
 
-    self._trailer = self._trailer .. field .. ': ' .. value .. CRLF
+    self._trailer = tconcat({ self._trailer, field, ': ', value, CRLF })
   end
 end
 
@@ -467,42 +626,35 @@ function OutgoingMessage:done(data, encoding)
   local hot = false
   local ret
   if self._headerSent == false and type(data) == 'string' and
-    #data > 0 and #self.output == 0 and self.socket and self.socket.writable then
+    #data > 0 and self.output:length() == 0 and self.socket and self.socket.writable then
     hot = true
   end
 
   if hot then
     if self.chunkedEncoding then
-      local l = tostring(tonumber(#data, 16))
-      local buf = self._header .. l .. CRLF .. data .. '\r\n0\r\n' .. self._trailer .. CRLF
+      local l = stringFormat('%x', #data)
+      local buf = tconcat({ self._header, l, CRLF, data, '\r\n0\r\n', self._trailer, CRLF })
       ret = self.socket:write(buf)
     else
-      ret = self.socket:write(self._header .. data)
+      ret = self.socket:write(tconcat({ self._header, data }))
     end
     self._headerSent = true
   else
     ret = self:write(data, encoding)
-  end
 
-  if not hot then
     if self.chunkedEncoding then
-      ret = self:_send('0\r\n' .. self._trailer .. '\r\n')
+      ret = self:_send(tconcat({ '0\r\n', self._trailer, '\r\n' }))
     else
       ret = self:_send('')
     end
   end
 
   self.finished = true
-  if #self.output == 0 then
-    self:_finish()
+  if self.output:length() == 0 then
+    self:emit('finish')
   end
 
   return ret
-end
-
-
-function OutgoingMessage:_finish()
-  self:emit('finish')
 end
 
 function OutgoingMessage:_flush()
@@ -511,24 +663,28 @@ function OutgoingMessage:_flush()
   end
 
   local ret
-  while #self.output > 0 do
-    if not self.socket.writable then
+  local output = self.output
+  local socket = self.socket
+  local length = output:length()
+  while length > 0 do
+    if not socket.writable then
       return
     end
 
-    local data = table.remove(self.output)
-    ret = self.socket:write(data)
+    local data = output:pop()
+    length = length - 1
+    ret = socket:write(data)
   end
 
   if self.finished then
-    self:_finish()
+    self:emit('finish')
   elseif ret then
     self:emit('drain')
   end
 end
 
 --[[ ServerResponse ]]--
-local ServerResponse = OutgoingMessage:extend()
+ServerResponse = OutgoingMessage:extend()
 function ServerResponse:initialize(req)
   OutgoingMessage.initialize(self)
 
@@ -536,17 +692,30 @@ function ServerResponse:initialize(req)
     self._hasBody = false
   end
 
-  self.sendDate = false
   self.statusCode = 200
+
+  if req.httpVersionMajor < 1 or req.httpVersionMinor < 1 then
+    self.useChunkedEncodingByDefault = false
+    self.shouldKeepAlive = false
+  end
 end
 
 function ServerResponse:assignSocket(socket)
   socket._httpMessage = self
-  socket:on('close', function()
+  function self._onClose()
     self._httpMessage:emit('close')
-  end)
+  end
+  socket:on('close', self._onClose)
   self.socket = socket
   self:_flush()
+end
+
+function ServerResponse:detachSocket(socket)
+  if self._onClose then
+    socket:removeListener('close', self._onClose)
+  end
+  socket._httpMessage = nil
+  self.socket = nil
 end
 
 function ServerResponse:writeContinue()
@@ -567,14 +736,16 @@ function ServerResponse:writeHead(statusCode, ...)
 
   local obj = args[1]
 
-  if obj and self._headers then
+  if obj and not self._headers then
+    headers = obj
+  elseif obj and self._headers then
     headers = self:_renderHeaders()
     local field
     if obj[1] then
-      for i, v in ipairs(obj) do
-        field = obj[i][1]
+      for i = 1, #obj do
+        field = val[i][1]
         if headers[field] then
-          table.insert(obj, {field, headers[field]})
+          tinsert(obj, {field, headers[field]})
         end
       end
       headers = obj
@@ -585,13 +756,15 @@ function ServerResponse:writeHead(statusCode, ...)
     end
   elseif self._headers then
     headers = self:_renderHeaders()
-  else
-    headers = obj
   end
 
-  local statusLine = 'HTTP/1.1 ' .. tostring(statusCode) .. ' ' .. reasonPhrase .. CRLF
+  local statusLine = tconcat({ 'HTTP/1.1 ', tostring(statusCode), ' ', reasonPhrase, CRLF })
   if statusCode == 204 or statusCode == 304 or (100 <= statusCode and statusCode <= 199) then
     self._hasBody = false
+  end
+
+  if self._expectContinue and not self._sent100 then
+    self.shouldKeepAlive = false
   end
 
   self:_storeHeader(statusLine, headers)
@@ -601,10 +774,128 @@ function ServerResponse:writeHeader(...)
   self:writeHead(...)
 end
 
+
+--[[ Agent ]]--
+local Agent = Emitter:extend()
+http.Agent = Agent
+
+function Agent:initialize(options)
+  self.options = options or {}
+  self.requests = {}
+  self.sockets = {}
+  self.maxSockets = self.options.maxSockets or Agent.defaultMaxSockets
+
+  self:on('free', function (socket, host, port, localaddr)
+    local name = { host, port }
+    if localaddr then
+      name[#name + 1] = localaddr
+    end
+    name = tconcat(name)
+
+    if self.requests[name] and 0 < #self.requests[name] then
+      local request = self.requests[name]:pop()
+      request:onSocket(socket)
+
+      if 0 == #self.requests[name] then
+        self.requests[name] = nil
+      end
+    else
+      socket:destroy()
+    end
+  end)
+end
+
+Agent.createConnection = net.createConnection
+Agent.defaultMaxSockets = 5
+Agent.defaultPort = 80
+
+function Agent:addRequest(request, host, port, localaddr)
+  local name = { host, port }
+  if localaddr then
+    name[#name + 1] = localaddr
+  end
+  name = tconcat(name)
+
+  if not self.sockets[name] then
+    self.sockets[name] = Queue:new()
+  end
+  if self.maxSockets > self.sockets[name]:length() then
+    request:onSocket(self:createSocket(name, host, port, localaddr))
+  else
+    if not self.requests[name] then
+      self.requests[name] = Queue:new()
+    end
+    self.requests[name]:push(request)
+  end
+end
+
+function Agent:createSocket(name, host, port, localaddr)
+  -- Copy options
+  local options = {}
+  for key, val in pairs(self.options) do
+    options[key] = val
+  end
+
+  options.port = port
+  options.host = host
+  options.localAddress = localaddr
+
+  local socket = self.createConnection(port, host)
+
+  if not self.sockets[name] then
+    self.sockets[name] = Queue:new()
+  end
+  self.sockets[name]:push(socket)
+
+  local function onfree()
+    self:emit('free', socket, host, port, localaddr)
+  end
+  socket:on('free', onfree)
+
+  local function onclose()
+    self:removeSocket(socket, name, host, port, localaddr)
+  end
+  socket:on('close', onclose)
+
+  local function onremove()
+    self:removeSocket(socket, name, host, port, localaddr)
+    self:removeListener('close', onclose)
+    self:removeListener('free', onfree)
+    self:removeListener('agentRemove', onremove)
+  end
+  socket:on('agentRemove', onremove)
+
+  return socket
+end
+
+function Agent:removeSocket(socket, name, host, port, localaddr)
+  local sockets = self.sockets[name]
+  local requests = self.requests[name]
+
+  if sockets then
+    if sockets:remove(socket) then
+      if 0 == sockets:length() then
+        self.sockets[name] = nil
+      end
+    end
+  end
+
+  if requests and 0 < requests:length() then
+    self:createSocket(name, host, port, localaddr):emit('free')
+  end
+end
+
+-- Global agent
+local globalagent = Agent:new()
+http.globalAgent = globalagent
+
 --[[ Client Request ]]--
-local ClientRequest = OutgoingMessage:extend()
+ClientRequest = OutgoingMessage:extend()
 function ClientRequest:initialize(options, callback)
   OutgoingMessage.initialize(self)
+
+  self.agent = options.agent or globalagent
+
   local defaultPort = options.defaultPort or 80
   local port = options.port or defaultPort
   local host = options.hostname or options.host or 'localhost'
@@ -649,25 +940,39 @@ function ClientRequest:initialize(options, callback)
     self:_storeHeader(self.method .. ' ' .. self.path .. ' HTTP/1.1\r\n', self:_renderHeaders())
   end
 
-  local conn
-  self._last = true
-  self.shouldKeepAlive = false
-
-  if options.createConnection then
-    options.port = port
-    options.host = host
-    conn = options.createConnection(options)
+  if self.socketPath then
+    self._last = true
+    self.shouldKeepAlive = false
+    if options.createConnection then
+      self:onSocket(options.createConnection(self.socketPath))
+    else
+      self:onSocket(net.createConnection(self.socketPath))
+    end
+  elseif self.agent then
+    self._last = false
+    self.shouldKeepAlive = true
+    self.agent:addRequest(self, host, port)
   else
-    conn = net.createConnection({
-      port = port,
-      host = host,
-      localAddress = options.localAddress
-    });
+    -- No agent, Connection: close
+    self._last = true
+    self.shouldKeepAlive = false
+
+    local conn
+    if options.createConnection then
+      options.port = port
+      options.host = host
+      conn = options.createConnection(options)
+    else
+      conn = net.createConnection({
+        port = port,
+        host = host,
+        localAddress = options.localAddress
+      })
+    end
+
+    self:onSocket(conn)
   end
 
-  self.socket = conn
-
-  self:onSocket(conn)
   self:_deferToConnect(function()
     self:_flush()
   end)
@@ -678,7 +983,7 @@ function ClientRequest:setTimeout(msecs, callback)
     self:once('timeout', callback)
   end
 
-  function emitTimeout()
+  local function emitTimeout()
     self:emit('timeout')
   end
 
@@ -701,75 +1006,142 @@ end
 
 function ClientRequest:onSocket(socket)
   process.nextTick(function()
-    local response = ServerResponse:new(self)
-    response.socket = socket
-
+    local request = self
+    local parser = parsers:alloc()
     self.socket = socket
-
-    self.parser = HttpParser.new("response", {
-      onMessageBegin = function ()
-        headers = {}
-      end,
-      onUrl = function (url)
-      end,
-      onHeaderField = function (field)
-        current_field = field
-      end,
-      onHeaderValue = function (value)
-        headers[current_field:lower()] = value
-      end,
-      onHeadersComplete = function (info)
-        response.headers = headers
-        response.statusCode = info.status_code
-        response.status_code = info.status_code
-        response.version_minor = info.version_minor
-        response.version_major = info.version_major
-        response.httpVersionMinor = info.version_minor
-        response.httpVersionMajor = info.version_major
-        self:emit('response', response)
-      end,
-      onBody = function (chunk)
-        response:emit("data", chunk)
-      end,
-      onMessageComplete = function ()
-        response:emit("end")
-      end
-    })
+    self.parser = parser
+    parser.parser:reinitialize('response')
+    parser.socket = socket
     socket._httpMessage = self
 
-    socket:on('drain', function()
-      if self._httpMessage then
-        self._httpMessage:emit('drain')
+    -- drain
+    httpSocketSetup(socket)
+
+    local function onclose()
+      local response = request.response
+
+      if response and response.readable then
+        response:emit('aborted')
+        response:_emitPending(function ()
+          response:_emitEnd()
+          response:emit('close')
+        end)
+      elseif not response and not request._hadError then
+        request:emit('error', 'ECONNRESET: socket hang up')
       end
-    end)
-    socket:on('close', function()
-    end)
-    socket:on('end', function()
-      self.socket:destroy()
-    end)
-    socket:on('timeout', function()
+    end
+    local function onend()
+      if not request.response then
+        request:emit('error', 'ECONNRESET: socket hang up')
+        request._hadError = true
+      end
+      if parser then
+        parser.parser:finish()
+        parser:cleanup()
+        parsers:free(parser)
+      end
+      socket:destroy()
+    end
+    local function ontimeout()
       self:emit('timeout')
-    end)
-    socket:on('data', function(chunk)
+    end
+    local function ondata(chunk)
       -- Ignore empty chunks
       if #chunk == 0 then return end
 
-      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
-      -- shouldn't send data to the HTTP parser
-      if response.upgrade then
-        response:emit("data", chunk)
-        return
-      end
+      local response = request.response
 
-      local nparsed = self.parser:execute(chunk, 0, #chunk)
+      local nparsed = parser.parser:execute(chunk, 0, #chunk)
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk then
-        response:emit("error", "parse error")
+        parser:cleanup()
+        parsers:free(parser)
+        socket:destroy()
+        socket:emit('error', 'parse error')
+      elseif parser.incoming and parser.incoming.upgrade then
+        -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+        -- shouldn't send data to the HTTP parser
+        request:removeListener('data', ondata)
+        request:removeListener('end', onend)
+        parser.parser:finish()
+
+        local event = ''
+        local handlers = rawget(request, 'handlers')
+        if parser.incoming.method == 'CONNECT' then
+          event = 'connect'
+        else
+          event = 'upgrade'
+        end
+
+        if handlers[event] and 0 < #handlers[event] then
+          request.upgradeOrConnect = true
+          socket:emit('agentRemove')
+          socket:removeListener('close', onclose)
+          socket:removeListener('error', onerror)
+          request:emit(event, response, socket, chunk)
+        else
+          socket:destroy()
+        end
+        parser:cleanup()
+        parsers:free(parser)
+        return
       end
-    end)
-    socket:on('error', function(err)
+    end
+    local function onerror(err)
+      request._hadError = true
       self:emit('error', err)
-    end)
+    end
+
+    socket:on('close', onclose)
+    socket:on('end', onend)
+    socket:on('timeout', ontimeout)
+    socket:on('data', ondata)
+    socket:on('error', onerror)
+
+    function responseonend()
+      if not request.shouldKeepAlive then
+        if socket.writable then
+          socket:destroySoon()
+        end
+      else
+        socket:removeListener('close', onclose)
+        socket:removeListener('error', onerror)
+        socket:emit('free')
+      end
+    end
+
+    function parser:onIncoming(response, shouldkeepalive)
+      if request.response then
+        socket:destroy()
+        return
+      end
+      request.response = response
+      response.request = request
+
+      if request.method == 'CONNECT' then
+        response.upgrade = true
+        return true
+      end
+
+      local isheadresponse = request.method == 'HEAD'
+
+      if response.statusCode == 100 then
+        request.response = nil
+        request:emit('continue')
+        return true
+      end
+
+      if request.shouldKeepAlive and not shouldkeepalive and
+         not request.upgradeOrConnect then
+        request.shouldKeepAlive = false
+      end
+
+      request:emit('response', response)
+      response:on('end', responseonend)
+
+      return isheadresponse
+    end
+
     self:emit('socket', socket)
   end)
 end
@@ -802,244 +1174,172 @@ function ClientRequest:_implicitHeader()
                     self:_renderHeaders())
 end
 
-
-local Request = iStream:extend()
-http.Request = Request
-
-function Request:initialize(socket)
-  self.socket = socket
+function ClientRequest:abort()
+  if self.socket then
+    self.socket:destroy()
+  else
+    self:_deferToConnect(function ()
+      self.socket:destroy()
+    end)
+  end
 end
 
-function Request:destroy(...)
-  return self.socket:destroy(...)
-end
 
 --------------------------------------------------------------------------------
 
-local Response = iStream:extend()
-http.Response = Response
+local Server = net.Server:extend()
 
-function Response:initialize(socket)
-  self.code = 200
-  self.headers = {}
-  self.header_names = {}
-  self.headers_sent = false
-  self.socket = socket
-end
+http.Server = Server
 
-Response.auto_date = true
-Response.auto_server = "Luvit"
-Response.auto_chunked_encoding = true
-Response.auto_content_length = true
-Response.auto_content_type = "text/html"
+--[[
+  Server metatable
+  ]]--
+function Server:initialize(onRequest)
+  net.Server.initialize(self)
+  local server = self
 
-function Response:setCode(code)
-  if self.headers_sent then error("Headers already sent") end
-  self.code = code
-end
-
--- This sets a header, replacing any header with the same name (case insensitive)
-function Response:setHeader(name, value)
-  if self.headers_sent then error("Headers already sent") end
-  local lower = name:lower()
-  local old_name = self.header_names[lower]
-  if old_name then
-    headers[old_name] = nil
-  end
-  self.header_names[lower] = name
-  self.headers[name] = value
-  return name
-end
-
--- Adds a header line.  This does not replace any header by the same name and
--- allows duplicate headers.  Returns the index it was inserted at
-function Response:addHeader(name, value)
-  if self.headers_sent then error("Headers already sent") end
-  self.headers[#self.headers + 1] = { name, value }
-  return #self.headers
-end
-
--- Removes a set header.  Cannot remove headers added with :addHeader
-function Response:unsetHeader(name)
-  if self.headers_sent then error("Headers already sent") end
-  local lower = name:lower()
-  local name = self.header_names[lower]
-  if not name then return end
-  self.headers[name] = nil
-  self.header_names[lower] = nil
-end
-
-function Response:flushHead(callback)
-  if self.headers_sent then error("Headers already sent") end
-
-  local reason = STATUS_CODES[self.code]
-  if not reason then error("Invalid response code " .. tostring(self.code)) end
-
-  local head = {"HTTP/1.1 " .. self.code .. " " .. reason .. "\r\n"}
-  local length = 1
-  local has_server, has_content_length, has_date, has_content_type
-
-  -- We still don't know if there is a body, try to guess
-  if self.has_body == nil then
-    -- RFC 2616, 10.2.5:
-    -- The 204 response MUST NOT include a message-body, and thus is always
-    -- terminated by the first empty line after the header fields.
-    -- RFC 2616, 10.3.5:
-    -- The 304 response MUST NOT contain a message-body, and thus is always
-    -- terminated by the first empty line after the header fields.
-    -- RFC 2616, 10.1 Informational 1xx:
-    -- This class of status code indicates a provisional response,
-    -- consisting only of the Status-Line and optional headers, and is
-    -- terminated by an empty line.
-    if self.code == 204
-      or self.code == 304
-      or (self.code >= 100 and self.code < 200)
-    then
-      self.has_body = false
-    else
-      -- Default to true if we don't know.  It's the safe thing to assume
-      self.has_body = true
-    end
-  end
-  local has_body = self.has_body
-
-  for field, value in pairs(self.headers) do
-    -- handle headers added with `add_header`
-    if type(field) == "number" then
-      field = value[1]
-      value = value[2]
-    end
-    local lower = field:lower()
-    if lower == "server" then
-      has_server = true
-    elseif lower == "content-length" then
-      has_content_length = true
-      self.has_body = true
-    elseif lower == "content-type" then
-      has_content_type = true
-      self.has_body = true
-    elseif lower == "date" then
-      has_date = true
-    elseif lower == "transfer-encoding" and value:lower() == "chunked" then
-      self.chunked = true
-      self.has_body = true
-    elseif lower == "connection" then
-      self.has_connection = true
-    end
-    length = length + 1
-    head[length] = field .. ": " .. value .. "\r\n"
+  if onRequest then
+    self:on('request', onRequest)
   end
 
-  -- Implement auto headers so people's http server are more spec compliant
-  if not self.has_connection and self.should_keep_alive then
-    length = length + 1
-    head[length] = "Connection: keep-alive\r\n"
-  end
-  if not has_server and self.auto_server then
-    length = length + 1
-    head[length] = "Server: " .. self.auto_server .. "\r\n"
-  end
-  if has_body and not has_content_type and self.auto_content_type then
-    length = length + 1
-    head[length] = "Content-Type: " .. self.auto_content_type .. "\r\n"
-  end
-  if has_body and not has_content_length and self.auto_chunked_encoding then
-    length = length + 1
-    self.chunked = true
-    head[length] = "Transfer-Encoding: chunked\r\n"
-  end
-  if not has_date and self.auto_date then
-    -- This should be RFC 1123 date format
-    -- IE: Tue, 15 Nov 1994 08:12:31 GMT
-    length = length + 1
-    head[length] = osDate("!Date: %a, %d %b %Y %H:%M:%S GMT\r\n")
-  end
+  --[[
+    Called when we have an incoming socket
+    ]]--
+  local function onConnection(socket)
+    httpSocketSetup(socket)
 
-  head = table.concat(head, "") .. "\r\n"
-  self.socket:write(head, callback)
-  self.headers_sent = true
-end
-
-function Response:writeHead(code, headers, callback)
-  if self.headers_sent then error("Headers already sent") end
-
-  self.code = code
-  for field, value in pairs(headers) do
-    if type(field) == "number" then
-      field = #self.headers + 1
-    end
-    self.headers[field] = value
-  end
-
-  self:flushHead(callback)
-end
-
-function Response:writeContinue(callback)
-  self.socket:write('HTTP/1.1 100 Continue\r\n\r\n', callback)
-end
-
-function Response:write(chunk, callback)
-  if self.has_body == false then error("Body not allowed") end
-  if not self.headers_sent then
-    self.has_body = true
-    self:flushHead()
-  end
-  if self.chunked and #chunk > 0 then
-    self.socket:write(stringFormat("%x\r\n", #chunk))
-    self.socket:write(chunk)
-    return self.socket:write("\r\n", callback)
-  end
-  return self.socket:write(chunk, callback)
-end
-
-function Response:finish(chunk, callback)
-  if chunk and self.has_body == false then error ("Body not allowed") end
-  if not self.headers_sent then
-    if self.has_body == nil then
-      if chunk then
-        if self.auto_content_length and #self.headers == 0
-         and (not self.header_names["content-length"])
-         and (not self.header_names["transfer-encoding"]) then
-          self:setHeader("Content-Length", #chunk)
-        end
-        self.has_body = true
-      else
-        self.has_body = false
-      end
-    end
-    self:flushHead()
-  end
-  if type(chunk) == "function" and callback == nil then
-    callback = chunk
-    chunk = nil
-  end
-  if chunk then
-    self:write(chunk)
-  end
-  if self.chunked then
-    self.socket:write('0\r\n\r\n')
-  end
-  self:done(callback)
-end
-
-function Response:done(callback)
-  if not self.should_keep_alive then
-    self.socket:shutdown(function ()
-      self:emit("end")
-      self:destroy()
-      if callback then
-        self:on("closed", callback)
-      end
+    -- 2 minute timeout
+    socket:setTimeout(2 * 60 * 1000)
+    socket:on('timeout', function ()
+      socket:destroy()
     end)
-  else
-    self:emit("end")
-    -- TODO: cleanup more thoroughly
-    self.socket = nil
-  end
-end
 
-function Response:destroy(...)
-  return self.socket:destroy(...)
+    socket:on('error', function (err)
+      self:emit('clientError', err)
+    end)
+
+    local incoming = SimpleQueue:new()
+    local outgoing = SimpleQueue:new()
+
+    local parser = parsers:alloc()
+    parser:cleanup()
+    parser.parser:reinitialize('request')
+    parser.socket = socket
+
+    local function abortincoming()
+      local req = nil
+      local length = incoming:length()
+      while length > 0 do
+        req = incoming:pop()
+        length = length - 1
+        req:emit('aborted')
+        req:emit('close')
+      end
+    end
+
+    local function ondata(data)
+      local length = #data
+      if 0 == length then return end
+
+      local bytes = parser.parser:execute(data, 0, length)
+
+      if bytes < length then
+        socket:emit('error', 'http parse error')
+        socket:destroy()
+      elseif parser.incoming and parser.incoming.upgrade then
+        socket:removeListener('data', ondata)
+        socket:removeListener('end', onend)
+        socket:removeListener('close', onSocketClose)
+        parser.parser:finish()
+
+        local event = ''
+        local handlers = rawget(request, 'handlers')
+        if parser.incoming.method == 'CONNECT' then
+          event = 'connect'
+        else
+          event = 'upgrade'
+        end
+
+        if handlers[event] and 0 < #handlers[event] then
+          self:emit(event, request, socket, chunk)
+        else
+          socket:destroy()
+        end
+        parser:cleanup()
+        parsers:free(parser)
+      end
+    end
+
+    local function onend()
+      parser.parser:finish()
+
+      if 0 < outgoing:length() then
+        outgoing[outgoing.tail]._last = true
+      elseif socket._httpMessage then
+        socket._httpMessage._last = true
+      elseif socket.writable then
+        socket:done()
+      end
+    end
+
+    local function onclose()
+      parser:cleanup()
+      parsers:free(parser)
+      abortincoming()
+    end
+
+    socket:on('data', ondata)
+    socket:on('end', onend)
+    socket:on('close', onclose)
+
+    function parser:onIncoming(request, shouldkeepalive)
+      incoming:push(request)
+
+      local response = ServerResponse:new(request)
+      response.shouldKeepAlive = shouldkeepalive
+
+      if socket._httpMessage then
+        outgoing:push(response)
+      else
+        response:assignSocket(socket)
+      end
+
+      -- After writing the response checkout to see if it is the last one.
+      -- We will procede to destroy it if so.
+      response:on('finish', function ()
+        incoming:pop()
+        response:detachSocket(socket)
+
+        if response._last then
+          socket:destroySoon()
+        else
+          local msg = outgoing:pop()
+          if msg then
+            msg:assignSocket(socket)
+          end
+        end
+      end)
+
+      local handlers = rawget(server, 'handlers')
+
+      -- expect continue
+      if request.headers['expect'] and (request.httpVersionMajor == 1 and request.httpVersionMinor == 1) and
+         request.headers['expect']:lower() == continueExpression then
+        response._expectContinue = true
+
+        if handlers['checkContinue'] and 0 < #handlers['checkContinue'] then
+          server:emit('checkContinue', request, response)
+        else
+          response:writeContinue()
+          server:emit('request', request, response)
+        end
+      else
+        server:emit('request', request, response)
+      end
+    end
+  end
+
+  self:on('connection', onConnection)
 end
 
 --------------------------------------------------------------------------------
@@ -1056,166 +1356,12 @@ function http.get(options, callback)
   return req
 end
 
-function http.createServer(onConnection)
-  local server
-  server = net.createServer(function (client)
-
-    -- Convert tcp stream to HTTP stream
-    local request
-    local current_field
-    local parser
-    local url
-    local headers
-    parser = HttpParser.new("request", {
-      onMessageBegin = function ()
-        headers = {}
-      end,
-      onUrl = function (value)
-        url = value
-      end,
-      onHeaderField = function (field)
-        current_field = field:lower()
-      end,
-      onHeaderValue = function (value)
-        headers[current_field] = value
-      end,
-      onHeadersComplete = function (info)
-
-        -- Accept the client and build request and response objects
-        request = Request:new(client)
-        local response = Response:new(client)
-
-        request.method = info.method
-        request.headers = headers
-        request.url = url
-        request.upgrade = info.upgrade
-
-        request.version_major = info.version_major
-        request.version_minor = info.version_minor
-
-        -- Give upgrade requests access to the raw client if they want it
-        if info.upgrade then
-          request.client = client
-        end
-
-        -- HTTP keep-alive logic
-        request.should_keep_alive = info.should_keep_alive
-        response.should_keep_alive = info.should_keep_alive
-        -- N.B. keep-alive requires explicit message length
-        if info.should_keep_alive then
-          --[[
-            In order to remain persistent, all messages on the connection MUST
-            have a self-defined message length (i.e., one not defined by closure
-            of the connection)
-          ]]
-          response.auto_content_length = false
-          -- HTTP/1.0 should insert Connection: keep-alive
-          if info.version_minor < 1 then
-            response:setHeader("Connection", "keep-alive")
-          end
-        else
-          -- HTTP/1.1 should insert Connection: close for last message
-          if info.version_minor >= 1 then
-            response:setHeader("Connection", "close")
-          end
-        end
-
-        -- Handle 100-continue requests
-        if request.headers.expect
-          and info.version_major == 1
-          and info.version_minor == 1
-          and request.headers.expect:lower() == "100-continue"
-        then
-          if server.handlers and server.handlers.check_continue then
-            server:emit("check_continue", request, response)
-          else
-            response:writeContinue()
-            onConnection(request, response)
-          end
-        else
-          onConnection(request, response)
-        end
-
-      end,
-      onBody = function (chunk)
-        request:emit("data", chunk)
-      end,
-      onMessageComplete = function ()
-        request:emit("end")
-        request:removeListener("end")
-        if request.should_keep_alive then
-          parser:finish()
-        end
-      end
-    })
-
-    client:on("data", function (chunk)
-
-      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
-      -- shouldn't send data to the HTTP parser
-      if request and request.upgrade then
-        request:emit("data", chunk)
-        return
-      end
-
-      --[[ from http_parser documentation:
-        To tell http_parser about EOF, give 0 as the forth parameter to
-        http_parser_execute()
-      ]]--
-      -- don't route empty chunks to the parser
-      if #chunk == 0 then return end
-
-      -- Parse the chunk of HTTP, this will syncronously emit several of the
-      -- above events and return how many bytes were parsed
-      local nparsed = parser:execute(chunk, 0, #chunk)
-
-      -- If it wasn't all parsed then there was an error parsing
-      if nparsed < #chunk and request then
-        if request.upgrade then
-          request:emit("data", chunk:sub(nparsed + 1))
-        else
-          request:emit("error", "parse error: " .. chunk)
-        end
-      end
-
-    end)
-
-    client:once("end", function ()
-      if request then
-        request:emit("end")
-        request:removeListener("end")
-      end
-      parser:finish()
-    end)
-
-    client:once("closed", function ()
-      if request then
-        request:emit("end")
-        request:removeListener("end")
-      end
-      parser:finish()
-    end)
-
-    client:once("error", function (err)
-      parser:finish()
-      -- read from closed client
-      if err.code == "ECONNRESET" then
-        -- ???
-      -- written to closed client
-      elseif err.code == "EPIPE" then
-        -- ???
-      -- other errors
-      else
-        if request then
-          request:emit("error", err)
-         end
-      end
-    end)
-
-  end)
-
-  return server
+function http.createServer(onRequest)
+  return Server:new(onRequest)
 end
+
+-- More lua-like naming
+http.createserver = http.createServer
 
 return http
 
