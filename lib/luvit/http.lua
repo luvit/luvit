@@ -700,6 +700,9 @@ function ClientRequest:setTimeout(msecs, callback)
 end
 
 function ClientRequest:onSocket(socket)
+  socket:on("error", function(err)
+    self:emit('error', err)
+  end)
   process.nextTick(function()
     local response = ServerResponse:new(self)
     response.socket = socket
@@ -766,9 +769,6 @@ function ClientRequest:onSocket(socket)
       if nparsed < #chunk then
         response:emit("error", "parse error")
       end
-    end)
-    socket:on('error', function(err)
-      self:emit('error', err)
     end)
     self:emit('socket', socket)
   end)
