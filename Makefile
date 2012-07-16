@@ -271,25 +271,27 @@ DIST_DIR?=${HOME}/luvit.io/dist
 DIST_NAME=luvit-${VERSION}
 DIST_FOLDER=${DIST_DIR}/${VERSION}/${DIST_NAME}
 DIST_FILE=${DIST_FOLDER}.tar.gz
-tarball:
+dist_build:
+	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
+            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
+            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
+            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
+            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < Makefile > Makefile.dist
+	sed -e 's/LUVIT_VERSION=".*/LUVIT_VERSION=\"${VERSION}\"'\'',/' \
+            -e 's/LUAJIT_VERSION=".*/LUAJIT_VERSION=\"${LUAJIT_VERSION}\"'\'',/' \
+            -e 's/UV_VERSION=".*/UV_VERSION=\"${UV_VERSION}\"'\'',/' \
+            -e 's/HTTP_VERSION=".*/HTTP_VERSION=\"${HTTP_VERSION}\"'\'',/' \
+            -e 's/YAJL_VERSIONISH=".*/YAJL_VERSIONISH=\"${YAJL_VERSION}\"'\'',/' < luvit.gyp > luvit.gyp.dist
+
+tarball: dist_build
 	rm -rf ${DIST_FOLDER} ${DIST_FILE}
 	mkdir -p ${DIST_DIR}
 	git clone . ${DIST_FOLDER}
 	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
 	cd ${DIST_FOLDER} ; git submodule update --init
 	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
-	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
-            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
-            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
-            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
-            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
-	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
-	sed -e 's/LUVIT_VERSION=".*/LUVIT_VERSION=\"${VERSION}\"'\'',/' \
-            -e 's/LUAJIT_VERSION=".*/LUAJIT_VERSION=\"${LUAJIT_VERSION}\"'\'',/' \
-            -e 's/UV_VERSION=".*/UV_VERSION=\"${UV_VERSION}\"'\'',/' \
-            -e 's/HTTP_VERSION=".*/HTTP_VERSION=\"${HTTP_VERSION}\"'\'',/' \
-            -e 's/YAJL_VERSIONISH=".*/YAJL_VERSIONISH=\"${YAJL_VERSION}\"'\'',/' < ${DIST_FOLDER}/luvit.gyp > ${DIST_FOLDER}/luvit.gyp.patched
-	mv ${DIST_FOLDER}/luvit.gyp.patched ${DIST_FOLDER}/luvit.gyp
+	mv Makefile.dist ${DIST_FOLDER}/Makefile
+	mv luvit.gyp.dist ${DIST_FOLDER}/luvit.gyp
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
