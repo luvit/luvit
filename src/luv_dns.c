@@ -115,6 +115,15 @@ static const char* ares_errno_string(int errorno)
   }
 }
 
+static void luv_push_gai_async_error(lua_State *L, int status, const char* source)
+{
+  char code_str[32];
+  snprintf(code_str, sizeof(code_str), "%i", status);
+  /* NOTE: gai_strerror() is _not_ threadsafe on Windows */
+  luv_push_async_error_raw(L, code_str, gai_strerror(status), source, NULL);
+  luv_acall(L, 1, 0, "dns_after");
+}
+
 /* Pushes an error object onto the stack */
 static void luv_push_ares_async_error(lua_State* L, int rc, const char* source)
 {
@@ -489,8 +498,8 @@ static void luv_dns_getaddrinfo_callback(uv_getaddrinfo_t* res, int status,
 
   luv_dns_get_callback(ref);
 
-  if (status != ARES_SUCCESS) {
-    luv_push_ares_async_error(ref->L, status, "getaddrinfo");
+  if (status) {
+    luv_push_gai_async_error(ref->L, status, "getaddrinfo");
     goto cleanup;
   }
 
