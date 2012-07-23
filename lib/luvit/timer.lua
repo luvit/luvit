@@ -173,7 +173,10 @@ local function setInterval(period, callback, ...)
 end
 
 local function clearTimer(timer)
-  if timer and timer._onTimeout then
+  if not timer then
+    return
+  end
+  if timer._onTimeout then
     timer._onTimeout = nil
     if timer.close then
       timer:close()
