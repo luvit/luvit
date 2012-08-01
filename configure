@@ -26,6 +26,7 @@ parser.add_option("--debug",
 parser.add_option("--prefix",
     action="store",
     dest="prefix",
+    default="/usr/local",
     help="Select the install prefix (defaults to /usr/local)")
 
 parser.add_option("--arch",
