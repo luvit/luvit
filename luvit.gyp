@@ -176,13 +176,13 @@
       'type': 'none',
       'copies': [
         {
-          'destination': '/usr/local/bin',
+          'destination': '<(luvit_prefix)/bin',
           'files': [
             'out/Debug/luvit'
           ]
         },
         {
-          'destination': '/usr/local/lib/luvit',
+          'destination': '<(luvit_prefix)/lib/luvit',
           'files': [
             'lib/luvit/buffer.lua',
             'lib/luvit/childprocess.lua',
@@ -210,7 +210,7 @@
           ]
         },
         {
-          'destination': '/usr/local/include/luvit/luajit',
+          'destination': '<(luvit_prefix)/include/luvit/luajit',
           'files': [
             'deps/luajit/src/lua.h',
             'deps/luajit/src/lauxlib.h',
@@ -220,19 +220,19 @@
           ]
         },
         {
-          'destination': '/usr/local/include/luvit/http_parser',
+          'destination': '<(luvit_prefix)/include/luvit/http_parser',
           'files': [
             'deps/http-parser/http_parser.h'
           ]
         },
         {
-          'destination': '/usr/local/include/luvit/uv',
+          'destination': '<(luvit_prefix)/include/luvit/uv',
           'files': [
             'deps/uv/include/'
           ]
         },
         {
-          'destination': '/usr/local/include/luvit',
+          'destination': '<(luvit_prefix)/include/luvit',
           'files': [
             'src/lconstants.h',
             'src/lenv.h',
