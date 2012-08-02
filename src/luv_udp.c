@@ -16,12 +16,36 @@
  */
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "luv_portability.h"
 #include "luv_udp.h"
 #include "utils.h"
 
-void luv_on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
+#define X(name, fn) \
+  int luv_udp_##name(lua_State *L) { \
+    uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp"); \
+    int flag = luaL_checkint(L, 2); \
+    int rc = fn(handle, flag); \
+    if (rc) { \
+      uv_err_t err = uv_last_error(luv_get_loop(L)); \
+      return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err)); \
+    } \
+    return 0; \
+  }
+
+X(set_ttl, uv_udp_set_ttl);
+X(set_broadcast, uv_udp_set_broadcast);
+X(set_multicast_ttl, uv_udp_set_multicast_ttl);
+X(set_multicast_loopback, uv_udp_set_multicast_loop);
+
+#undef X
+
+static void luv_on_udp_recv(uv_udp_t* handle,
+                            ssize_t nread,
+                            uv_buf_t buf,
+                            struct sockaddr* addr,
+                            unsigned flags) {
   int port;
   char ip[INET6_ADDRSTRLEN];
 
@@ -60,7 +84,7 @@ void luv_on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct socka
   buf.base = NULL;
 }
 
-void luv_on_udp_send(uv_udp_send_t* req, int status) {
+static void luv_on_udp_send(uv_udp_send_t* req, int status) {
   /* load the lua state and the userdata */
   lua_State *L = luv_handle_get_lua(req->handle->data);
   lua_pop(L, 1); /* We don't need the userdata */
@@ -92,36 +116,38 @@ int luv_new_udp (lua_State* L) {
   return 1;
 }
 
-int luv_udp_bind(lua_State* L) {
+static int luv__udp_bind(lua_State *L, int family) {
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   const char* host = luaL_checkstring(L, 2);
   int port = luaL_checkint(L, 3);
   int flags = 0;
+  int rc = 0;
 
-  struct sockaddr_in address = uv_ip4_addr(host, port);
+  switch (family) {
+  case AF_INET:
+    rc = uv_udp_bind(handle, uv_ip4_addr(host, port), flags);
+    break;
+  case AF_INET6:
+    rc = uv_udp_bind6(handle, uv_ip6_addr(host, port), flags);
+    break;
+  default:
+    assert(0 && "unexpected family type");
+  }
 
-  if (uv_udp_bind(handle, address, flags)) {
+  if (rc) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_bind: %s", uv_strerror(err));
+    return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err));
   }
 
   return 0;
 }
 
+int luv_udp_bind(lua_State* L) {
+  return luv__udp_bind(L, AF_INET);
+}
+
 int luv_udp_bind6(lua_State* L) {
-  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  const char* host = luaL_checkstring(L, 2);
-  int port = luaL_checkint(L, 3);
-  int flags = 0;
-
-  struct sockaddr_in6 address = uv_ip6_addr(host, port);
-
-  if (uv_udp_bind6(handle, address, flags)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_bind: %s", uv_strerror(err));
-  }
-
-  return 0;
+  return luv__udp_bind(L, AF_INET6);
 }
 
 static const char *const luv_membership_options[] = {"join", "leave", NULL};
@@ -179,7 +205,7 @@ int luv_udp_getsockname(lua_State* L) {
   return 1;
 }
 
-int luv_udp_send(lua_State* L) {
+static int luv_udp__send(lua_State* L, int family) {
   uv_buf_t buf;
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   size_t len;
@@ -188,7 +214,9 @@ int luv_udp_send(lua_State* L) {
   uv_udp_send_t* req = (uv_udp_send_t*)malloc(sizeof(uv_udp_send_t));
   int port = luaL_checkint(L, 3);
   const char* host = luaL_checkstring(L, 4);
-  struct sockaddr_in dest = uv_ip4_addr(host, port);
+  struct sockaddr_in dest;
+  struct sockaddr_in6 dest6;
+  int rc;
 
   /* Store a reference to the callback */
   lua_pushvalue(L, 5);
@@ -200,40 +228,34 @@ int luv_udp_send(lua_State* L) {
    * TODO: this is probably unsafe, should investigate
    */
   buf = uv_buf_init((char*)chunk, len);
-  if (uv_udp_send(req, handle, &buf, 1, dest, luv_on_udp_send) != 0) {
+
+  switch(family) {
+  case AF_INET:
+    dest = uv_ip4_addr(host, port);
+    rc = uv_udp_send(req, handle, &buf, 1, dest, luv_on_udp_send);
+    break;
+  case AF_INET6:
+    dest6 = uv_ip6_addr(host, port);
+    rc = uv_udp_send6(req, handle, &buf, 1, dest6, luv_on_udp_send);
+    break;
+  default:
+    assert(0 && "unexpected family type");
+  }
+
+  if (rc) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "udp_send: %s", uv_strerror(err));
   }
+
   return 0;
 }
 
+int luv_udp_send(lua_State* L) {
+  return luv_udp__send(L, AF_INET);
+}
+
 int luv_udp_send6(lua_State* L) {
-  uv_buf_t buf;
-  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  size_t len;
-  const char* chunk = luaL_checklstring(L, 2, &len);
-
-  uv_udp_send_t* req = (uv_udp_send_t*)malloc(sizeof(uv_udp_send_t));
-  int port = luaL_checkint(L, 3);
-  const char* host = luaL_checkstring(L, 4);
-  struct sockaddr_in6 dest = uv_ip6_addr(host, port);
-
-  /* Store a reference to the callback */
-  lua_pushvalue(L, 5);
-  req->data = (void *)luaL_ref(L, LUA_REGISTRYINDEX);
-
-  luv_handle_ref(L, handle->data, 1);
-
-  /* Store the chunk
-   * TODO: this is probably unsafe, should investigate
-   */
-  buf = uv_buf_init((char*)chunk, len);
-
-  if (uv_udp_send6(req, handle, &buf, 1, dest, luv_on_udp_send)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_send6: %s", uv_strerror(err));
-  }
-  return 0;
+  return luv_udp__send(L, AF_INET6);
 }
 
 int luv_udp_recv_start(lua_State* L) {
@@ -257,50 +279,3 @@ int luv_udp_recv_stop(lua_State* L) {
   return 0;
 }
 
-int luv_udp_set_broadcast(lua_State* L) {
-  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  int opt = luaL_checkint(L, 2);
-
-  if (uv_udp_set_broadcast(handle, opt)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_set_broadcast: %s", uv_strerror(err));
-  }
-
-  return 0;
-}
-
-int luv_udp_set_ttl(lua_State* L) {
-  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  int opt = luaL_checkint(L, 2);
-
-  if (uv_udp_set_ttl(handle, opt)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_set_ttl: %s", uv_strerror(err));
-  }
-
-  return 0;
-}
-
-int luv_udp_set_multicast_ttl(lua_State* L) {
-  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  int opt = luaL_checkint(L, 2);
-
-  if (uv_udp_set_multicast_ttl(handle, opt)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_set_multicast_ttl: %s", uv_strerror(err));
-  }
-
-  return 0;
-}
-
-int luv_udp_set_multicast_loopback(lua_State* L) {
-  uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  int opt = luaL_checkint(L, 2);
-
-  if (uv_udp_set_multicast_loop(handle, opt)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "udp_set_multicast_loopback: %s", uv_strerror(err));
-  }
-
-  return 0;
-}
