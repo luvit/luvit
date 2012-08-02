@@ -136,6 +136,7 @@ static int luv__udp_bind(lua_State *L, int family) {
     break;
   default:
     assert(0 && "unexpected family type");
+    abort();
   }
 
   if (rc) {
@@ -244,6 +245,7 @@ static int luv_udp__send(lua_State* L, int family) {
     break;
   default:
     assert(0 && "unexpected family type");
+    abort();
   }
 
   if (rc) {
