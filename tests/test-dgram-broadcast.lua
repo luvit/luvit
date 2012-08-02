@@ -20,14 +20,22 @@ require("helper")
 local dgram = require('dgram')
 
 local PORT = process.env.PORT or 10081
-local LOCAL_BROADCAST_HOST = '255.255.255.255' 
+local HOST = '127.0.0.1'
 
+local s1 = dgram.createSocket('udp4')
 local s2 = dgram.createSocket('udp4')
-
 s2:on('message', function(msg, rinfo)
-  p(msg)
   assert(#msg == 5)
   assert(msg == 'HELLO')
+  s2:close()
+  s1:close()
 end)
 
-s2:bind(PORT + 1, '10.5.7.39')
+s2:bind(PORT+1)
+
+s1:bind(PORT)
+s1:setBroadcast(true)
+s1:send('HELLO', PORT+1, '255.255.255.255', function()
+  s1:close()
+  s2:close()
+end)
