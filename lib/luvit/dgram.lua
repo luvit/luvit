@@ -19,13 +19,14 @@ limitations under the License.
 -- Ported from node's dgram.js.
 
 local dns = require('dns')
+local net = require('net')
 local Udp = require('uv').Udp
 local Emitter = require('core').Emitter
 
 local dgram = {}
 
 local function lookup(address, family, callback)
-  local matchedFamily = dns.isIp(address)
+  local matchedFamily = net.isIP(address)
   if matchedFamily then
     return callback(nil, address, matchedFamily)
   end

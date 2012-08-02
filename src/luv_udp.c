@@ -85,7 +85,10 @@ void luv_on_udp_send(uv_udp_send_t* req, int status) {
 
 int luv_new_udp (lua_State* L) {
   uv_udp_t* handle = luv_create_udp(L);
+  /* uv_udp_init memset's the handle so we need to reset the data baton */
+  void *data = handle->data;
   uv_udp_init(luv_get_loop(L), handle);
+  handle->data = data;
   return 1;
 }
 
@@ -235,7 +238,8 @@ int luv_udp_send6(lua_State* L) {
 
 int luv_udp_recv_start(lua_State* L) {
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
-  if (uv_udp_recv_start(handle, luv_on_alloc, luv_on_udp_recv)) {
+  int rc = uv_udp_recv_start(handle, luv_on_alloc, luv_on_udp_recv);
+  if (rc && uv_last_error(luv_get_loop(L)).code != UV_EALREADY) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "udp_recv_start: %s", uv_strerror(err));
   }

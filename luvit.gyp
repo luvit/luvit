@@ -66,6 +66,7 @@
        'lib/luvit/buffer.lua',
        'lib/luvit/childprocess.lua',
        'lib/luvit/core.lua',
+       'lib/luvit/dgram.lua',
        'lib/luvit/dns.lua',
        'lib/luvit/fiber.lua',
        'lib/luvit/fs.lua',
