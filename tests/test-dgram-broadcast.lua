@@ -35,4 +35,7 @@ s2:bind(PORT+1)
 
 s1:bind(PORT)
 s1:setBroadcast(true)
-s1:send('HELLO', PORT+1, '255.255.255.255')
+s1:send('HELLO', PORT+1, '255.255.255.255', function()
+  s1:close()
+  s2:close()
+end)

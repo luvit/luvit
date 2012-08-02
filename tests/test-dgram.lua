@@ -57,4 +57,6 @@ s2:send('PING', PORT, HOST, function(err)
   if err then
     assert(err)
   end
+  s1:close()
+  s2:close()
 end)
