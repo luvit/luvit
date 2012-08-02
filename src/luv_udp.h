@@ -33,5 +33,9 @@ int luv_udp_send(lua_State* L);
 int luv_udp_send6(lua_State* L);
 int luv_udp_recv_start(lua_State* L);
 int luv_udp_recv_stop(lua_State* L);
+int luv_udp_set_broadcast(lua_State* L);
+int luv_udp_set_ttl(lua_State* L);
+int luv_udp_set_multicast_ttl(lua_State* L);
+int luv_udp_set_multicast_loopback(lua_State* L);
 
 #endif
