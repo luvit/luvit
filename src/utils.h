@@ -68,6 +68,20 @@ typedef struct {
  */
 luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type);
 
+/* callback refs ensure that the callback function and any required data
+ * survive until they are needed and don't get gc'd. Usage in stream & fs
+ */
+typedef struct {
+  int rcb; /* callback ref */
+  int rdata; /* string ref */
+} luv_io_ctx_t;
+
+void luv_io_ctx_init(luv_io_ctx_t *cbs);
+void luv_io_ctx_add(lua_State* L, luv_io_ctx_t *cbs, int index);
+void luv_io_ctx_callback_add(lua_State* L, luv_io_ctx_t *cbs, int index);
+void luv_io_ctx_callback_rawgeti(lua_State *L, luv_io_ctx_t *cbs);
+void luv_io_ctx_unref(lua_State* L, luv_io_ctx_t *cbs);
+
 /* Convenience wrappers */
 uv_udp_t* luv_create_udp(lua_State* L);
 uv_fs_event_t* luv_create_fs_watcher(lua_State* L);

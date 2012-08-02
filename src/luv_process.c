@@ -16,6 +16,13 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 
 #include "luv_process.h"
 #include "luv_portability.h"
@@ -32,6 +39,12 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
 
 }
 
+/* Retrieves Process ID */
+int luv_getpid(lua_State* L){
+  int pid = getpid();
+  lua_pushinteger(L, pid);
+  return 1;
+}
 
 /* Initializes uv_process_t and starts the process. */
 int luv_spawn(lua_State* L) {
@@ -51,6 +64,8 @@ int luv_spawn(lua_State* L) {
   luaL_checktype(L, 5, LUA_TTABLE); /* args */
   luaL_checktype(L, 6, LUA_TTABLE); /* options */
 
+  memset(&options, 0, sizeof(uv_process_options_t));
+
   /* Parse the args array */
   argc = lua_objlen(L, 5) + 1;
   args = malloc((argc + 1) * sizeof(char*));
@@ -68,7 +83,7 @@ int luv_spawn(lua_State* L) {
   lua_pop(L, 1);
 
   /* Get the env */
-  lua_getfield(L, 6, "env");
+  lua_getfield(L, 6, "envPairs");
   env = NULL;
   if (lua_type(L, -1) == LUA_TTABLE) {
     argc = lua_objlen(L, -1);

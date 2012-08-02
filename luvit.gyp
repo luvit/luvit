@@ -70,6 +70,7 @@
        'lib/luvit/fiber.lua',
        'lib/luvit/fs.lua',
        'lib/luvit/http.lua',
+       'lib/luvit/https.lua',
        'lib/luvit/json.lua',
        'lib/luvit/luvit.lua',
        'lib/luvit/mime.lua',
@@ -114,7 +115,7 @@
          ],
          'action': [
            '<(PRODUCT_DIR)/luajit',
-           '-b', '<(RULE_INPUT_PATH)',
+           '-b', '-g', '<(RULE_INPUT_PATH)',
            '<(SHARED_INTERMEDIATE_DIR)/generated/<(RULE_INPUT_ROOT)_jit.c',
          ],
          'process_outputs_as_sources': 1,

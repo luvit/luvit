@@ -23,12 +23,18 @@ server:listen(fixture.commonPort, function()
   client1 = tls.connect({port = fixture.commonPort, host = '127.0.0.1'}, {}, function()
     clientConnected = clientConnected + 1
     client1:destroy()
-  end)
 
-  client2 = tls.connect({port = fixture.commonPort, host = '127.0.0.1'}, {}, function()
-    clientConnected = clientConnected + 1
-    client2:destroy()
+    client2 = tls.connect({port = fixture.commonPort, host = '127.0.0.1'}, {}, function()
+      clientConnected = clientConnected + 1
+      client2:destroy()
+    end)
   end)
+end)
+
+process:on('error', function(err)
+  print('unhandled error!')
+  p(err)
+  assert(false)
 end)
 
 process:on('exit', function()

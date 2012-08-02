@@ -70,7 +70,8 @@ static const luaL_reg luv_f[] = {
   /* Process functions */
   {"spawn", luv_spawn},
   {"processKill", luv_process_kill},
-
+  {"getpid", luv_getpid},
+  
   /* Stream functions */
   {"shutdown", luv_shutdown},
   {"listen", luv_listen},
@@ -78,6 +79,7 @@ static const luaL_reg luv_f[] = {
   {"readStart", luv_read_start},
   {"readStart2", luv_read_start2},
   {"readStop", luv_read_stop},
+  {"readStopNoRef", luv_read_stop_noref},
   {"writeQueueSize", luv_write_queue_size},
   {"write", luv_write},
   {"write2", luv_write2},
@@ -159,6 +161,8 @@ static const luaL_reg luv_f[] = {
   {"cpuInfo", luv_cpu_info},
   {"interfaceAddresses", luv_interface_addresses},
   {"execpath", luv_execpath},
+  {"getProcessTitle", luv_get_process_title},
+  {"setProcessTitle", luv_set_process_title},
   {"handleType", luv_handle_type},
   {"activateSignalHandler", luv_activate_signal_handler},
   {NULL, NULL}
@@ -171,7 +175,7 @@ static int luv_handle_gc(lua_State* L) {
   /* If the handle is still there, they forgot to close */
   if (lhandle->handle) {
     fprintf(stderr, "WARNING: forgot to close %s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);
-    uv_close(uv_default_loop(), lhandle->handle);
+    uv_close(lhandle->handle, luv_on_close);
   }
   return 0;
 }

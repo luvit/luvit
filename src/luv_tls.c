@@ -433,14 +433,18 @@ tls_sc_set_options(lua_State *L) {
   return 0;
 }
 
+static X509_STORE *root_cert_store = NULL;
+
 static int
 tls_sc_close(lua_State *L) {
-  tls_sc_t *ctx = getSC(L);
+  tls_sc_t *sc = getSC(L);
 
-  if (ctx->ctx) {
-    SSL_CTX_free(ctx->ctx);
-    ctx->ctx = NULL;
-    ctx->ca_store = NULL;
+  if (sc->ctx) {
+    if (sc->ctx->cert_store == root_cert_store) {
+      sc->ctx->cert_store = NULL;
+    }
+    SSL_CTX_free(sc->ctx);
+    sc->ctx = NULL;
   }
 
   return 0;
@@ -448,39 +452,46 @@ tls_sc_close(lua_State *L) {
 
 static int
 tls_sc_add_root_certs(lua_State *L) {
-  X509 *x509;
   int i;
   tls_sc_t *ctx = getSC(L);
 
-  if (ctx->ca_store) {
-    X509_STORE_free(ctx->ca_store);
+  ERR_clear_error();
+
+  if (!root_cert_store) {
+    root_cert_store = X509_STORE_new();
+
+    for (i = 0; root_certs[i]; i++) {
+      BIO *bp = BIO_new(BIO_s_mem());
+      X509 *x509;
+
+      if (!BIO_write(bp, root_certs[i], strlen(root_certs[i]))) {
+        printf("error writing cert %s\n", root_certs[i]);
+        BIO_free(bp);
+        lua_pushboolean(L, 0);
+        return 1;
+      }
+
+      x509 = PEM_read_bio_X509(bp, NULL, 0, NULL);
+      if (x509 == NULL) {
+        char buf[1024];
+        ERR_error_string(ERR_get_error(), buf);
+
+        printf("error writing x509 cert %s\n", buf);
+        BIO_free(bp);
+        lua_pushboolean(L, 0);
+        return 1;
+      }
+
+      X509_STORE_add_cert(root_cert_store, x509);
+
+      BIO_free(bp);
+      X509_free(x509);
+    }
   }
 
-  ctx->ca_store = X509_STORE_new();
-
-  for (i = 0; root_certs[i]; i++) {
-    BIO *bp = BIO_new(BIO_s_mem());
-
-    if (!BIO_write(bp, root_certs[i], strlen(root_certs[i]))) {
-      BIO_free(bp);
-      lua_pushboolean(L, 0);
-      return 1;
-    }
-
-    x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
-    if (x509 == NULL) {
-      BIO_free(bp);
-      lua_pushboolean(L, 0);
-      return 1;
-    }
-
-    X509_STORE_add_cert(ctx->ca_store, x509);
-
-    BIO_free(bp);
-    X509_free(x509);
-  }
-
+  ctx->ca_store = root_cert_store;
   SSL_CTX_set_cert_store(ctx->ctx, ctx->ca_store);
+
   lua_pushboolean(L, 1);
   return 1;
 }

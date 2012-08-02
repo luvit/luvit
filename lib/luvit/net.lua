@@ -16,6 +16,7 @@ limitations under the License.
 
 --]]
 
+local native = require('uv_native')
 local dns = require('dns')
 local Tcp = require('uv').Tcp
 local Timer = require('uv').Timer
@@ -23,6 +24,7 @@ local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
 local iStream = require('core').iStream
+local table = require('table')
 
 local net = {}
 
@@ -88,7 +90,7 @@ function Socket:write(data, callback)
   if self._connecting == true then
     self._connectQueueSize = self._connectQueueSize + #data 
     if self._connectQueue then
-      table.insert(self._connectQueue({data, callback}))
+      table.insert(self._connectQueue, {data, callback})
     else
       self._connectQueue = { {data, callback} }
     end
@@ -201,6 +203,11 @@ function Socket:connect(...)
         self:_write(self._connectQueue[i][1], self._connectQueue[i][2])
       end
       self._connectQueue = nil
+    end
+
+    if self._paused then
+      self._paused = false
+      self:pause()
     end
 
     self._handle:readStart()
@@ -357,12 +364,20 @@ net.Socket = Socket
 net.createConnection = function(port, ... --[[ host, cb --]])
   local args = {...}
   local host
+  local options
   local callback
   local s
 
   -- future proof
-  host = args[1]
-  callback = args[2]
+  if type(port) == 'table' then
+    options = port
+    port = options.port
+    host = options.host
+    callback = args[1]
+  else
+    host = args[1]
+    callback = args[2]
+  end
 
   s = Socket:new()
   return s:connect(port, host, callback)
@@ -372,6 +387,18 @@ net.create = net.createConnection
 
 net.createServer = function(connectionCallback)
   return Server:new(connectionCallback)
+end
+
+net.isIP = function(ip)
+  return native.dnsIsIp(ip)
+end
+
+net.isIPv4 = function(ip)
+  return native.dnsIsIpV4(ip)
+end
+
+net.isIPv6 = function(ip)
+  return native.dnsIsIpV6(ip)
 end
 
 return net

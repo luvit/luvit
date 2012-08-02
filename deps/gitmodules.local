@@ -19,3 +19,6 @@
 [submodule "deps/openssl"]
         path = deps/openssl
         url = ../deps/openssl/.git
+[submodule "tools/gyp"]
+        path = tools/gyp
+        url = ../tools/gyp/.git

@@ -20,10 +20,25 @@ local net = require('net')
 local HttpParser = require('http_parser')
 local table = require('table')
 local osDate = require('os').date
+local string = require('string')
 local stringFormat = require('string').format
+local Object = require('core').Object
+local url = require('url')
+
+local END_OF_FILE = 0
+local CRLF = '\r\n'
 
 local iStream = require('core').iStream
 local http = {}
+
+local connectionExpression = 'connection'
+local transferEncodingExpression = 'transfer-encoding'
+local closeExpression = 'close'
+local chunkExpression = 'chunk'
+local contentLengthExpression = 'content-length'
+local dateExpression = 'date'
+local expectExpression = 'expect'
+local continueExpression = '100-continue'
 
 local STATUS_CODES = {
   [100] = 'Continue',
@@ -82,6 +97,709 @@ local STATUS_CODES = {
 http.STATUS_CODES = STATUS_CODES
 
 --------------------------------------------------------------------------------
+--[[ Incoming Message Base Class ]]--
+local IncomingMessage = iStream:extend()
+function IncomingMessage:initialize(socket)
+  self.socket = socket
+  self.readable = true
+  self._endEmitted = false
+  self._pendings = {}
+end
+
+function IncomingMessage:destroy(...)
+  self.socket:destroy(...)
+end
+
+function IncomingMessage:pause()
+  self._paused = true
+  self.socket:pause()
+end
+
+function IncomingMessage:resume()
+  self._paused = false
+  if self.socket then
+    self.socket:resume()
+  end
+  self:_emitPending()
+end
+
+function IncomingMessage:_emitPending(callback)
+  if #self._pendings > 0 then
+    process.nextTick(function()
+      while self._paused == false and #self._pendings > 0 do
+        local chunk = table.remove(self._pendings)
+        if chunk ~= END_OF_FILE then
+          self:_emitData(chunk)
+        else
+          self.readable = false
+          self:_emitEnd()
+        end
+      end
+    end)
+  elseif callback then
+    callback()
+  end
+end
+
+function IncomingMessage:_emitData(d)
+  self:emit('data', d)
+end
+
+function IncomingMessage:_emitEnd()
+  if self._endEmitted == false then
+    self:emit('end')
+  end
+  self._endEmitted = true
+end
+
+function IncomingMessage:_addHeaderLine(field, value)
+  local dest = self.complete and self.trailers or self.headers
+  local headerMap = {}
+  field = field:lower()
+
+  function commaSeparate()
+    if dest[field] then
+      dest[field] = dest[field] .. ', ' .. value
+    else
+      dest[field] = value
+    end
+  end
+
+  function default()
+    if field:sub(1,2) == 'x-' then
+      if dest[field] then
+        dest[field] = dest[field] .. ', ' .. value
+      else
+        dest[field] = value
+      end
+    else
+      if not dest[field] then
+        dest[field] = value
+      end
+    end
+  end
+
+  function setCoookie()
+    if dest[field] then
+      table.insert(dest[field], value)
+    else
+      dest[field] = { value }
+    end
+  end
+
+  headerMap['accept'] = commaSeparate
+  headerMap['accept-charset'] = commaSeparate
+  headerMap['accept-encoding'] = commaSeparate
+  headerMap['accept-language'] = commaSeparate
+  headerMap['connection'] = commaSeparate
+  headerMap['cookie'] = commaSeparate
+  headerMap['pragma'] = commaSeparate
+  headerMap['link'] = commaSeparate
+  headerMap['www-authenticate'] = commaSeparate
+  headerMap['sec-websocket-extensions'] = commaSeparate
+  headerMap['set-cookie'] = setCookie
+
+  -- execute
+  local func = headerMap[field] or default
+  func()
+end
+
+--[[ Outgoing Message ]]--
+local OutgoingMessage = IncomingMessage:extend()
+function OutgoingMessage:initialize()
+  IncomingMessage.initialize(self)
+
+  self.output = {}
+
+  self.writable = true
+
+  self._last = false
+  self.chunkedEncoding = false
+  self.shouldKeepAlive = true
+  self.useChunkedEncodingByDefault = true
+  self.sendDate = false
+
+  self._hasBody = true
+  self._headerSent = false
+  self._trailer = ''
+
+  self.finished = false
+end
+
+function OutgoingMessage:destroy(err)
+  self.socket:destroy(err)
+end
+
+function OutgoingMessage:_send(data, encoding)
+  if self._headerSent == false then
+    if type(data) == 'string' then
+      data = self._header .. data
+    else
+      table.insert(self.output, self._header)
+    end
+    self._headerSent = true
+  end
+  return self:_writeRaw(data, encoding)
+end
+
+
+function OutgoingMessage:_writeRaw(data, encoding)
+  if #data == 0 then
+    return true
+  end
+
+  if self.socket and self.socket.writable == true then
+    while #self.output > 0 do
+      if self.socket.writable == false then
+        -- buffer
+        self:_buffer(data, encoding)
+        return false
+      end
+
+      local c = table.remove(self.output)
+      self.socket:write(c)
+    end
+
+    return self.socket:write(data, encoding)
+  else
+    self:_buffer(data, encoding)
+    return false
+  end
+end
+
+function OutgoingMessage:_buffer(data, encoding)
+  if #data == 0 then
+    return
+  end
+
+  local length = #self.output
+  if length == 0 or type(data) ~= 'string' then
+    table.insert(self.output, data)
+    return false
+  end
+
+  table.insert(self.output, data)
+  return false
+end
+
+function OutgoingMessage:_storeHeader(firstLine, headers)
+  local sentConnectionHeader = false
+  local sentContentLengthHeader = false
+  local sentTransferEncodingHeader = false
+  local sentDateHeader = false
+  local sentExpect = false
+
+  local messageHeader = firstLine
+  local field, value
+
+  function store(field, value)
+    local matchField = field:lower()
+    messageHeader = messageHeader .. field .. ': ' .. value .. CRLF
+    if matchField == connectionExpression then
+      sentConnectionHeader = true
+      if value == closeExpression then
+        self._last = true
+      else
+        self.shouldKeepAlive = true
+      end
+    elseif matchField == transferEncodingExpression then
+      sentTransferEncodingHeader = true
+      if value == chunkExpression then
+        self.chunkedEncoding = true
+      end
+    elseif matchField == contentLengthExpression then
+      sentContentLengthHeader = true
+    elseif matchField == dateExpression then
+      sentDateHeader = true
+    elseif matchField == expectExpression then
+      sentExpect = true
+    end
+  end
+
+  if headers then
+    local isArray = headers[1]
+    for k, v in pairs(headers) do
+      if isArray then
+        field = headers[k][0]
+        value = headers[k][1]
+      else
+        field = k
+        value = v
+      end
+
+      if type(value) == 'table' and value[1] then -- isArray
+        for k, v in pairs(value) do
+          store(field, v)
+        end
+      else
+        store(field, value)
+      end
+    end
+  end
+
+  if sentConnectionHeader == false then
+    local shouldSendKeepAlive = self.shouldKeepAlive and (sentContentLengthHeader or self.useChunkedEncodingByDefault)
+    if shouldSendKeepAlive == true then
+      messageHeader = messageHeader .. 'Connection: keep-alive\r\n'
+    else
+      self._last = true
+      messageHeader = messageHeader .. 'Connection: close\r\n'
+    end
+  end
+
+  if sentContentLengthHeader == false and sentTransferEncodingHeader == false then
+    if self._hasBody == true then
+      if self.useChunkedEncodingByDefault == true then
+        messageHeader = messageHeader .. 'Transfer-Encoding: chunked\r\n'
+        self.chunkedEncoding = true
+      else
+        self._last = true
+      end
+    else
+      self.chunkedEncoding = false
+    end
+  end
+
+  self._header = messageHeader .. CRLF
+  self._headerSent = false
+
+  if sentExpect then
+    self:_send('')
+  end
+end
+
+function OutgoingMessage:setHeader(name, value)
+  local key = name:lower()
+  self._headers = self._headers or {}
+  self._headerNames = self._headerNames or {}
+  self._headers[key] = value
+  self._headerNames[key] = name
+end
+
+function OutgoingMessage:getHeader(name)
+  if not self._headers then
+    return
+  end
+
+  local key = name:lower()
+  return self._headers[key]
+end
+
+function OutgoingMessage:removeHeader(name)
+  if not self._headers then
+    return
+  end
+
+  local key = name:lower()
+  self._headers[key] = nil
+  self._headerNames[key] = nil
+end
+
+function OutgoingMessage:_renderHeaders()
+  if not self._headers then
+    return
+  end
+
+  local headers = {}
+  for k, v in pairs(self._headers) do
+    headers[self._headerNames[k]] = v
+  end
+  return headers
+end
+
+function OutgoingMessage:write(chunk, encoding)
+  if not self._header then
+    self:_implicitHeader()
+  end
+
+  if not self._hasBody then
+    print('This type of response must not have a body')
+    return true
+  end
+
+  if not chunk or #chunk == 0 then
+    return false
+  end
+
+  local ret
+  if self.chunkedEncoding then
+    local len = #chunk
+    chunk = tostring(tonumber(len, 16)) .. CRLF .. chunk .. CRLF
+    ret = self:_send(chunk, encoding)
+  else
+    ret = self:_send(chunk, encoding)
+  end
+
+  return ret
+end
+
+function OutgoingMessage:addTrailers(headers)
+  self._trailer = ''
+  local isArray = headers[1]
+  local field, value
+  for k, v in headers do
+    if isArray then
+      field = headers[k][0]
+      value = headers[k][1]
+    else
+      field = k
+      value = headers[k]
+    end
+
+    self._trailer = self._trailer .. field .. ': ' .. value .. CRLF
+  end
+end
+
+function OutgoingMessage:done(data, encoding)
+  if self.finished then
+    return
+  end
+
+  if not self._header then
+    self:_implicitHeader()
+  end
+
+  if data and not self._hasBody then
+    print('This type of response must not have a body')
+    data = false
+  end
+
+  local hot = false
+  local ret
+  if self._headerSent == false and type(data) == 'string' and
+    #data > 0 and #self.output == 0 and self.socket and self.socket.writable then
+    hot = true
+  end
+
+  if hot then
+    if self.chunkedEncoding then
+      local l = tostring(tonumber(#data, 16))
+      local buf = self._header .. l .. CRLF .. data .. '\r\n0\r\n' .. self._trailer .. CRLF
+      ret = self.socket:write(buf)
+    else
+      ret = self.socket:write(self._header .. data)
+    end
+    self._headerSent = true
+  else
+    ret = self:write(data, encoding)
+  end
+
+  if not hot then
+    if self.chunkedEncoding then
+      ret = self:_send('0\r\n' .. self._trailer .. '\r\n')
+    else
+      ret = self:_send('')
+    end
+  end
+
+  self.finished = true
+  if #self.output == 0 then
+    self:_finish()
+  end
+
+  return ret
+end
+
+
+function OutgoingMessage:_finish()
+  self:emit('finish')
+end
+
+function OutgoingMessage:_flush()
+  if not self.socket then
+    return
+  end
+
+  local ret
+  while #self.output > 0 do
+    if not self.socket.writable then
+      return
+    end
+
+    local data = table.remove(self.output)
+    ret = self.socket:write(data)
+  end
+
+  if self.finished then
+    self:_finish()
+  elseif ret then
+    self:emit('drain')
+  end
+end
+
+--[[ ServerResponse ]]--
+local ServerResponse = OutgoingMessage:extend()
+function ServerResponse:initialize(req)
+  OutgoingMessage.initialize(self)
+
+  if req.method == 'HEAD' then
+    self._hasBody = false
+  end
+
+  self.sendDate = false
+  self.statusCode = 200
+end
+
+function ServerResponse:assignSocket(socket)
+  socket._httpMessage = self
+  socket:on('close', function()
+    self._httpMessage:emit('close')
+  end)
+  self.socket = socket
+  self:_flush()
+end
+
+function ServerResponse:writeContinue()
+  self:_writeRaw('HTTP/1.1 100 Continue' + CRLF + CRLF, 'ascii')
+  self.sent100 = true
+end
+
+function ServerResponse:_implicitHeader()
+  self:writeHead(self.statusCode)
+end
+
+function ServerResponse:writeHead(statusCode, ...)
+  local reasonPhrase, headers
+  local args = {...}
+
+  reasonPhrase = STATUS_CODES[statusCode] or 'unknown'
+  self.statusCode = statusCode
+
+  local obj = args[1]
+
+  if obj and self._headers then
+    headers = self:_renderHeaders()
+    local field
+    if obj[1] then
+      for i, v in ipairs(obj) do
+        field = obj[i][1]
+        if headers[field] then
+          table.insert(obj, {field, headers[field]})
+        end
+      end
+      headers = obj
+    else
+      for k, v in pairs(obj) do
+        headers[k] = v
+      end
+    end
+  elseif self._headers then
+    headers = self:_renderHeaders()
+  else
+    headers = obj
+  end
+
+  local statusLine = 'HTTP/1.1 ' .. tostring(statusCode) .. ' ' .. reasonPhrase .. CRLF
+  if statusCode == 204 or statusCode == 304 or (100 <= statusCode and statusCode <= 199) then
+    self._hasBody = false
+  end
+
+  self:_storeHeader(statusLine, headers)
+end
+
+function ServerResponse:writeHeader(...)
+  self:writeHead(...)
+end
+
+--[[ Client Request ]]--
+local ClientRequest = OutgoingMessage:extend()
+function ClientRequest:initialize(options, callback)
+  OutgoingMessage.initialize(self)
+  local defaultPort = options.defaultPort or 80
+  local port = options.port or defaultPort
+  local host = options.hostname or options.host or 'localhost'
+  local setHost = options.setHost or true
+  self.socketPath = options.socketPath
+  self.method = (options.method or 'GET'):upper()
+  self.path = options.path or options.pathname or '/'
+
+  if options.search then
+    self.path = self.path .. options.search
+  end
+
+  if callback then
+    self:once('response', callback)
+  end
+
+  -- TODO Authorization
+
+  if options.headers then
+    for k, v in pairs(options.headers) do
+      self:setHeader(k, v)
+    end
+
+    if host and not self:getHeader('host') and setHost then
+      local hostHeader = host
+      if port and port ~= defaultPort then
+        hostHeader = hostHeader .. ':' .. port
+      end
+      self:setHeader('Host', hostHeader)
+    end
+  end
+
+  if method == 'GET' or method == 'HEAD' or method == 'CONNECT' then
+    self.useChunkedEncodingByDefault = false
+  else
+    self.useChunkedEncodingByDefault = true
+  end
+
+  if options.headers and options.headers[1] then
+    self:_storeHeader(self.method .. ' ' .. self.path .. ' HTTP/1.1\r\n', options.headers)
+  elseif self:getHeader('expect') then
+    self:_storeHeader(self.method .. ' ' .. self.path .. ' HTTP/1.1\r\n', self:_renderHeaders())
+  end
+
+  local conn
+  self._last = true
+  self.shouldKeepAlive = false
+
+  if options.createConnection then
+    options.port = port
+    options.host = host
+    conn = options.createConnection(options)
+  else
+    conn = net.createConnection({
+      port = port,
+      host = host,
+      localAddress = options.localAddress
+    });
+  end
+
+  self.socket = conn
+
+  self:onSocket(conn)
+  self:_deferToConnect(function()
+    self:_flush()
+  end)
+end
+
+function ClientRequest:setTimeout(msecs, callback)
+  if callback then
+    self:once('timeout', callback)
+  end
+
+  function emitTimeout()
+    self:emit('timeout')
+  end
+
+  if self.socket and self.socket.writable then
+    self.socket:setTimeout(msecs, emitTimeout)
+    return
+  end
+
+  if self.socket then
+    self.socket:on('connect', function()
+      self:setTimeout(msecs, emitTimeout)
+    end)
+    return
+  end
+
+  self:once('socket', function(sock)
+    self:setTimeout(msecs, emitTimeout)
+  end)
+end
+
+function ClientRequest:onSocket(socket)
+  local response = ServerResponse:new(self)
+  response.socket = socket
+
+  self.socket = socket
+
+  self.parser = HttpParser.new("response", {
+    onMessageBegin = function ()
+      headers = {}
+    end,
+    onUrl = function (url)
+    end,
+    onHeaderField = function (field)
+      current_field = field
+    end,
+    onHeaderValue = function (value)
+      headers[current_field:lower()] = value
+    end,
+    onHeadersComplete = function (info)
+      response.headers = headers
+      response.statusCode = info.status_code
+      response.status_code = info.status_code
+      response.version_minor = info.version_minor
+      response.version_major = info.version_major
+      response.httpVersionMinor = info.version_minor
+      response.httpVersionMajor = info.version_major
+      self:emit('response', response)
+    end,
+    onBody = function (chunk)
+      response:emit("data", chunk)
+    end,
+    onMessageComplete = function ()
+      response:emit("end")
+    end
+  })
+  socket._httpMessage = self
+
+  socket:on('drain', function()
+    if self._httpMessage then
+      self._httpMessage:emit('drain')
+    end
+  end)
+  socket:on('close', function()
+  end)
+  socket:on('end', function()
+    self.socket:destroy()
+  end)
+  socket:on('timeout', function()
+    self:emit('timeout')
+  end)
+  socket:on('data', function(chunk)
+    -- Ignore empty chunks
+    if #chunk == 0 then return end
+
+    -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+    -- shouldn't send data to the HTTP parser
+    if response.upgrade then
+      response:emit("data", chunk)
+      return
+    end
+
+    local nparsed = self.parser:execute(chunk, 0, #chunk)
+    -- If it wasn't all parsed then there was an error parsing
+    if nparsed < #chunk then
+      response:emit("error", "parse error")
+    end
+  end)
+  socket:on('error', function(err)
+    self:emit('error', err)
+  end)
+  self:emit('socket', socket)
+end
+
+function ClientRequest:_deferToConnect(callback)
+  local onSocket = function()
+    if self.socket.writable then
+      if callback then
+        callback()
+      end
+    else
+      self.socket:once('connect', function()
+        if callback then
+          callback()
+        end
+      end)
+    end
+  end
+
+  if not self.socket then
+    self:once('socket', onSocket)
+  else
+    onSocket()
+  end
+end
+
+
+function ClientRequest:_implicitHeader()
+  self:_storeHeader(self.method .. ' ' .. self.path .. ' HTTP/1.1\r\n',
+                    self:_renderHeaders())
+end
+
 
 local Request = iStream:extend()
 http.Request = Request
@@ -323,161 +1041,17 @@ function Response:destroy(...)
 end
 
 --------------------------------------------------------------------------------
-
 function http.request(options, callback)
-  -- Load options into local variables.  Assume defaults
-  local host = options.host or "127.0.0.1"
-  local port = options.port or 80
-  local method = options.method or "GET"
-  local path = options.path or "/"
-  local headers = options.headers or {}
-  if not headers.host then headers.host = host end
-
-  -- TODO: clarify
-  if not headers["Content-Length"] then
-    headers["Transfer-Encoding"] = "chunked"
+  if type(options) == 'string' then
+    options = url.parse(options)
   end
+  return ClientRequest:new(options, callback)
+end
 
-  -- buffer request content until socket is connected
-  local content = {}
-  local request = { method .. " " .. path .. " HTTP/1.1\r\n" }
-  -- FIXME: pairs() toss headers, while order can be significant!
-  for field, value in pairs(headers) do
-    request[#request + 1] = field .. ": " .. value .. "\r\n"
-  end
-  request[#request + 1] = "\r\n"
-
-  -- placeholders for original client methods.
-  -- we restore them upon connection callback fired
-  local original_write
-
-  local client
-  client = net.create(port, host, function (err)
-
-    if err then
-      client:emit("error", err)
-      return
-    end
-
-    -- send request headers and content
-    original_write(client, table.concat(request))
-    request = nil
-    original_write(client, table.concat(content))
-    content = nil
-
-    -- replace write() with chunked-encoding version
-    client.chunked = headers["Transfer-Encoding"] == "chunked"
-    if client.chunked then
-      client.write = function (self, chunk, callback)
-        if #chunk > 0 then
-          original_write(self, stringFormat("%x\r\n", #chunk))
-          original_write(self, chunk)
-          return original_write(self, "\r\n", callback)
-        end
-        return original_write(self, chunk, callback)
-      end
-    else
-      client.write = original_write
-    end
-
-    -- restore original client methods.
-    -- N.B. close() is net.Socket method, so to restore old method
-    -- means simply to remove new method
-    client.close = nil
-
-    local response = Response:new(client)
-
-    local headers
-    local current_field
-
-    local parser = HttpParser.new("response", {
-      onMessageBegin = function ()
-        headers = {}
-      end,
-      onUrl = function (url)
-      end,
-      onHeaderField = function (field)
-        current_field = field
-      end,
-      onHeaderValue = function (value)
-        headers[current_field:lower()] = value
-      end,
-      onHeadersComplete = function (info)
-        response.headers = headers
-        response.status_code = info.status_code
-        response.version_minor = info.version_minor
-        response.version_major = info.version_major
-
-        callback(response)
-      end,
-      onBody = function (chunk)
-        response:emit("data", chunk)
-      end,
-      onMessageComplete = function ()
-        response:emit("end")
-      end
-
-    })
-
-    client:on("data", function (chunk)
-
-      -- Ignore empty chunks
-      if #chunk == 0 then return end
-
-      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
-      -- shouldn't send data to the HTTP parser
-      if response.upgrade then
-        response:emit("data", chunk)
-        return
-      end
-
-      local nparsed = parser:execute(chunk, 0, #chunk)
-
-      -- If it wasn't all parsed then there was an error parsing
-      if nparsed < #chunk then
-        response:emit("error", "parse error")
-      end
-
-    end)
-
-    client:once("end", function ()
-      parser:finish()
-    end)
-
-    client:once("error", function (err)
-      parser:finish()
-      response:emit("error", err)
-    end)
-
-    -- close writing end
-    if client.done then
-      if client.chunked then
-        original_write(client, '0\r\n\r\n')
-      end
-      client:shutdown()
-    end
-
-  end)
-
-  -- store original client methods.
-  original_write = client.write
-  -- while connecting, we want to buffer writes and closes
-  client.write = function (self, chunk, callback)
-    if #chunk > 0 then
-      if headers["Transfer-Encoding"] == "chunked" then
-        content[#content + 1] = stringFormat("%x\r\n%s\r\n", #chunk, chunk)
-      else
-        content[#content + 1] = chunk
-      end
-    end
-    if callback then callback() end
-  end
-  client.destroy = function (self, chunk, callback)
-    self.done = true
-    self:write(chunk, callback)
-  end
-
-  return client
+function http.get(options, callback)
+  local req = http.request(options, callback)
+  req:done()
+  return req
 end
 
 function http.createServer(onConnection)
@@ -595,7 +1169,11 @@ function http.createServer(onConnection)
 
       -- If it wasn't all parsed then there was an error parsing
       if nparsed < #chunk and request then
-        request:emit("error", "parse error")
+        if request.upgrade then
+          request:emit("data", chunk:sub(nparsed + 1))
+        else
+          request:emit("error", "parse error: " .. chunk)
+        end
       end
 
     end)

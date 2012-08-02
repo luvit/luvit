@@ -11,6 +11,7 @@ extern const char *luaJIT_BC_dns[];
 extern const char *luaJIT_BC_fiber[];
 extern const char *luaJIT_BC_fs[];
 extern const char *luaJIT_BC_http[];
+extern const char *luaJIT_BC_https[];
 extern const char *luaJIT_BC_json[];
 extern const char *luaJIT_BC_luvit[];
 extern const char *luaJIT_BC_mime[];
@@ -41,6 +42,7 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const char *)luaJIT_BC_fiber +
     (size_t)(const char *)luaJIT_BC_fs +
     (size_t)(const char *)luaJIT_BC_http +
+    (size_t)(const char *)luaJIT_BC_https +
     (size_t)(const char *)luaJIT_BC_json +
     (size_t)(const char *)luaJIT_BC_luvit +
     (size_t)(const char *)luaJIT_BC_mime +

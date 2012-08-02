@@ -61,6 +61,24 @@ Stream.readStart = native.readStart
 -- Stream:readStop()
 Stream.readStop = native.readStop
 
+-- Stream:readStopNoRef()
+Stream.readStopNoRef = native.readStopNoRef
+
+-- Stream:pause()
+function Stream:pause()
+  self:readStop()
+end
+
+-- Stream:pauseNoRef()
+function Stream:pauseNoRef()
+  self:readStopNoRef()
+end
+
+-- Stream:resume()
+function Stream:resume()
+  self:readStart()
+end
+
 -- Stream:write(chunk, callback)
 Stream.write = native.write
 
@@ -165,6 +183,21 @@ Pipe.bind = native.pipeBind
 -- Pipe:connect(name)
 Pipe.connect = native.pipeConnect
 
+function Pipe:pause()
+  native.unref()
+  self:readStop()
+end
+
+function Pipe:pauseNoRef()
+  native.unref()
+  self:readStopNoRef()
+end
+
+function Pipe:resume()
+  native.ref()
+  self:readStart()
+end
+
 --------------------------------------------------------------------------------
 
 local Tty = Stream:extend()
@@ -181,6 +214,23 @@ Tty.setMode = native.ttySetMode
 Tty.getWinsize = native.ttyGetWinsize
 
 Tty.resetMode = native.ttyResetMode
+
+function Tty:pause()
+  native.unref()
+  self:readStop()
+end
+
+-- TODO: The readStop() implementation assumes a reference is being held. This
+-- will go away with a libuv upgrade.
+function Tty:pauseNoRef()
+  native.unref()
+  self:readStopNoRef()
+end
+
+function Tty:resume()
+  native.ref()
+  self:readStart()
+end
 
 --------------------------------------------------------------------------------
 
@@ -266,29 +316,36 @@ end
 
 uv.createReadableStdioStream = function(fd)
   local fd_type = native.handleType(fd);
+  local stdin
   if (fd_type == "TTY") then
-    local tty = Tty:new(fd)
-    native.unref()
-    return tty
+    stdin = Tty:new(fd)
   elseif (fd_type == "FILE") then
-    return fs.createReadStream(nil, {fd = fd})
+    stdin = fs.createReadStream(nil, {fd = fd})
   elseif (fd_type == "NAMED_PIPE") then
-    local pipe = Pipe:new(nil)
-    pipe:open(fd)
-    native.unref()
-    return pipe
+    stdin = Pipe:new(nil)
+    stdin:open(fd)
   else
     error("Unknown stream file type " .. fd)
   end
+
+  -- unref the event loop so that we don't block unless the user
+  -- wants stdin. This follows node's logic.
+  if fd_type ~= "FILE" then
+    -- fs.createReadStream returns iStream which is pure lua and doesn't have
+    -- pauseNoRef method
+    stdin:pauseNoRef()
+  end
+
+  return stdin
 end
 
 function Process:initialize(command, args, options)
   self.stdin = Pipe:new(nil)
   self.stdin:open(0)
   self.stdout = Pipe:new(nil)
-  self.stdin:open(1)
+  self.stdout:open(1)
   self.stderr = Pipe:new(nil)
-  self.stdin:open(2)
+  self.stderr:open(2)
   args = args or {}
   options = options or {}
 

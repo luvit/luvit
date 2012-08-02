@@ -231,6 +231,9 @@ function fs.writeFileSync(path, data)
 end
 
 function fs.writeFile(path, data, callback)
+  if not type(data) == 'string' then
+    error('data parameter must be a string')
+  end
   fs.open(path, "w", "0666", function (err, fd)
     if err then return callback(err) end
     local offset = 0

@@ -83,7 +83,6 @@ void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const 
 }
 
 uv_handle_t* luv_checkudata(lua_State* L, int index, const char* type) {
-  char key[32];
 
   /* Check for table wrappers as well and replace it with the userdata it points to */
   if (lua_istable (L, index)) {
@@ -94,6 +93,57 @@ uv_handle_t* luv_checkudata(lua_State* L, int index, const char* type) {
   luaL_checktype(L, index, LUA_TUSERDATA);
 
   return ((luv_handle_t*)lua_touserdata(L, index))->handle;
+}
+
+void luv_io_ctx_init(luv_io_ctx_t *cbs)
+{
+  cbs->rcb = LUA_NOREF;
+  cbs->rdata = LUA_NOREF;
+}
+
+void luv_io_ctx_add(lua_State* L, luv_io_ctx_t *cbs, int index)
+{
+  int n;
+
+  /* Create the data table if it doesn't exist */
+  if (cbs->rdata == LUA_NOREF) {
+    lua_newtable(L);
+    cbs->rdata = luaL_ref(L, LUA_REGISTRYINDEX);
+  }
+
+  /* grab state table */
+  lua_rawgeti(L, LUA_REGISTRYINDEX, cbs->rdata);
+
+  /* find next slot in state table */
+  n = luaL_getn(L, -1);
+  lua_pushinteger(L, n + 1);
+
+  /* push the state variable to be reffed */
+  lua_pushvalue(L, index);
+
+  /* ref into table and cleanup */
+  lua_settable(L, -3);
+  lua_pop(L, 1);
+}
+
+void luv_io_ctx_callback_add(lua_State *L, luv_io_ctx_t *cbs, int index)
+{
+  if (lua_isfunction(L, index)) {
+    lua_pushvalue(L, index); /* Store the callback */
+    cbs->rcb = luaL_ref(L, LUA_REGISTRYINDEX);
+  }
+}
+
+void luv_io_ctx_callback_rawgeti(lua_State *L, luv_io_ctx_t *cbs)
+{
+  lua_rawgeti(L, LUA_REGISTRYINDEX, cbs->rcb);
+}
+
+void luv_io_ctx_unref(lua_State* L, luv_io_ctx_t *cbs)
+{
+  luaL_unref(L, LUA_REGISTRYINDEX, cbs->rdata);
+  luaL_unref(L, LUA_REGISTRYINDEX, cbs->rcb);
+  luv_io_ctx_init(cbs);
 }
 
 const char* luv_handle_type_to_string(uv_handle_type type) {
@@ -128,7 +178,6 @@ uv_loop_t* luv_get_loop(lua_State *L) {
   lua_pop(L, 1);
   return loop;
 }
-
 
 
 /* Initialize a new lhandle and push the new userdata on the stack. */
@@ -191,7 +240,6 @@ void luv_handle_ref(lua_State* L, luv_handle_t* lhandle, int index) {
 
 /* This needs to be called when an async callback fires on a lhandle. */
 void luv_handle_unref(lua_State* L, luv_handle_t* lhandle) {
-/*  printf("luv_handle_unref\t%s %p:%p\n", lhandle->type, lhandle, lhandle->handle);*/
   lhandle->refCount--;
   assert(lhandle->refCount >= 0);
   /* If it's now inactive, clear the ref */

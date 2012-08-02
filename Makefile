@@ -46,11 +46,12 @@ export Q=
 MAKEFLAGS+=-e
 
 LDFLAGS+=-L${BUILDDIR}
-LIBS += ${ZLIBDIR}/libz.a \
+LIBS += -lluvit \
+	${ZLIBDIR}/libz.a \
 	${YAJLDIR}/yajl.a \
 	${UVDIR}/uv.a \
 	${LUADIR}/src/libluajit.a \
-	-lluvit -lm -ldl -lpthread
+	-lm -ldl -lpthread
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
 CPPFLAGS+=$(shell pkg-config --cflags openssl)
@@ -206,6 +207,8 @@ clean:
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
+	-rm ${ZLIBDIR}/*.o
+	-rm ${CRYPTODIR}/src/lcrypto.o
 	rm -rf build bundle
 
 install: all
@@ -225,14 +228,39 @@ install: all
 	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
 	cp src/*.h ${INCDIR}/
 
-bundle: build/luvit ${BUILDDIR}/libluvit.a
+uninstall:
+	test -f ${BINDIR}/luvit && rm -f ${BINDIR}/luvit
+	test -d ${LIBDIR} && rm -rf ${LIBDIR}
+	test -d ${INCDIR} && rm -rf ${INCDIR}
+
+bundle: bundle/luvit
+
+bundle/luvit: build/luvit ${BUILDDIR}/libluvit.a
 	build/luvit tools/bundler.lua
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_exports.c -o bundle/luvit_exports.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 	$(CC) --std=c89 -D_GNU_SOURCE -g -Wall -Werror -DBUNDLE -c src/luvit_main.c -o bundle/luvit_main.o -I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api -I${YAJLDIR}/src -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHTTP_VERSION=\"${HTTP_VERSION}\" -DUV_VERSION=\"${UV_VERSION}\" -DYAJL_VERSIONISH=\"${YAJL_VERSION}\" -DLUVIT_VERSION=\"${VERSION}\" -DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
-	$(CC) ${LDFLAGS} -g -o bundle/luvit ${BUILDDIR}/libluvit.a `ls bundle/*.o` ${LIBS}
+	$(CC) ${LDFLAGS} -g -o bundle/luvit ${BUILDDIR}/libluvit.a `ls bundle/*.o` ${LIBS} ${CRYPTODIR}/src/lcrypto.o
 
-test: ${BUILDDIR}/luvit
+# Test section
+
+test: test-lua test-install test-uninstall
+
+test-lua: ${BUILDDIR}/luvit
 	cd tests && ../${BUILDDIR}/luvit runner.lua
+
+ifeq ($(MAKECMDGOALS),test)
+DESTDIR=test_install
+endif
+
+test-install: install
+	test -f ${BINDIR}/luvit
+	test -d ${INCDIR}
+	test -d ${LIBDIR}
+
+test-uninstall: uninstall
+	test ! -f ${BINDIR}/luvit
+	test ! -d ${INCDIR}
+	test ! -d ${LIBDIR}
 
 api: api.markdown
 
@@ -243,21 +271,29 @@ DIST_DIR?=${HOME}/luvit.io/dist
 DIST_NAME=luvit-${VERSION}
 DIST_FOLDER=${DIST_DIR}/${VERSION}/${DIST_NAME}
 DIST_FILE=${DIST_FOLDER}.tar.gz
-tarball:
+dist_build:
+	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
+            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
+            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
+            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
+            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < Makefile > Makefile.dist
+	sed -e 's/LUVIT_VERSION=".*/LUVIT_VERSION=\"${VERSION}\"'\'',/' \
+            -e 's/LUAJIT_VERSION=".*/LUAJIT_VERSION=\"${LUAJIT_VERSION}\"'\'',/' \
+            -e 's/UV_VERSION=".*/UV_VERSION=\"${UV_VERSION}\"'\'',/' \
+            -e 's/HTTP_VERSION=".*/HTTP_VERSION=\"${HTTP_VERSION}\"'\'',/' \
+            -e 's/YAJL_VERSIONISH=".*/YAJL_VERSIONISH=\"${YAJL_VERSION}\"'\'',/' < luvit.gyp > luvit.gyp.dist
+
+tarball: dist_build
 	rm -rf ${DIST_FOLDER} ${DIST_FILE}
 	mkdir -p ${DIST_DIR}
 	git clone . ${DIST_FOLDER}
 	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
 	cd ${DIST_FOLDER} ; git submodule update --init
 	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
-	sed -e 's/^VERSION=.*/VERSION=${VERSION}/' \
-            -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
-            -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
-            -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
-            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < ${DIST_FOLDER}/Makefile > ${DIST_FOLDER}/Makefile.patched
-	mv ${DIST_FOLDER}/Makefile.patched ${DIST_FOLDER}/Makefile
+	mv Makefile.dist ${DIST_FOLDER}/Makefile
+	mv luvit.gyp.dist ${DIST_FOLDER}/luvit.gyp
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install all api.markdown bundle tarball
+.PHONY: test install uninstall all api.markdown bundle tarball
 

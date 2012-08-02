@@ -26,6 +26,8 @@ local table = require('table')
 local net = require('net')
 local bind = require('utils').bind
 
+local Error = require('core').Error
+
 local string = require('string')
 local fmt = string.format
 
@@ -279,7 +281,6 @@ function CryptoStream:_push()
       chunkBytes, tmpData = self:_pusher()
 
       if self.pair.ssl and self.pair.ssl:getError() then
-        p('push error')
         self.pair:err()
         return
       end
@@ -420,6 +421,9 @@ end
 
 function CleartextStream:_pusher()
   dbg('CleartextStream:_pusher')
+  if not self.pair.ssl then
+    return -1
+  end
   return self.pair.ssl:clearOut()
 end
 
@@ -454,6 +458,9 @@ end
 
 function EncryptedStream:_pusher()
   dbg('EncryptedStream:_pusher')
+  if not self.pair.ssl then
+    return -1
+  end
   return self.pair.ssl:encOut()
 end
 
@@ -489,6 +496,9 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
   if self._isServer == true then
     certOrServerName = self._requestCert
   else
+    if not options.servername then
+      error('servername is a required parameter')
+    end
     certOrServerName = options.servername
   end
 
@@ -593,10 +603,14 @@ end
 function SecurePair:err()
   dbg('SecurePair:err')
   if self._secureEstablished == false then
-    local err = self.ssl:getError()
-    if not err then
+    local ssl_err, ssl_err_str = self.ssl:getError()
+    local err = nil
+    if not ssl_err then
       err = Error:new('socket hang up')
       err.code = 'ECONNRESET'
+    else
+      err = Error:new(ssl_err_str)
+      err.code = ssl_err
     end
     self:emit('error', err)
     self:destroy()
@@ -701,7 +715,7 @@ function Server:initialize(...)
 
     end)
     pair:on('error', function(err)
-      dbg('on error' .. err)
+      self:emit('clientError', err)
     end)
   end)
 
@@ -809,12 +823,21 @@ function connect(...)
   end
 
   local socket = options.socket or Socket:new()
-  local sslcontext = createCredentials(options)
+  
+  if options.context then
+    sslcontext = createCredentials(options, options.context)
+  else
+    sslcontext = createCredentials(options)
+  end
 
   socket:connect(options.port, options.host)
 
+  local servername = options.servername or options.host
+  if not servername then
+    error('host is a required parameter')
+  end
   local pair = SecurePair:new(sslcontext, false, true, options.rejectUnauthorized == true, {
-    servername = options.servername or options.host,
+    servername = servername
   })
 
   if options.session then

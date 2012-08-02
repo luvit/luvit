@@ -1,14 +1,14 @@
 local http = require('http')
 
-http.request({
+local options = {
   host = "luvit.io",
   port = 80,
   path = "/"
-}, function (res)
+}
+
+local req = http.request(options, function (res)
   res:on('data', function (chunk)
     p("ondata", {chunk=chunk})
   end)
-  res:on("end", function ()
-    res:close()
-  end)
 end)
+req:done()

@@ -26,6 +26,10 @@
 #define PATH_MAX (8096)
 #endif
 
+#ifndef MAX_TITLE_LENGTH
+#define MAX_TITLE_LENGTH (8192)
+#endif
+
 #ifndef _WIN32
 
 const char *luv_signo_string(int signo) {
@@ -228,14 +232,14 @@ int luv_update_time(lua_State* L) {
 }
 
 int luv_now(lua_State* L) {
-  int64_t now = uv_now(luv_get_loop(L));
-  lua_pushinteger(L, now);
+  double now = (double)uv_now(luv_get_loop(L));
+  lua_pushnumber(L, now);
   return 1;
 }
 
 int luv_hrtime(lua_State* L) {
-  int64_t now = uv_hrtime();
-  lua_pushinteger(L, now);
+  double now = (double) uv_hrtime() / 1000000.0;
+  lua_pushnumber(L, now);
   return 1;
 }
 
@@ -361,6 +365,26 @@ int luv_execpath(lua_State* L) {
   lua_pushlstring(L, exec_path, size);
   return 1;
 }
+
+int luv_get_process_title(lua_State* L) {
+  char title[8192];
+  uv_err_t err = uv_get_process_title(title, 8192);
+  if (err.code) {
+    return luaL_error(L, "uv_get_process_title: %s: %s", uv_err_name(err), uv_strerror(err));
+  }
+  lua_pushstring(L, title);
+  return 1;
+}
+
+int luv_set_process_title(lua_State* L) {
+  const char* title = luaL_checkstring(L, 1);
+  uv_err_t err = uv_set_process_title(title);
+  if (err.code) {
+    return luaL_error(L, "uv_set_process_title: %s: %s", uv_err_name(err), uv_strerror(err));
+  }
+  return 0;
+}
+
 
 int luv_handle_type(lua_State* L) {
   uv_file file = luaL_checkint(L, 1);

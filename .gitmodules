@@ -12,10 +12,13 @@
 	url = https://github.com/lloyd/yajl.git
 [submodule "deps/zlib"]
 	path = deps/zlib
-	url = https://github.com/creationix/zlib.git
+	url = https://github.com/luvit/zlib.git
 [submodule "deps/openssl"]
 	path = deps/openssl
 	url = https://github.com/luvit/openssl.git
 [submodule "deps/luacrypto"]
 	path = deps/luacrypto
 	url = http://github.com/luvit/luacrypto
+[submodule "tools/gyp"]
+	path = tools/gyp
+	url = https://github.com/luvit/gyp.git
