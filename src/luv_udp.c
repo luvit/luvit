@@ -29,7 +29,7 @@
     int rc = fn(handle, flag); \
     if (rc) { \
       uv_err_t err = uv_last_error(luv_get_loop(L)); \
-      return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err)); \
+      return luaL_error(L, #name": %s", uv_strerror(err)); \
     } \
     return 0; \
   }
@@ -51,6 +51,10 @@ static void luv_on_udp_recv(uv_udp_t* handle,
 
   /* load the lua state and the userdata */
   lua_State *L = luv_handle_get_lua(handle->data);
+
+  if (nread == 0) {
+    return;
+  }
 
   if (nread < 0) {
     uv_close((uv_handle_t *)handle, luv_on_close);
@@ -136,7 +140,7 @@ static int luv__udp_bind(lua_State *L, int family) {
 
   if (rc) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
-    return luaL_error(L, "tcp_nodelay: %s", uv_strerror(err));
+    return luaL_error(L, "udp_bind: %s", uv_strerror(err));
   }
 
   return 0;

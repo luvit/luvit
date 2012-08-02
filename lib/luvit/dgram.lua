@@ -45,6 +45,8 @@ local function newHandle(family)
   if family == 'udp4' then
     local handle = Udp:new()
     handle.lookup = lookup4
+    handle.bind = handle.bind
+    handle.send = handle.send
     return handle
   end
 
