@@ -238,7 +238,7 @@ function Timer:initialize()
   -- uv_timer_init adds a loop reference. (That is, it calls uv_ref.) This
   -- is not the behavior we want in Luvit. Timers should not increase the
   -- ref count of the loop except when active.
-  self:unref()
+  --self:unref()
 end
 
 function Timer:_update()
@@ -247,7 +247,7 @@ function Timer:_update()
   if was_active == false and self._active == true then
     self:ref()
   elseif was_active == true and self._active == false then
-    self:unref()
+    --self:unref()
   end
 end
 
@@ -327,7 +327,7 @@ uv.createReadableStdioStream = function(fd)
   if fd_type ~= "FILE" then
     -- fs.createReadStream returns iStream which is pure lua and doesn't have
     -- pauseNoRef method
-    stdin:pauseNoRef()
+    --stdin:pauseNoRef()
   end
 
   return stdin

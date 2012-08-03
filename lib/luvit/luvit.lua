@@ -120,7 +120,7 @@ function process:addHandlerType(name)
   local code = constants[name]
   if code then
     native.activateSignalHandler(code)
-    native.unref()
+    --native.unref()
   end
 end
 
