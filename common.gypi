@@ -152,7 +152,6 @@
           'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
           'GCC_OPTIMIZATION_LEVEL': '0',
           'GCC_THREADSAFE_STATICS': 'NO',           # -fno-threadsafe-statics
-          'GCC_VERSION': '4.2',
           'GCC_WARN_ABOUT_MISSING_NEWLINE': 'YES',  # -Wnewline-eof
           'MACOSX_DEPLOYMENT_TARGET': '10.6',       # -mmacosx-version-min=10.6
           'PREBINDING': 'NO',                       # No -Wl,-prebind
