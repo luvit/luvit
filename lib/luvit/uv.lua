@@ -332,14 +332,6 @@ uv.createReadableStdioStream = function(fd)
     error("Unknown stream file type " .. fd)
   end
 
-  -- unref the event loop so that we don't block unless the user
-  -- wants stdin. This follows node's logic.
-  if fd_type ~= "FILE" then
-    -- fs.createReadStream returns iStream which is pure lua and doesn't have
-    -- pauseNoRef method
-    stdin:pauseNoRef()
-  end
-
   return stdin
 end
 
