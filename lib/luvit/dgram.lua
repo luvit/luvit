@@ -81,7 +81,7 @@ function Socket:initialize(family, listener)
 end
 
 function Socket:_initEmitters()
-  self._handle:on('closed', function(msg, rinfo)
+  self._handle:on('close', function(msg, rinfo)
     self._handle = nil
     self:emit('close')
   end)
@@ -188,7 +188,7 @@ end
 
 function Socket:_healthCheck()
   if not self._handle then
-    error('Not running')
+    error('self._handle uninitialized')
   end
 end
 
