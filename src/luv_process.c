@@ -78,16 +78,16 @@ int luv_spawn(lua_State* L) {
   options.stdio[2].flags = UV_IGNORE;
   */
 
-  /*
-  TODO: Handle creating pipes
   options.stdio[0].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
   options.stdio[1].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;
-  options.stdio[2].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;s
-  */
+  options.stdio[2].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;
 
+  /*
+  TODO: Handle creating pipes
   options.stdio[0].flags = UV_INHERIT_STREAM;
   options.stdio[1].flags = UV_INHERIT_STREAM;
   options.stdio[2].flags = UV_INHERIT_STREAM;
+  */
 
   options.stdio[0].data.stream = stdin_stream;
   options.stdio[1].data.stream = stdout_stream;
