@@ -23,7 +23,14 @@ uv.Handle = Handle
 
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
 -- Handle:close()
-Handle.close = native.close
+Handle.close = function(self)
+  if self._closed then
+    error("close called on closed handle")
+    return
+  end
+  native.close(self)
+  self._closed = true
+end
 
 --[[
 This is used by Emitters to register with native events when the first listener
@@ -253,7 +260,6 @@ uv.Timer = Timer
 function Timer:initialize()
   self.userdata = native.newTimer()
   self._active = false
-  self._closed = false
 end
 
 function Timer:_update()
@@ -265,13 +271,6 @@ end
 function Timer:start(timeout, interval, callback)
   native.timerStart(self, timeout, interval, callback)
   self:_update()
-end
-
-function Timer:close()
-  if not self._closed then
-    Handle.close(self)
-  end
-  self._closed = true
 end
 
 -- Timer:stop()
