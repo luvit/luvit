@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "uv.h"
 #include "luv_misc.h"
 #include "utils.h"
 
@@ -382,6 +383,9 @@ int luv_handle_type(lua_State* L) {
   lua_pushstring(L, luv_handle_type_to_string(type));
   return 1;
 }
+
+extern void uv_print_active_handles(uv_loop_t *loop);
+extern void uv_print_all_handles(uv_loop_t *loop);
 
 int luv_print_active_handles(lua_State* L) {
   uv_print_active_handles(luv_get_loop(L));
