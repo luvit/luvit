@@ -335,11 +335,8 @@ end
 
 function Process:initialize(command, args, options)
   self.stdin = Pipe:new(nil)
-  self.stdin:open(0)
   self.stdout = Pipe:new(nil)
-  self.stdout:open(1)
   self.stderr = Pipe:new(nil)
-  self.stderr:open(2)
   args = args or {}
   options = options or {}
 
