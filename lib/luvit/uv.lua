@@ -153,6 +153,18 @@ Udp.recvStart = native.udpRecvStart
 -- Udp:recvStop()
 Udp.recvStop = native.udpRecvStop
 
+-- Udp:setBroadcast(opt)
+Udp.setBroadcast = native.udpSetBroadcast
+
+-- Udp:setTTL(opt)
+Udp.setTTL = native.udpSetTTL
+
+-- Udp:setMulticastTTL(opt)
+Udp.setMulticastTTL = native.udpSetMulticastTTL
+
+-- Udp:setMulticastLoopback(opt)
+Udp.setMulticastLoopback = native.udpSetMulticastLoopback
+
 --------------------------------------------------------------------------------
 
 local Pipe = Stream:extend()
