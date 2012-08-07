@@ -1,7 +1,7 @@
 require("helper")
 local net = require('net')
 
-local client = net.create(4343, 'google.com')
+local client = net.create(4343, 'luvit.io')
 client:setTimeout(250)
 client:on('timeout', function()
   client:destroy()
