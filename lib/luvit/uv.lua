@@ -8,6 +8,12 @@ local uv = Object:extend()
 
 --------------------------------------------------------------------------------
 
+-- Print all handles
+uv.printAllHandles = native.printAllHandles
+
+-- Print all active handles
+uv.printActiveHandles = native.printActiveHandles
+
 --[[
 This class is never used directly, but is the inheritance chain of all libuv
 objects.
