@@ -241,20 +241,12 @@ uv.Timer = Timer
 function Timer:initialize()
   self.userdata = native.newTimer()
   self._active = false
-  -- uv_timer_init adds a loop reference. (That is, it calls uv_ref.) This
-  -- is not the behavior we want in Luvit. Timers should not increase the
-  -- ref count of the loop except when active.
-  --self:unref()
+  self._closed = false
 end
 
 function Timer:_update()
   local was_active = self._active
   self._active = native.timerGetActive(self)
-  if was_active == false and self._active == true then
-    self:ref()
-  elseif was_active == true and self._active == false then
-    --self:unref()
-  end
 end
 
 -- Timer:start(timeout, interval, callback)
@@ -264,10 +256,10 @@ function Timer:start(timeout, interval, callback)
 end
 
 function Timer:close()
-  Handle.close(self)
-  if self._active == false then
-    self:ref()
+  if not self._closed then
+    Handle.close(self)
   end
+  self._closed = true
 end
 
 -- Timer:stop()
