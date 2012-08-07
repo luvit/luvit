@@ -185,25 +185,28 @@ function utils.debug(...)
 end
 
 function utils.bind(fn, self, ...)
-  local argsLength = select("#", ...)
+  local bindArgsLength = select("#", ...)
 
-  -- Simple binding, just inserts self.
-  if argsLength == 0 then
+  -- Simple binding, just inserts self (or one arg or any kind)
+  if bindArgsLength == 0 then
     return function (...)
       return fn(self, ...)
     end
   end
 
-  -- This table will get mutated on every call, but it's async safe and the
-  -- unpack fence will only use the fresh data so it's ok.
-  local args = {...}
+  -- More complex binding inserts arbitrary number of args into call.
+  local bindArgs = {...}
   return function (...)
-    local extraLength = select("#", ...)
-    local extra = {...}
-    for i = 1, extraLength do
-      args[i + argsLength] = extra[i]
+    local argsLength = select("#", ...)
+    local args = {...}
+    local arguments = {}
+    for i = 1, bindArgsLength do
+      arguments[i] = bindArgs[i]
     end
-    return fn(self, unpack(args, 1, argsLength + extraLength))
+    for i = 1, argsLength do
+      arguments[i + bindArgsLength] = args[i]
+    end
+    return fn(self, unpack(arguments, 1, bindArgsLength + argsLength))
   end
 end
 
