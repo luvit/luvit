@@ -89,6 +89,18 @@ int luv_close (lua_State* L) {
   return 0;
 }
 
+int luv_ref(lua_State* L) {
+  uv_handle_t* handle = luv_checkudata(L, 1, "handle");
+  uv_ref(handle);
+  return 0;
+}
+
+int luv_unref(lua_State* L) {
+  uv_handle_t* handle = luv_checkudata(L, 1, "handle");
+  uv_unref(handle);
+  return 0;
+}
+
 int luv_set_handler(lua_State* L) {
   const char* name;
   luv_checkudata(L, 1, "handle");

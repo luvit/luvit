@@ -25,8 +25,6 @@
 
 int luv_activate_signal_handler(lua_State* L);
 int luv_run(lua_State* L);
-int luv_ref (lua_State* L);
-int luv_unref(lua_State* L);
 int luv_update_time(lua_State* L);
 int luv_now(lua_State* L);
 int luv_hrtime(lua_State* L);
@@ -40,5 +38,7 @@ int luv_execpath(lua_State* L);
 int luv_get_process_title(lua_State* L);
 int luv_set_process_title(lua_State* L);
 int luv_handle_type(lua_State* L);
+int luv_print_active_handles(lua_State* L);
+int luv_print_all_handles(lua_State* L);
 
 #endif
