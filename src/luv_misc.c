@@ -1,5 +1,5 @@
 /*
- *  Copyright 2012 The Luvit Authors. All Rights Reserved.
+e*  Copyright 2012 The Luvit Authors. All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -383,5 +383,12 @@ int luv_handle_type(lua_State* L) {
   return 1;
 }
 
+int luv_print_active_handles(lua_State* L) {
+  uv_print_active_handles(luv_get_loop(L));
+  return 0;
+}
 
-
+int luv_print_all_handles(lua_State* L) {
+  uv_print_all_handles(luv_get_loop(L));
+  return 0;
+}
