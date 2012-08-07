@@ -184,14 +184,26 @@ function utils.debug(...)
   process.stderr:write(table.concat(arguments, "\t") .. "\n")
 end
 
-function utils.bind(fun, self, ...)
-  local bind_args = {...}
-  return function(...)
-    local args = {...}
-    for i=#bind_args,1,-1 do
-      table.insert(args, 1, bind_args[i])
+function utils.bind(fn, self, ...)
+  local argsLength = select("#", ...)
+
+  -- Simple binding, just inserts self.
+  if argsLength == 0 then
+    return function (...)
+      return fn(self, ...)
     end
-    return fun(self, unpack(args))
+  end
+
+  -- This table will get mutated on every call, but it's async safe and the
+  -- unpack fence will only use the fresh data so it's ok.
+  local args = {...}
+  return function (...)
+    local extraLength = select("#", ...)
+    local extra = {...}
+    for i = 1, extraLength do
+      args[i + argsLength] = extra[i]
+    end
+    return fn(self, unpack(args, 1, argsLength + extraLength))
   end
 end
 
