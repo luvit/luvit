@@ -46,8 +46,10 @@ server:listen(PORT, HOST, function(err)
       assert(data == 'hello')
       client:destroy()
       server:close()
-      -- Ensure double close doesn't assert and returns an error
-      local success, err = pcall(server:close())
+
+      -- Ensure double close returns an error
+      local success, err = pcall(server.close, server)
+      assert(success == false)
       assert(err)
     end)
 
