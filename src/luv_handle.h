@@ -39,4 +39,7 @@ void luv_on_close(uv_handle_t* handle);
 int luv_close (lua_State* L);
 int luv_set_handler(lua_State* L);
 
+int luv_ref(lua_State* L);
+int luv_unref(lua_State* L);
+
 #endif

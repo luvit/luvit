@@ -48,9 +48,9 @@ int luv_getpid(lua_State* L){
 
 /* Initializes uv_process_t and starts the process. */
 int luv_spawn(lua_State* L) {
-  uv_pipe_t* stdin_stream = (uv_pipe_t*)luv_checkudata(L, 1, "pipe");
-  uv_pipe_t* stdout_stream = (uv_pipe_t*)luv_checkudata(L, 2, "pipe");
-  uv_pipe_t* stderr_stream = (uv_pipe_t*)luv_checkudata(L, 3, "pipe");
+  uv_stream_t* stdin_stream = (uv_stream_t*)luv_checkudata(L, 1, "pipe");
+  uv_stream_t* stdout_stream = (uv_stream_t*)luv_checkudata(L, 2, "pipe");
+  uv_stream_t* stderr_stream = (uv_stream_t*)luv_checkudata(L, 3, "pipe");
   const char* command = luaL_checkstring(L, 4);
   size_t argc;
   char** args;
@@ -58,6 +58,7 @@ int luv_spawn(lua_State* L) {
   char* cwd;
   char** env;
   uv_process_options_t options;
+  uv_stdio_container_t stdio[3];
   uv_process_t* handle;
   int r;
 
@@ -65,6 +66,32 @@ int luv_spawn(lua_State* L) {
   luaL_checktype(L, 6, LUA_TTABLE); /* options */
 
   memset(&options, 0, sizeof(uv_process_options_t));
+  memset(stdio, 0, sizeof(stdio));
+
+  options.stdio = stdio;
+  options.stdio_count = 3;
+
+  /*
+  TODO: Handle ignoring stdio
+  options.stdio[0].flags = UV_IGNORE;
+  options.stdio[1].flags = UV_IGNORE;
+  options.stdio[2].flags = UV_IGNORE;
+  */
+
+  options.stdio[0].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
+  options.stdio[1].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;
+  options.stdio[2].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;
+
+  /*
+  TODO: Handle creating pipes
+  options.stdio[0].flags = UV_INHERIT_STREAM;
+  options.stdio[1].flags = UV_INHERIT_STREAM;
+  options.stdio[2].flags = UV_INHERIT_STREAM;
+  */
+
+  options.stdio[0].data.stream = stdin_stream;
+  options.stdio[1].data.stream = stdout_stream;
+  options.stdio[2].data.stream = stderr_stream;
 
   /* Parse the args array */
   argc = lua_objlen(L, 5) + 1;
@@ -103,9 +130,6 @@ int luv_spawn(lua_State* L) {
 
   options.env = env ? env : luv_os_environ();
   options.cwd = cwd;
-  options.stdin_stream = stdin_stream;
-  options.stdout_stream = stdout_stream;
-  options.stderr_stream = stderr_stream;
 
   /* Create the userdata */
   handle = luv_create_process(L);

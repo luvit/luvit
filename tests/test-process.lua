@@ -15,6 +15,7 @@ function test()
     child = spawn('bash', {'-c', 'set'}, options)
   end
   child.stdout:on('data', function(chunk)
+    print(chunk)
     if chunk:find('TEST1=1') then
       environmentTestResult = true
     end
