@@ -21,7 +21,6 @@ local table = require('table')
 local iStream = require('core').iStream
 local fs = {}
 local sizes = {
-  Open = 3,
   Close = 1,
   Read = 3,
   Write = 3,
@@ -88,6 +87,31 @@ for name, arity in pairs(sizes) do
   end
   fs[name:lower()] = async
   fs[name:lower() .. "Sync"] = sync
+end
+
+function modeNum(m, def)
+  local t = type(m)
+  if t == 'number' then
+    return m
+  elseif t == 'string' then
+    return tonumber(m, 8)
+  else
+    return def and modeNum(def) or nil
+  end
+end
+
+function fs.open(path, flags, mode, callback)
+  if callback == nil then
+    callback = mode
+    mode = 438 --[[=0666]]
+  else
+    mode = modeNum(mode)
+  end
+  native.fsOpen(path, flags, mode, callback or default)
+end
+
+function fs.openSync(path, flags, mode)
+  return native.fsOpen(path, flags, modeNum(mode, 438 --[[=0666]]))
 end
 
 function fs.exists(path, callback)

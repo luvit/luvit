@@ -22,16 +22,14 @@ local FS = require('fs')
 
 -- should throw ENOENT, not EBADF
 -- see https://github.com/joyent/node/pull/1228
--- TODO: support mode parameter may be omitted.
-local ok, err = pcall(FS.openSync, '/path/to/file/that/does/not/exist', 'r', '0666')
+local ok, err = pcall(FS.openSync, '/path/to/file/that/does/not/exist', 'r')
 assert(not ok)
 assert(err.code == 'ENOENT')
 assert(err.path == '/path/to/file/that/does/not/exist')
 assert(err.source == 'open')
 
--- TODO: support mode parameter may be omitted.
 local openFd
-FS.open(__filename, 'r', '0666', function(err, fd)
+FS.open(__filename, 'r', function(err, fd)
   if err then return err end
   openFd = fd
 end)
@@ -39,7 +37,7 @@ end)
 -- TODO: Support file open flag 's'
 --[[
 local openFd2
-FS.open(__filename, 'rs', '0666', function(err, fd)
+FS.open(__filename, 'rs', function(err, fd)
   if err then return err end
   openFd2 = fd
 end)

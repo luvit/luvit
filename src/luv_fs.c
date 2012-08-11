@@ -229,7 +229,7 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
 int luv_fs_open(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
-  int mode = strtoul(luaL_checkstring(L, 3), NULL, 8);
+  int mode = strtoul(luaL_optstring(L, 3, "0666"), NULL, 8);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
   FS_CALL(open, 4, path, path, flags, mode);
 }
