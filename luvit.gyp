@@ -25,6 +25,23 @@
           'cflags': [ '--std=c89' ],
           'defines': [ '_GNU_SOURCE' ]
         }],
+        [ 'not (OS=="win" or OS=="mac")', {
+          'defines': [
+            'LUVIT_PLATFORM="<(OS)"'
+          ]
+        }],
+        [ 'OS=="win"', {
+          'defines': [
+             # we need to use node's preferred "win32" rather than gyp's preferred "win"
+            'LUVIT_PLATFORM="win32"'
+          ]
+        }],
+        [ 'OS=="mac"', {
+          'defines': [
+             # we need to use node's preferred "darwin" rather than gyp's preferred "win"
+            'LUVIT_PLATFORM="darwin"'
+          ]
+        }],
         ['"<(without_ssl)" == "false"', {
           'sources': [
             'src/luv_tls.c',
