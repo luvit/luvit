@@ -83,6 +83,8 @@ int luv_string_to_flags(lua_State* L, const char* string) {
   if (strcmp(string, "w+") == 0) return O_CREAT | O_TRUNC | O_RDWR;
   if (strcmp(string, "a") == 0) return O_APPEND | O_CREAT | O_WRONLY;
   if (strcmp(string, "a+") == 0) return O_APPEND | O_CREAT | O_RDWR;
+  if (strcmp(string, "rs") == 0) return O_RDONLY | O_SYNC;
+  if (strcmp(string, "rs+") == 0) return O_RDWR | O_SYNC;
   return luaL_error(L, "Unknown file open flag'%s'", string);
 }
 
@@ -229,7 +231,7 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
 int luv_fs_open(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   int flags = luv_string_to_flags(L, luaL_checkstring(L, 2));
-  int mode = strtoul(luaL_checkstring(L, 3), NULL, 8);
+  int mode = luaL_checkint(L, 3);
   uv_fs_t* req = luv_fs_store_callback(L, 4);
   FS_CALL(open, 4, path, path, flags, mode);
 }
