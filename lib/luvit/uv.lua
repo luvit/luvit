@@ -21,6 +21,12 @@ objects.
 local Handle = Emitter:extend()
 uv.Handle = Handle
 
+function Handle:initialize()
+  self:on('closed', function()
+    self._closed = true
+  end)
+end
+
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
 -- Handle:close()
 Handle.close = function(self)
@@ -99,7 +105,13 @@ function Stream:resume()
 end
 
 -- Stream:write(chunk, callback)
-Stream.write = native.write
+function Stream:write(chunk, callback)
+  if self._closed then
+    error("attempting to write to closed stream")
+    return
+  end
+  native.write(self, chunk, callback)
+end
 
 Stream.pipe = iStream.pipe
 
