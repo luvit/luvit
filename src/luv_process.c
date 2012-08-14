@@ -153,6 +153,9 @@ int luv_process_kill(lua_State* L) {
   uv_process_t* handle = (uv_process_t*)luv_checkudata(L, 1, "process");
   int signum = luaL_checkint(L, 2);
 
+  if (handle == NULL)
+    return 0;
+
   if (uv_process_kill(handle, signum)) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "process_kill: %s", uv_strerror(err));
