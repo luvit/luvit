@@ -100,18 +100,42 @@ local function run(callback)
 end
 
 local tmp_dir = path.join(__dirname, 'tmp')
-local function remove_tmp(callback)
-  fs.readdir(tmp_dir, function(err, files)
-    if (files ~= nil) then
-      for i, v in ipairs(files) do
-        fs.unlinkSync(path.join(tmp_dir, v))
-      end
+
+local remove_recursive
+remove_recursive = function(dir, done)
+  fs.readdir(dir, function(err, files)
+    if files == nil then
+      done()
+      return
     end
-    fs.rmdir(tmp_dir, callback)
+
+    if err then
+      done(err)
+      return
+    end
+
+    for i, v in ipairs(files) do
+      local file = path.join(dir, v)
+      fs.stat(file, function(err, stat)
+        if err then
+          done(err)
+          return
+        end
+
+        if stat.is_directory then
+          remove_recursive(file, function(err)
+            fs.rmdir(file, function() end)
+          end)
+        elseif stat.is_file then
+          fs.unlink(file, function() end)
+        end
+      end)
+    end
+    done()
   end)
 end
 
-remove_tmp(function ()
+remove_recursive(tmp_dir, function ()
   fs.mkdir(tmp_dir, "0755", function()
     run(remove_tmp)
   end)
