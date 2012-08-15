@@ -18,7 +18,7 @@ limitations under the License.
 
 require("helper")
 
-local FS = require('FS')
+local FS = require('fs')
 local JSON = require('json')
 
 local got_error = false
