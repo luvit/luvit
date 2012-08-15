@@ -103,10 +103,9 @@ end
 function fs.open(path, flags, mode, callback)
   if callback == nil then
     callback = mode
-    mode = 438 --[[=0666]]
-  else
-    mode = modeNum(mode)
+    mode = nil
   end
+  mode = modeNum(mode, 438 --[[=0666]])
   native.fsOpen(path, flags, mode, callback or default)
 end
 
