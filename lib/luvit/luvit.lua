@@ -87,6 +87,8 @@ _G.print = utils.print
 _G.p = utils.prettyPrint
 _G.debug = utils.debug
 
+-- Move the platform variables into a table
+process.platform = PLATFORM
 -- Move the version variables into a table
 process.version = VERSION
 process.versions = {

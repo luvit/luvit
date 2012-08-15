@@ -173,6 +173,15 @@ ${SSLDIR}/Makefile.openssl:
 ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
 
+ifeq (${OS_NAME},Darwin)
+PLATFORM=darwin
+else ifeq (${OS_NAME},Linux)
+PLATFORM=linux
+else
+#TODO handle other OSes
+PLATFORM=unknown
+endif
+
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
@@ -183,6 +192,7 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
 		-DUV_VERSION=\"${UV_VERSION}\" \
 		-DYAJL_VERSIONISH=\"${YAJL_VERSION}\" \
+		-DLUVIT_PLATFORM=\"${PLATFORM}\" \
 		-DLUVIT_VERSION=\"${VERSION}\" \
 		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 

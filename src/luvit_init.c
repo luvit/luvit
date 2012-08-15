@@ -221,6 +221,9 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   lua_pushcfunction(L, luvit_getcwd);
   lua_setglobal(L, "getcwd");
 
+  lua_pushstring(L, LUVIT_PLATFORM);
+  lua_setglobal(L, "PLATFORM");
+
   lua_pushstring(L, LUVIT_VERSION);
   lua_setglobal(L, "VERSION");
 
