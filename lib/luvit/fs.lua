@@ -25,7 +25,6 @@ local sizes = {
   Read = 3,
   Write = 3,
   Unlink = 1,
-  Mkdir = 2,
   Rmdir = 1,
   Readdir = 1,
   Stat = 1,
@@ -111,6 +110,19 @@ end
 
 function fs.openSync(path, flags, mode)
   return native.fsOpen(path, flags, modeNum(mode, 438 --[[=0666]]))
+end
+
+function fs.mkdir(path, mode, callback)
+  if callback == nil then
+    callback = mode
+    mode = nil
+  end
+  mode = modeNum(mode, 511 --[[=0777]])
+  native.fsMkdir(path, mode, callback or default)
+end
+
+function fs.mkdirSync(path, mode)
+  return native.fsMkdir(path, modeNum(mode, 511 --[[=0777]]))
 end
 
 function fs.exists(path, callback)

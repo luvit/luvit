@@ -33,9 +33,7 @@ local tmpDir = __dirname .. '/tmp'
 
   unlink(pathname)
 
--- TODO
---  FS.mkdir(pathname, function(err)
-  FS.mkdir(pathname, 511 --[[tonumber('0777',8]], function(err)
+  FS.mkdir(pathname, function(err)
     assert(err == null)
     assert(FS.existsSync(pathname) == true)
     ncalls = ncalls + 1
@@ -53,7 +51,7 @@ end)();
 
   unlink(pathname)
 
-  FS.mkdir(pathname, 511 --[[tonumber('0777',8]], function(err)
+  FS.mkdir(pathname, 511 --[[0777]], function(err)
     assert(err == null)
     assert(FS.existsSync(pathname) == true)
     ncalls = ncalls + 1
@@ -69,9 +67,7 @@ end)();
   local pathname = tmpDir .. '/test3'
 
   unlink(pathname)
--- TODO
---  FS.mkdirSync(pathname)
-  FS.mkdirSync(pathname, '0777')
+  FS.mkdirSync(pathname)
 
   local exists = FS.existsSync(pathname)
   unlink(pathname)
