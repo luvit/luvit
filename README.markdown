@@ -115,3 +115,7 @@ Supports the following commands:
 * bt
 
 The debugger will execute any arbitrary Lua statement by default.
+
+### Building OSX Packages
+
+Install PackageMaker by installing the 

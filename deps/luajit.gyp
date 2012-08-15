@@ -51,6 +51,11 @@
         'cflags': ['-pthread'],
         'ldflags': ['-pthread'],
       }],
+      ['OS=="mac"', {
+        'defines': [
+          'LUAJIT_OS=LUAJIT_OS_OSX',
+        ],
+      }],
       ],
     },
 

@@ -295,5 +295,40 @@ tarball: dist_build
 	tar -czf ${DIST_FILE} -C ${DIST_DIR}/${VERSION} ${DIST_NAME}
 	rm -rf ${DIST_FOLDER}
 
-.PHONY: test install uninstall all api.markdown bundle tarball
+#####
+# OSX
+PKG=out/$(DIST_NAME).pkg
+packagemaker=/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
+PKGDIR=dist-osx
+
+osx-pkg: $(PKG)
+
+PKG_BUILDTYPE=Debug
+PKG_ENV=BUILDTYPE=$(PKG_BUILDTYPE)
+
+$(PKG):
+	rm -rf $(PKGDIR)
+	rm -rf out/deps out/$(PKG_BUILDTYPE)
+	rm -rf out/
+	$(PKG_ENV) ./configure --prefix=$(PKGDIR)/usr/local --arch=x64
+	$(PKG_ENV) $(MAKE) -C out
+	$(PKG_ENV) $(MAKE) -C out install
+	rm -rf out/
+	$(PKG_ENV) ./configure --prefix=$(PKGDIR)/32/usr/local --arch=ia32
+	$(PKG_ENV) $(MAKE) -C out
+	$(PKG_ENV) $(MAKE) -C out install
+	#SIGN="$(SIGN)" PKGDIR="$(PKGDIR)" bash tools/osx-codesign.sh
+	lipo $(PKGDIR)/32/usr/local/bin/luvit \
+		$(PKGDIR)/usr/local/bin/luvit \
+		-output $(PKGDIR)/usr/local/bin/luvit-universal \
+		-create
+	mv $(PKGDIR)/usr/local/bin/luvit-universal $(PKGDIR)/usr/local/bin/luvit
+	rm -rf $(PKGDIR)/32
+	$(packagemaker) \
+		--id "io.luvit.luvit" \
+		--doc tools/luvit.pmdoc \
+		--out $(PKG)
+	#SIGN="$(SIGN)" PKG="$(PKG)" bash tools/osx-productsign.sh
+
+.PHONY: test install uninstall all api.markdown bundle tarball osx-pkg
 
