@@ -45,5 +45,5 @@ FS.writeFile(fileName, 'ok', function(err)
 end)
 
 process:on('exit', function()
-  assert(2 == successes)
+  assert(successes == 2)
 end)
