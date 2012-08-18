@@ -383,10 +383,17 @@ int luv_fs_link(lua_State* L) {
   FS_CALL(link, 3, path, path, new_path);
 }
 
+int luv_symlink_type_to_flags(lua_State* L, const char* string) {
+  if (strcmp(string, "file") == 0) return 0;
+  if (strcmp(string, "dir") == 0) return UV_FS_SYMLINK_DIR;
+  if (strcmp(string, "junction") == 0) return UV_FS_SYMLINK_JUNCTION;
+  return luaL_error(L, "Unknown symlink type flag'%s'", string);
+}
+
 int luv_fs_symlink(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   const char* new_path = luaL_checkstring(L, 2);
-  int flags = luv_string_to_flags(L, luaL_checkstring(L, 3));
+  int flags = luv_symlink_type_to_flags(L, luaL_checkstring(L, 3));
   uv_fs_t* req = luv_fs_store_callback(L, 4);
   FS_CALL(symlink, 4, new_path, path, new_path, flags);
 }

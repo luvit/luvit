@@ -39,7 +39,6 @@ local sizes = {
   Futime = 3,
   Lstat = 1,
   Link = 2,
-  Symlink = 3,
   Readlink = 1,
   Fchmod = 2,
   Chown = 3,
@@ -211,6 +210,18 @@ function fs.truncateSync(path, len)
     return err
   end
   fs.closeSync(fd)
+end
+
+function fs.symlink(srcpath, dstpath, linktype, callback)
+  if callback == nil then
+    callback = linktype
+    linktype = nil
+  end
+  native.fsSymlink(srcpath, dstpath, linktype or 'file', callback or default)
+end
+
+function fs.symlinkSync(srcpath, dstpath, linktype)
+  return native.fsSymlink(srcpath, dstpath, linktype or 'file')
 end
 
 local CHUNK_SIZE = 65536
