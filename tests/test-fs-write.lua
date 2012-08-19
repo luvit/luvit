@@ -40,7 +40,7 @@ FS.open(fn, 'w', tonumber('0644', 8), function(err, fd)
     if err then return err end
     assert(#expected == written)
     FS.closeSync(fd)
-    found = FS.readFileSync(fn, 'utf8')
+    found = FS.readFileSync(fn)
     p(string.format('expected: "%s"', expected))
     p(string.format('found: "%s"', found))
     FS.unlinkSync(fn)
@@ -60,7 +60,7 @@ FS.open(fn2, 'w', tonumber('0644', 8),
       if err then return err end
       assert(#expected == written)
       FS.closeSync(fd)
-      found2 = FS.readFileSync(fn2, 'utf8')
+      found2 = FS.readFileSync(fn2)
       p(string.format('expected: "%s"', expected))
       p(string.format('found: "%s"', found2))
       FS.unlinkSync(fn2)
