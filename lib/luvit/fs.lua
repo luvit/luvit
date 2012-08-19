@@ -136,6 +136,47 @@ function fs.existsSync(path)
   error(err)
 end
 
+function writeAll(fd, offset, buffer, callback)
+  fs.write(fd, offset, buffer, function(err, written)
+    if err then
+      fs.close(fd, function()
+        if callback then callback(err) end
+      end)
+    end
+    if written == #buffer then
+      fs.close(fd, callback)
+    else
+      offset = offset + written
+      writeAll(fd, offset, buffer, callback)
+    end
+  end)
+end
+
+function fs.appendFile(path, data, callback)
+  fs.open(path, 'a', 438 --[[0666]], function(err, fd)
+    if err then return callback(err) end
+    writeAll(fd, -1, tostring(data), callback)
+  end)
+end
+
+function fs.appendFileSync(path, data)
+  data = tostring(data)
+  local fd = fs.openSync(path, 'a')
+  local written = 0
+  local length = #data
+
+  local ok, err
+  ok, err = pcall(function()
+    while written < length do
+      written = written + fs.writeSync(fd, -1, data)
+    end
+  end)
+  if not ok then
+    return err
+  end
+  fs.closeSync(fd)
+end
+
 local CHUNK_SIZE = 65536
 
 local read_options = {
