@@ -41,6 +41,10 @@ X(set_multicast_loopback, uv_udp_set_multicast_loop);
 
 #undef X
 
+typedef struct {
+  int ref;
+} luv_udp_ref_t;
+
 static void luv_on_udp_recv(uv_udp_t* handle,
                             ssize_t nread,
                             uv_buf_t buf,
@@ -89,12 +93,15 @@ static void luv_on_udp_recv(uv_udp_t* handle,
 }
 
 static void luv_on_udp_send(uv_udp_send_t* req, int status) {
+  luv_udp_ref_t *ref;
   /* load the lua state and the userdata */
   lua_State *L = luv_handle_get_lua(req->handle->data);
   lua_pop(L, 1); /* We don't need the userdata */
   /* load the callback */
-  lua_rawgeti(L, LUA_REGISTRYINDEX, (int)(req->data));
-  luaL_unref(L, LUA_REGISTRYINDEX, (int)(req->data));
+  ref =  req->data;
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref->ref);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref->ref);
+  free(ref);
 
   if (lua_isfunction(L, -1)) {
     if (status != 0) {
@@ -215,6 +222,7 @@ static int luv_udp__send(lua_State* L, int family) {
   uv_udp_t* handle = (uv_udp_t*)luv_checkudata(L, 1, "udp");
   size_t len;
   const char* chunk = luaL_checklstring(L, 2, &len);
+  luv_udp_ref_t *ref;
 
   uv_udp_send_t* req = (uv_udp_send_t*)malloc(sizeof(uv_udp_send_t));
   int port = luaL_checkint(L, 3);
@@ -225,7 +233,9 @@ static int luv_udp__send(lua_State* L, int family) {
 
   /* Store a reference to the callback */
   lua_pushvalue(L, 5);
-  req->data = (void *)luaL_ref(L, LUA_REGISTRYINDEX);
+  ref = malloc(sizeof(*ref));
+  ref->ref = luaL_ref(L, LUA_REGISTRYINDEX);
+  req->data = ref;
 
   luv_handle_ref(L, handle->data, 1);
 
