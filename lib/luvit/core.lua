@@ -24,6 +24,46 @@ module.
 ]]
 local core = {}
 
+--[[
+Returns whether obj is instance of class or not.
+
+    local object = Object:new()
+    local emitter = Emitter:new()
+
+    assert(instanceof(object, Object))
+    assert(not instanceof(object, Emitter))
+
+    assert(instanceof(emitter, Object))
+    assert(instanceof(emitter, Emitter))
+
+    assert(instanceof(2, Object))
+    assert(instanceof('a', Object))
+    assert(instanceof({}, Object))
+    assert(instanceof(function() end, Object))
+
+Caveats: This function returns true for classes.
+    assert(instanceof(Object, Object))
+    assert(instanceof(Emitter, Object))
+]]
+function core.instanceof(obj, class)
+  if type(obj) ~= 'table' or obj.meta == nil then
+    return false
+  end
+  if obj.meta.__index == class then
+    return true
+  end
+  local meta = obj.meta
+  while meta do
+    if meta.super == class then
+      return true
+    elseif meta.super == nil then
+      return false
+    end
+    meta = meta.super.meta
+  end
+  return false
+end
+
 --------------------------------------------------------------------------------
 
 --[[
@@ -74,7 +114,7 @@ Creates a new sub-class.
 ]]
 function Object:extend()
   local obj = self:create()
-  obj.meta = {__index = obj}
+  obj.meta = {__index = obj, super = self}
   return obj
 end
 
