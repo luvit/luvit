@@ -315,7 +315,7 @@
                'DASM_FLAGS': ['-D', 'WIN', '-L']
             }],
           ],
-          'DASM_FLAGS': [ '-D', 'JIT', '-D', 'FPU' ],
+          'DASM_FLAGS': [ '-D', 'JIT', '-D', 'FPU', '-D', 'FFI' ],
         },
         'action': [
           '<(PRODUCT_DIR)/minilua', 'luajit/dynasm/dynasm.lua', '<@(DASM_FLAGS)', '-o', '<(INTERMEDIATE_DIR)/buildvm_arch.h', 'luajit/src/vm_<(DASM_ARCH).dasc'
