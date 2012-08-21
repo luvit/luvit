@@ -41,13 +41,17 @@ local ncallbacks = 0
 
 -- test that empty file will be created and have content added
 FS.appendFile(filename, s, function(e)
-  if e then return e end
+  if e then
+    return e
+  end
 
   ncallbacks = ncallbacks + 1
   p('appended to file')
 
   FS.readFile(filename, function(e, buffer)
-    if e then return e end
+    if e then
+      return e
+    end
     p('file read')
     ncallbacks = ncallbacks + 1
     assert(#buffer == #s)
@@ -59,13 +63,17 @@ local filename2 = join(__dirname, 'fixtures', 'append2.txt')
 FS.writeFileSync(filename2, currentFileData)
 
 FS.appendFile(filename2, s, function(e)
-  if e then return e end
+  if e then
+    return e
+  end
 
   ncallbacks = ncallbacks + 1
   p('appended to file2')
 
   FS.readFile(filename2, function(e, buffer)
-    if e then return e end
+    if e then
+      return e
+    end
     p('file2 read')
     ncallbacks = ncallbacks + 1
     assert(#buffer == #s + #currentFileData)
@@ -80,13 +88,17 @@ local buf = Buffer:new(s)
 p('appending to ' .. filename3)
 
 FS.appendFile(filename3, buf:toString(), function(e)
-  if e then return e end
+  if e then
+    return e
+  end
 
   ncallbacks = ncallbacks + 1
   p('appended to file3')
 
   FS.readFile(filename3, function(e, buffer)
-    if e then return e end
+    if e then
+      return e
+    end
     p('file3 read')
     ncallbacks = ncallbacks + 1
     assert(#buffer == buf.length + #currentFileData)
@@ -100,13 +112,17 @@ FS.writeFileSync(filename4, currentFileData)
 p('appending to ' .. filename4)
 
 FS.appendFile(filename4, tostring(n), function(e)
-  if e then return e end
+  if e then
+    return e
+  end
 
   ncallbacks = ncallbacks + 1
   p('appended to file4')
 
   FS.readFile(filename4, function(e, buffer)
-    if e then return e end
+    if e then
+      return e
+    end
     p('file4 read')
     ncallbacks = ncallbacks + 1
     assert(#buffer == #tostring(n) + #currentFileData)

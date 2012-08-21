@@ -29,7 +29,9 @@ local expected = 'ümlaut.'
 local found, found2
 
 FS.open(fn, 'w', tonumber('0644', 8), function(err, fd)
-  if err then return err end
+  if err then
+    return err
+  end
   p('open done')
   -- TODO: support same arguments as fs.write in node.js
   FS.write(fd, 0, '', function(err, written)
@@ -37,7 +39,9 @@ FS.open(fn, 'w', tonumber('0644', 8), function(err, fd)
   end)
   FS.write(fd, 0, expected, function(err, written)
     p('write done')
-    if err then return err end
+    if err then
+      return err
+    end
     assert(#expected == written)
     FS.closeSync(fd)
     found = FS.readFileSync(fn)
@@ -50,14 +54,18 @@ end)
 
 FS.open(fn2, 'w', tonumber('0644', 8),
   function(err, fd)
-    if err then return err end
+    if err then
+      return err
+    end
     p('open done')
     FS.write(fd, 0, '', function(err, written)
       assert(0 == written)
     end)
     FS.write(fd, 0, expected, function(err, written)
       p('write done')
-      if err then return err end
+      if err then
+        return err
+      end
       assert(#expected == written)
       FS.closeSync(fd)
       found2 = FS.readFileSync(fn2)

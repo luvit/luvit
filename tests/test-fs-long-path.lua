@@ -35,11 +35,15 @@ p('fileName=' .. fileName)
 p('fileNameLength=' .. #fileName)
 
 FS.writeFile(fileName, 'ok', function(err)
-  if err then return err end
+  if err then
+    return err
+  end
   successes = successes + 1
 
   FS.stat(fileName, function(err, stats)
-    if err then return err end
+    if err then
+      return err
+    end
     successes = successes + 1
   end)
 end)

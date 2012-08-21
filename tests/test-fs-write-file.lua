@@ -37,13 +37,17 @@ local s = '南越国是前203年至前111年存在于岭南地区的一个国家
 local ncallbacks = 0
 
 FS.writeFile(filename, s, function(err)
-  if err then return err end
+  if err then
+    return err
+  end
 
   ncallbacks = ncallbacks + 1
   p('file written')
 
   FS.readFile(filename, function(err, buffer)
-    if err then return err end
+    if err then
+      return err
+    end
     p('file read')
     ncallbacks = ncallbacks + 1
     assert(#s == #buffer)
@@ -60,13 +64,17 @@ local buf = Buffer:new(s)
 p('writing to ' .. filename2)
 
 FS.writeFile(filename, buf, function(err)
-  if err then return err end
+  if err then
+    return err
+  end
 
   ncallbacks = ncallbacks + 1
   p('file2 written')
 
   FS.readFile(filename2, function(err, buffer)
-    if err then return err end
+    if err then
+      return err
+    end
     p('file2 read')
     ncallbacks = ncallbacks + 1
     assert(#buf == #buffer)
@@ -82,13 +90,17 @@ local filename3 = Path.join(__dirname, 'fixtures', 'test3.txt')
 p('writing to ' .. filename3)
 
 FS.writeFile(filename, n, function(err)
-  if err then return err end
+  if err then
+    return err
+  end
 
   ncallbacks = ncallbacks + 1
   p('file3 written')
 
   FS.readFile(filename3, function(err, buffer)
-    if err then return err end
+    if err then
+      return err
+    end
     p('file3 read')
     ncallbacks = ncallbacks + 1
     assert(#tostring(n) == #buffer)
