@@ -56,6 +56,9 @@ you want, not this.
 -- Handle:setHandler(name, callback)
 Handle.setHandler = native.setHandler
 
+Handle.unref = native.unref
+Handle.ref = native.ref
+
 --------------------------------------------------------------------------------
 
 --[[
