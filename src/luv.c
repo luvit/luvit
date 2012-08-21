@@ -38,6 +38,8 @@ static const luaL_reg luv_f[] = {
 
   /* Handle functions */
   {"close", luv_close},
+  {"ref", luv_ref},
+  {"unref", luv_unref},
   {"setHandler", luv_set_handler},
 
   /* UDP functions */
@@ -50,6 +52,10 @@ static const luaL_reg luv_f[] = {
   {"udpSend6", luv_udp_send6},
   {"udpRecvStart", luv_udp_recv_start},
   {"udpRecvStop", luv_udp_recv_stop},
+  {"udpSetBroadcast", luv_udp_set_broadcast},
+  {"udpSetTTL", luv_udp_set_ttl},
+  {"udpSetMulticastTTL", luv_udp_set_multicast_ttl},
+  {"udpSetMulticastLoopback", luv_udp_set_multicast_loopback},
 
   /* FS Watcher functions */
   {"newFsWatcher", luv_new_fs_watcher},
@@ -145,8 +151,8 @@ static const luaL_reg luv_f[] = {
 
   /* Misc functions */
   {"run", luv_run},
-  {"ref", luv_ref},
-  {"unref", luv_unref},
+  {"printActiveHandles", luv_print_active_handles},
+  {"printAllHandles", luv_print_all_handles},
   {"updateTime", luv_update_time},
   {"now", luv_now},
   {"hrtime", luv_hrtime},

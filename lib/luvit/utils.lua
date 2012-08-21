@@ -184,14 +184,29 @@ function utils.debug(...)
   process.stderr:write(table.concat(arguments, "\t") .. "\n")
 end
 
-function utils.bind(fun, self, ...)
-  local bind_args = {...}
-  return function(...)
-    local args = {...}
-    for i=#bind_args,1,-1 do
-      table.insert(args, 1, bind_args[i])
+function utils.bind(fn, self, ...)
+  local bindArgsLength = select("#", ...)
+
+  -- Simple binding, just inserts self (or one arg or any kind)
+  if bindArgsLength == 0 then
+    return function (...)
+      return fn(self, ...)
     end
-    return fun(self, unpack(args))
+  end
+
+  -- More complex binding inserts arbitrary number of args into call.
+  local bindArgs = {...}
+  return function (...)
+    local argsLength = select("#", ...)
+    local args = {...}
+    local arguments = {}
+    for i = 1, bindArgsLength do
+      arguments[i] = bindArgs[i]
+    end
+    for i = 1, argsLength do
+      arguments[i + bindArgsLength] = args[i]
+    end
+    return fn(self, unpack(arguments, 1, bindArgsLength + argsLength))
   end
 end
 

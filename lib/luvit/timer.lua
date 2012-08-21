@@ -84,9 +84,13 @@ expiration = function(timer, msecs)
         end
       end
     end
-    timer:stop()
-    timer:close()
-    lists[msecs] = nil
+    -- Remove the timer if it wasn't already
+    -- removed by unenroll
+    if lists[msecs] ~= nil then
+      timer:stop()
+      timer:close()
+      lists[msecs] = nil
+    end
   end
 end
 
@@ -116,6 +120,7 @@ local function unenroll(item)
   local list = lists[item._idleTimeout]
   if list and isEmpty(list) then
     -- empty list
+    list:stop()
     list:close()
     lists[item._idleTimeout] = nil
   end
@@ -173,7 +178,10 @@ local function setInterval(period, callback, ...)
 end
 
 local function clearTimer(timer)
-  if timer and timer._onTimeout then
+  if not timer then
+    return
+  end
+  if timer._onTimeout then
     timer._onTimeout = nil
     if timer.close then
       timer:close()

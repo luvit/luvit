@@ -21,7 +21,6 @@ local table = require('table')
 local iStream = require('core').iStream
 local fs = {}
 local sizes = {
-  Open = 3,
   Close = 1,
   Read = 3,
   Write = 3,
@@ -90,6 +89,30 @@ for name, arity in pairs(sizes) do
   fs[name:lower() .. "Sync"] = sync
 end
 
+function modeNum(m, def)
+  local t = type(m)
+  if t == 'number' then
+    return m
+  elseif t == 'string' then
+    return tonumber(m, 8)
+  else
+    return def and modeNum(def) or nil
+  end
+end
+
+function fs.open(path, flags, mode, callback)
+  if callback == nil then
+    callback = mode
+    mode = nil
+  end
+  mode = modeNum(mode, 438 --[[=0666]])
+  native.fsOpen(path, flags, mode, callback or default)
+end
+
+function fs.openSync(path, flags, mode)
+  return native.fsOpen(path, flags, modeNum(mode, 438 --[[=0666]]))
+end
+
 function fs.exists(path, callback)
   native.fsStat(path, function (err)
     if not err then
@@ -111,6 +134,47 @@ function fs.existsSync(path)
     return false
   end
   error(err)
+end
+
+function writeAll(fd, offset, buffer, callback)
+  fs.write(fd, offset, buffer, function(err, written)
+    if err then
+      fs.close(fd, function()
+        if callback then callback(err) end
+      end)
+    end
+    if written == #buffer then
+      fs.close(fd, callback)
+    else
+      offset = offset + written
+      writeAll(fd, offset, buffer, callback)
+    end
+  end)
+end
+
+function fs.appendFile(path, data, callback)
+  fs.open(path, 'a', 438 --[[0666]], function(err, fd)
+    if err then return callback(err) end
+    writeAll(fd, -1, tostring(data), callback)
+  end)
+end
+
+function fs.appendFileSync(path, data)
+  data = tostring(data)
+  local fd = fs.openSync(path, 'a')
+  local written = 0
+  local length = #data
+
+  local ok, err
+  ok, err = pcall(function()
+    while written < length do
+      written = written + fs.writeSync(fd, -1, data)
+    end
+  end)
+  if not ok then
+    return err
+  end
+  fs.closeSync(fd)
 end
 
 local CHUNK_SIZE = 65536

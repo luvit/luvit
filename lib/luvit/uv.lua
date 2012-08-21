@@ -8,6 +8,12 @@ local uv = Object:extend()
 
 --------------------------------------------------------------------------------
 
+-- Print all handles
+uv.printAllHandles = native.printAllHandles
+
+-- Print all active handles
+uv.printActiveHandles = native.printActiveHandles
+
 --[[
 This class is never used directly, but is the inheritance chain of all libuv
 objects.
@@ -15,9 +21,22 @@ objects.
 local Handle = Emitter:extend()
 uv.Handle = Handle
 
+function Handle:initialize()
+  self:on('closed', function()
+    self._closed = true
+  end)
+end
+
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
 -- Handle:close()
-Handle.close = native.close
+Handle.close = function(self)
+  if self._closed then
+    error("close called on closed handle")
+    return
+  end
+  native.close(self)
+  self._closed = true
+end
 
 --[[
 This is used by Emitters to register with native events when the first listener
@@ -48,6 +67,12 @@ uv.Stream = Stream
 
 -- Stream:shutdown(callback)
 Stream.shutdown = native.shutdown
+
+-- Stream:ref()
+Stream.ref = native.ref
+
+-- Stream:unref()
+Stream.unref = native.unref
 
 -- Stream:listen(callback)
 Stream.listen = native.listen
@@ -80,7 +105,13 @@ function Stream:resume()
 end
 
 -- Stream:write(chunk, callback)
-Stream.write = native.write
+function Stream:write(chunk, callback)
+  if self._closed then
+    error("attempting to write to closed stream")
+    return
+  end
+  native.write(self, chunk, callback)
+end
 
 Stream.pipe = iStream.pipe
 
@@ -153,6 +184,18 @@ Udp.recvStart = native.udpRecvStart
 -- Udp:recvStop()
 Udp.recvStop = native.udpRecvStop
 
+-- Udp:setBroadcast(opt)
+Udp.setBroadcast = native.udpSetBroadcast
+
+-- Udp:setTTL(opt)
+Udp.setTTL = native.udpSetTTL
+
+-- Udp:setMulticastTTL(opt)
+Udp.setMulticastTTL = native.udpSetMulticastTTL
+
+-- Udp:setMulticastLoopback(opt)
+Udp.setMulticastLoopback = native.udpSetMulticastLoopback
+
 --------------------------------------------------------------------------------
 
 local Pipe = Stream:extend()
@@ -172,17 +215,17 @@ Pipe.bind = native.pipeBind
 Pipe.connect = native.pipeConnect
 
 function Pipe:pause()
-  native.unref()
+  self:unref()
   self:readStop()
 end
 
 function Pipe:pauseNoRef()
-  native.unref()
+  self:unref()
   self:readStopNoRef()
 end
 
 function Pipe:resume()
-  native.ref()
+  self:ref()
   self:readStart()
 end
 
@@ -204,19 +247,19 @@ Tty.getWinsize = native.ttyGetWinsize
 Tty.resetMode = native.ttyResetMode
 
 function Tty:pause()
-  native.unref()
+  self:unref()
   self:readStop()
 end
 
 -- TODO: The readStop() implementation assumes a reference is being held. This
 -- will go away with a libuv upgrade.
 function Tty:pauseNoRef()
-  native.unref()
+  self:unref()
   self:readStopNoRef()
 end
 
 function Tty:resume()
-  native.ref()
+  self:ref()
   self:readStart()
 end
 
@@ -229,33 +272,17 @@ uv.Timer = Timer
 function Timer:initialize()
   self.userdata = native.newTimer()
   self._active = false
-  -- uv_timer_init adds a loop reference. (That is, it calls uv_ref.) This
-  -- is not the behavior we want in Luvit. Timers should not increase the
-  -- ref count of the loop except when active.
-  native.unref()
 end
 
 function Timer:_update()
   local was_active = self._active
   self._active = native.timerGetActive(self)
-  if was_active == false and self._active == true then
-    native.ref()
-  elseif was_active == true and self._active == false then
-    native.unref()
-  end
 end
 
 -- Timer:start(timeout, interval, callback)
 function Timer:start(timeout, interval, callback)
   native.timerStart(self, timeout, interval, callback)
   self:_update()
-end
-
-function Timer:close()
-  Handle.close(self)
-  if self._active == false then
-    native.ref()
-  end
 end
 
 -- Timer:stop()
@@ -288,14 +315,14 @@ uv.createWriteableStdioStream = function(fd)
   local fd_type = native.handleType(fd);
   if (fd_type == "TTY") then
     local tty = Tty:new(fd)
-    native.unref()
+    tty:unref()
     return tty
   elseif (fd_type == "FILE") then
     return fs.SyncWriteStream:new(fd)
   elseif (fd_type == "NAMED_PIPE") then
     local pipe = Pipe:new(nil)
     pipe:open(fd)
-    native.unref()
+    pipe:unref()
     return pipe
   else
     error("Unknown stream file type " .. fd)
@@ -316,24 +343,13 @@ uv.createReadableStdioStream = function(fd)
     error("Unknown stream file type " .. fd)
   end
 
-  -- unref the event loop so that we don't block unless the user
-  -- wants stdin. This follows node's logic.
-  if fd_type ~= "FILE" then
-    -- fs.createReadStream returns iStream which is pure lua and doesn't have
-    -- pauseNoRef method
-    stdin:pauseNoRef()
-  end
-
   return stdin
 end
 
 function Process:initialize(command, args, options)
   self.stdin = Pipe:new(nil)
-  self.stdin:open(0)
   self.stdout = Pipe:new(nil)
-  self.stdout:open(1)
   self.stderr = Pipe:new(nil)
-  self.stderr:open(2)
   args = args or {}
   options = options or {}
 

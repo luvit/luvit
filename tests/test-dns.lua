@@ -115,6 +115,7 @@ assert(net.isIPv4('::1') == 0)
 assert(net.isIPv6('127.0.0.1') == 0)
 assert(net.isIPv6('::1') == 6)
 
+-- Test the deprecated function prototypes
 assert(dns.isIP('127.0.0.1') == 4)
 assert(dns.isIP('::1') == 6)
 assert(dns.isIP('bogus_ip') == 0)

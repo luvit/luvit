@@ -7,6 +7,7 @@ const void *luvit_ugly_hack = NULL;
 extern const char *luaJIT_BC_buffer[];
 extern const char *luaJIT_BC_childprocess[];
 extern const char *luaJIT_BC_core[];
+extern const char *luaJIT_BC_dgram[];
 extern const char *luaJIT_BC_dns[];
 extern const char *luaJIT_BC_fiber[];
 extern const char *luaJIT_BC_fs[];
@@ -38,6 +39,7 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const char *)luaJIT_BC_buffer +
     (size_t)(const char *)luaJIT_BC_childprocess +
     (size_t)(const char *)luaJIT_BC_core +
+    (size_t)(const char *)luaJIT_BC_dgram +
     (size_t)(const char *)luaJIT_BC_dns +
     (size_t)(const char *)luaJIT_BC_fiber +
     (size_t)(const char *)luaJIT_BC_fs +
