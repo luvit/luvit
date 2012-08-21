@@ -83,8 +83,10 @@ int luv_string_to_flags(lua_State* L, const char* string) {
   if (strcmp(string, "w+") == 0) return O_CREAT | O_TRUNC | O_RDWR;
   if (strcmp(string, "a") == 0) return O_APPEND | O_CREAT | O_WRONLY;
   if (strcmp(string, "a+") == 0) return O_APPEND | O_CREAT | O_RDWR;
+#ifndef _WIN32
   if (strcmp(string, "rs") == 0) return O_RDONLY | O_SYNC;
   if (strcmp(string, "rs+") == 0) return O_RDWR | O_SYNC;
+#endif
   return luaL_error(L, "Unknown file open flag'%s'", string);
 }
 
