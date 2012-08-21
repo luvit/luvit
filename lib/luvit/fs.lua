@@ -33,7 +33,6 @@ local sizes = {
   Rename = 2,
   Fsync = 1,
   Fdatasync = 1,
-  Ftruncate = 2,
   Sendfile = 4,
   Chmod = 2,
   Utime = 3,
@@ -171,6 +170,43 @@ function fs.appendFileSync(path, data)
       written = written + fs.writeSync(fd, -1, data)
     end
   end)
+  if not ok then
+    return err
+  end
+  fs.closeSync(fd)
+end
+
+function fs.ftruncate(fd, len, callback)
+  if callback == nil then
+    callback = len
+    len = nil
+  end
+  native.fsFtruncate(fd, len or 0, callback or default)
+end
+
+function fs.ftruncateSync(fd, len)
+  return native.fsFtruncate(fd, len or 0)
+end
+
+function fs.truncate(path, len, callback)
+  if callback == nil then
+    callback = len
+    len = nil
+  end
+  fs.open(path, 'w', function(err, fd)
+    if err then return callback(err) end
+    native.fsFtruncate(fd, len or 0, function(err)
+      fs.close(fd, function(err2)
+        (callback or default)(err or err2)
+      end)
+    end)
+  end)
+end
+
+function fs.truncateSync(path, len)
+  local fd = fs.openSync(path, 'w')
+  local ok, err
+  ok, err = pcall(native.fsFtruncate, fd, len or 0)
   if not ok then
     return err
   end
