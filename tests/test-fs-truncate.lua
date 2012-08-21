@@ -60,21 +60,33 @@ FS.closeSync(fd)
 
 function testTruncate(cb)
   FS.writeFile(filename, data, function(er)
-    if er then return cb(er) end
+    if er then
+      return cb(er)
+    end
     FS.stat(filename, function(er, stat)
-      if er then return cb(er) end
+      if er then
+        return cb(er)
+      end
       assert(stat.size == 1024 * 16)
 
       FS.truncate(filename, 1024, function(er)
-        if er then return cb(er) end
+        if er then
+          return cb(er)
+        end
         FS.stat(filename, function(er, stat)
-          if er then return cb(er) end
+          if er then
+            return cb(er)
+          end
           assert(stat.size == 1024)
 
           FS.truncate(filename, function(er)
-            if er then return cb(er) end
+            if er then
+              return cb(er)
+            end
             FS.stat(filename, function(er, stat)
-              if er then return cb(er) end
+              if er then
+                return cb(er)
+              end
               assert(stat.size == 0)
               cb()
             end)
@@ -88,23 +100,37 @@ end
 
 function testFtruncate(cb)
   FS.writeFile(filename, data, function(er)
-    if er then return cb(er) end
+    if er then
+      return cb(er)
+    end
     FS.stat(filename, function(er, stat)
-      if er then return cb(er) end
+      if er then
+        return cb(er)
+      end
       assert(stat.size == 1024 * 16)
 
       FS.open(filename, 'w', function(er, fd)
-        if er then return cb(er) end
+        if er then
+          return cb(er)
+        end
         FS.ftruncate(fd, 1024, function(er)
-          if er then return cb(er) end
+          if er then
+            return cb(er)
+          end
           FS.stat(filename, function(er, stat)
-            if er then return cb(er) end
+            if er then
+              return cb(er)
+            end
             assert(stat.size == 1024)
 
             FS.ftruncate(fd, function(er)
-              if er then return cb(er) end
+              if er then
+                return cb(er)
+              end
               FS.stat(filename, function(er, stat)
-                if er then return cb(er) end
+                if er then
+                  return cb(er)
+                end
                 assert(stat.size == 0)
                 FS.close(fd, cb)
               end)
@@ -119,10 +145,14 @@ end
 -- async tests
 local success = 0
 testTruncate(function(er)
-  if er then return er end
+  if er then
+    return er
+  end
   success = success + 1
   testFtruncate(function(er)
-    if er then return er end
+    if er then
+      return er
+    end
     success = success + 1
   end)
 end)

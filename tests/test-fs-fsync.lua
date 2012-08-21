@@ -29,7 +29,9 @@ p('open ' .. file)
 
 FS.open(file, 'a', '0777', function(err, fd)
   p('fd ' .. fd)
-  if err then return err end
+  if err then
+    return err
+  end
 
   FS.fdatasyncSync(fd)
   p('fdatasync SYNC: ok')
@@ -40,11 +42,15 @@ FS.open(file, 'a', '0777', function(err, fd)
   successes = successes + 1
 
   FS.fdatasync(fd, function(err)
-    if err then return err end
+    if err then
+      return err
+    end
     p('fdatasync ASYNC: ok')
     successes = successes + 1
     FS.fsync(fd, function(err)
-      if err then return err end
+      if err then
+        return err
+      end
       p('fsync ASYNC: ok')
       successes = successes + 1
     end)

@@ -30,7 +30,9 @@ assert(err.source == 'open')
 
 local openFd
 FS.open(__filename, 'r', function(err, fd)
-  if err then return err end
+  if err then
+    return err
+  end
   openFd = fd
 end)
 
@@ -38,7 +40,9 @@ end)
 --[[
 local openFd2
 FS.open(__filename, 'rs', function(err, fd)
-  if err then return err end
+  if err then
+    return err
+  end
   openFd2 = fd
 end)
 --]]
