@@ -367,7 +367,9 @@ function Process:initialize(command, args, options)
     self.stderr:close()
   end)
   self:on('exit', function ()
-    self.stdin:close()
+    if self.stdin._closed ~= true then
+      self.stdin:close()
+    end
     self:close()
   end)
 
