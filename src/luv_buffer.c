@@ -54,13 +54,30 @@ static int luvbuffer_new (lua_State *L) {
   return 1;
 }
 
-/* tostring(buffer) */
+/* tostring(buffer, i, j) */
 static int luvbuffer_tostring (lua_State *L) {
   unsigned char *buffer = (unsigned char *)luaL_checkudata(L, 1, "luvbuffer");
   size_t buffer_len = *((size_t*)(buffer));
 
+  size_t offset = (size_t)lua_tonumber(L, 2);
+  if (!offset) {
+    offset = 1;
+  }
+  if (offset < 1 || offset > buffer_len) {
+    return luaL_argerror(L, 2, "Offset out of bounds");
+  }
+  offset--; /* account for Lua-isms */
+
+  size_t length = (size_t)lua_tonumber(L, 3);
+  if (!length) {
+    length = buffer_len;
+  }
+  if (length < offset || length > buffer_len) {
+    return luaL_argerror(L, 3, "length out of bounds");
+  }
+
   /* skip first size_t length */
-  lua_pushlstring(L, (const char *)buffer + sizeof(size_t), buffer_len);
+  lua_pushlstring(L, (const char *)buffer + sizeof(size_t) + offset, length - offset);
   return 1;
 }
 
@@ -91,14 +108,14 @@ static int luvbuffer__index (lua_State *L) {
   }
 
   /* skip first size_t length */
-  lua_pushlstring(L, (const char *)buffer + sizeof(size_t) + index - 1, 1); /* one character at a time */
+  lua_pushnumber(L, *((uint8_t*)(buffer + sizeof(size_t) + index - 1)));
   return 1;
 }
 
 /* __newindex(buffer, key, value) */
 static int luvbuffer__newindex (lua_State *L) {
   size_t value_len;
-  
+
   if (!lua_isnumber(L, 2)) { /* key should be a number */
     return luaL_argerror(L, 1, "We only support setting indices by type Number");
   }
@@ -109,16 +126,22 @@ static int luvbuffer__newindex (lua_State *L) {
   size_t index = (size_t)lua_tonumber(L, 2);
   if (index < 1 || index > buffer_len) {
     return luaL_argerror(L, 2, "Index out of bounds");
-  } else if (!lua_isstring(L, 3)) { /* must be a string */
+  } else if (lua_isnumber(L, 3)) {
+    value_len = (size_t)lua_tonumber(L, 3); /* using value_len here as value */
+    if (value_len > 255) {
+      return luaL_argerror(L, 2, "0 < Value < 255");
+    }
+    *((unsigned char *)(buffer + sizeof(size_t) + index - 1)) = value_len;
+  } else if (lua_isstring(L, 3)) {
+    const char *value = lua_tolstring(L, 3, &value_len);
+    
+    if (value_len > buffer_len - index - 1) {
+      return luaL_argerror(L, 3, "Value is longer than Buffer Length");
+    }
+    memcpy(buffer + sizeof(size_t) + index - 1, value, value_len);
+  } else {
     return luaL_argerror(L, 3, "Value is not of type String");
   }
-  const char *value = lua_tolstring(L, 3, &value_len);
-
-  if (value_len > buffer_len - index - 1) {
-    return luaL_argerror(L, 3, "Value is longer than Buffer Length");
-  }
-
-  memcpy(buffer + sizeof(size_t) + index - 1, value, value_len);
   return 1;
 }
 
