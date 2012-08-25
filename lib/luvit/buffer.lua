@@ -63,12 +63,12 @@ function Buffer.meta:__newindex(key, value)
   rawset(self, key, value)
 end
 
--- X:MEMO~2012.08.25@kristate Allow usage of length operator(#)
+-- Allow usage of length operator(#)
 function Buffer.meta:__len()
   return #self.cbuf
 end
 
--- X:MEMO~2012.08.25@kristate Allow copying direct copying into buffer via ffi.copy
+-- Allow copying direct copying into buffer
 function Buffer:copy(i, bufOrString) --X:TODO Support length
   if type(bufOrString) ~= "string" then
     bufOrString = tostring(bufOrString)
@@ -76,7 +76,7 @@ function Buffer:copy(i, bufOrString) --X:TODO Support length
   self.cbuf[i] = bufOrString
 end
 
--- X:MEMO~2012.08.25@kristate returns buffer contents up until first instance of bufOrString
+-- Returns buffer contents up until first instance of bufOrString
 -- Very useful for binary protocols
 function Buffer:upuntil(bufOrString, i)
   error("Not supported with of cbuffers yet!")
