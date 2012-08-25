@@ -19,11 +19,7 @@ limitations under the License.
 local table = require('table')
 local Object = require('core').Object
 local bit = require('bit')
-local ffi = require('ffi')
-ffi.cdef([[
-  void *malloc (size_t __size);
-  void free (void *__ptr);
-]])
+local cbuffer = require("cbuffer")
 
 local buffer = {}
 
@@ -31,16 +27,7 @@ local Buffer = Object:extend()
 buffer.Buffer = Buffer
 
 function Buffer:initialize(length)
-  if type(length) == "number" then
-    self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", ffi.C.malloc(length)), ffi.C.free)
-  elseif type(length) == "string" then
-    local string = length
-    self.length = #string
-    self.ctype = ffi.cast("unsigned char*", string)
-  else
-    error("Input must be a string or number")
-  end
+  self.cbuf = cbuffer.new(length)
 end
 
 function Buffer.meta:__ipairs()
@@ -54,7 +41,7 @@ function Buffer.meta:__ipairs()
 end
 
 function Buffer.meta:__tostring()
-  return ffi.string(self.ctype)
+  return self.cbuf:toString()
 end
 
 function Buffer.meta:__concat(other)
@@ -63,25 +50,42 @@ end
 
 function Buffer.meta:__index(key)
   if type(key) == "number" then
-    if key < 1 or key > self.length then error("Index out of bounds") end
-    return self.ctype[key - 1]
+    return self.cbuf[key]
   end
   return Buffer[key]
 end
 
 function Buffer.meta:__newindex(key, value)
   if type(key) == "number" then
-    if key < 1 or key > self.length then error("Index out of bounds") end
-    self.ctype[key - 1] = value
+    self.cbuf[key] = value
     return
   end
   rawset(self, key, value)
 end
 
+-- X:MEMO~2012.08.25@kristate Allow usage of length operator(#)
+function Buffer.meta:__len()
+  return #self.cbuf
+end
+
+-- X:MEMO~2012.08.25@kristate Allow copying direct copying into buffer via ffi.copy
+function Buffer:copy(i, bufOrString) --X:TODO Support length
+  if type(bufOrString) ~= "string" then
+    bufOrString = tostring(bufOrString)
+  end
+  self.cbuf[i] = bufOrString
+end
+
+-- X:MEMO~2012.08.25@kristate returns buffer contents up until first instance of bufOrString
+-- Very useful for binary protocols
+function Buffer:upuntil(bufOrString, i)
+  error("Not supported with of cbuffers yet!")
+end
+
 function Buffer:inspect()
   local parts = {}
-  for i = 1, tonumber(self.length) do
-    parts[i] = bit.tohex(self[i], 2)
+  for i = 1, tonumber(#self.cbuf) do
+    parts[i] = bit.tohex(self.cbuf[i], 2)
   end
   return "<Buffer " .. table.concat(parts, " ") .. ">"
 end
@@ -143,8 +147,7 @@ function Buffer:readInt32BE(offset)
 end
 
 function Buffer:toString(i, j)
-  local offset = i and i - 1 or 0
-  return ffi.string(self.ctype + offset, (j or self.length) - offset)
+  return self.cbuf:toString(i, j)
 end
 
 return buffer
