@@ -23,7 +23,10 @@ local ffi = require('ffi')
 ffi.cdef([[
   void *malloc (size_t __size);
   void free (void *__ptr);
+  char *memmem (const void *__haystack, size_t __haystack_len, const void *__needle, size_t __needle_len);
 ]])
+
+NULL = ffi.cast("void *", nil)
 
 local buffer = {}
 
@@ -31,16 +34,22 @@ local Buffer = Object:extend()
 buffer.Buffer = Buffer
 
 function Buffer:initialize(length)
-  if type(length) == "number" then
-    self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", ffi.C.malloc(length)), ffi.C.free)
-  elseif type(length) == "string" then
-    local string = length
-    self.length = #string
-    self.ctype = ffi.cast("unsigned char*", string)
-  else
+  local instant_append = nil
+  if type(length) == "string" then
+    instant_append = length
+    length = #instant_append
+  elseif type(length) ~= "number" then
     error("Input must be a string or number")
   end
+
+  self.length = length
+  -- X:MEMO~2012.08.25@kristate we malloc for all instances
+  -- to ensure strings are kept in memory for the entire duration
+  self.ctype = ffi.gc(ffi.cast("unsigned char*", ffi.C.malloc(length)), ffi.C.free)
+  if instant_append then
+    self:copy(1, instant_append)
+  end
+
 end
 
 function Buffer.meta:__ipairs()
@@ -54,7 +63,9 @@ function Buffer.meta:__ipairs()
 end
 
 function Buffer.meta:__tostring()
-  return ffi.string(self.ctype)
+  -- X:MEMO~2012.08.25@kristate Explicitly set the length for ffi.string
+  -- If not explicitly set, ffi falls-back to strlen, which will trip on NULL bytes
+  return ffi.string(self.ctype, self.length)
 end
 
 function Buffer.meta:__concat(other)
@@ -76,6 +87,50 @@ function Buffer.meta:__newindex(key, value)
     return
   end
   rawset(self, key, value)
+end
+
+-- X:MEMO~2012.08.25@kristate Allow usage of length operator(#)
+function Buffer.meta:__len()
+  return self.length
+end
+
+-- X:MEMO~2012.08.25@kristate Allow copying direct copying into buffer via ffi.copy
+function Buffer:copy(i, bufOrString, length)
+  local offset = i and i - 1 or 0
+  if type(bufOrString) == "string" then
+    if not length then
+      length = #bufOrString
+    else
+      assert(length <= #bufOrString)
+    end
+    assert(length <= self.length + offset)
+    local bufOrString_ctype = ffi.cast("unsigned char*", bufOrString)
+    ffi.copy(self.ctype+offset, bufOrString_ctype, length)
+    return length
+  elseif bufOrString.readUInt8 then -- luvit's buffer
+    if not length then
+      length = bufOrString.length
+    else
+      assert(length <= #bufOrString)
+    end
+    assert(length <= self.length + offset)
+    ffi.copy(self.ctype+offset, bufOrString.ctype, length)
+    return length
+  end
+
+  error("Buffer:copy: argument must be a buffer or a string" )
+end
+
+-- X:MEMO~2012.08.25@kristate returns buffer contents up until first instance of bufOrString
+-- Very useful for binary protocols
+function Buffer:upuntil(bufOrString, i)
+  local offset = i and i - 1 or 0
+  local bufOrString_ctype = ffi.cast("unsigned char*", bufOrString)
+  local found = ffi.C.memmem(self.ctype + offset, self.length - offset, bufOrString_ctype, #bufOrString)
+  if found == NULL then
+    return self:toString(i)
+  end
+  return ffi.string(self.ctype + offset, found - self.ctype - offset)
 end
 
 function Buffer:inspect()
