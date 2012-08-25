@@ -123,7 +123,7 @@ end
 
 -- X:MEMO~2012.08.25@kristate returns buffer contents up until first instance of bufOrString
 -- Very useful for binary protocols
-function Buffer:until(bufOrString, i)
+function Buffer:upuntil(bufOrString, i)
   local offset = i and i - 1 or 0
   local bufOrString_ctype = ffi.cast("unsigned char*", bufOrString)
   local found = ffi.C.memmem(self.ctype + offset, self.length - offset, bufOrString_ctype, #bufOrString)
