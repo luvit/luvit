@@ -24,9 +24,10 @@
 
 /* Takes as arguments a number or string */
 static int luvbuffer_new (lua_State *L) {
-
   size_t buffer_size;
   const char *lua_temp = NULL;
+  unsigned char *buffer;
+
   if (lua_isnumber(L, 1)) { /* are we perscribing a length */
     buffer_size = (size_t)lua_tonumber(L, 1);
   } else if (lua_isstring(L, 1)) { /* must be a string */
@@ -35,7 +36,6 @@ static int luvbuffer_new (lua_State *L) {
     return luaL_argerror(L, 1, "Must be of type 'Number' or 'String'");
   }
 
-  unsigned char *buffer;
   buffer = (unsigned char*)lua_newuserdata(L, buffer_size + sizeof(size_t) ); /* perhaps this should be aligned? */
   /* store the length of string inside of the beginning of the buffer */
   *((size_t*)(buffer)) = (size_t)buffer_size;
@@ -97,6 +97,8 @@ static int luvbuffer__index (lua_State *L) {
 
 /* __newindex(buffer, key, value) */
 static int luvbuffer__newindex (lua_State *L) {
+  size_t value_len;
+  
   if (!lua_isnumber(L, 2)) { /* key should be a number */
     return luaL_argerror(L, 1, "We only support setting indices by type Number");
   }
@@ -110,8 +112,6 @@ static int luvbuffer__newindex (lua_State *L) {
   } else if (!lua_isstring(L, 3)) { /* must be a string */
     return luaL_argerror(L, 3, "Value is not of type String");
   }
-
-  size_t value_len;
   const char *value = lua_tolstring(L, 3, &value_len);
 
   if (value_len > buffer_len - index - 1) {
