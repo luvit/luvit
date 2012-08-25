@@ -51,6 +51,9 @@ end
 function Buffer.meta:__index(key)
   if type(key) == "number" then
     return self.cbuf[key]
+  elseif key == "length" then
+    -- X:TODO bring this into cbuffer or make it obsolete
+    return #self.cbuf
   end
   return Buffer[key]
 end
