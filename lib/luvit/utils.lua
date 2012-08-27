@@ -53,7 +53,7 @@ function utils.color(color_name)
 end
 
 function utils.colorize(color_name, string, reset_name)
-  return utils.color(color_name) .. string .. utils.color(reset_name)
+  return utils.color(color_name) .. tostring(string) .. utils.color(reset_name)
 end
 
 local backslash, null, newline, carriage, tab, quote, quote2, obracket, cbracket
