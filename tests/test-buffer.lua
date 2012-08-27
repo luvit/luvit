@@ -52,9 +52,24 @@ assert(buf:readUInt32LE(1) == 0x422304FB)
 assert(buf:readInt32BE(1) == -0x04FBDCBE)
 assert(buf:readInt32LE(1) == 0x422304FB)
 
-local buf2 = Buffer:new('abcd')
-assert(tostring(buf2) == 'abcd')
+local buf2 = Buffer:new('abcdefghij')
+assert(tostring(buf2) == 'abcdefghij')
 assert(buf2:toString(1, 2) == 'ab')
 assert(buf2:toString(2, 3) == 'bc')
-assert(buf2:toString(3) == 'cd')
-assert(buf2:toString() == 'abcd')
+assert(buf2:toString(3) == 'cdefghij')
+assert(buf2:toString() == 'abcdefghij')
+
+-- test Buffer:upUntil
+assert(buf2:upUntil("") == '')
+assert(buf2:upUntil("d") == 'abc')
+assert(buf2:upUntil("d", 4) == '')
+assert(buf2:upUntil("d", 5) == 'efghij')
+
+-- test Buffer:inspect
+assert(buf:inspect() == "<Buffer FB 04 23 42 >")
+
+-- test Buffer.meta:__concat
+local concat_buf = buf .. buf2
+assert( concat_buf:inspect() == "<Buffer FB 04 23 42 61 62 63 64 65 66 67 68 69 6A >")
+
+
