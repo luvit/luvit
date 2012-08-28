@@ -65,6 +65,13 @@ assert(buf2:upUntil("d") == 'abc')
 assert(buf2:upUntil("d", 4) == '')
 assert(buf2:upUntil("d", 5) == 'efghij')
 
+-- test Buffer.isBuffer
+assert(Buffer.isBuffer(buf2) == true)
+assert(Buffer.isBuffer("buf") == false)
+
+-- test Buffer.length
+assert(buf2.length == 10)
+
 -- test Buffer:inspect
 assert(buf:inspect() == "<Buffer FB 04 23 42 >")
 

@@ -85,8 +85,6 @@ static uint16_t __builtin_bswap16( uint16_t a ) {
 
 #define BUFFER_GETOFFSET(L, _idx) _BUFFER_GETOFFSET(L, _idx, 0)
 
-/******************************************************************************/
-
 void * lua_resizeuserdata(lua_State *L, int index, size_t size) {
   unsigned char *new_buffer;
 
@@ -107,6 +105,8 @@ void * lua_resizeuserdata(lua_State *L, int index, size_t size) {
 
   return new_buffer + sizeof(size_t);
 }
+
+/******************************************************************************/
 
 /* Takes as arguments a number or string */
 static int luvbuffer_new (lua_State *L) {
@@ -146,6 +146,28 @@ static int luvbuffer_new (lua_State *L) {
   /* return the userdata */
   return 1;
 }
+
+
+/* isBuffer( obj ) */
+static int luvbuffer_isbuffer (lua_State *L) {
+  int is_buffer = 0;
+
+  void*p=lua_touserdata(L, 1);
+  if(p!=NULL){
+    if(lua_getmetatable(L,1)){
+      lua_getfield(L,(-10000),"luvbuffer");
+      if(lua_rawequal(L,-1,-2)){
+        lua_pop(L,2);
+        is_buffer = 1;
+      }
+    }
+  }
+
+  lua_pushboolean(L, is_buffer);
+  return 1;
+}
+
+/******************************************************************************/
 
 /* tostring(buffer, i, j) */
 static int luvbuffer_tostring (lua_State *L) {
@@ -329,7 +351,7 @@ static int luvbuffer__len (lua_State *L) {
 static int luvbuffer__index (lua_State *L) {
   if (!lua_isnumber(L, 2)) { /* key should be a number */
     const char *value = lua_tolstring(L, 2, NULL);
-    if (0 == strncmp(value, "length", 7)) { /* ghetto deprecation! */
+    if (value[0] == 'l' && 0 == strncmp(value, "length", 7)) { /* ghetto deprecation! */
       BUFFER_UDATA(L)
       lua_pushnumber(L, buffer_len);
       return 1;
@@ -337,7 +359,7 @@ static int luvbuffer__index (lua_State *L) {
     lua_getmetatable(L, 1); /*get userdata metatable */
     lua_pushvalue(L, 2);
     lua_rawget(L, -2); /*check environment table for field*/
-    return 1; /*luaL_argerror(L, 2, "Must be of type 'Number'");*/
+    return 1;
   }
 
   BUFFER_UDATA(L)
@@ -475,6 +497,7 @@ static const luaL_reg luvbuffer_m[] = {
 
 static const luaL_reg luvbuffer_f[] = {
    {"new", luvbuffer_new}
+  ,{"isBuffer", luvbuffer_isbuffer}
   ,{NULL, NULL}
 };
 
