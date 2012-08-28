@@ -79,4 +79,14 @@ assert(buf:inspect() == "<Buffer FB 04 23 42 >")
 local concat_buf = buf .. buf2
 assert( concat_buf:inspect() == "<Buffer FB 04 23 42 61 62 63 64 65 66 67 68 69 6A >")
 
-
+-- test Buffer.fill
+concat_buf:fill("", 4, 4)
+assert( concat_buf:inspect() == "<Buffer FB 04 23 00 61 62 63 64 65 66 67 68 69 6A >")
+concat_buf:fill("", 4, 8)
+assert( concat_buf:inspect() == "<Buffer FB 04 23 00 00 00 00 00 65 66 67 68 69 6A >")
+concat_buf:fill(0x05, 4, 8)
+assert( concat_buf:inspect() == "<Buffer FB 04 23 05 05 05 05 05 65 66 67 68 69 6A >")
+concat_buf:fill(0x42, 1)
+assert( concat_buf:inspect() == "<Buffer 42 42 42 42 42 42 42 42 42 42 42 42 42 42 >")
+concat_buf:fill("\0", 1)
+assert( concat_buf:inspect() == "<Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 >")

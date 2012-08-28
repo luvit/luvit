@@ -195,6 +195,45 @@ static int luvbuffer_tostring (lua_State *L) {
   return 1;
 }
 
+/* fill(buffer, char, i, j) */
+static int luvbuffer_fill (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  size_t offset = (size_t)lua_tonumber(L, 3);
+  if (!offset) {
+    offset = 1;
+  }
+  if (offset < 1 || offset > buffer_len) {
+    return luaL_argerror(L, 3, "Offset out of bounds");
+  }
+  offset--; /* account for Lua-isms */
+
+  size_t length = (size_t)lua_tonumber(L, 4);
+  if (!length) {
+    length = buffer_len;
+  }
+  if (length < offset || length > buffer_len) {
+    return luaL_argerror(L, 4, "length out of bounds");
+  }
+
+  uint8_t value;
+
+  if (lua_isnumber(L, 2)) {
+    value = (uint8_t)lua_tonumber(L, 2); /* using value_len here as value */
+    if (value > 255) {
+      return luaL_argerror(L, 2, "0 < Value < 255");
+    }
+  } else if (lua_isstring(L, 2)) {
+    value = *((uint8_t*)lua_tolstring(L, 2, NULL));
+  } else {
+    return luaL_argerror(L, 2, "Value is not of type 'String' or 'Number'");
+  }
+
+  memset(buffer + offset, value, length - offset);
+  lua_pushnil(L);
+  return 1;
+}
+
 static const char _hex[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
 /* inspect(buffer) */
@@ -462,7 +501,7 @@ static int luvbuffer__newindex (lua_State *L) {
     }
     memcpy(buffer + index - 1, value, value_len);
   } else {
-    return luaL_argerror(L, 3, "Value is not of type String");
+    return luaL_argerror(L, 3, "Value is not of type 'String' or 'Number'");
   }
   return 1;
 }
@@ -474,6 +513,7 @@ static const luaL_reg luvbuffer_m[] = {
    {"toString", luvbuffer_tostring}
   ,{"upUntil", luvbuffer_upuntil}
   ,{"inspect", luvbuffer_inspect}
+  ,{"fill", luvbuffer_fill}
 
   /* binary helpers */
   ,{"readUInt8", luvbuffer__index} /* same as __index */
