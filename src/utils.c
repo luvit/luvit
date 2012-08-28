@@ -180,7 +180,6 @@ uv_loop_t* luv_get_loop(lua_State *L) {
 
 /* Initialize a new lhandle and push the new userdata on the stack. */
 luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
-  int before = lua_gettop(L);
   lua_State* mainthread;
   /* Create the userdata and set it's metatable */
   luv_handle_t* lhandle = (luv_handle_t*)lua_newuserdata(L, sizeof(luv_handle_t));
@@ -209,7 +208,6 @@ luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
   }
   lhandle->ref = LUA_NOREF;
   lhandle->type = type;
-  assert(before + 1 == lua_gettop(L));
   return lhandle;
 }
 
