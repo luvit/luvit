@@ -378,6 +378,98 @@ static int luvbuffer_readInt32LE (lua_State *L) {
   return 1;
 }
 
+/* writeUInt8(buffer, value, offset) */
+static int luvbuffer_writeUInt8 (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  BUFFER_GETOFFSET(L, 3) /* sets index */
+
+  *((uint8_t*)(buffer + index - 1)) = luaL_checknumber(L, 2);
+
+  lua_pushnil(L);
+  return 1;
+}
+
+
+/* writeInt8(buffer, value, offset) */
+static int luvbuffer_writeInt8 (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  BUFFER_GETOFFSET(L, 3) /* sets index */
+
+  *((int8_t*)(buffer + index - 1)) = luaL_checknumber(L, 2);
+  lua_pushnil(L);
+  return 1;
+}
+
+/* writeUInt16LE(buffer, value, offset) */
+static int luvbuffer_writeUInt16BE (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  _BUFFER_GETOFFSET(L, 3, 1) /* sets index */
+
+  *((uint16_t*)(buffer + index - 1)) = __bswap16( luaL_checknumber(L, 2) );
+  lua_pushnil(L);
+  return 1;
+}
+
+/* writeUInt16LE(buffer, value, offset) */
+static int luvbuffer_writeUInt16LE (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  _BUFFER_GETOFFSET(L, 3, 1) /* sets index */
+
+  *((uint16_t*)(buffer + index - 1)) = luaL_checknumber(L, 2);
+  lua_pushnil(L);
+  return 1;
+}
+
+/* writeUInt32LE(buffer, value, offset) */
+static int luvbuffer_writeUInt32BE (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  _BUFFER_GETOFFSET(L, 3, 3) /* sets index */
+
+  *((uint32_t*)(buffer + index - 1)) = __bswap32( luaL_checknumber(L, 2) );
+  lua_pushnil(L);
+  return 1;
+}
+
+
+/* writeUInt32LE(buffer, value, offset) */
+static int luvbuffer_writeUInt32LE (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  _BUFFER_GETOFFSET(L, 3, 3) /* sets index */
+
+  *((uint32_t*)(buffer + index - 1)) = luaL_checknumber(L, 2);
+  lua_pushnil(L);
+  return 1;
+}
+
+/* writeInt32LE(buffer, value, offset) */
+static int luvbuffer_writeInt32BE (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  _BUFFER_GETOFFSET(L, 3, 3) /* sets index */
+
+  *((int32_t*)(buffer + index - 1)) = __bswap32( luaL_checknumber(L, 2) );
+  lua_pushnil(L);
+  return 1;
+}
+
+
+/* writeInt32LE(buffer, write, offset) */
+static int luvbuffer_writeInt32LE (lua_State *L) {
+  BUFFER_UDATA(L)
+
+  _BUFFER_GETOFFSET(L, 3, 3) /* sets index */
+
+  *((int32_t*)(buffer + index - 1)) = luaL_checknumber(L, 2);
+  lua_pushnil(L);
+  return 1;
+}
+
 /* __len(buffer) */
 static int luvbuffer__len (lua_State *L) {
   BUFFER_UDATA(L)
@@ -524,6 +616,14 @@ static const luaL_reg luvbuffer_m[] = {
   ,{"readUInt32LE", luvbuffer_readUInt32LE}
   ,{"readInt32BE", luvbuffer_readInt32BE}
   ,{"readInt32LE", luvbuffer_readInt32LE}  
+  ,{"writeUInt8", luvbuffer_writeUInt8}
+  ,{"writeInt8", luvbuffer_writeInt8}
+  ,{"writeUInt16BE", luvbuffer_writeUInt16BE}
+  ,{"writeUInt16LE", luvbuffer_writeUInt16LE}
+  ,{"writeUInt32BE", luvbuffer_writeUInt32BE}
+  ,{"writeUInt32LE", luvbuffer_writeUInt32LE}
+  ,{"writeInt32BE", luvbuffer_writeInt32BE}
+  ,{"writeInt32LE", luvbuffer_writeInt32LE}  
 
    /* meta */
   ,{"__len", luvbuffer__len}
