@@ -1,4 +1,4 @@
-local server = require('web').createServer("127.0.0.1", 8080, require('cleanup')(function (req, res)
+local server = require('web').createServer("127.0.0.1", process.env.PORT or 8080, require('cleanup')(function (req, res)
   return res(200, {
     ["Content-Type"] = "text/plain",
     ["Content-Length"] = 12
