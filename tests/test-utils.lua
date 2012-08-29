@@ -91,3 +91,7 @@ bound('!', function(arg1, arg2, arg3)
   assert(arg2 == 'world')
   assert(arg3 == '!')
 end)
+
+local Error = require('core').Error
+local MyError = Error:extend()
+assert(pcall(utils.dump, MyError))
