@@ -90,7 +90,23 @@ function Path:normalize(filepath)
 end
 
 function Path:join(...)
-  return table.concat({...}, self.sep)
+  local parts = {...}
+  for i, part in ipairs(parts) do
+    -- Strip leading slashes on all but first item
+    if i > 1 then
+      while part:sub(1, 1) == self.sep do
+        part = part:sub(2)
+      end
+    end
+    -- Strip trailing slashes on all but last item
+    if i < #parts then
+      while part:sub(#part) == self.sep do
+        part = part:sub(1, #part - 1)
+      end
+    end
+    parts[i] = part
+  end
+  return table.concat(parts, self.sep)
 end
 
 function Path:resolve(root, filepath)
