@@ -627,17 +627,17 @@ function ClientRequest:initialize(options, callback)
     for k, v in pairs(options.headers) do
       self:setHeader(k, v)
     end
-
-    if host and not self:getHeader('host') and setHost then
-      local hostHeader = host
-      if port and port ~= defaultPort then
-        hostHeader = hostHeader .. ':' .. port
-      end
-      self:setHeader('Host', hostHeader)
-    end
   end
 
-  if method == 'GET' or method == 'HEAD' or method == 'CONNECT' then
+  if host and not self:getHeader('host') and setHost then
+    local hostHeader = host
+    if port and port ~= defaultPort then
+      hostHeader = hostHeader .. ':' .. port
+    end
+    self:setHeader('Host', hostHeader)
+  end
+
+  if self.method == 'GET' or self.method == 'HEAD' or self.method == 'CONNECT' then
     self.useChunkedEncodingByDefault = false
   else
     self.useChunkedEncodingByDefault = true
