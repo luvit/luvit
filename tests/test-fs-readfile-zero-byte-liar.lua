@@ -31,7 +31,9 @@ FS._fstatSync = FS.fstatSync
 
 FS.fstat = function(fd, cb)
   FS._fstat(fd, function(er, st)
-    if er then return cb(er) end
+    if er then
+      return cb(er)
+    end
     st.size = 0
     return cb(er, st)
   end)
