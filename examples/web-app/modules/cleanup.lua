@@ -22,13 +22,13 @@ return function (app)
       if not hasServer then
         headers['Server'] = "Luvit " .. process.version
       end
-      if not hasContentLength or hasTransfarEncoding then
+      if not hasContentLength or hasTransferEncoding then
         if type(body) == "string" then
           headers["Content-Length"] = #body
           hasContentLength = true
         elseif type(body) == "table" then
           headers["Transfer-Encoding"] = "chunked"
-          hasTransfarEncoding = true
+          hasTransferEncoding = true
           local originalStream = body
           body = iStream:new()
           originalStream:on("data", function (chunk)
