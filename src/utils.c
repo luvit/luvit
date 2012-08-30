@@ -180,7 +180,7 @@ uv_loop_t* luv_get_loop(lua_State *L) {
 
 /* Initialize a new lhandle and push the new userdata on the stack. */
 luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
-
+  lua_State* mainthread;
   /* Create the userdata and set it's metatable */
   luv_handle_t* lhandle = (luv_handle_t*)lua_newuserdata(L, sizeof(luv_handle_t));
 
@@ -197,6 +197,15 @@ luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
   lhandle->handle->data = lhandle; /* Point back to lhandle from handle */
   lhandle->refCount = 0;
   lhandle->L = L;
+ 
+  /* if handle create in a coroutine, we need hold the coroutine */
+  mainthread = luv_get_main_thread(L);
+  if (L != mainthread) { 
+    lua_pushthread(L);
+    lhandle->threadref = luaL_ref(L, LUA_REGISTRYINDEX);
+  } else {
+    lhandle->threadref = LUA_NOREF;
+  }
   lhandle->ref = LUA_NOREF;
   lhandle->type = type;
   return lhandle;
@@ -243,6 +252,10 @@ void luv_handle_unref(lua_State* L, luv_handle_t* lhandle) {
   /* If it's now inactive, clear the ref */
   if (!lhandle->refCount) {
     luaL_unref(L, LUA_REGISTRYINDEX, lhandle->ref);
+    if (lhandle->threadref != LUA_NOREF) {
+      luaL_unref(L, LUA_REGISTRYINDEX, lhandle->threadref);
+      lhandle->threadref = LUA_NOREF;
+    }
     lhandle->ref = LUA_NOREF;
 /*    printf("makeWeak\t%s lhandle=%p handle=%p\n", lhandle->type, lhandle, lhandle->handle);*/
   }
@@ -270,4 +283,12 @@ ares_channel luv_get_ares_channel(lua_State *L) {
   channel = lua_touserdata(L, -1);
   lua_pop(L, 1);
   return channel;
+}
+
+lua_State* luv_get_main_thread(lua_State *L) {
+  lua_State *main_thread;
+  lua_getfield(L, LUA_REGISTRYINDEX, "main_thread");
+  main_thread = lua_tothread(L, -1);
+  lua_pop(L, 1);
+  return main_thread;
 }
