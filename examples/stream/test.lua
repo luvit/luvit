@@ -2,7 +2,8 @@ local fs = require('file')
 local fiber = require('wait')
 
 local input = __filename
-local output = __filename .. ".out2"
+local output = __filename .. ".out"
+local output2 = __filename .. ".out2"
 
 -- Create a normal continuable using callbacks
 local normal = function (callback)
@@ -33,7 +34,7 @@ end
 -- Create another that runs in a coroutine
 local fibered = fiber.new(function (wait, await)
   local readable = fs.ReadStream:new(await(fs.open(input, "r")))
-  local writable = fs.WriteStream:new(await(fs.open(output, "w")))
+  local writable = fs.WriteStream:new(await(fs.open(output2, "w")))
   repeat
     local chunk = await(readable:read())
     await(writable:write(chunk))
@@ -43,10 +44,10 @@ end)
 
 -- Run the normal one
 normal(function (err, message)
-  p{name="normal", err=err,message=message}
+  p{name="normal", err=err, message=message}
 end)
 
 -- Also run the fibered one in parallel
 fibered(function (err, message)
-  p{name="fibered", err=err,message=message}
+  p{name="fibered", err=err, message=message}
 end)

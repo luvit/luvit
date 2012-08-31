@@ -5,7 +5,7 @@ local iStream = require('stream').iStream
 
 local fs = {}
 
-fs.umask = tonumber("644", 8)
+fs.umask = "0644"
 
 local function noop() end
 
@@ -17,8 +17,8 @@ function fs.open(path, flag, mode)
     error("open(path, flag, [mode]): flag must be a string")
   end
   if not mode then mode = fs.umask end
-  if type(mode) ~= "number" then
-    error("open(path, flag, [mode]): mode must be a number")
+  if type(mode) ~= "string" then
+    error("open(path, flag, [mode]): mode must be a string")
   end
   return function (callback)
     return native.fsOpen(path, flag, mode, callback or noop)
