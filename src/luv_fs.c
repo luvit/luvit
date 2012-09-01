@@ -282,7 +282,7 @@ int luv_fs_unlink(lua_State* L) {
 
 int luv_fs_mkdir(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
-  int mode = strtoul(luaL_checkstring(L, 2), NULL, 8);
+  int mode = luaL_checkint(L, 2);
   uv_fs_t* req = luv_fs_store_callback(L, 3);
   FS_CALL(mkdir, 3, path, path, mode);
 }
