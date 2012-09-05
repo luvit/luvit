@@ -86,7 +86,7 @@ int luv_close (lua_State* L) {
 /*  printf("close   \tlhandle=%p handle=%p\n", handle->data, handle);*/
   if (uv_is_closing(handle)) {
     fprintf(stderr, "WARNING: Handle already closing \tlhandle=%p handle=%p\n", handle->data, handle);
-    return;
+    return 0;
   }
   uv_close(handle, luv_on_close);
   luv_handle_ref(L, handle->data, 1);
