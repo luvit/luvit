@@ -61,7 +61,6 @@ static void luv_on_udp_recv(uv_udp_t* handle,
   }
 
   if (nread < 0) {
-    uv_close((uv_handle_t *)handle, luv_on_close);
     luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "on_recv", NULL);
     luv_emit_event(L, "error", 1);
     return;
