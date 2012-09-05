@@ -38,6 +38,7 @@ uv_loop_t* luv_get_loop(lua_State *L);
 
 void luv_set_ares_channel(lua_State *L, ares_channel channel);
 ares_channel luv_get_ares_channel(lua_State *L);
+lua_State* luv_get_main_thread(lua_State *L);
 
 
 void luv_push_async_error(lua_State* L, uv_err_t err, const char* source, const char* path);
@@ -58,6 +59,13 @@ typedef struct {
   uv_handle_t* handle; /* The actual uv handle. memory managed by luv */
   int refCount;        /* a count of all pending request to know strength */
   lua_State* L;        /* L and ref together form a reference to the userdata */
+  int threadref;       /* if handle is created in a coroutine(not main thread), threadref is
+                          the reference to the coroutine in the Lua registery. 
+                          we release the reference when handle closed. 
+                          if handle is created in the main thread, threadref is LUA_NOREF.
+                          we must hold the coroutine, because in some cases(see issue #319) that the coroutine 
+                          referenced by nothing and would collected by gc, then uv's callback touch an 
+                          invalid pointer. */
   int ref;             /* ref is null when refCount is 0 meaning we're weak */
   const char* type;
 } luv_handle_t;
