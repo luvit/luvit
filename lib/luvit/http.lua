@@ -1213,6 +1213,7 @@ function http.createServer(onConnection)
   server = net.createServer(function(client)
     return http.onClient(server, client, onConnection)
   end)
+  return server
 end
 
 return http
