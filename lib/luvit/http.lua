@@ -1054,165 +1054,165 @@ function http.get(options, callback)
   return req
 end
 
-function http.createServer(onConnection)
-  local server
-  server = net.createServer(function (client)
+function http.onClient(server, client, onConnection)
+  -- Convert tcp stream to HTTP stream
+  local request
+  local current_field
+  local parser
+  local url
+  local headers
+  parser = HttpParser.new("request", {
+    onMessageBegin = function ()
+      headers = {}
+    end,
+    onUrl = function (value)
+      url = value
+    end,
+    onHeaderField = function (field)
+      current_field = field:lower()
+    end,
+    onHeaderValue = function (value)
+      headers[current_field] = value
+    end,
+    onHeadersComplete = function (info)
 
-    -- Convert tcp stream to HTTP stream
-    local request
-    local current_field
-    local parser
-    local url
-    local headers
-    parser = HttpParser.new("request", {
-      onMessageBegin = function ()
-        headers = {}
-      end,
-      onUrl = function (value)
-        url = value
-      end,
-      onHeaderField = function (field)
-        current_field = field:lower()
-      end,
-      onHeaderValue = function (value)
-        headers[current_field] = value
-      end,
-      onHeadersComplete = function (info)
+      -- Accept the client and build request and response objects
+      request = Request:new(client)
+      local response = Response:new(client)
 
-        -- Accept the client and build request and response objects
-        request = Request:new(client)
-        local response = Response:new(client)
+      request.method = info.method
+      request.headers = headers
+      request.url = url
+      request.upgrade = info.upgrade
 
-        request.method = info.method
-        request.headers = headers
-        request.url = url
-        request.upgrade = info.upgrade
+      request.version_major = info.version_major
+      request.version_minor = info.version_minor
 
-        request.version_major = info.version_major
-        request.version_minor = info.version_minor
+      -- Give upgrade requests access to the raw client if they want it
+      if info.upgrade then
+        request.client = client
+      end
 
-        -- Give upgrade requests access to the raw client if they want it
-        if info.upgrade then
-          request.client = client
+      -- HTTP keep-alive logic
+      request.should_keep_alive = info.should_keep_alive
+      response.should_keep_alive = info.should_keep_alive
+      -- N.B. keep-alive requires explicit message length
+      if info.should_keep_alive then
+        --[[
+          In order to remain persistent, all messages on the connection MUST
+          have a self-defined message length (i.e., one not defined by closure
+          of the connection)
+        ]]
+        response.auto_content_length = false
+        -- HTTP/1.0 should insert Connection: keep-alive
+        if info.version_minor < 1 then
+          response:setHeader("Connection", "keep-alive")
         end
-
-        -- HTTP keep-alive logic
-        request.should_keep_alive = info.should_keep_alive
-        response.should_keep_alive = info.should_keep_alive
-        -- N.B. keep-alive requires explicit message length
-        if info.should_keep_alive then
-          --[[
-            In order to remain persistent, all messages on the connection MUST
-            have a self-defined message length (i.e., one not defined by closure
-            of the connection)
-          ]]
-          response.auto_content_length = false
-          -- HTTP/1.0 should insert Connection: keep-alive
-          if info.version_minor < 1 then
-            response:setHeader("Connection", "keep-alive")
-          end
-        else
-          -- HTTP/1.1 should insert Connection: close for last message
-          if info.version_minor >= 1 then
-            response:setHeader("Connection", "close")
-          end
+      else
+        -- HTTP/1.1 should insert Connection: close for last message
+        if info.version_minor >= 1 then
+          response:setHeader("Connection", "close")
         end
+      end
 
-        -- Handle 100-continue requests
-        if request.headers.expect
-          and info.version_major == 1
-          and info.version_minor == 1
-          and request.headers.expect:lower() == "100-continue"
-        then
-          if server.handlers and server.handlers.check_continue then
-            server:emit("check_continue", request, response)
-          else
-            response:writeContinue()
-            onConnection(request, response)
-          end
+      -- Handle 100-continue requests
+      if request.headers.expect
+        and info.version_major == 1
+        and info.version_minor == 1
+        and request.headers.expect:lower() == "100-continue"
+      then
+        if server.handlers and server.handlers.check_continue then
+          server:emit("check_continue", request, response)
         else
+          response:writeContinue()
           onConnection(request, response)
         end
-
-      end,
-      onBody = function (chunk)
-        request:emit("data", chunk)
-      end,
-      onMessageComplete = function ()
-        request:emit("end")
-        request:removeListener("end")
-        if request.should_keep_alive then
-          parser:finish()
-        end
-      end
-    })
-
-    client:on("data", function (chunk)
-
-      -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
-      -- shouldn't send data to the HTTP parser
-      if request and request.upgrade then
-        request:emit("data", chunk)
-        return
-      end
-
-      --[[ from http_parser documentation:
-        To tell http_parser about EOF, give 0 as the forth parameter to
-        http_parser_execute()
-      ]]--
-      -- don't route empty chunks to the parser
-      if #chunk == 0 then return end
-
-      -- Parse the chunk of HTTP, this will syncronously emit several of the
-      -- above events and return how many bytes were parsed
-      local nparsed = parser:execute(chunk, 0, #chunk)
-
-      -- If it wasn't all parsed then there was an error parsing
-      if nparsed < #chunk and request then
-        if request.upgrade then
-          request:emit("data", chunk:sub(nparsed + 1))
-        else
-          request:emit("error", "parse error: " .. chunk)
-        end
-      end
-
-    end)
-
-    client:once("end", function ()
-      if request then
-        request:emit("end")
-        request:removeListener("end")
-      end
-      parser:finish()
-    end)
-
-    client:once("closed", function ()
-      if request then
-        request:emit("end")
-        request:removeListener("end")
-      end
-      parser:finish()
-    end)
-
-    client:once("error", function (err)
-      parser:finish()
-      -- read from closed client
-      if err.code == "ECONNRESET" then
-        -- ???
-      -- written to closed client
-      elseif err.code == "EPIPE" then
-        -- ???
-      -- other errors
       else
-        if request then
-          request:emit("error", err)
-         end
+        onConnection(request, response)
       end
-    end)
 
+    end,
+    onBody = function (chunk)
+      request:emit("data", chunk)
+    end,
+    onMessageComplete = function ()
+      request:emit("end")
+      request:removeListener("end")
+      if request.should_keep_alive then
+        parser:finish()
+      end
+    end
+  })
+
+  client:on("data", function(chunk)
+     -- Once we're in "upgrade" mode, the protocol is no longer HTTP and we
+    -- shouldn't send data to the HTTP parser
+    if request and request.upgrade then
+      request:emit("data", chunk)
+      return
+    end
+
+    --[[ from http_parser documentation:
+      To tell http_parser about EOF, give 0 as the forth parameter to
+      http_parser_execute()
+    ]]--
+    -- don't route empty chunks to the parser
+    if #chunk == 0 then return end
+
+    -- Parse the chunk of HTTP, this will syncronously emit several of the
+    -- above events and return how many bytes were parsed
+    local nparsed = parser:execute(chunk, 0, #chunk)
+
+    -- If it wasn't all parsed then there was an error parsing
+    if nparsed < #chunk and request then
+      if request.upgrade then
+        request:emit("data", chunk:sub(nparsed + 1))
+      else
+        request:emit("error", "parse error: " .. chunk)
+      end
+    end
+  end)
+
+  client:once("end", function ()
+    if request then
+      request:emit("end")
+      request:removeListener("end")
+    end
+    parser:finish()
+  end)
+
+  client:once("closed", function ()
+    if request then
+      request:emit("end")
+      request:removeListener("end")
+    end
+    parser:finish()
+  end)
+
+  client:once("error", function (err)
+    parser:finish()
+    -- read from closed client
+    if err.code == "ECONNRESET" then
+      -- ???
+    -- written to closed client
+    elseif err.code == "EPIPE" then
+      -- ???
+    -- other errors
+    else
+      if request then
+        request:emit("error", err)
+       end
+    end
   end)
 
   return server
+end
+
+function http.createServer(onConnection)
+  local server
+  server = net.createServer(function(client)
+    return http.onClient(server, client, onConnection)
+  end)
 end
 
 return http
