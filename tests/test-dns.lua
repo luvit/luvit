@@ -59,7 +59,7 @@ dns.reverse('bogus ip', function(err, addresses)
   assert(type(addresses) == 'nil')
 end)
 
-dns.resolveMx('gmail.com', function(err, addresses)
+dns.resolveMx('rackspace.com', function(err, addresses)
   assert(type(err) == 'nil')
   assert(type(addresses) == 'table')
   for i=1,#addresses do
@@ -87,7 +87,7 @@ dns.resolveSrv('_jabber._tcp.google.com', function(err, addresses)
   end
 end)
 
-dns.resolveCname('www.google.com', function(err, names)
+dns.resolveCname('www.rackspace.com', function(err, names)
   assert(type(err) == 'nil')
   assert(type(names) == 'table')
   assert(#names == 1)

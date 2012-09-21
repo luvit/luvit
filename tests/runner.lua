@@ -137,6 +137,6 @@ end
 
 remove_recursive(tmp_dir, function ()
   fs.mkdir(tmp_dir, "0755", function()
-    run(remove_tmp)
+    run(function() fs.rmdir(tmp_dir) end)
   end)
 end)
