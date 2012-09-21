@@ -92,7 +92,7 @@ local function run(callback)
       end
       process.stdout:write('Done\n')
       if nerr ~= 0 then
-        callback()
+        if callback then callback() end
         process.exit(1)
       end
     end)
