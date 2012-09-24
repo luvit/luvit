@@ -21,7 +21,7 @@ require("helper")
 local dns = require('dns')
 local net = require('net')
 
-dns.resolve4('www.google.com', function(err, addresses)
+dns.resolve4('luvit.io', function(err, addresses)
   assert(type(err) == 'nil')
   assert(type(addresses) == 'table')
   assert(#addresses > 0)
@@ -59,7 +59,7 @@ dns.reverse('bogus ip', function(err, addresses)
   assert(type(addresses) == 'nil')
 end)
 
-dns.resolveMx('rackspace.com', function(err, addresses)
+dns.resolveMx('luvit.io', function(err, addresses)
   assert(type(err) == 'nil')
   assert(type(addresses) == 'table')
   for i=1,#addresses do
@@ -68,7 +68,7 @@ dns.resolveMx('rackspace.com', function(err, addresses)
   end
 end)
 
-dns.resolveNs('rackspace.com', function(err, addresses)
+dns.resolveNs('luvit.io', function(err, addresses)
   assert(type(err) == 'nil')
   assert(type(addresses) == 'table')
   for i=1,#addresses do
@@ -87,7 +87,7 @@ dns.resolveSrv('_jabber._tcp.google.com', function(err, addresses)
   end
 end)
 
-dns.resolveCname('www.rackspace.com', function(err, names)
+dns.resolveCname('api.luvit.io', function(err, names)
   assert(type(err) == 'nil')
   assert(type(names) == 'table')
   assert(#names == 1)
