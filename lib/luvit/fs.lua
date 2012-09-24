@@ -363,7 +363,7 @@ function SyncWriteStream:initialize(fd)
 end
 
 function SyncWriteStream:write(chunk, callback)
-  len = fs.writeSync(self.fd, self.offset, chunk)
+  local len = fs.writeSync(self.fd, self.offset, chunk)
   self.offset = self.offset + len
   return len
 end
