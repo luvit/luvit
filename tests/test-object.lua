@@ -32,3 +32,12 @@ local foo2 = Foo:new(1)
 assert(foo1 ~= foo2)
 assert(tostring(foo1) ~= tostring(foo2))
 assert(foo1.bar == foo2.bar)
+
+local MyError = require('core').Error:extend()
+function MyError:initialize(msg)
+  Error.initialize(self, msg)
+end
+
+local myerror = MyError:new("Hello World")
+assert(tostring(myerror), "Hello World")
+p(tostring(myerror))
