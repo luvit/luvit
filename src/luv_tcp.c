@@ -166,7 +166,9 @@ int luv_tcp_connect(lua_State* L) {
   uv_connect_t* req = (uv_connect_t*)malloc(sizeof(uv_connect_t));
 
   if (uv_tcp_connect(req, handle, address, luv_after_connect)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
+    uv_err_t err;
+    free(req);
+    err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_connect: %s", uv_strerror(err));
   }
 
@@ -186,7 +188,9 @@ int luv_tcp_connect6(lua_State* L) {
   uv_connect_t* req = (uv_connect_t*)malloc(sizeof(uv_connect_t));
 
   if (uv_tcp_connect6(req, handle, address, luv_after_connect)) {
-    uv_err_t err = uv_last_error(luv_get_loop(L));
+    uv_err_t err;
+    free(req);
+    err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "tcp_connect6: %s", uv_strerror(err));
   }
 

@@ -92,7 +92,7 @@ local function run(callback)
       end
       process.stdout:write('Done\n')
       if nerr ~= 0 then
-        callback()
+        if callback then callback() end
         process.exit(1)
       end
     end)
@@ -137,6 +137,6 @@ end
 
 remove_recursive(tmp_dir, function ()
   fs.mkdir(tmp_dir, "0755", function()
-    run(remove_tmp)
+    run(function() fs.rmdir(tmp_dir) end)
   end)
 end)

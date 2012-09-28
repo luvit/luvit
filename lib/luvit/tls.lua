@@ -427,6 +427,10 @@ function CleartextStream:_pusher()
   return self.pair.ssl:clearOut()
 end
 
+function CleartextStream:shutdown(cb)
+  self:destroy()
+  if cb then cb() end
+end
 function CleartextStream:destroy()
   if self.socket and self._closing ~= true then
     self.socket:destroy()
@@ -823,7 +827,7 @@ function connect(...)
   end
 
   local socket = options.socket or Socket:new()
-  
+
   if options.context then
     sslcontext = createCredentials(options, options.context)
   else
