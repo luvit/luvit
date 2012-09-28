@@ -112,9 +112,18 @@ Creates a new sub-class.
       self.h = h
     end
 ]]
+
 function Object:extend()
   local obj = self:create()
-  obj.meta = {__index = obj, super = self}
+  local meta = {}
+  -- move the meta methods defined in our ancestors meta into our own
+  --to preserve expected behavior in children (like __tostring, __add, etc)
+  for k, v in pairs(self.meta) do
+    meta[k] = v
+  end
+  meta.__index = obj
+  meta.super=self
+  obj.meta = meta
   return obj
 end
 
