@@ -26,9 +26,18 @@ local Foo = require('core').Object:extend()
 function Foo:initialize(bar)
   self.bar = bar
 end
+function Foo.meta.__tostring(table)
+	return tostring(table.bar)
+end
+
+local Baz = Foo:extend()
 
 local foo1 = Foo:new(1)
 local foo2 = Foo:new(1)
 assert(foo1 ~= foo2)
-assert(tostring(foo1) ~= tostring(foo2))
+assert(tostring(foo1) == tostring(foo2))
 assert(foo1.bar == foo2.bar)
+
+local msg = 'asd'
+local baz1 = Baz:new(msg)
+assert(tostring(baz1) == msg)
