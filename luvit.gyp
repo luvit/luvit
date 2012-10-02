@@ -92,7 +92,7 @@
        'LUVIT_OS="<(OS)"',
        'LUVIT_VERSION="<!(git --git-dir .git describe --tags)"',
        'HTTP_VERSION="<!(git --git-dir deps/http-parser/.git describe --tags)"',
-       'UV_VERSION="<!(git --git-dir deps/uv/.git describe --all --tags --always --long)"',
+       'UV_VERSION="<!(git --git-dir deps/uv/.git describe --tags)"',
        'LUAJIT_VERSION="<!(git --git-dir deps/luajit/.git describe --tags)"',
        'YAJL_VERSIONISH="<!(git --git-dir deps/yajl/.git describe --tags)"',
        'BUNDLE=1',
