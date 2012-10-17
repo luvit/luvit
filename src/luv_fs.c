@@ -57,12 +57,12 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "is_file");
   lua_pushboolean(L, S_ISDIR(s->st_mode));
   lua_setfield(L, -2, "is_directory");
-  lua_pushboolean(L, S_ISFIFO(s->st_mode));
-  lua_setfield(L, -2, "is_fifo");
   lua_pushboolean(L, S_ISCHR(s->st_mode));
   lua_setfield(L, -2, "is_character_device");
   lua_pushboolean(L, S_ISBLK(s->st_mode));
   lua_setfield(L, -2, "is_block_device");
+  lua_pushboolean(L, S_ISFIFO(s->st_mode));
+  lua_setfield(L, -2, "is_fifo");
   lua_pushboolean(L, S_ISLNK(s->st_mode));
   lua_setfield(L, -2, "is_symbolic_link");
   lua_pushboolean(L, S_ISSOCK(s->st_mode));
@@ -73,7 +73,6 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_pushinteger(L, s->st_blocks);
   lua_setfield(L, -2, "blocks");
 #endif
-
 }
 
 int luv_string_to_flags(lua_State* L, const char* string) {
