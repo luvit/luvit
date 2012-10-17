@@ -42,6 +42,19 @@
 # define uv_inet_ntop inet_ntop
 #endif
 
+/* These macros are standard POSIX but aren't in window's sys/stat.h */
+#if defined(_WIN32)
+# include <sys/types.h>
+# include <sys/stat.h>
+# define S_ISREG(x)  (((x) & _S_IFMT) == _S_IFREG)
+# define S_ISDIR(x)  (((x) & _S_IFMT) == _S_IFDIR)
+# define S_ISFIFO(x) 0
+# define S_ISCHR(x)  0
+# define S_ISBLK(x)  0
+# define S_ISLNK(x)  0
+# define S_ISSOCK(x) 0
+#endif
+
 /* Portable method of getting the environment. */
 char **luv_os_environ();
 
