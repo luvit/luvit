@@ -27,15 +27,7 @@
 
 #include "luv_fs.h"
 #include "utils.h"
-
-// These macros are standard POSIX but aren't in 
-// window's sys/stat.h
-#ifdef _WIN32
-#define S_ISREG(x)  (((x) & _S_IFMT) == _S_IFREG)
-#define S_ISDIR(x)  (((x) & _S_IFMT) == _S_IFDIR)
-#define S_ISFIFO(x) (((x) & _S_IFMT) == _S_IFIFO)
-#define S_ISCHR(x)  (((x) & _S_IFMT) == _S_IFCHR)
-#endif
+#include "luv_portability.h"
 
 void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_newtable(L);
@@ -55,12 +47,6 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "rdev");
   lua_pushinteger(L, s->st_size);
   lua_setfield(L, -2, "size");
-#ifdef __POSIX__
-  lua_pushinteger(L, s->st_blksize);
-  lua_setfield(L, -2, "blksize");
-  lua_pushinteger(L, s->st_blocks);
-  lua_setfield(L, -2, "blocks");
-#endif
   lua_pushinteger(L, s->st_atime);
   lua_setfield(L, -2, "atime");
   lua_pushinteger(L, s->st_mtime);
@@ -75,14 +61,19 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "is_fifo");
   lua_pushboolean(L, S_ISCHR(s->st_mode));
   lua_setfield(L, -2, "is_character_device");
-#ifndef _WIN32
   lua_pushboolean(L, S_ISBLK(s->st_mode));
   lua_setfield(L, -2, "is_block_device");
   lua_pushboolean(L, S_ISLNK(s->st_mode));
   lua_setfield(L, -2, "is_symbolic_link");
   lua_pushboolean(L, S_ISSOCK(s->st_mode));
   lua_setfield(L, -2, "is_socket");
+#ifdef __POSIX__
+  lua_pushinteger(L, s->st_blksize);
+  lua_setfield(L, -2, "blksize");
+  lua_pushinteger(L, s->st_blocks);
+  lua_setfield(L, -2, "blocks");
 #endif
+
 }
 
 int luv_string_to_flags(lua_State* L, const char* string) {
