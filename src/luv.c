@@ -73,6 +73,12 @@ static const luaL_reg luv_f[] = {
   {"spawn", luv_spawn},
   {"processKill", luv_process_kill},
   {"getpid", luv_getpid},
+#ifndef _WIN32
+  {"getuid", luv_getuid},
+  {"getgid", luv_getgid},
+  {"setuid", luv_setuid},
+  {"setgid", luv_setgid},
+#endif
   
   /* Stream functions */
   {"shutdown", luv_shutdown},
