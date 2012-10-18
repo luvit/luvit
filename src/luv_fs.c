@@ -27,6 +27,7 @@
 
 #include "luv_fs.h"
 #include "utils.h"
+#include "luv_portability.h"
 
 void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_newtable(L);
@@ -46,19 +47,12 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "rdev");
   lua_pushinteger(L, s->st_size);
   lua_setfield(L, -2, "size");
-#ifdef __POSIX__
-  lua_pushinteger(L, s->st_blksize);
-  lua_setfield(L, -2, "blksize");
-  lua_pushinteger(L, s->st_blocks);
-  lua_setfield(L, -2, "blocks");
-#endif
   lua_pushinteger(L, s->st_atime);
   lua_setfield(L, -2, "atime");
   lua_pushinteger(L, s->st_mtime);
   lua_setfield(L, -2, "mtime");
   lua_pushinteger(L, s->st_ctime);
   lua_setfield(L, -2, "ctime");
-#ifndef _WIN32
   lua_pushboolean(L, S_ISREG(s->st_mode));
   lua_setfield(L, -2, "is_file");
   lua_pushboolean(L, S_ISDIR(s->st_mode));
@@ -73,6 +67,11 @@ void luv_push_stats_table(lua_State* L, struct stat* s) {
   lua_setfield(L, -2, "is_symbolic_link");
   lua_pushboolean(L, S_ISSOCK(s->st_mode));
   lua_setfield(L, -2, "is_socket");
+#ifdef __POSIX__
+  lua_pushinteger(L, s->st_blksize);
+  lua_setfield(L, -2, "blksize");
+  lua_pushinteger(L, s->st_blocks);
+  lua_setfield(L, -2, "blocks");
 #endif
 }
 
