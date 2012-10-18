@@ -581,7 +581,7 @@ tls_conn_get_peer_certificate(lua_State *L)
   EVP_PKEY *pkey = NULL;
   RSA *rsa = NULL;
   tls_conn_t *tc = NULL;
-  int index;
+  int index, j;
   unsigned int md_size, i;
   unsigned char md[EVP_MAX_MD_SIZE];
   STACK_OF(ASN1_OBJECT) *eku;
@@ -697,10 +697,10 @@ tls_conn_get_peer_certificate(lua_State *L)
     char buf[256];
     lua_pushstring(L, "ext_key_usage");
     lua_newtable(L);
-    for (i = 0; i < sk_ASN1_OBJECT_num(eku); i++) {
+    for (j = 0; j < sk_ASN1_OBJECT_num(eku); j++) {
       memset(buf, 0, sizeof(buf));
-      OBJ_obj2txt(buf, sizeof(buf) - 1, sk_ASN1_OBJECT_value(eku, i), 1);
-      lua_pushnumber(L, i + 1);
+      OBJ_obj2txt(buf, sizeof(buf) - 1, sk_ASN1_OBJECT_value(eku, j), 1);
+      lua_pushnumber(L, j + 1);
       lua_pushstring(L, buf);
       lua_settable(L, -3);
     }

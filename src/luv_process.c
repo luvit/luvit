@@ -90,7 +90,7 @@ int luv_spawn(lua_State* L) {
   const char* command = luaL_checkstring(L, 4);
   size_t argc;
   char** args;
-  int i;
+  size_t i;
   char* cwd;
   char** env;
   uv_process_options_t options;
