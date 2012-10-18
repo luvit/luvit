@@ -73,7 +73,7 @@ static const luaL_reg luv_f[] = {
   {"spawn", luv_spawn},
   {"processKill", luv_process_kill},
   {"getpid", luv_getpid},
-#ifndef _MSC_VER
+#ifndef _WIN32
   {"getuid", luv_getuid},
   {"getgid", luv_getgid},
   {"setuid", luv_setuid},

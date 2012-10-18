@@ -46,7 +46,7 @@ int luv_getpid(lua_State* L){
   return 1;
 }
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 /* Retrieves User ID */
 int luv_getuid(lua_State* L){
   int uid = getuid();

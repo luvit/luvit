@@ -27,7 +27,7 @@
 int luv_spawn(lua_State* L);
 int luv_process_kill(lua_State* L);
 int luv_getpid(lua_State* L);
-#ifndef _MSC_VER
+#ifndef _WIN32
 int luv_getuid(lua_State* L);
 int luv_getgid(lua_State* L);
 int luv_setuid(lua_State* L);
