@@ -36,6 +36,7 @@ uv_buf_t luv_on_alloc(uv_handle_t* handle, size_t suggested_size);
 
 void luv_on_close(uv_handle_t* handle);
 
+int luv__close(lua_State* L, uv_handle_t* handle);
 int luv_close (lua_State* L);
 int luv_set_handler(lua_State* L);
 
