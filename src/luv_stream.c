@@ -47,7 +47,7 @@ void luv_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
     if (err.code == UV_EOF) {
       luv_emit_event(L, "end", 0);
     } else {
-      luv__close(L, handle);
+      uv_close(handle, NULL);
       luv_push_async_error(L, uv_last_error(luv_get_loop(L)), "on_read", NULL);
       luv_emit_event(L, "error", 1);
     }
