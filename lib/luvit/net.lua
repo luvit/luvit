@@ -145,8 +145,9 @@ function Socket:_initEmitters()
     self:emit('connect')
   end)
 
-  self._handle:on('end', function()
+  self._handle:once('end', function()
     self:emit('end')
+    self:done()
   end)
 
   self._handle:on('data', function(data)
@@ -161,6 +162,14 @@ function Socket:_initEmitters()
       self:destroy()
     end
     self:emit('error', err)
+  end)
+end
+
+function Socket:done()
+  self.writable = false
+
+  self:shutdown(function()
+    self:destroy()
   end)
 end
 
