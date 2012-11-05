@@ -58,7 +58,7 @@ debug('REQRES2', tostring(request), tostring(response), response.headers, respon
   response:on('data', function (data)
     debug('server response data', data)
   end)
-  response:on('closed', function ()
+  response:on('close', function ()
     debug('server response socket closed')
   end)
   response:on('end', function ()

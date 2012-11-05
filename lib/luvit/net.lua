@@ -137,12 +137,8 @@ function Socket:resume()
 end
 
 function Socket:_initEmitters()
-  self._handle:on('close', function()
-    self:emit('close')
-  end)
-
-  self._handle:on('closed', function()
-    self:emit('closed')
+  self._handle:once('close', function()
+    self:destroy()
   end)
 
   self._handle:on('timeout', function()

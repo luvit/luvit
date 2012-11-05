@@ -65,7 +65,7 @@ void luv_on_close(uv_handle_t* handle) {
   lua_State *L = lhandle->L;
   lua_rawgeti(L, LUA_REGISTRYINDEX, lhandle->ref);
 
-  luv_emit_event(L, "closed", 0);
+  luv_emit_event(L, "close", 0);
 
   luv_handle_unref(L, handle->data);
 
