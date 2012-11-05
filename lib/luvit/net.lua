@@ -77,10 +77,6 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:pipe(destination)
-  self._handle:pipe(destination)
-end
-
 function Socket:write(data, callback)
   if self.destroyed then
     return
