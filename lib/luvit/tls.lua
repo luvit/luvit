@@ -593,7 +593,7 @@ function SecurePair:destroy()
   self.cleartext.writable = false
   self.cleartext.readable = false
 
-  timer.setTimeout(0, function()
+  process.nextTick(function()
     self.cleartext:emit('end')
     self.encrypted:emit('close')
     self.cleartext:emit('close')
