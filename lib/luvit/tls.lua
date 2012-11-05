@@ -226,6 +226,9 @@ function CryptoStream:done(d)
     self:write(d)
   end
 
+  table.insert(self._pending, END_OF_FILE)
+  table.insert(self._pendingCallbacks, nil)
+
   self.writable = false
 
   self.pair:cycle()
@@ -295,7 +298,7 @@ function CryptoStream:_push()
     assert(#data >= 0)
 
     if #data == 0 then
-      if self:_internallyPendingBytes() == 0 then
+      if self:_internallyPendingBytes() == 0 and self._destroyAfterPush then
         self:_done()
       end
       return
@@ -317,11 +320,27 @@ function CryptoStream:_pull()
     local tmp = table.remove(self._pending)
     local callback = table.remove(self._pendingCallbacks)
 
+    if tmp == END_OF_FILE then
+      if (self == self.pair.encrypted) then
+        dbg('end encrypted ' .. tostring(self.pair.fd))
+        self.pair.cleartext._destroyAfterPush = true
+      else
+        assert(self == self.pair.cleartext)
+        dbg('end cleartext')
+        self.pair.encrypted._destroyAfterPush = true
+
+        self.pair.ssl:shutdown()
+      end
+
+      self.pair:cycle()
+      self:_done()
+      return
+    end
+
     if #tmp ~= 0 then
       local rv = self:_puller(tmp)
 
       if self.pair.ssl and self.pair.ssl:getError() then
-        p('error function')
         self.pair:err()
         return
       end
@@ -472,6 +491,7 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
 
   dbg('SecurePair:initialize')
   self._secureEstablished = false
+  self._doneFlag = false
   self._isServer = isServer
   self._rejectUnauthorized = rejectUnauthorized
 
@@ -638,8 +658,9 @@ function pipe(pair, socket)
     cleartext:emit('error', e)
   end
 
-  function onend()
-    cleartext:emit('end')
+  function onclose()
+    socket:removeListener('error', onerror)
+    socket:removeListener('timeout', ontimeout)
   end
 
   function ontimeout()
@@ -647,7 +668,7 @@ function pipe(pair, socket)
   end
 
   socket:on('error', onerror)
-  socket:on('end', onend)
+  socket:on('close', onclose)
   socket:on('timeout', ontimeout)
 
   return cleartext
