@@ -240,9 +240,13 @@ function Socket:destroy(exception)
   if self.destroyed == true then
     return
   end
+
+  self.destroyed = true
+
   timer.unenroll(self)
   self.readable = false
   self.writable = false
+
   if self._handle then
     self._handle:close()
     self._handle = nil
@@ -253,8 +257,6 @@ function Socket:destroy(exception)
     end
     self:emit('close')
   end)
-
-  self.destroyed = true
 end
 
 function Socket:initialize(handle)
