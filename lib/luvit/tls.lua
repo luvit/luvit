@@ -427,10 +427,6 @@ function CleartextStream:_pusher()
   return self.pair.ssl:clearOut()
 end
 
-function CleartextStream:shutdown(cb)
-  self:destroy()
-  if cb then cb() end
-end
 function CleartextStream:destroy()
   if self.socket and self._closing ~= true then
     self.socket:destroy()
