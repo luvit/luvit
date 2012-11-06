@@ -1026,7 +1026,7 @@ function Response:done(callback)
       self:emit("end")
       self:destroy()
       if callback then
-        self:on("closed", callback)
+        self:on("close", callback)
       end
     end)
   else
@@ -1181,7 +1181,7 @@ function http.onClient(server, client, onConnection)
     parser:finish()
   end)
 
-  client:once("closed", function ()
+  client:once("close", function ()
     if request then
       request:emit("end")
       request:removeListener("end")
