@@ -77,10 +77,6 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:pipe(destination)
-  self._handle:pipe(destination)
-end
-
 function Socket:write(data, callback)
   if self.destroyed then
     return
@@ -121,6 +117,10 @@ function Socket:_write(data, callback)
 end
 
 function Socket:shutdown(callback)
+  if self.destroyed == true then
+    return
+  end
+
   self._handle:shutdown(callback)
 end
 
@@ -133,12 +133,8 @@ function Socket:resume()
 end
 
 function Socket:_initEmitters()
-  self._handle:on('close', function()
-    self:emit('close')
-  end)
-
-  self._handle:on('closed', function()
-    self:emit('closed')
+  self._handle:once('close', function()
+    self:destroy()
   end)
 
   self._handle:on('timeout', function()
@@ -149,8 +145,9 @@ function Socket:_initEmitters()
     self:emit('connect')
   end)
 
-  self._handle:on('end', function()
+  self._handle:once('end', function()
     self:emit('end')
+    self:done()
   end)
 
   self._handle:on('data', function(data)
@@ -165,6 +162,14 @@ function Socket:_initEmitters()
       self:destroy()
     end
     self:emit('error', err)
+  end)
+end
+
+function Socket:done()
+  self.writable = false
+
+  self:shutdown(function()
+    self:destroy()
   end)
 end
 
@@ -235,9 +240,13 @@ function Socket:destroy(exception)
   if self.destroyed == true then
     return
   end
+
+  self.destroyed = true
+
   timer.unenroll(self)
   self.readable = false
   self.writable = false
+
   if self._handle then
     self._handle:close()
     self._handle = nil
@@ -248,8 +257,6 @@ function Socket:destroy(exception)
     end
     self:emit('close')
   end)
-
-  self.destroyed = true
 end
 
 function Socket:initialize(handle)

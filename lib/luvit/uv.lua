@@ -22,7 +22,7 @@ local Handle = Emitter:extend()
 uv.Handle = Handle
 
 function Handle:initialize()
-  self:on('closed', function()
+  self:on('close', function()
     self._closed = true
   end)
 end
@@ -34,8 +34,10 @@ Handle.close = function(self)
     error("close called on closed handle")
     return
   end
+
   native.close(self)
   self._closed = true
+  self:emit('close')
 end
 
 --[[

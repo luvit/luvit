@@ -277,15 +277,28 @@ function iStream:pipe(target)
     end
   end)
 
-  function onclose()
-    if target.destroy then
-      target:destroy()
+  local didOnEnd = false
+  function onend()
+    if (didOnEnd) then
+      return
+    end
+
+    didOnEnd = true
+
+    if target.done then
+      target:done()
     end
   end
 
-  function onend()
-    if target.done then
-      target:done()
+  function onclose()
+    if (didOnEnd) then
+      return
+    end
+
+    didOnEnd = true
+
+    if target.destroy then
+      target:destroy()
     end
   end
 
