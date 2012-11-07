@@ -23,6 +23,7 @@ local osDate = require('os').date
 local string = require('string')
 local stringFormat = require('string').format
 local Object = require('core').Object
+local Error = require('core').Error
 local url = require('url')
 
 local END_OF_FILE = 0
@@ -612,14 +613,16 @@ function ClientRequest:initialize(options, callback)
   self.socketPath = options.socketPath
   self.method = (options.method or 'GET'):upper()
   self.path = options.path or options.pathname or '/'
+  self._hadError = false
+  self._hadResponse = false
 
   if options.search then
     self.path = self.path .. options.search
   end
 
-  if callback then
-    self:once('response', callback)
-  end
+  self:once('response', function(...)
+    self:onResponse(callback, ...)
+  end)
 
   -- TODO Authorization
 
@@ -699,6 +702,23 @@ function ClientRequest:setTimeout(msecs, callback)
   end)
 end
 
+function ClientRequest:onResponse(callback, ...)
+  self._hadResponse = true
+
+  if callback then
+    callback(...)
+  end
+end
+
+function ClientRequest:onSocketClose()
+  self:emit('close')
+  if not self._hadError and not self._hadResponse then
+    local err = Error:new('socket hang up');
+    err.code = 'ECONNRESET';
+    self:emit('error', err)
+  end
+end
+
 function ClientRequest:onSocket(socket)
   local response = ServerResponse:new(self)
   response.socket = socket
@@ -741,12 +761,13 @@ function ClientRequest:onSocket(socket)
       self._httpMessage:emit('drain')
     end
   end)
-  socket:on('close', function()
+  socket:once('close', function()
+    self:onSocketClose()
   end)
-  socket:on('end', function()
-    self.socket:destroy()
+  socket:once('end', function()
+    self:emit('end')
   end)
-  socket:on('timeout', function()
+  socket:once('timeout', function()
     self:emit('timeout')
   end)
   socket:on('data', function(chunk)
@@ -767,6 +788,7 @@ function ClientRequest:onSocket(socket)
     end
   end)
   socket:on('error', function(err)
+    self._hadError = true
     self:emit('error', err)
   end)
   self:emit('socket', socket)
