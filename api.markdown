@@ -292,7 +292,7 @@ Here is an example of a echo server which listens for connections
 on port 8124:
 
     local net = require('net')
-    local server = net.createServer(function (c) { //'connection' listener
+    local server = net.createServer(function (c)  -- 'connection' listener
       debug('server connected')
       c:on('end', function ()
         debug('client disconnected')
@@ -300,7 +300,7 @@ on port 8124:
       c:write('hello\r\n')
       c:pipe(c)
     end)
-    server:listen(8124, function () {
+    server:listen(8124, function () 
       print('server bound')
     end)
 
