@@ -46,6 +46,42 @@ int luv_getpid(lua_State* L){
   return 1;
 }
 
+#ifndef _WIN32
+/* Retrieves User ID */
+int luv_getuid(lua_State* L){
+  int uid = getuid();
+  lua_pushinteger(L, uid);
+  return 1;
+}
+
+/* Retrieves Group ID */
+int luv_getgid(lua_State* L){
+  int gid = getgid();
+  lua_pushinteger(L, gid);
+  return 1;
+}
+
+/* Sets User ID */
+int luv_setuid(lua_State* L){
+  int uid = luaL_checkint(L, 1);
+  int r = setuid(uid);
+  if (-1 == r) {
+    luaL_error(L, "Error setting UID");
+  }
+  return 0;
+}
+
+/* Sets Group ID */
+int luv_setgid(lua_State* L){
+  int gid = luaL_checkint(L, 1);
+  int r = setgid(gid);
+  if (-1 == r) {
+    luaL_error(L, "Error setting GID");
+  }
+  return 0;
+}
+#endif
+
 /* Initializes uv_process_t and starts the process. */
 int luv_spawn(lua_State* L) {
   uv_stream_t* stdin_stream = (uv_stream_t*)luv_checkudata(L, 1, "pipe");
@@ -54,7 +90,7 @@ int luv_spawn(lua_State* L) {
   const char* command = luaL_checkstring(L, 4);
   size_t argc;
   char** args;
-  int i;
+  size_t i;
   char* cwd;
   char** env;
   uv_process_options_t options;

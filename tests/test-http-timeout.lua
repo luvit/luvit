@@ -40,5 +40,7 @@ server:listen(PORT, function()
     req:destroy()
   end
   req:setTimeout(1, destroy)
-  req:on('error', destroy)
+  req:on('error', function(err)
+    assert(err.code == "ECONNRESET")
+  end)
 end)
