@@ -29,7 +29,7 @@
 #include "utils.h"
 #include "luv_portability.h"
 
-void luv_push_stats_table(lua_State* L, struct stat* s) {
+void luv_push_stats_table(lua_State* L, uv_statbuf_t* s) {
   lua_newtable(L);
   lua_pushinteger(L, s->st_dev);
   lua_setfield(L, -2, "dev");
@@ -132,7 +132,7 @@ int luv_process_fs_result(lua_State* L, uv_fs_t* req) {
       case UV_FS_LSTAT:
       case UV_FS_FSTAT:
         argc = 1;
-        luv_push_stats_table(L, (struct stat*)req->ptr);
+        luv_push_stats_table(L, (uv_statbuf_t*)req->ptr);
         break;
 
       case UV_FS_READLINK:
