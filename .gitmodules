@@ -8,7 +8,7 @@
   ignore = dirty
 [submodule "deps/luajit"]
 	path = deps/luajit
-	url = http://luajit.org/git/luajit-2.0.git
+	url = https://github.com/luvit/luajit-2.0.git
   ignore = dirty
 [submodule "deps/yajl"]
 	path = deps/yajl
