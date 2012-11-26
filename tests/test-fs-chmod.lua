@@ -22,12 +22,13 @@ local FS = require('fs')
 local Path = require('path')
 local string = require('string')
 local bit = require('bit')
+local os = require('os')
 
 local got_error = false
 local success_count = 0
 local mode_async
 local mode_sync
-local is_windows = process.platform == 'win32'
+local is_windows = os.type() == 'win32'
 
 local openCount = 0
 
