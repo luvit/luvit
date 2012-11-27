@@ -142,6 +142,24 @@ function Path:extname(filepath)
   return filepath:match(".[^.]+$") or ""
 end
 
+function Path:_makeLong(filepath)
+  if os.type() == "win32" then
+    -- Standard windows path
+    if filepath:match("^[A..Za..z]:") then
+      return "\\\\?\\" .. filepath
+    else
+      -- Windows Network Path
+      if filepath:match("^\\\\[^?.]") then
+        return "\\\\?\\UNC\\" .. filepath
+      else
+        return filepath
+      end
+    end
+  else
+    return filepath
+  end
+end
+
 path.nt = Path:new("c:", "\\")
 path.posix = Path:new("/", "/")
 
