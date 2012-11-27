@@ -145,11 +145,11 @@ end
 function Path:_makeLong(filepath)
   if os.type() == "win32" then
     -- Standard windows path
-    if filepath:match("^[A..Za..z]:") then
+    if filepath:match("^[%a]:") then
       return "\\\\?\\" .. filepath
     else
       -- Windows Network Path
-      if filepath:match("^\\\\[^?.]") then
+      if filepath:match("^\\\\[^?]") then
         return "\\\\?\\UNC\\" .. filepath
       else
         return filepath
