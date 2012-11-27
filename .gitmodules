@@ -24,7 +24,7 @@
   ignore = dirty
 [submodule "deps/luacrypto"]
 	path = deps/luacrypto
-	url = http://github.com/luvit/luacrypto
+	url = https://github.com/luvit/luacrypto
   ignore = dirty
 [submodule "tools/gyp"]
 	path = tools/gyp
