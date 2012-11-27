@@ -214,6 +214,30 @@ function fs.truncateSync(path, len)
   fs.closeSync(fd)
 end
 
+function fs.stat(path, callback)
+  return native.fsStat(pathlib._makeLong(path),callback)
+end
+
+function fs.statSync(path)
+  return fs.stat(path,nil)
+end
+
+function fs.lstat(path, callback)
+  return native.fsLstat(pathlib._makeLong(path),callback)
+end
+
+function fs.lstatSync(path)
+  return fs.lstat(path,nil)
+end
+
+function fs.rename(path, newpath, callback)
+  return native.fsRename(pathlib._makeLong(path),pathlib._makeLong(newpath),callback)
+end
+
+function fs.renameSync(path, newpath)
+  return fs.rename(path,newpath,nil)
+end
+
 local CHUNK_SIZE = 65536
 
 local read_options = {
