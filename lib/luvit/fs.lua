@@ -21,30 +21,39 @@ local table = require('table')
 local pathlib = require('path')
 local iStream = require('core').iStream
 local fs = {}
-local sizes = {
-  Close = 1,
-  Read = 3,
-  Write = 3,
-  Unlink = 1,
-  Mkdir = 2,
-  Rmdir = 1,
-  Readdir = 1,
-  Stat = 1,
-  Fstat = 1,
-  Rename = 2,
-  Fsync = 1,
-  Fdatasync = 1,
-  Sendfile = 4,
-  Chmod = 2,
-  Utime = 3,
-  Futime = 3,
-  Lstat = 1,
-  Link = 2,
-  Symlink = 3,
-  Readlink = 1,
-  Fchmod = 2,
-  Chown = 3,
-  Fchown = 3,
+
+local function passthrough(arg)
+   return arg
+end
+
+local function longpath(arg)
+   return pathlib._makeLong(arg)
+end
+
+local func_descs = {
+  Close = { passthrough },
+  Read = { passthrough, passthrough, passthrough },
+  Write = { passthrough, passthrough, passthrough },
+  Unlink = { longpath },
+  Mkdir = { longpath, passthrough},
+  Rmdir = { longpath },
+  Readdir = { longpath },
+  Stat = { longpath },
+  Fstat = { passthrough },
+  Rename = { longpath, longpath },
+  Fsync = { passthrough },
+  Fdatasync = { passthrough },
+  Sendfile = { passthrough, passthrough, passthrough, passthrough },
+  Chmod = { longpath, passthrough},
+  Utime = { longpath, passthrough, passthrough },
+  Futime = { passthrough, passthrough, passthrough },
+  Lstat = { longpath },
+  Link = { longpath, longpath },
+  Symlink = { longpath, longpath, passthrough },
+  Readlink = { longpath },
+  Fchmod = { passthrough, passthrough},
+  Chown = { longpath, passthrough, passthrough },
+  Fchown = { passthrough, passthrough, passthrough },
 }
 
 -- Default callback if one isn't given for async operations
@@ -53,36 +62,36 @@ local function default(err, ...)
 end
 
 -- Wrap the core fs functions in forced sync and async versions
-for name, arity in pairs(sizes) do
+for name, param_handlers in pairs(func_descs) do
   local sync, async
   local real = native["fs" .. name]
-  if arity == 1 then
+  if #param_handlers == 1 then
     async = function (arg, callback)
-      return real(arg, callback or default)
+      return real(param_handlers[1](arg), callback or default)
     end
     sync = function (arg)
-      return real(arg)
+      return real(param_handlers[1](arg))
     end
-  elseif arity == 2 then
+  elseif #param_handlers == 2 then
     async = function (arg1, arg2, callback)
-      return real(arg1, arg2, callback or default)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), callback or default)
     end
     sync = function (arg1, arg2)
-      return real(arg1, arg2)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2))
     end
-  elseif arity == 3 then
+  elseif #param_handlers == 3 then
     async = function (arg1, arg2, arg3, callback)
-      return real(arg1, arg2, arg3, callback or default)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3), callback or default)
     end
     sync = function (arg1, arg2, arg3)
-      return real(arg1, arg2, arg3)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3))
     end
-  elseif arity == 4 then
+  elseif #param_handlers == 4 then
     async = function (arg1, arg2, arg3, arg4, callback)
-      return real(arg1, arg2, arg3, arg4, callback or default)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3), param_handlers[4](arg4), callback or default)
     end
     sync = function (arg1, arg2, arg3, arg4)
-      return real(arg1, arg2, arg3, arg4)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3), param_handlers[4](arg4))
     end
   end
   fs[name:lower()] = async
@@ -212,30 +221,6 @@ function fs.truncateSync(path, len)
     return err
   end
   fs.closeSync(fd)
-end
-
-function fs.stat(path, callback)
-  return native.fsStat(pathlib._makeLong(path),callback)
-end
-
-function fs.statSync(path)
-  return fs.stat(path,nil)
-end
-
-function fs.lstat(path, callback)
-  return native.fsLstat(pathlib._makeLong(path),callback)
-end
-
-function fs.lstatSync(path)
-  return fs.lstat(path,nil)
-end
-
-function fs.rename(path, newpath, callback)
-  return native.fsRename(pathlib._makeLong(path),pathlib._makeLong(newpath),callback)
-end
-
-function fs.renameSync(path, newpath)
-  return fs.rename(path,newpath,nil)
 end
 
 local CHUNK_SIZE = 65536
