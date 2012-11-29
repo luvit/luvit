@@ -56,55 +56,78 @@ function utils.colorize(color_name, string, reset_name)
   return utils.color(color_name) .. tostring(string) .. utils.color(reset_name)
 end
 
-local backslash, null, newline, carriage, tab, quote, quote2, obracket, cbracket
+local escapes = { backslash = "\\\\", null = "\\0", newline = "\\n", carriage = "\\r",
+  tab = "\\t", quote = '"', quote2 = '"', obracket = '[', cbracket = ']'
+}
+
+local colorized_escapes = {}
 
 function utils.loadColors (n)
   if n ~= nil then utils._useColors = n end
-  backslash = utils.colorize("Bgreen", "\\\\", "green")
-  null      = utils.colorize("Bgreen", "\\0", "green")
-  newline   = utils.colorize("Bgreen", "\\n", "green")
-  carriage  = utils.colorize("Bgreen", "\\r", "green")
-  tab       = utils.colorize("Bgreen", "\\t", "green")
-  quote     = utils.colorize("Bgreen", '"', "green")
-  quote2    = utils.colorize("Bgreen", '"')
-  obracket  = utils.colorize("B", '[')
-  cbracket  = utils.colorize("B", ']')
+
+  colorized_escapes["backslash"] = utils.colorize("Bgreen", escapes.backslash, "green")
+  colorized_escapes["null"]      = utils.colorize("Bgreen", escapes.null, "green")
+  colorized_escapes["newline"]   = utils.colorize("Bgreen", escapes.newline, "green")
+  colorized_escapes["carriage"]  = utils.colorize("Bgreen", escapes.carriage, "green")
+  colorized_escapes["tab"]       = utils.colorize("Bgreen", escapes.tab, "green")
+  colorized_escapes["quote"]     = utils.colorize("Bgreen", escapes.quote, "green")
+  colorized_escapes["quote2"]    = utils.colorize("Bgreen", escapes.quote2)
+  for k,v in pairs(escapes) do
+    if not colorized_escapes[k] then
+      colorized_escapes[k] = utils.colorize("B", v)
+    end
+  end
 end
 
-utils.loadColors ()
+utils.loadColors()
 
-function utils.dump(o, depth)
+local function colorize_nop(color, obj)
+  return obj
+end
+
+function utils.dump(o, depth, no_colorize)
+  local _colorize_func
+  local _escapes
+
+  if no_colorize then
+    _escapes = escapes
+    colorize_func = colorize_nop
+  else
+    _escapes = colorized_escapes
+    colorize_func = utils.colorize
+  end
+
   local t = type(o)
   if t == 'string' then
-    return quote .. o:gsub("\\", backslash):gsub("%z", null):gsub("\n", newline):gsub("\r", carriage):gsub("\t", tab) .. quote2
+    return _escapes.quote .. o:gsub("\\", _escapes.backslash):gsub("%z", _escapes.null):gsub("\n", _escapes.newline):gsub("\r", _escapes.carriage):gsub("\t", _escapes.tab) .. _escapes.quote2
   end
   if t == 'nil' then
-    return utils.colorize("Bblack", "nil")
+    return colorize_func("Bblack", "nil")
   end
   if t == 'boolean' then
-    return utils.colorize("yellow", tostring(o))
+    return colorize_func("yellow", tostring(o))
   end
   if t == 'number' then
-    return utils.colorize("blue", tostring(o))
+    return colorize_func("blue", tostring(o))
   end
   if t == 'userdata' then
-    return utils.colorize("magenta", tostring(o))
+    return colorize_func("magenta", tostring(o))
   end
   if t == 'thread' then
-    return utils.colorize("Bred", tostring(o))
+    return colorize_func("Bred", tostring(o))
   end
   if t == 'function' then
-    return utils.colorize("cyan", tostring(o))
+    return colorize_func("cyan", tostring(o))
   end
   if t == 'cdata' then
-    return utils.colorize("Bmagenta", tostring(o))
+    return colorize_func("Bmagenta", tostring(o))
   end
   if t == 'table' then
     if type(depth) == 'nil' then
       depth = 0
     end
     if depth > 1 then
-      return utils.colorize("yellow", tostring(o))
+      return colorize_func("yellow", tostring(o))
     end
     local indent = ("  "):rep(depth)
 
@@ -130,10 +153,10 @@ function utils.dump(o, depth)
         if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
           s = k .. ' = '
         else
-          s = '[' .. utils.dump(k, 100) .. '] = '
+          s = '[' .. utils.dump(k, 100, no_colorize) .. '] = '
         end
       end
-      s = s .. utils.dump(v, depth + 1)
+      s = s .. utils.dump(v, depth + 1, no_colorize)
       lines[i] = s
       estimated = estimated + #s
       i = i + 1
