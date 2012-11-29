@@ -144,9 +144,9 @@ end
 
 -- use this when long paths cannot have relative parts (windows)
 local function derelative(filepath)
-  filepath = filepath:gsub("\\.\\","\\")
-  while filepath:match("\\[^\\]+\\..\\") do
-    filepath = filepath:gsub("\\[^\\]+\\..\\","\\")
+  filepath = filepath:gsub("\\%.\\","\\")
+  while filepath:match("\\[^\\]+\\%.%.\\") do
+    filepath = filepath:gsub("\\[^\\]+\\%.%.\\","\\")
   end
   return filepath
 end
