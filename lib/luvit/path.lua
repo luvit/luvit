@@ -142,18 +142,30 @@ function Path:extname(filepath)
   return filepath:match(".[^.]+$") or ""
 end
 
--- use this when long paths cannot have relative parts (windows)
+-- use this when fully qualified long windows paths cannot have relative parts
 local function derelative(filepath)
-  filepath = filepath:gsub("\\%.\\","\\")
-  while filepath:match("\\[^\\]+\\%.%.\\") do
-    filepath = filepath:gsub("\\[^\\]+\\%.%.\\","\\")
+  -- loop . and .. cases until cleared
+  while filepath:match("\\%.\\") do
+    filepath = filepath:gsub("\\%.\\","\\",1)
   end
+  while filepath:match("\\[^\\]+\\%.%.\\") do
+    -- some X:\..\..\ pairs get eaten by this but no matter
+    filepath = filepath:gsub("\\[^\\]+\\%.%.\\","\\",1)
+  end
+  -- handle .. to the root
+  if filepath:match("^[%a]:\\%.%.\\") then
+    filepath = filepath:gsub("^([%a]:\\)%.%.\\","%1",1)
+  end
+  -- trailing cases last
+  filepath = filepath:gsub("\\%.$","")
+  filepath = filepath:gsub("\\[^\\]+\\%.%.$","")
+  filepath = filepath:gsub("^([%a]:\\)%.%.$","%1",1)
   return filepath
 end
 
 function Path:_makeLong(filepath)
   if os.type() == "win32" then
-    -- Standard windows path
+    -- Standard windows fully qualified path
     if filepath:match("^[%a]:") then
       -- long paths cannot have relative parts
       return "\\\\?\\" .. derelative(filepath)
