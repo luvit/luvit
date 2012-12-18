@@ -65,6 +65,30 @@ function calcJitter(n, jitter)
   return math.floor(n + (jitter * math.random()))
 end
 
+local counter = 0
+local timeoutId1
+local timeoutId2
+local timeoutId3
+
+-- Test two timers closing at the same time caused expiration() to call close on
+-- the wrong timer
+
+local function schedule()
+    timeoutId2 = timer.setTimeout(200, function()
+    end)
+
+    timeoutId1 = timer.setTimeout(200, function()
+        timer.clearTimer(timeoutId2)
+        counter = counter + 1
+
+        if counter < 4 then
+            schedule()
+        end
+    end)
+end
+
+schedule()
+
 local recursiveTimerCount = 0
 local recursiveTime = 0
 local st = 0
