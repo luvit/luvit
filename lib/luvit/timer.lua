@@ -84,11 +84,13 @@ expiration = function(timer, msecs)
         end
       end
     end
+
     -- Remove the timer if it wasn't already
     -- removed by unenroll
-    if lists[msecs] ~= nil then
-      timer:stop()
-      timer:close()
+    local list = lists[msecs]
+    if list and isEmpty(list) then
+      list:stop()
+      list:close()
       lists[msecs] = nil
     end
   end
