@@ -275,17 +275,19 @@ install: all
 	install ${BUILDDIR}/luvit ${BINDIR}/luvit
 	mkdir -p ${LIBDIR}
 	cp lib/luvit/*.lua ${LIBDIR}
+	mkdir -p ${INCDIR}/http_parser
+	cp ${HTTPDIR}/http_parser.h ${INCDIR}/http_parser/
+	mkdir -p ${INCDIR}/uv
+	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
+	cp src/*.h ${INCDIR}/
+ifeq (${USE_SYSTEM_LUAJIT},0)
 	mkdir -p ${INCDIR}/luajit
 	cp ${LUADIR}/src/lua.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/lauxlib.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/luaconf.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/luajit.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/lualib.h ${INCDIR}/luajit/
-	mkdir -p ${INCDIR}/http_parser
-	cp ${HTTPDIR}/http_parser.h ${INCDIR}/http_parser/
-	mkdir -p ${INCDIR}/uv
-	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
-	cp src/*.h ${INCDIR}/
+endif
 
 uninstall:
 	test -f ${BINDIR}/luvit && rm -f ${BINDIR}/luvit
