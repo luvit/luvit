@@ -7,6 +7,12 @@
 #   USE_SYSTEM_YAJL=1
 #
 # default is to use the bundled libraries
+#
+# disable debug symbols:
+#   DEBUG=0
+#
+## disable -Werror:
+#   WERROR=0
 
 
 VERSION=$(shell git describe --tags)
@@ -32,6 +38,17 @@ USE_SYSTEM_SSL?=0
 USE_SYSTEM_LUAJIT?=0
 USE_SYSTEM_ZLIB?=0
 USE_SYSTEM_YAJL?=0
+
+DEBUG ?= 1
+ifeq (${DEBUG},1)
+CFLAGS += -g
+endif
+
+WERROR ?= 1
+ifeq (${WERROR},1)
+CFLAGS += -Werror
+endif
+
 
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
@@ -218,7 +235,7 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
-	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
+	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -Wall -c $< -o $@ \
 		-I${HTTPDIR} -I${UVDIR}/include -I${CRYPTODIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
@@ -239,7 +256,7 @@ ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
 ${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
-	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
+	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
 		${CRYPTODIR}/src/lcrypto.o ${LIBS}
 
 clean:
