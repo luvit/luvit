@@ -1,3 +1,11 @@
+### OPTIONS ###
+# export the following variables to use the system libraries
+# instead of the bundled ones:
+#   USE_SYSTEM_SSL=1
+#
+# default is to use the bundled libraries
+
+
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
 LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
@@ -17,12 +25,7 @@ BINDIR?=${DESTDIR}${PREFIX}/bin
 INCDIR?=${DESTDIR}${PREFIX}/include/luvit
 LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
 
-OPENSSL_LIBS=$(shell pkg-config openssl --libs 2> /dev/null)
-ifeq (${OPENSSL_LIBS},)
 USE_SYSTEM_SSL?=0
-else
-USE_SYSTEM_SSL?=1
-endif
 
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
@@ -55,7 +58,7 @@ LIBS += -lluvit \
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
 CPPFLAGS+=$(shell pkg-config --cflags openssl)
-LIBS+=${OPENSSL_LIBS}
+LIBS+=$(shell pkg-config --libs openssl)
 else
 CPPFLAGS+=-I${SSLDIR}/openssl/include
 LIBS+=${SSLDIR}/libopenssl.a
