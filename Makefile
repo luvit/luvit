@@ -2,6 +2,9 @@
 # export the following variables to use the system libraries
 # instead of the bundled ones:
 #   USE_SYSTEM_SSL=1
+#   USE_SYSTEM_LUAJIT=1
+#   USE_SYSTEM_ZLIB=1
+#   USE_SYSTEM_YAJL=1
 #
 # default is to use the bundled libraries
 
@@ -26,6 +29,9 @@ INCDIR?=${DESTDIR}${PREFIX}/include/luvit
 LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
 
 USE_SYSTEM_SSL?=0
+USE_SYSTEM_LUAJIT?=0
+USE_SYSTEM_ZLIB?=0
+USE_SYSTEM_YAJL?=0
 
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
@@ -50,11 +56,18 @@ MAKEFLAGS+=-e
 
 LDFLAGS+=-L${BUILDDIR}
 LIBS += -lluvit \
-	${ZLIBDIR}/libz.a \
-	${YAJLDIR}/yajl.a \
 	${UVDIR}/uv.a \
-	${LUADIR}/src/libluajit.a \
 	-lm -ldl -lpthread
+
+
+ifeq (${USE_SYSTEM_LUAJIT},1)
+CPPFLAGS+=$(shell pkg-config --cflags luajit)
+LIBS+=$(shell pkg-config --libs luajit)
+else
+CPPFLAGS+=-I${LUADIR}/src
+LIBS+=${LUADIR}/src/libluajit.a
+endif
+
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
 CPPFLAGS+=$(shell pkg-config --cflags openssl)
@@ -63,6 +76,23 @@ else
 CPPFLAGS+=-I${SSLDIR}/openssl/include
 LIBS+=${SSLDIR}/libopenssl.a
 endif
+
+ifeq (${USE_SYSTEM_ZLIB},1)
+CPPFLAGS+=$(shell pkg-config --cflags zlib)
+LIBS+=$(shell pkg-config --libs zlib)
+else
+CPPFLAGS+=-I${ZLIBDIR}
+LIBS+=${ZLIBDIR}/libz.a
+endif
+
+ifeq (${USE_SYSTEM_YAJL},1)
+CPPFLAS+=$(shell pkg-config --cflags yajl)
+LIBS+=$(shell pkg-config --libs yajl)
+else
+CPPFLAGS += -I${YAJLDIR}/src -I${YAJLDIR}/src/api
+LIBS+=${YAJLDIR}/yajl.a
+endif
+
 
 ifeq (${OS_NAME},Linux)
 LIBS+=-lrt
@@ -121,15 +151,25 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
-DEPS=${LUADIR}/src/libluajit.a \
-     ${YAJLDIR}/yajl.a         \
-     ${UVDIR}/uv.a             \
-     ${ZLIBDIR}/libz.a         \
+DEPS= ${UVDIR}/uv.a             \
      ${HTTPDIR}/http_parser.o
+
+ifeq (${USE_SYSTEM_LUAJIT},0)
+DEPS+=${LUADIR}/src/libluajit.a
+endif
 
 ifeq (${USE_SYSTEM_SSL},0)
 DEPS+=${SSLDIR}/libopenssl.a
 endif
+
+ifeq (${USE_SYSTEM_ZLIB},0)
+DEPS+=${ZLIBDIR}/libz.a
+endif
+
+ifeq (${USE_SYSTEM_YAJL},0)
+DEPS+=${YAJLDIR}/yajl.a
+endif
+
 
 all: ${BUILDDIR}/luvit
 
@@ -179,8 +219,7 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
-		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api \
-		-I${YAJLDIR}/src -I${ZLIBDIR} -I${CRYPTODIR}/src \
+		-I${HTTPDIR} -I${UVDIR}/include -I${CRYPTODIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
