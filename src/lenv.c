@@ -71,9 +71,10 @@ static int lenv_keys(lua_State* L) {
 }
 
 static int lenv_get(lua_State* L) {
-  DWORD size;
   char* s = NULL;
   const char* name = luaL_checkstring(L, 1);
+#ifdef _WIN32
+  DWORD size;
   size = GetEnvironmentVariable(name, 0, 0);
   if (size) {
     s = (char*)malloc(size);
@@ -84,6 +85,9 @@ static int lenv_get(lua_State* L) {
   }
   lua_pushstring(L, s);
   free(s);
+#else
+  lua_pushstring(L, getenv(name));
+#endif
   return 1;
 }
 
