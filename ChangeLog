@@ -21,9 +21,8 @@
   Bugfixes
 
   * Improved Makefile options (hasufell)
-  * Fix a bug which would call close on a wrong and already closed Timer if two
-    timers were expiring at the same time and timer.clearTimer was called on one
-    of them. (Tomaz Muraus)
+  * Fix a close() call on a wrong Timer object which could happen
+    if two timers were expiring at the same time (Tomaz Muraus) #376, #377
   * Fixup Windows process spawning (Bert Belder)
   * tls pull fixes (Brandon Philips)
   * Normalize CRLF/LF for Windows (Rob Emanuele)
