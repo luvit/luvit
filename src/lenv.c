@@ -77,9 +77,9 @@ static int lenv_get(lua_State* L) {
   DWORD size;
   size = GetEnvironmentVariable(name, 0, 0);
   if (size) {
-    s = (char*)malloc(size);
+    s = malloc(size);
     if (!s) {
-      return luaL_error(L, "Malloc env get string varible failed.");
+      return luaL_error(L, "Malloc env get string variable failed.");
     }
     GetEnvironmentVariable(name, s, size);
   }
