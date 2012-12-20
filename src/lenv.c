@@ -71,8 +71,19 @@ static int lenv_keys(lua_State* L) {
 }
 
 static int lenv_get(lua_State* L) {
+  DWORD size;
+  char* s = NULL;
   const char* name = luaL_checkstring(L, 1);
-  lua_pushstring(L, getenv(name));
+  size = GetEnvironmentVariable(name, 0, 0);
+  if (size) {
+    s = (char*)malloc(size);
+    if (!s) {
+      return luaL_error(L, "Malloc env get string varible failed.");
+    }
+    GetEnvironmentVariable(name, s, size);
+  }
+  lua_pushstring(L, s);
+  free(s);
   return 1;
 }
 
