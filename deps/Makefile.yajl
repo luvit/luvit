@@ -36,5 +36,5 @@ src/api/yajl:
 	ln -s . src/api/yajl 
 
 build/%.o: src/%.c build src/api/yajl src/api/yajl_version.h
-	$(CC) -g -Wall -c $< -o $@ -I src/api
+	$(CC) $(CFLAGS) -g -Wall -c $< -o $@ -I src/api
 
