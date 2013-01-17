@@ -225,7 +225,7 @@ int luv_run(lua_State* L) {
   uv_loop_t *loop = luv_get_loop(L);
   int option = luaL_optint(L, 2, UV_RUN_DEFAULT);
   int ret = uv_run(loop, option);
-  lua_pushint(L, ret);
+  lua_pushinteger(L, ret);
   return 1;
 }
 
