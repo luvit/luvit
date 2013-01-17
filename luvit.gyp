@@ -8,7 +8,7 @@
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/yajl.gyp:copy_headers',
-       'deps/uv/uv.gyp:uv',
+       'deps/uv/uv.gyp:libuv',
        'deps/zlib/zlib.gyp:zlib',
        'deps/luacrypto.gyp:luacrypto',
      ],
@@ -17,7 +17,7 @@
        'deps/luajit.gyp:luajit',
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
-       'deps/uv/uv.gyp:uv',
+       'deps/uv/uv.gyp:libuv',
        'deps/luacrypto.gyp:luacrypto',
       ],
       'conditions': [
