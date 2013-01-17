@@ -19,6 +19,11 @@
 #include <assert.h>
 #include <string.h>
 
+#ifndef container_of
+#define container_of(ptr, type, member) \
+  ((type *) ((char *) (ptr) - offsetof(type, member)))
+#endif
+
 #include "uv.h"
 #include "luv_misc.h"
 #include "utils.h"
@@ -184,16 +189,21 @@ const char *luv_signo_string(int signo) {
   return "";
 }
 
+struct luv_signal_context {
+  lua_State *L;
+  uv_signal_t handle;
+  int signum;
+};
 
-static void luv_on_signal(struct ev_loop *loop, struct ev_signal *w, int revents) {
-  assert(uv_default_loop()->ev == loop);
-  lua_State* L = (lua_State*)w->data;
+
+static void luv_on_signal(uv_signal_t* handle, int signum) {
+  struct luv_signal_context* ctx = container_of(handle, struct luv_signal_context, handle);
+  lua_State* L = ctx->L;
   lua_getglobal(L, "process");
   lua_getfield(L, -1, "emit");
   lua_pushvalue(L, -2);
   lua_remove(L, -3);
-  lua_pushstring(L, luv_signo_string(w->signum));
-  lua_pushinteger(L, revents);
+  lua_pushstring(L, luv_signo_string(signum));
   lua_call(L, 3, 0);
 }
 
@@ -202,19 +212,21 @@ static void luv_on_signal(struct ev_loop *loop, struct ev_signal *w, int revents
 int luv_activate_signal_handler(lua_State* L) {
 #ifndef _WIN32
   int signal = luaL_checkint(L, 1);
-  struct ev_signal* signal_watcher = (struct ev_signal*)malloc(sizeof(struct ev_signal));
-  signal_watcher->data = L;
-  ev_signal_init (signal_watcher, luv_on_signal, signal);
-  struct ev_loop* loop = uv_default_loop()->ev;
-  ev_signal_start (loop, signal_watcher);
+  struct luv_signal_context* signal_watcher = (struct luv_signal_context*)malloc(sizeof(struct luv_signal_context));
+  signal_watcher->L = L;
+  uv_signal_init (uv_default_loop(), &signal_watcher->handle);
+  uv_signal_start (&signal_watcher->handle, luv_on_signal, signal);
 #endif
   return 0;
 }
 
 
 int luv_run(lua_State* L) {
-  uv_run(luv_get_loop(L));
-  return 0;
+  uv_loop_t *loop = luv_get_loop(L);
+  int option = luaL_optint(L, 2, UV_RUN_DEFAULT);
+  int ret = uv_run(loop, option);
+  lua_pushint(L, ret);
+  return 1;
 }
 
 int luv_update_time(lua_State* L) {
