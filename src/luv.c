@@ -19,7 +19,6 @@
 #include "uv.h"
 #include <stdlib.h>
 #include <string.h>
-#include "uv-private/ev.h"
 
 #include "luv_fs.h"
 #include "luv_dns.h"
@@ -204,6 +203,13 @@ LUALIB_API int luaopen_uv_native (lua_State* L) {
   lua_setfield(L, -2, "VERSION_MAJOR");
   lua_pushnumber(L, UV_VERSION_MINOR);
   lua_setfield(L, -2, "VERSION_MINOR");
+
+  lua_pushnumber(L, UV_RUN_DEFAULT);
+  lua_setfield(L, -2, "RUN_DEFAULT");
+  lua_pushnumber(L, UV_RUN_ONCE);
+  lua_setfield(L, -2, "RUN_ONCE");
+  lua_pushnumber(L, UV_RUN_NOWAIT);
+  lua_setfield(L, -2, "RUN_NOWAIT");
 
   return 1;
 }
