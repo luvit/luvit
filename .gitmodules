@@ -30,3 +30,7 @@
 	path = tools/gyp
 	url = https://github.com/luvit/gyp.git
   ignore = dirty
+[submodule "deps/cares"]
+	path = deps/cares
+	url = https://github.com/piscisaureus/cares.git
+   ignore = dirty

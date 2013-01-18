@@ -253,7 +253,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   luv_set_loop(L, loop);
 
   /* Store the ARES Channel */
-  uv_ares_init_options(luv_get_loop(L), &channel, &options, 0);
+  ares_init_options(&channel, &options, 0);
   luv_set_ares_channel(L, channel);
 
   return 0;
