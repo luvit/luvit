@@ -204,7 +204,7 @@ static void luv_on_signal(uv_signal_t* handle, int signum) {
   lua_pushvalue(L, -2);
   lua_remove(L, -3);
   lua_pushstring(L, luv_signo_string(signum));
-  lua_call(L, 3, 0);
+  lua_call(L, 2, 0);
 }
 
 #endif
@@ -212,10 +212,13 @@ static void luv_on_signal(uv_signal_t* handle, int signum) {
 int luv_activate_signal_handler(lua_State* L) {
 #ifndef _WIN32
   int signal = luaL_checkint(L, 1);
+  /* memory leek ? */
   struct luv_signal_context* signal_watcher = (struct luv_signal_context*)malloc(sizeof(struct luv_signal_context));
   signal_watcher->L = L;
   uv_signal_init (uv_default_loop(), &signal_watcher->handle);
-  uv_signal_start (&signal_watcher->handle, luv_on_signal, signal);
+  uv_signal_start (&signal_watcher->handle, luv_on_signal,signal);  
+  /* at the moment necessary, to let interpreter exit */
+  uv_unref((struct uv_handle_t*)&signal_watcher->handle);
 #endif
   return 0;
 }
