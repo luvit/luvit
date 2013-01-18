@@ -217,7 +217,7 @@ int luv_activate_signal_handler(lua_State* L) {
   signal_watcher->L = L;
   uv_signal_init (uv_default_loop(), &signal_watcher->handle);
   uv_signal_start (&signal_watcher->handle, luv_on_signal,signal);  
-  /* at the moment necessary, to let interpreter exit */
+  /* this is necessary to let the loop exit */
   uv_unref((struct uv_handle_t*)&signal_watcher->handle);
 #endif
   return 0;
