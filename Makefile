@@ -90,7 +90,7 @@ CPPFLAGS += -I${YAJLDIR}/src -I${YAJLDIR}/src/api
 LIBS+=${YAJLDIR}/yajl.a
 endif
 
-LIBS += ${UVDIR}/uv.a
+LIBS += ${UVDIR}/libuv.a
 
 ifeq (${USE_SYSTEM_LUAJIT},1)
 CPPFLAGS+=$(shell pkg-config --cflags luajit)
@@ -169,7 +169,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
-DEPS= ${UVDIR}/uv.a             \
+DEPS= ${UVDIR}/libuv.a             \
      ${HTTPDIR}/http_parser.o
 
 ifeq (${USE_SYSTEM_LUAJIT},0)
