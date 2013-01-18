@@ -212,8 +212,8 @@ ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
 ${UVDIR}/Makefile:
 	git submodule update --init ${UVDIR}
 
-${UVDIR}/uv.a: ${UVDIR}/Makefile
-	$(MAKE) -C ${UVDIR} uv.a
+${UVDIR}/libuv.a: ${UVDIR}/Makefile
+	$(MAKE) -C ${UVDIR} libuv.a
 
 ${HTTPDIR}/Makefile:
 	git submodule update --init ${HTTPDIR}
