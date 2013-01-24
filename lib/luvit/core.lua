@@ -46,7 +46,7 @@ Caveats: This function returns true for classes.
     assert(instanceof(Emitter, Object))
 ]]
 function core.instanceof(obj, class)
-  if type(obj) ~= 'table' or obj.meta == nil then
+  if type(obj) ~= 'table' or obj.meta == nil or not class then
     return false
   end
   if obj.meta.__index == class then
