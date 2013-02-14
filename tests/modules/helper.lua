@@ -24,12 +24,26 @@ local source = debug.getinfo(3, "S").source:sub(1)
 local table = require('table')
 local expectations = {}
 
+local function dump_table(o)
+  if type(o) == 'table' then
+    local s = '{ '
+    for k,v in pairs(o) do
+      if type(k) ~= 'number' then k = '"'..k..'"' end
+      s = s .. '['..k..'] = ' .. dump_table(v) .. ','
+    end
+    return s .. '} '
+  else
+    return tostring(o)
+  end
+end
+
 local fail = function(name, msg, default_msg)
   local debug_info = debug.getinfo(3)
+  -- sometimes msg is a table, dump it
   local str = string.format("  %sFAIL %s - %s - Line: %i%s\n",
     utils.color("Bred"),
     name,
-    msg or default_msg,
+    dump_table(msg or default_msg),
     debug_info.currentline,
     utils.color())
   printStderr(str)
