@@ -18,32 +18,42 @@ limitations under the License.
 
 local native = require('uv_native')
 local table = require('table')
+local pathlib = require('path')
 local iStream = require('core').iStream
 local fs = {}
-local sizes = {
-  Close = 1,
-  Read = 3,
-  Write = 3,
-  Unlink = 1,
-  Mkdir = 2,
-  Rmdir = 1,
-  Readdir = 1,
-  Stat = 1,
-  Fstat = 1,
-  Rename = 2,
-  Fsync = 1,
-  Fdatasync = 1,
-  Sendfile = 4,
-  Chmod = 2,
-  Utime = 3,
-  Futime = 3,
-  Lstat = 1,
-  Link = 2,
-  Symlink = 3,
-  Readlink = 1,
-  Fchmod = 2,
-  Chown = 3,
-  Fchown = 3,
+
+local function passthrough(arg)
+   return arg
+end
+
+local function longpath(arg)
+   return pathlib._makeLong(arg)
+end
+
+local func_descs = {
+  Close = { passthrough },
+  Read = { passthrough, passthrough, passthrough },
+  Write = { passthrough, passthrough, passthrough },
+  Unlink = { longpath },
+  Mkdir = { longpath, passthrough},
+  Rmdir = { longpath },
+  Readdir = { longpath },
+  Stat = { longpath },
+  Fstat = { passthrough },
+  Rename = { longpath, longpath },
+  Fsync = { passthrough },
+  Fdatasync = { passthrough },
+  Sendfile = { passthrough, passthrough, passthrough, passthrough },
+  Chmod = { longpath, passthrough},
+  Utime = { longpath, passthrough, passthrough },
+  Futime = { passthrough, passthrough, passthrough },
+  Lstat = { longpath },
+  Link = { longpath, longpath },
+  Symlink = { longpath, longpath, passthrough },
+  Readlink = { longpath },
+  Fchmod = { passthrough, passthrough},
+  Chown = { longpath, passthrough, passthrough },
+  Fchown = { passthrough, passthrough, passthrough },
 }
 
 -- Default callback if one isn't given for async operations
@@ -52,36 +62,36 @@ local function default(err, ...)
 end
 
 -- Wrap the core fs functions in forced sync and async versions
-for name, arity in pairs(sizes) do
+for name, param_handlers in pairs(func_descs) do
   local sync, async
   local real = native["fs" .. name]
-  if arity == 1 then
+  if #param_handlers == 1 then
     async = function (arg, callback)
-      return real(arg, callback or default)
+      return real(param_handlers[1](arg), callback or default)
     end
     sync = function (arg)
-      return real(arg)
+      return real(param_handlers[1](arg))
     end
-  elseif arity == 2 then
+  elseif #param_handlers == 2 then
     async = function (arg1, arg2, callback)
-      return real(arg1, arg2, callback or default)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), callback or default)
     end
     sync = function (arg1, arg2)
-      return real(arg1, arg2)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2))
     end
-  elseif arity == 3 then
+  elseif #param_handlers == 3 then
     async = function (arg1, arg2, arg3, callback)
-      return real(arg1, arg2, arg3, callback or default)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3), callback or default)
     end
     sync = function (arg1, arg2, arg3)
-      return real(arg1, arg2, arg3)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3))
     end
-  elseif arity == 4 then
+  elseif #param_handlers == 4 then
     async = function (arg1, arg2, arg3, arg4, callback)
-      return real(arg1, arg2, arg3, arg4, callback or default)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3), param_handlers[4](arg4), callback or default)
     end
     sync = function (arg1, arg2, arg3, arg4)
-      return real(arg1, arg2, arg3, arg4)
+      return real(param_handlers[1](arg1), param_handlers[2](arg2), param_handlers[3](arg3), param_handlers[4](arg4))
     end
   end
   fs[name:lower()] = async
@@ -105,15 +115,15 @@ function fs.open(path, flags, mode, callback)
     mode = nil
   end
   mode = modeNum(mode, 438 --[[=0666]])
-  native.fsOpen(path, flags, mode, callback or default)
+  native.fsOpen(pathlib._makeLong(path), flags, mode, callback or default)
 end
 
 function fs.openSync(path, flags, mode)
-  return native.fsOpen(path, flags, modeNum(mode, 438 --[[=0666]]))
+  return native.fsOpen(pathlib._makeLong(path), flags, modeNum(mode, 438 --[[=0666]]))
 end
 
 function fs.exists(path, callback)
-  native.fsStat(path, function (err)
+  native.fsStat(pathlib._makeLong(path), function (err)
     if not err then
       return callback(nil, true)
     end
@@ -126,7 +136,7 @@ end
 
 function fs.existsSync(path)
   local success, err = pcall(function ()
-    native.fsStat(path)
+    native.fsStat(pathlib._makeLong(path))
   end)
   if not err then return true end
   if err.code == "ENOENT" or err.code == "ENOTDIR" then
@@ -152,7 +162,7 @@ function writeAll(fd, offset, buffer, callback)
 end
 
 function fs.appendFile(path, data, callback)
-  fs.open(path, 'a', 438 --[[0666]], function(err, fd)
+  fs.open(pathlib._makeLong(path), 'a', 438 --[[0666]], function(err, fd)
     if err then return callback(err) end
     writeAll(fd, -1, tostring(data), callback)
   end)
@@ -160,7 +170,7 @@ end
 
 function fs.appendFileSync(path, data)
   data = tostring(data)
-  local fd = fs.openSync(path, 'a')
+  local fd = fs.openSync(pathlib._makeLong(path), 'a')
   local written = 0
   local length = #data
 
@@ -193,7 +203,7 @@ function fs.truncate(path, len, callback)
     callback = len
     len = nil
   end
-  fs.open(path, 'w', function(err, fd)
+  fs.open(pathlib._makeLong(path), 'w', function(err, fd)
     if err then return callback(err) end
     native.fsFtruncate(fd, len or 0, function(err)
       fs.close(fd, function(err2)
@@ -204,7 +214,7 @@ function fs.truncate(path, len, callback)
 end
 
 function fs.truncateSync(path, len)
-  local fd = fs.openSync(path, 'w')
+  local fd = fs.openSync(pathlib._makeLong(path), 'w')
   local ok, err
   ok, err = pcall(native.fsFtruncate, fd, len or 0)
   if not ok then
@@ -247,7 +257,7 @@ function ReadStream:initialize(path, options)
     return
   end
 
-  fs.open(path, options.flags, options.mode, function (err, fd)
+  fs.open(pathlib._makeLong(path), options.flags, options.mode, function (err, fd)
     if err then return self:emit("error", err) end
     self.fd = fd
     self:_read()
@@ -290,11 +300,11 @@ end
 
 -- TODO: Implement backpressure here and in tcp streams
 function fs.createReadStream(path, options)
-  return ReadStream:new(path, options)
+  return ReadStream:new(pathlib._makeLong(path), options)
 end
 
 function fs.readFileSync(path)
-  local fd = fs.openSync(path, "r", "0666")
+  local fd = fs.openSync(pathlib._makeLong(path), "r", "0666")
   local parts = {}
   local length = 0
   local offset = 0
@@ -311,7 +321,7 @@ function fs.readFileSync(path)
 end
 
 function fs.readFile(path, callback)
-  local stream = fs.createReadStream(path)
+  local stream = fs.createReadStream(pathlib._makeLong(path))
   local parts = {}
   local num = 0
   stream:on("data", function (chunk, len)
@@ -325,7 +335,7 @@ function fs.readFile(path, callback)
 end
 
 function fs.writeFileSync(path, data)
-  local fd = fs.openSync(path, "w", "0666")
+  local fd = fs.openSync(pathlib._makeLong(path), "w", "0666")
   fs.writeSync(fd, 0, data)
   fs.closeSync(fd)
 end
@@ -334,7 +344,7 @@ function fs.writeFile(path, data, callback)
   if not type(data) == 'string' then
     error('data parameter must be a string')
   end
-  fs.open(path, "w", "0666", function (err, fd)
+  fs.open(pathlib._makeLong(path), "w", "0666", function (err, fd)
     if err then return callback(err) end
     local offset = 0
     local length = #data
@@ -403,7 +413,7 @@ function fs.createWriteStream(path, options)
     return WriteStream:new(options.fd)
   end
 
-  fd = fs.openSync(path, options.flags, options.mode)
+  fd = fs.openSync(pathlib._makeLong(path), options.flags, options.mode)
   return WriteStream:new(fd)
 end
 

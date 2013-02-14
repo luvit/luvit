@@ -43,7 +43,7 @@ assert(stat.size == 0)
 
 -- ftruncateSync
 FS.writeFileSync(filename, data)
-local fd = FS.openSync(filename, 'a')
+local fd = FS.openSync(filename, 'r+')
 
 stat = FS.statSync(filename)
 assert(stat.size == 1024 * 16)

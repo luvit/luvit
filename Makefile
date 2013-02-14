@@ -1,3 +1,20 @@
+### OPTIONS ###
+# export the following variables to use the system libraries
+# instead of the bundled ones:
+#   USE_SYSTEM_SSL=1
+#   USE_SYSTEM_LUAJIT=1
+#   USE_SYSTEM_ZLIB=1
+#   USE_SYSTEM_YAJL=1
+#
+# default is to use the bundled libraries
+#
+# disable debug symbols:
+#   DEBUG=0
+#
+## disable -Werror:
+#   WERROR=0
+
+
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
 LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
@@ -17,12 +34,21 @@ BINDIR?=${DESTDIR}${PREFIX}/bin
 INCDIR?=${DESTDIR}${PREFIX}/include/luvit
 LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
 
-OPENSSL_LIBS=$(shell pkg-config openssl --libs 2> /dev/null)
-ifeq (${OPENSSL_LIBS},)
 USE_SYSTEM_SSL?=0
-else
-USE_SYSTEM_SSL?=1
+USE_SYSTEM_LUAJIT?=0
+USE_SYSTEM_ZLIB?=0
+USE_SYSTEM_YAJL?=0
+
+DEBUG ?= 1
+ifeq (${DEBUG},1)
+CFLAGS += -g
 endif
+
+WERROR ?= 1
+ifeq (${WERROR},1)
+CFLAGS += -Werror
+endif
+
 
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
@@ -46,20 +72,45 @@ export Q=
 MAKEFLAGS+=-e
 
 LDFLAGS+=-L${BUILDDIR}
-LIBS += -lluvit \
-	${ZLIBDIR}/libz.a \
-	${YAJLDIR}/yajl.a \
-	${UVDIR}/uv.a \
-	${LUADIR}/src/libluajit.a \
-	-lm -ldl -lpthread
+LIBS += -lluvit
+
+ifeq (${USE_SYSTEM_ZLIB},1)
+CPPFLAGS+=$(shell pkg-config --cflags zlib)
+LIBS+=$(shell pkg-config --libs zlib)
+else
+CPPFLAGS+=-I${ZLIBDIR}
+LIBS+=${ZLIBDIR}/libz.a
+endif
+
+ifeq (${USE_SYSTEM_YAJL},1)
+CPPFLAS+=$(shell pkg-config --cflags yajl)
+LIBS+=$(shell pkg-config --libs yajl)
+else
+CPPFLAGS += -I${YAJLDIR}/src -I${YAJLDIR}/src/api
+LIBS+=${YAJLDIR}/yajl.a
+endif
+
+LIBS += ${UVDIR}/uv.a
+
+ifeq (${USE_SYSTEM_LUAJIT},1)
+CPPFLAGS+=$(shell pkg-config --cflags luajit)
+LIBS+=$(shell pkg-config --libs luajit)
+else
+CPPFLAGS+=-I${LUADIR}/src
+LIBS+=${LUADIR}/src/libluajit.a
+endif
+
+LIBS += -lm -ldl -lpthread
+
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
 CPPFLAGS+=$(shell pkg-config --cflags openssl)
-LIBS+=${OPENSSL_LIBS}
+LIBS+=$(shell pkg-config --libs openssl)
 else
 CPPFLAGS+=-I${SSLDIR}/openssl/include
 LIBS+=${SSLDIR}/libopenssl.a
 endif
+
 
 ifeq (${OS_NAME},Linux)
 LIBS+=-lrt
@@ -118,15 +169,25 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
-DEPS=${LUADIR}/src/libluajit.a \
-     ${YAJLDIR}/yajl.a         \
-     ${UVDIR}/uv.a             \
-     ${ZLIBDIR}/libz.a         \
+DEPS= ${UVDIR}/uv.a             \
      ${HTTPDIR}/http_parser.o
+
+ifeq (${USE_SYSTEM_LUAJIT},0)
+DEPS+=${LUADIR}/src/libluajit.a
+endif
 
 ifeq (${USE_SYSTEM_SSL},0)
 DEPS+=${SSLDIR}/libopenssl.a
 endif
+
+ifeq (${USE_SYSTEM_ZLIB},0)
+DEPS+=${ZLIBDIR}/libz.a
+endif
+
+ifeq (${USE_SYSTEM_YAJL},0)
+DEPS+=${YAJLDIR}/yajl.a
+endif
+
 
 all: ${BUILDDIR}/luvit
 
@@ -175,9 +236,8 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
-	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -g -Wall -Werror -c $< -o $@ \
-		-I${HTTPDIR} -I${UVDIR}/include -I${LUADIR}/src -I${YAJLDIR}/src/api \
-		-I${YAJLDIR}/src -I${ZLIBDIR} -I${CRYPTODIR}/src \
+	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -Wall -c $< -o $@ \
+		-I${HTTPDIR} -I${UVDIR}/include -I${CRYPTODIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
@@ -197,7 +257,7 @@ ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
 ${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
-	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -g -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
+	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
 		${CRYPTODIR}/src/lcrypto.o ${LIBS}
 
 clean:
@@ -216,17 +276,19 @@ install: all
 	install ${BUILDDIR}/luvit ${BINDIR}/luvit
 	mkdir -p ${LIBDIR}
 	cp lib/luvit/*.lua ${LIBDIR}
+	mkdir -p ${INCDIR}/http_parser
+	cp ${HTTPDIR}/http_parser.h ${INCDIR}/http_parser/
+	mkdir -p ${INCDIR}/uv
+	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
+	cp src/*.h ${INCDIR}/
+ifeq (${USE_SYSTEM_LUAJIT},0)
 	mkdir -p ${INCDIR}/luajit
 	cp ${LUADIR}/src/lua.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/lauxlib.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/luaconf.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/luajit.h ${INCDIR}/luajit/
 	cp ${LUADIR}/src/lualib.h ${INCDIR}/luajit/
-	mkdir -p ${INCDIR}/http_parser
-	cp ${HTTPDIR}/http_parser.h ${INCDIR}/http_parser/
-	mkdir -p ${INCDIR}/uv
-	cp -r ${UVDIR}/include/* ${INCDIR}/uv/
-	cp src/*.h ${INCDIR}/
+endif
 
 uninstall:
 	test -f ${BINDIR}/luvit && rm -f ${BINDIR}/luvit
@@ -276,7 +338,8 @@ dist_build:
             -e 's/^LUAJIT_VERSION=.*/LUAJIT_VERSION=${LUAJIT_VERSION}/' \
             -e 's/^UV_VERSION=.*/UV_VERSION=${UV_VERSION}/' \
             -e 's/^HTTP_VERSION=.*/HTTP_VERSION=${HTTP_VERSION}/' \
-            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' < Makefile > Makefile.dist
+            -e 's/^YAJL_VERSION=.*/YAJL_VERSION=${YAJL_VERSION}/' \
+	    -e '/^WERROR/s/1/0/' < Makefile > Makefile.dist
 	sed -e 's/LUVIT_VERSION=".*/LUVIT_VERSION=\"${VERSION}\"'\'',/' \
             -e 's/LUAJIT_VERSION=".*/LUAJIT_VERSION=\"${LUAJIT_VERSION}\"'\'',/' \
             -e 's/UV_VERSION=".*/UV_VERSION=\"${UV_VERSION}\"'\'',/' \

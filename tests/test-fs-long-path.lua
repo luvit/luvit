@@ -49,5 +49,9 @@ FS.writeFile(fileName, 'ok', function(err)
 end)
 
 process:on('exit', function()
+  -- clean up the long named file as it is unfriendly to windows
+  if successes > 0 then
+    FS.unlinkSync(fileName)
+  end
   assert(successes == 2)
 end)

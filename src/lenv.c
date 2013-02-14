@@ -72,7 +72,27 @@ static int lenv_keys(lua_State* L) {
 
 static int lenv_get(lua_State* L) {
   const char* name = luaL_checkstring(L, 1);
+#ifdef _WIN32
+  char* s = NULL;
+  DWORD size;
+  size = GetEnvironmentVariable(name, NULL, 0);
+  if (size) {
+    DWORD ret_size;
+    s = malloc(size);
+    if (!s) {
+      return luaL_error(L, "Malloc env get string variable failed.");
+    }
+    ret_size = GetEnvironmentVariable(name, s, size);
+    if (ret_size == 0 || ret_size >= size) {
+      free(s);
+      s = NULL;
+    }
+  }
+  lua_pushstring(L, s);
+  free(s);
+#else
   lua_pushstring(L, getenv(name));
+#endif
   return 1;
 }
 

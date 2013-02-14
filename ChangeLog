@@ -1,3 +1,54 @@
+* Changes between 0.5.0 to 0.6.0
+
+  API Changes
+
+  * Streams now act like node's in all known cases
+    the "closed" event is now gone (Brandon Philips)
+  * nil timers are now accepted (AJ ONeal)
+
+  New features
+
+  * UDP support (Ryan Phillips)
+  * Tons of tests! (Hiroaki Nakamura)
+  * Object.instanceof (Hiroaki Nakamura)
+  * Add get/set UID/GID function on POSIX (andrey)
+  * add getProcessTitle/setProcessTitle (Tim Caswell)
+  * Using luajit 2.0.0 final
+  * Using libuv nodev0.8.16 (Brandon Philips/Tim Caswell)
+  * Add uninstall to Makefile (Matt Sullivan)
+  * Gyp build has install target (Hiroaki Nakamura)
+
+  Bugfixes
+
+  * Improved Makefile options (hasufell)
+  * Fix a close() call on a wrong Timer object (Tomaz Muraus) #376, #377
+  * Fixup Windows process spawning (Bert Belder)
+  * tls pull fixes (Brandon Philips)
+  * Normalize CRLF/LF for Windows (Rob Emanuele)
+  * Fix long paths for Windows (Rob Emanuele)
+  * Fix test-ffi.lua to work on Windows (Rob Emanuele)
+  * Fix Socket destroyed flag (Brandon Philips)
+  * Fix Socket pipe implementation (Brandon Philips)
+  * Fix pipe implementation in general (Brandon Philips)
+  * Fix stream reading crash on exception (Matt Kaniaris)
+  * Compiler warning fixes (Brandon Philips)
+  * Fix up S_IS* macros on Windows (Brad Morgan)
+  * Fix Object:extend (Matt Kaniaris)
+  * Fix fverify leaking errors in lcrypto (Brandon Philips)
+  * Free req when TCP connect fails (Ryan Phillips)
+  * Fix test runner (Matt Kaniaris)
+  * Fix SyncWriteStream and _G.len (Kengo Nakajima)
+  * luv_close fixes (Ryan Phillips)
+  * make clean now cleans up zlib/lcrypto (Brandon Philips)
+  * Fixes to the windows build (Ryan Phillips)
+  * Fixup stdin/stdout/stderr logic (Brandon Philips/Ryan Phillips)
+  * Fix listeners on http missing events (Brandon Philips)
+  * Don't call pauseNoRef on lua stream like objects (Tomaz Muraus)
+  * Fix util.bind memory leak and to preserve nil (Tim Caswell)
+  * Fix double close on Handle/Timers (Brandon Philips)
+  * Close stdin only if already closed (Paul Querna)
+  * Hold coroutine when handler created in coroutine (Andrew Tsao)
+
 * Changes between 0.4.0 to 0.5.0
 
   API Changes
