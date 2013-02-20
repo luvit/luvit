@@ -16,11 +16,11 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
+local FS = load('fs')
 
-local Path = require('path')
+local Path = load('path')
 local fn = Path.join(__dirname, 'fixtures', 'empty.txt')
 
 FS.readFile(fn, function(err, data)

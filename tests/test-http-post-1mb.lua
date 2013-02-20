@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local http = require('http')
-local string = require('string')
+local http = load('http')
+local string = load('string')
 
 local HOST = "127.0.0.1"
 local PORT = process.env.PORT or 10080

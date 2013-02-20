@@ -56,11 +56,11 @@ local function myloadfile(filepath)
   local fn, err = loadstring(code, '@' .. filepath)
   assert(fn, err)
   local dirname = path.dirname(filepath)
-  local realRequire = require
+  local realRequire = load
   setfenv(fn, setmetatable({
     __filename = filepath,
     __dirname = dirname,
-    require = function (filepath)
+    load = function (filepath)
       return realRequire(filepath, dirname)
     end,
   }, global_meta))
@@ -127,7 +127,7 @@ end
 local builtinLoader = package.loaders[1]
 local base_path = process.cwd()
 local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. ']+' ..path.sep.. '[^' ..path.sep.. ']+$') ..path.sep.. 'lib' ..path.sep.. 'luvit' ..path.sep
-function module.require(filepath, dirname)
+function module.load(filepath, dirname)
   if not dirname then dirname = base_path end
 
   -- Let module paths always use / even on windows

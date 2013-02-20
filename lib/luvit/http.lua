@@ -16,20 +16,20 @@ limitations under the License.
 
 --]]
 
-local net = require('net')
-local HttpParser = require('http_parser')
-local table = require('table')
-local osDate = require('os').date
-local string = require('string')
-local stringFormat = require('string').format
-local Object = require('core').Object
-local Error = require('core').Error
-local url = require('url')
+local net = load('net')
+local HttpParser = load('http_parser')
+local table = load('table')
+local osDate = load('os').date
+local string = load('string')
+local stringFormat = load('string').format
+local Object = load('core').Object
+local Error = load('core').Error
+local url = load('url')
 
 local END_OF_FILE = 0
 local CRLF = '\r\n'
 
-local iStream = require('core').iStream
+local iStream = load('core').iStream
 local http = {}
 
 local connectionExpression = 'connection'

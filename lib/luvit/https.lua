@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local fmt = require('string').format
-local http = require('http')
-local tls = require('tls')
-local url = require('url')
+local fmt = load('string').format
+local http = load('http')
+local tls = load('tls')
+local url = load('url')
 
 function createConnection(...)
   local args = {...}

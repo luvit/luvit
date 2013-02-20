@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local Path = require('path')
-local Buffer = require('buffer').Buffer
-local string = require('string')
+local FS = load('fs')
+local Path = load('path')
+local Buffer = load('buffer').Buffer
+local string = load('string')
 
 local dataExpected = FS.readFileSync(__filename)
 

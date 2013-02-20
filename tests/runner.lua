@@ -1,9 +1,9 @@
-local childprocess = require('childprocess')
-local utils = require('utils')
-local fs = require('fs')
-local string = require('string')
-local table = require('table')
-local path = require('path')
+local childprocess = load('childprocess')
+local utils = load('utils')
+local fs = load('fs')
+local string = load('string')
+local table = load('table')
+local path = load('path')
 
 local results = {}
 local ports = 10001

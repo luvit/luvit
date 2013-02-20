@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local Tcp = require('uv').Tcp
-local net = require('net')
+local Tcp = load('uv').Tcp
+local net = load('net')
 
 local PORT = process.env.PORT or 10082
 

@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local fs = require('fs')
+local fs = load('fs')
 
 local certPem = [[
 -----BEGIN CERTIFICATE-----
@@ -83,7 +83,7 @@ dhU2Sz3Q60DwJEL1VenQHiVYlWWtqXBThe9ggqRPnCfsCRTP8qifKkjk45zWPcpN
 ]]
 
 function filename(n)
-  return require('path').join(__dirname, 'fixtures', 'keys', n)
+  return load('path').join(__dirname, 'fixtures', 'keys', n)
 end
 
 function filenamePEM(n)

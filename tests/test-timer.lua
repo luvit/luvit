@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local os = require('os')
+local os = load('os')
 
-local timer = require('timer')
-local math = require('math')
+local timer = load('timer')
+local math = load('math')
 
 expect("timeout")
 timer.setTimeout(200, function (arg1)

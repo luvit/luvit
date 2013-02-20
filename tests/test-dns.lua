@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local dns = require('dns')
-local net = require('net')
+local dns = load('dns')
+local net = load('net')
 
 dns.resolve4('luvit.io', function(err, addresses)
   assert(type(err) == 'nil')

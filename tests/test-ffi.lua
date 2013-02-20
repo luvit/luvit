@@ -1,6 +1,6 @@
-local ffi = require('ffi')
-local timer = require('timer')
-local os = require('os')
+local ffi = load('ffi')
+local timer = load('timer')
+local os = load('os')
 
 local is_windows = os.type() == 'win32'
 local timeout = 20

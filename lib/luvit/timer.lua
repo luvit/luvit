@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-local Timer = require('uv').Timer
-local os = require('os')
-local table = require('table')
+local Timer = load('uv').Timer
+local os = load('os')
+local table = load('table')
 
 local TIMEOUT_MAX = 2147483647
 

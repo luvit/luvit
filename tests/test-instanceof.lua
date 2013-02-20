@@ -16,14 +16,14 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local core = require("core")
+local core = load("core")
 Object = core.Object
 Emitter = core.Emitter
 instanceof = core.instanceof
 
-local uv = require("uv")
+local uv = load("uv")
 Handle = uv.Handle
 
 local o = Object:new()

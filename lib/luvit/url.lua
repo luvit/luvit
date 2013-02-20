@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local querystring = require('querystring')
+local querystring = load('querystring')
 
 local url = {}
 

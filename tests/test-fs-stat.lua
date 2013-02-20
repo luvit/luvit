@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local JSON = require('json')
+local FS = load('fs')
+local JSON = load('json')
 
 local got_error = false
 local success_count = 0

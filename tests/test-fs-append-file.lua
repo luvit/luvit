@@ -16,11 +16,11 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local join = require('path').join
-local Buffer = require('buffer').Buffer
+local FS = load('fs')
+local join = load('path').join
+local Buffer = load('buffer').Buffer
 
 local filename = join(__dirname, 'fixtures', 'append.txt')
 

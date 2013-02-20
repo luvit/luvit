@@ -1,6 +1,6 @@
-require('helper')
-local spawn = require('childprocess').spawn
-local os = require('os')
+load('helper')
+local spawn = load('childprocess').spawn
+local os = load('os')
 
 local environmentTestResult = false
 

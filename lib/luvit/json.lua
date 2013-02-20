@@ -16,8 +16,8 @@ limitations under the License.
 
 --]]
 
-local Yajl = require('yajl')
-local table = require('table')
+local Yajl = load('yajl')
+local table = load('table')
 local JSON = {
   null = Yajl.null
 }

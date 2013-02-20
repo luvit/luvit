@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-local debug = require('debug')
-local utils = require('utils')
-local table = require('table')
+local debug = load('debug')
+local utils = load('utils')
+local table = load('table')
 local repl = {}
 local c = utils.color
 

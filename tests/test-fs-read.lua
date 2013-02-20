@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local math = require('math')
-local string = require('string')
-local FS = require('fs')
-local Path = require('path')
+local math = load('math')
+local string = load('string')
+local FS = load('fs')
+local Path = load('path')
 
 local filepath = Path.join(__dirname, 'fixtures', 'x.txt')
 local fd = FS.openSync(filepath, 'r')

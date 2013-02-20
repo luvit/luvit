@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local Path = require('path')
+local FS = load('fs')
+local Path = load('path')
 
 local successes = 0
 

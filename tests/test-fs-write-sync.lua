@@ -16,11 +16,11 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local Path = require('path')
-local Buffer = require('buffer').Buffer
+local FS = load('fs')
+local Path = load('path')
+local Buffer = load('buffer').Buffer
 
 local fn = Path.join(__dirname, 'tmp', 'write.txt')
 

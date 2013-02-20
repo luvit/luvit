@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local os = require('os')
+local os = load('os')
 
 if os.type() == "win32" then
-  local Path = require('path')
+  local Path = load('path')
   -- test the win32 long path logic
 
   p("-- simple case")

@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local coroutine = require('coroutine')
+local coroutine = load('coroutine')
 local debug = require 'debug'
 local fiber = {}
 

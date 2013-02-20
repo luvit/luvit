@@ -1,4 +1,4 @@
-local env = require('env')
+local env = load('env')
 
 local testv_name = 'TEST_VARIABLE'
 local testv_value = 'Test Value'

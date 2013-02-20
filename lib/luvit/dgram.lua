@@ -18,10 +18,10 @@ limitations under the License.
 
 -- Ported from node's dgram.js.
 
-local dns = require('dns')
-local net = require('net')
-local Udp = require('uv').Udp
-local Emitter = require('core').Emitter
+local dns = load('dns')
+local net = load('net')
+local Udp = load('uv').Udp
+local Emitter = load('core').Emitter
 
 local dgram = {}
 

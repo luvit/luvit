@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local Path = require('path')
+local FS = load('fs')
+local Path = load('path')
 
 local filename = Path.join(__dirname, 'fixtures', 'test.txt')
 
@@ -59,7 +59,7 @@ end)
 --       I think we should not. Just pass buf:toString() instead of buf.
 --[[
 local filename2 = Path.join(__dirname, 'fixtures', 'test2.txt')
-local Buffer = require('buffer').Buffer
+local Buffer = load('buffer').Buffer
 local buf = Buffer:new(s)
 p('writing to ' .. filename2)
 

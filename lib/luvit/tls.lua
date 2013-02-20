@@ -15,20 +15,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local tlsbinding = require('_tls')
-local Buffer = require('buffer').Buffer
-local Object = require('core').Object
-local Emitter = require('core').Emitter
-local iStream = require('core').iStream
-local Socket = require('net').Socket
-local timer = require('timer')
-local table = require('table')
-local net = require('net')
-local bind = require('utils').bind
+local tlsbinding = load('_tls')
+local Buffer = load('buffer').Buffer
+local Object = load('core').Object
+local Emitter = load('core').Emitter
+local iStream = load('core').iStream
+local Socket = load('net').Socket
+local timer = load('timer')
+local table = load('table')
+local net = load('net')
+local bind = load('utils').bind
 
-local Error = require('core').Error
+local Error = load('core').Error
 
-local string = require('string')
+local string = load('string')
 local fmt = string.format
 
 local END_OF_FILE = 42

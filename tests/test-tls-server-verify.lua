@@ -13,14 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
-require('helper')
-local fixture = require('./fixture-tls')
-local fs = require('fs')
-local childprocess = require('childprocess')
-local table = require('table')
-local tls = require('tls')
+load('helper')
+local fixture = load('./fixture-tls')
+local fs = load('fs')
+local childprocess = load('childprocess')
+local table = load('table')
+local tls = load('tls')
 
-if require('os').type() == 'win32' then
+if load('os').type() == 'win32' then
   return
 end
 

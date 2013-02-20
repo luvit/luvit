@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require("helper")
-local path = require('path')
-local fs = require('fs')
+load("helper")
+local path = load('path')
+local fs = load('fs')
 
 local dir = path.join(__dirname, 'tmp', 'readdir')
 if not fs.existsSync(dir) then

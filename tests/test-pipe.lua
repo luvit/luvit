@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require("helper")
-local path = require('path')
-local fs = require('fs')
+load("helper")
+local path = load('path')
+local fs = load('fs')
 
 local tmp_file = path.join(__dirname, 'tmp', 'test_pipe')
 fs.writeFileSync(tmp_file, "")

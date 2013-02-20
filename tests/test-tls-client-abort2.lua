@@ -1,6 +1,6 @@
-require('helper')
-local fixture = require('./fixture-tls')
-local tls = require('tls')
+load('helper')
+local fixture = load('./fixture-tls')
+local tls = load('tls')
 
 local options = {
   cert = fixture.certPem,

@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local Process = require('uv').Process
-local table = require('table')
+local Process = load('uv').Process
+local table = load('table')
 
 local childProcess = {}
 

@@ -16,15 +16,15 @@ limitations under the License.
 
 --]]
 
-local native = require('uv_native')
-local dns = require('dns')
-local Tcp = require('uv').Tcp
-local Timer = require('uv').Timer
-local timer = require('timer')
-local utils = require('utils')
-local Emitter = require('core').Emitter
-local iStream = require('core').iStream
-local table = require('table')
+local native = load('uv_native')
+local dns = load('dns')
+local Tcp = load('uv').Tcp
+local Timer = load('uv').Timer
+local timer = load('timer')
+local utils = load('utils')
+local Emitter = load('core').Emitter
+local iStream = load('core').iStream
+local table = load('table')
 
 local net = {}
 

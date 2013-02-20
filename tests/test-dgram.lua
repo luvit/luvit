@@ -16,8 +16,8 @@ limitations under the License.
 
 --]]
 
-require("helper")
-local dgram = require('dgram')
+load("helper")
+local dgram = load('dgram')
 
 local PORT = process.env.PORT or 10081
 local HOST = '127.0.0.1'

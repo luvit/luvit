@@ -1,7 +1,7 @@
-local utils = require('utils')
-require('helper')
+local utils = load('utils')
+load('helper')
 
-local Object = require('core').Object
+local Object = load('core').Object
 local BindHelper = Object:extend()
 
 function BindHelper:func1(arg1, callback, ...)
@@ -92,6 +92,6 @@ bound('!', function(arg1, arg2, arg3)
   assert(arg3 == '!')
 end)
 
-local Error = require('core').Error
+local Error = load('core').Error
 local MyError = Error:extend()
 assert(pcall(utils.dump, MyError))

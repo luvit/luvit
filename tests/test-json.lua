@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require('helper')
+load('helper')
 
-local JSON = require('json')
+local JSON = load('json')
 
 --
 -- smoke
