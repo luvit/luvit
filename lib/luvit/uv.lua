@@ -380,6 +380,10 @@ end
 -- Process:kill(signal)
 Process.kill = native.processKill
 
+-- Process:hrtime - high res timer, returns current # of nanoseconds
+
+Process.hrtime = native.hrtime
+
 --------------------------------------------------------------------------------
 
 local Watcher = Handle:extend()
