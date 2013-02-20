@@ -90,7 +90,7 @@ FS.mkdir("bundle", "0755", function (err)
   FS.writeFile("src/luvit_exports.c", exports_c, pend())
   FS.writeFile("src/luvit_exports.h", exports_h, pend())
   for i, file in ipairs(files) do
-    ChildProcess.execFile("deps/luajit/src/luajit", {"-bg", "lib/luvit/" .. file, "bundle/" .. names[i] .. ".o"}, {}, pend())
+    ChildProcess.execFile("deps/luajit/src/luajit", {"-bg", "lib/luvit/" .. file, "bundle/" .. names[i] .. ".c"}, {}, pend())
   end
 
 end);
