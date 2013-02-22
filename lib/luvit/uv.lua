@@ -358,23 +358,25 @@ function Process:initialize(command, args, options)
   args = args or {}
   options = options or {}
 
-  self.userdata = native.spawn(self.stdin, self.stdout, self.stderr, command, args, options)
+  self.userdata, self.pid = native.spawn(self.stdin, self.stdout, self.stderr, command, args, options)
 
-  self.stdout:readStart()
-  self.stderr:readStart()
-  self.stdout:on('end', function ()
-    self.stdout:close()
-  end)
-  self.stderr:on('end', function ()
-    self.stderr:close()
-  end)
+  if options.stdio ~= 'ignore' then
+    self.stdout:readStart()
+    self.stderr:readStart()
+    self.stdout:on('end', function ()
+      self.stdout:close()
+    end)
+    self.stderr:on('end', function ()
+      self.stderr:close()
+    end)
+  end
+
   self:on('exit', function ()
     if self.stdin._closed ~= true then
       self.stdin:close()
     end
     self:close()
   end)
-
 end
 
 -- Process:kill(signal)

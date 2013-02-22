@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <process.h>
 #else
@@ -91,8 +92,10 @@ int luv_spawn(lua_State* L) {
   size_t argc;
   char** args;
   size_t i;
+  int ignore_stdio;
   char* cwd;
   char** env;
+  const char* stdio_str;
   uv_process_options_t options;
   uv_stdio_container_t stdio[3];
   uv_process_t* handle;
@@ -104,19 +107,33 @@ int luv_spawn(lua_State* L) {
   memset(&options, 0, sizeof(uv_process_options_t));
   memset(stdio, 0, sizeof(stdio));
 
+  /* Parse stdio flags */
+  lua_getfield(L, 6, "stdio");
+  stdio_str = lua_tostring(L, -1);
+  lua_pop(L, 1);
+
+  if (stdio_str) {
+    ignore_stdio = !strcmp(stdio_str, "ignore");
+  } else {
+    ignore_stdio = FALSE;
+  }
+
   options.stdio = stdio;
   options.stdio_count = 3;
 
-  /*
-  TODO: Handle ignoring stdio
-  options.stdio[0].flags = UV_IGNORE;
-  options.stdio[1].flags = UV_IGNORE;
-  options.stdio[2].flags = UV_IGNORE;
-  */
+  if (ignore_stdio) {
+    options.stdio[0].flags = UV_IGNORE;
+    options.stdio[1].flags = UV_IGNORE;
+    options.stdio[2].flags = UV_IGNORE;
+  } else {
+    options.stdio[0].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;
+    options.stdio[1].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
+    options.stdio[2].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
 
-  options.stdio[0].flags = UV_CREATE_PIPE | UV_READABLE_PIPE;
-  options.stdio[1].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
-  options.stdio[2].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
+    options.stdio[0].data.stream = stdin_stream;
+    options.stdio[1].data.stream = stdout_stream;
+    options.stdio[2].data.stream = stderr_stream;
+  }
 
   /*
   TODO: Handle creating pipes
@@ -124,10 +141,6 @@ int luv_spawn(lua_State* L) {
   options.stdio[1].flags = UV_INHERIT_STREAM;
   options.stdio[2].flags = UV_INHERIT_STREAM;
   */
-
-  options.stdio[0].data.stream = stdin_stream;
-  options.stdio[1].data.stream = stdout_stream;
-  options.stdio[2].data.stream = stderr_stream;
 
   /* Parse the args array */
   argc = lua_objlen(L, 5) + 1;
@@ -160,6 +173,13 @@ int luv_spawn(lua_State* L) {
   }
   lua_pop(L, 1);
 
+  /* Get the detached flag */
+  lua_getfield(L, 6, "detached");
+  if (lua_toboolean(L, -1)) {
+    options.flags |= UV_PROCESS_DETACHED;
+  }
+  lua_pop(L, 1);
+
   options.exit_cb = luv_process_on_exit;
   options.file = command;
   options.args = args;
@@ -178,12 +198,15 @@ int luv_spawn(lua_State* L) {
     return luaL_error(L, "spawn: %s", uv_strerror(err));
   }
 
+  /* Return the Pid */
+  lua_pushinteger(L, handle->pid);
+
   /* return the userdata */
-  return 1;
+  return 2;
 }
 
-/* Kills the process with the specified signal. The user must still call close
- * on the process.
+/* (userdata) Kills the process with the specified signal. The user must still
+ * call close on the process.
  */
 int luv_process_kill(lua_State* L) {
   uv_process_t* handle = (uv_process_t*)luv_checkudata(L, 1, "process");
@@ -200,3 +223,23 @@ int luv_process_kill(lua_State* L) {
   return 0;
 }
 
+/* (pid) Kills a pid with a specified signal. */
+int luv_kill(lua_State* L) {
+  int pid, signum;
+  uv_err_t err;
+
+  pid = luaL_checkint(L, 1);
+
+  if (lua_isnumber(L, 2)) {
+    signum = lua_tonumber(L, 2);
+  } else {
+    signum = SIGTERM;
+  }
+
+  err = uv_kill(pid, signum);
+  if (err.code != UV_OK) {
+    return luaL_error(L, "kill: %s", uv_strerror(err));
+  }
+
+  return 0;
+}

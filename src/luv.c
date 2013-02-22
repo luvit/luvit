@@ -71,6 +71,7 @@ static const luaL_reg luv_f[] = {
 
   /* Process functions */
   {"spawn", luv_spawn},
+  {"kill", luv_kill},
   {"processKill", luv_process_kill},
   {"getpid", luv_getpid},
 #ifndef _WIN32
