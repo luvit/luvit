@@ -164,7 +164,7 @@ local function derelative(filepath)
 end
 
 function Path:_makeLong(filepath)
-  if os.type() == "win32" then
+  if os.type() == "win32" and filepath then
     -- Standard windows fully qualified path
     if filepath:match("^[%a]:") then
       -- long paths cannot have relative parts
