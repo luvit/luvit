@@ -36,6 +36,7 @@ function childProcess.spawn(command, args, options)
   end
 
   options.envPairs = envPairs
+  options.detached = options.detached or false
 
   return Process:new(command, args, options)
 end

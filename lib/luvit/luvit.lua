@@ -135,6 +135,8 @@ function process.nextTick(callback)
   timer.setTimeout(0, callback)
 end
 
+process.kill = native.kill
+
 -- Add global access to the environment variables using a dynamic table
 process.env = setmetatable({}, {
   __pairs = function (table)
