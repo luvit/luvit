@@ -50,7 +50,7 @@ static void luv_on_udp_recv(uv_udp_t* handle,
                             uv_buf_t buf,
                             struct sockaddr* addr,
                             unsigned flags) {
-  int port;
+  int port = 0;
   char ip[INET6_ADDRSTRLEN];
 
   /* load the lua state and the userdata */
