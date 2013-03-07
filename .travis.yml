@@ -1,7 +1,9 @@
 language: erlang
 
 script:
-  - "make test"
+  - "./configure"
+  - "make -C out"
+  - "tools/build.py test"
 
 notifications:
   email: true

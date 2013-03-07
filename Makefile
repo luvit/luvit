@@ -28,6 +28,7 @@ ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
 CRYPTODIR=deps/luacrypto
+CARESDIR=deps/cares
 
 PREFIX?=/usr/local
 BINDIR?=${DESTDIR}${PREFIX}/bin
@@ -50,15 +51,15 @@ CFLAGS += -Werror
 endif
 
 
-OS_NAME=$(shell uname -s)
+OS_NAME ?= $(shell sh -c 'uname -s | tr "[A-Z]" "[a-z]"')
 MH_NAME=$(shell uname -m)
-ifeq (${OS_NAME},Darwin)
+ifeq (${OS_NAME},darwin)
 ifeq (${MH_NAME},x86_64)
 LDFLAGS+=-framework CoreServices -pagezero_size 10000 -image_base 100000000
 else
 LDFLAGS+=-framework CoreServices
 endif
-else ifeq (${OS_NAME},Linux)
+else ifeq (${OS_NAME},linux)
 LDFLAGS+=-Wl,-E
 endif
 # LUAJIT CONFIGURATION #
@@ -90,7 +91,7 @@ CPPFLAGS += -I${YAJLDIR}/src -I${YAJLDIR}/src/api
 LIBS+=${YAJLDIR}/yajl.a
 endif
 
-LIBS += ${UVDIR}/uv.a
+LIBS += ${UVDIR}/libuv.a
 
 ifeq (${USE_SYSTEM_LUAJIT},1)
 CPPFLAGS+=$(shell pkg-config --cflags luajit)
@@ -111,8 +112,22 @@ CPPFLAGS+=-I${SSLDIR}/openssl/include
 LIBS+=${SSLDIR}/libopenssl.a
 endif
 
+LIBS+=${CARESDIR}/out/libcares.a
+ARES_CONFIG_OS = $(OS_NAME)
 
-ifeq (${OS_NAME},Linux)
+ifneq (,$(findstring mingw,$(OS_NAME)))
+ARES_CONFIG_OS = win32
+endif
+
+ifneq (,$(findstring cygwin,$(OS_NAME)))
+ARES_CONFIG_OS = cygwin
+endif
+
+ifeq (dragonflybsd,$(OS_NAME))
+ARES_CONFIG_OS = freebsd
+endif
+
+ifeq (${OS_NAME},linux)
 LIBS+=-lrt
 endif
 
@@ -169,8 +184,9 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
-DEPS= ${UVDIR}/uv.a             \
-     ${HTTPDIR}/http_parser.o
+DEPS= ${UVDIR}/libuv.a             \
+     ${HTTPDIR}/http_parser.o      \
+     ${CARESDIR}/out/libcares.a
 
 ifeq (${USE_SYSTEM_LUAJIT},0)
 DEPS+=${LUADIR}/src/libluajit.a
@@ -214,8 +230,8 @@ ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
 ${UVDIR}/Makefile:
 	git submodule update --init ${UVDIR}
 
-${UVDIR}/uv.a: ${UVDIR}/Makefile
-	$(MAKE) -C ${UVDIR} uv.a
+${UVDIR}/libuv.a: ${UVDIR}/Makefile
+	$(MAKE) -C ${UVDIR} libuv.a
 
 ${HTTPDIR}/Makefile:
 	git submodule update --init ${HTTPDIR}
@@ -236,10 +252,14 @@ ${SSLDIR}/Makefile.openssl:
 ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
 
+${CARESDIR}/out/libcares.a:
+	$(MAKE) -C ${CARESDIR} builddir_name=out
+
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -Wall -c $< -o $@ \
 		-I${HTTPDIR} -I${UVDIR}/include -I${CRYPTODIR}/src \
+		-I${CARESDIR}/include -I${CARESDIR}/config/${ARES_CONFIG_OS} \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
 		-DHTTP_VERSION=\"${HTTP_VERSION}\" \
@@ -268,6 +288,7 @@ clean:
 	${MAKE} -C ${HTTPDIR} clean
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
+	${MAKE} -C ${CARESDIR} clean builddir_name=out
 	${MAKE} -C examples/native clean
 	-rm ${ZLIBDIR}/*.o
 	-rm ${CRYPTODIR}/src/lcrypto.o

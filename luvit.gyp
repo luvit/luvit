@@ -8,7 +8,8 @@
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/yajl.gyp:copy_headers',
-       'deps/uv/uv.gyp:uv',
+       'deps/uv/uv.gyp:libuv',
+       'deps/cares/cares.gyp:cares',
        'deps/zlib/zlib.gyp:zlib',
        'deps/luacrypto.gyp:luacrypto',
      ],
@@ -17,7 +18,8 @@
        'deps/luajit.gyp:luajit',
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
-       'deps/uv/uv.gyp:uv',
+       'deps/uv/uv.gyp:libuv',
+       'deps/cares/cares.gyp:cares',
        'deps/luacrypto.gyp:luacrypto',
       ],
       'conditions': [
@@ -99,12 +101,10 @@
      ],
      'include_dirs': [
        'src',
-       'deps/uv/src/ares'
      ],
      'direct_dependent_settings': {
        'include_dirs': [
          'src',
-         'deps/uv/src/ares'
        ]
      },
      'rules': [

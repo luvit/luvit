@@ -103,6 +103,7 @@
           # POSIX names
           '_CRT_NONSTDC_NO_DEPRECATE',
           'BUILDING_UV_SHARED=1',
+          'CARES_STATICLIB',
         ],
       }],
       [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
