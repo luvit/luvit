@@ -39,9 +39,6 @@
         ],
       }],
       ['OS == "win"', {
-        'defines': [
-          'LUA_BUILD_AS_DLL',
-        ],
       }],
       ['OS=="solaris"', {
         'cflags': ['-pthreads'],
@@ -90,10 +87,7 @@
   },
     {
       'target_name': 'libluajit',
-      'conditions': [
-        ['OS == "win"', { 'type': 'shared_library' },
-          { 'type': 'static_library' } ],
-      ],
+      'type': 'static_library',
       'dependencies': [
         'buildvm',
       ],
