@@ -1,6 +1,6 @@
-local crypto = require('_crypto')
-local fs = require('fs')
-local path = require('path')
+local crypto = load('_crypto')
+local fs = load('fs')
+local path = load('path')
 
 local ca_path = path.join(__dirname, 'ca')
 local ca_cert = fs.readFileSync(path.join(ca_path, 'ca.crt'))

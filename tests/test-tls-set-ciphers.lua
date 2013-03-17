@@ -1,8 +1,8 @@
-require('helper')
-local fixture = require('./fixture-tls')
-local childprocess = require('childprocess')
-local os = require('os')
-local tls = require('tls')
+load('helper')
+local fixture = load('./fixture-tls')
+local childprocess = load('childprocess')
+local os = load('os')
+local tls = load('tls')
 
 local options = {
   cert = fixture.certPem,

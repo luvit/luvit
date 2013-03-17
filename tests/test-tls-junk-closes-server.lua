@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
-require('helper')
-local fixture = require('./fixture-tls')
-local tls = require('tls')
-local net = require('net')
+load('helper')
+local fixture = load('./fixture-tls')
+local tls = load('tls')
+local net = load('net')
 
 local options = {
   key = fixture.loadPEM('agent2-key'),

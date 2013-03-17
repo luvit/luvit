@@ -16,13 +16,13 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local Path = require('path')
-local string = require('string')
-local bit = require('bit')
-local os = require('os')
+local FS = load('fs')
+local Path = load('path')
+local string = load('string')
+local bit = load('bit')
+local os = load('os')
 
 local got_error = false
 local success_count = 0

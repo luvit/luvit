@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local Zlib = require("zlib_native")
+local Zlib = load("zlib_native")
 
 --
 -- smoke test: low level inflate/deflate
@@ -26,7 +26,7 @@ local Zlib = require("zlib_native")
 
 assert(Zlib.new('inflate'):write(Zlib.new('deflate',6):write('test\n','finish')) == 'test\n')
 
-local test_str = require("fs").readFileSync("./fixtures/test.gz")
+local test_str = load("fs").readFileSync("./fixtures/test.gz")
 --assert(#test_str == 30)
 local inflated = Zlib.new('inflate'):write(test_str, "finish")
 assert(inflated == "test\n")
@@ -54,10 +54,10 @@ assert(inflated == test_str)
 -- stream interface
 --
 
-local Table = require('table')
-local Zlib = require("zlib")
+local Table = load('table')
+local Zlib = load("zlib")
 
-local file = require('fs').createReadStream('./fixtures/test.gz', {
+local file = load('fs').createReadStream('./fixtures/test.gz', {
   chunk_size = 3,
 })
 local gunzip = Zlib.Zlib:new('inflate')

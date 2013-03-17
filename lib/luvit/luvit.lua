@@ -25,14 +25,14 @@ process = {
 }
 _G.getcwd = nil
 _G.argv = nil
-require = require('module').require
+load = require('module').load
 
-local Emitter = require('core').Emitter
-local timer = require('timer')
-local env = require('env')
-local constants = require('constants')
-local uv = require('uv')
-local utils = require('utils')
+local Emitter = load('core').Emitter
+local timer = load('timer')
+local env = load('env')
+local constants = load('constants')
+local uv = load('uv')
+local utils = load('utils')
 
 setmetatable(process, {
   __index = function (table, key)
@@ -74,15 +74,15 @@ process.stderr = uv.createWriteableStdioStream(2)
 -- This will break lua code written for other lua runtimes
 _G.io = nil
 _G.os = nil
-_G.math = nil
-_G.string = nil
+--_G.math = nil
+--_G.string = nil
 _G.coroutine = nil
-_G.jit = nil
-_G.bit = nil
-_G.debug = nil
-_G.table = nil
-_G.loadfile = nil
-_G.dofile = nil
+--_G.jit = nil
+--_G.bit = nil
+--_G.debug = nil
+--_G.table = nil
+--_G.loadfile = nil
+--_G.dofile = nil
 _G.print = utils.print
 _G.p = utils.prettyPrint
 _G.debug = utils.debug
@@ -166,8 +166,8 @@ process.env = setmetatable({}, {
 process.pid = native.getpid()
 
 -- Copy date and time over from lua os module into luvit os module
-local OLD_OS = require('os')
-local OS_BINDING = require('os_binding')
+local OLD_OS = load('os')
+local OS_BINDING = load('os_binding')
 package.loaded.os = OS_BINDING
 package.preload.os_binding = nil
 package.loaded.os_binding = nil
@@ -184,7 +184,7 @@ if OS_BINDING.type() ~= "win32" then
   native.activateSignalHandler(constants.SIGTERM)
 end
 
-local traceback = require('debug').traceback
+local traceback = load('debug').traceback
 
 -- This is called by all the event sources from C
 -- The user can override it to hook into event sources
@@ -248,9 +248,9 @@ assert(xpcall(function ()
       -- pkgconfig's --cflags
       elseif value == "--cflags" then
         showrepl = false
-        local Table = require('table')
-        local Path = require("path")
-        local FS = require("fs")
+        local Table = load('table')
+        local Path = load("path")
+        local FS = load("fs")
         -- calculate includes relative to the binary
         local include_dir = Path.normalize(Path.resolve(
           Path.dirname(process.execPath),
@@ -270,13 +270,13 @@ assert(xpcall(function ()
       -- pkgconfig's --libs
       elseif value == "--libs" then
         showrepl = false
-        local Table = require('table')
+        local Table = load('table')
         local libs = {
           "-shared",
           -- TODO: "-L" .. lib_dir,
           "-lm"
         }
-        if require('os').type() == "Darwin" then
+        if load('os').type() == "Darwin" then
           if false then -- TODO: check if 64 bit
             Table.insert(libs, "-pagezero_size 10000")
             Table.insert(libs, "-image_base 100000000")
@@ -307,7 +307,7 @@ assert(xpcall(function ()
 
   process.argv = args
 
-  local repl = require('repl')
+  local repl = load('repl')
 
   if not (native.handleType(1) == "TTY") then
    usecolors = false

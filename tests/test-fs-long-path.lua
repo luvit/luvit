@@ -16,13 +16,13 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local math = require('math')
-local string = require('string')
-local FS = require('fs')
-local Path = require('path')
-local JSON = require('json')
+local math = load('math')
+local string = load('string')
+local FS = load('fs')
+local Path = load('path')
+local JSON = load('json')
 
 local successes = 0
 

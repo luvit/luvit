@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
-timer = require("timer")
+load("helper")
+timer = load("timer")
 
-local hrtime = require('uv').Process.hrtime
+local hrtime = load('uv').Process.hrtime
 
 t1 = hrtime()
 expect("timeout")

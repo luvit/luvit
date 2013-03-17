@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require('helper')
+load('helper')
 
-local parse = require('querystring').parse
+local parse = load('querystring').parse
 
 -- Basic code coverage
 local tests = {

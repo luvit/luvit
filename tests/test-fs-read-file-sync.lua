@@ -16,11 +16,11 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local Path = require('path')
-local string = require('string')
+local FS = load('fs')
+local Path = load('path')
+local string = load('string')
 
 local fn = Path.join(__dirname, 'fixtures', 'elipses.txt')
 

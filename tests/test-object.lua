@@ -16,13 +16,13 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
 --
 -- Foo:new returns new instances
 --
 
-local Foo = require('core').Object:extend()
+local Foo = load('core').Object:extend()
 function Foo:initialize(bar)
   self.bar = bar
 end

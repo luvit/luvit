@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
+local FS = load('fs')
 
 -- should throw ENOENT, not EBADF
 -- see https://github.com/joyent/node/pull/1228

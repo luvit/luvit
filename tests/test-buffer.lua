@@ -16,15 +16,15 @@ limitations under the License.
 
 --]]
 
-local os = require("os")
+local os = load("os")
 
 if (os.type() == "win32") then
   print("buffer is broken on win32, need to not ffi into malloc")
   return
 end
 
-require("helper")
-local Buffer = require('buffer').Buffer
+load("helper")
+local Buffer = load('buffer').Buffer
 
 local buf = Buffer:new(4)
 

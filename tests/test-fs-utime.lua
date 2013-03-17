@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local FS = require('fs')
-local math = require('math')
-local os = require('os')
-local string = require('string')
+local FS = load('fs')
+local math = load('math')
+local os = load('os')
+local string = load('string')
 
 local is_windows = os.type() == 'win32'
 

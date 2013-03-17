@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local path = require('path')
-local os = require('os')
+local path = load('path')
+local os = load('os')
 
 -- test `path.dirname`
 if (os.type() ~= "win32") then

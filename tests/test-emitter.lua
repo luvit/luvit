@@ -16,12 +16,12 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
 --
 -- chaining works
 --
-require('core').Emitter:new()
+load('core').Emitter:new()
   :on("foo", function (x)
     assert(deep_equal(x, { a = "b" }))
     process.exit(0)

@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require("helper")
-local fiber = require("fiber")
-local timer = require("timer")
+load("helper")
+local fiber = load("fiber")
+local timer = load("timer")
 local count = 0
 
 fiber.new(function(wrap, wait)
@@ -31,7 +31,7 @@ end)
 
 collectgarbage()
 
-local net = require('net')
+local net = load('net')
 local PORT = process.env.PORT or 10082
 local messages = {'a','b','c'}
 
@@ -60,7 +60,7 @@ fiber.new(function(wrap, wait)
 end)
 collectgarbage()
 
-local client = require("uv").Tcp:new()
+local client = load("uv").Tcp:new()
 client:connect("127.0.0.1", PORT)
 client:on("connect", function()
   client:write("hi")

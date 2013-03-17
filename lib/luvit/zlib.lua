@@ -16,13 +16,13 @@ limitations under the License.
 
 --]]
 
-local binding = require('zlib_native')
+local binding = load('zlib_native')
 
 --
 -- generic zlib stream
 --
 
-local Zlib = require('core').iStream:extend()
+local Zlib = load('core').iStream:extend()
 
 function Zlib:initialize(what, ...)
   self.zlib = binding.new(what, ...)

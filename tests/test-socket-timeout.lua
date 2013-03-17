@@ -1,5 +1,5 @@
-require("helper")
-local net = require('net')
+load("helper")
+local net = load('net')
 
 local client = net.create(4343, 'luvit.io')
 client:setTimeout(250)

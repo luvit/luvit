@@ -1,6 +1,6 @@
-local crypto = require('_crypto')
-local fs = require('fs')
-local path = require('path')
+local crypto = load('_crypto')
+local fs = load('fs')
+local path = load('path')
 
 local message1 = 'This message '
 local message2 = 'will be signed'

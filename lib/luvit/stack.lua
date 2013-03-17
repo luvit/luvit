@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local url = require('url')
+local url = load('url')
 local stack = {}
 
 function stack.stack(...)
@@ -110,7 +110,7 @@ function stack.translate(mountpoint, matchpoint, ...)
   end
 end
 
-local Debug = require('debug')
+local Debug = load('debug')
 function stack.errorHandler(req, res, err)
   if err then
     res:setCode(500)

@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 
-require("helper")
+load("helper")
 
-local obj = require('core').Emitter:new()
+local obj = load('core').Emitter:new()
 
 process:on("error", function (err, source)
   assert(deep_equal(err, { a = "b" }))

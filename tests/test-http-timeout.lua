@@ -15,9 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-require("helper")
+load("helper")
 
-local http = require('http')
+local http = load('http')
 
 local PORT = process.env.PORT or 10081
 

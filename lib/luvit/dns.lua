@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-local native = require('uv_native')
-local constants = require('constants')
-local Error = require('core').Error
-local string = require('string')
+local native = load('uv_native')
+local constants = load('constants')
+local Error = load('core').Error
+local string = load('string')
 
 local dns = {}
 
@@ -107,19 +107,19 @@ end
 
 function dns.isIP(ip)
   print('dns.isIP is deprecated, use net.isIP')
-  local net = require('net')
+  local net = load('net')
   return net.isIP(ip)
 end
 
 function dns.isIPv4(ip)
   print('dns.isIPv4 is deprecated, use net.isIPv4')
-  local net = require('net')
+  local net = load('net')
   return net.isIPv4(ip)
 end
 
 function dns.isIPv6(ip)
   print('dns.isIPv6 is deprecated, use net.isIPv6')
-  local net = require('net')
+  local net = load('net')
   return net.isIPv6(ip)
 end
 

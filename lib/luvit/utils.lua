@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local table = require('table')
+local table = load('table')
 
 local utils = {}
 

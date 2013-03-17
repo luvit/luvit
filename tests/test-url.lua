@@ -1,6 +1,6 @@
-require('helper')
+load('helper')
 
-local url = require('url')
+local url = load('url')
 
 local path = '/somepath?test=bar&ponies=foo'
 
