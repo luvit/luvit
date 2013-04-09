@@ -135,7 +135,12 @@ function Path:dirname(filepath)
 end
 
 function Path:basename(filepath, expected_ext)
-  return filepath:match("[^" .. self.sep .. "]+$") or ""
+  local base, ext_pos = filepath:match("[^" .. self.sep .. "]+$") or ""
+  if expected_ext then
+     local ext_pos = base:find(expected_ext:gsub('%.', '%.') .. '$')
+     if ext_pos then base = base:sub(1, ext_pos - 1) end
+  end
+  return base
 end
 
 function Path:extname(filepath)
