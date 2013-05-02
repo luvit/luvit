@@ -58,5 +58,12 @@ assert(path.basename('bar.lua', '.lua') == 'bar')
 assert(path.basename('bar.lua.js', '.lua') == 'bar.lua.js')
 assert(path.basename('.lua', 'lua') == '.')
 assert(path.basename('bar', '.lua') == 'bar')
-assert(path.basename('/foo/bar.lua') == 'bar.lua')
-assert(path.basename('/foo/bar.lua', '.lua') == 'bar')
+
+-- test path.basename os specifics
+if (os.type() ~= "win32") then
+  assert(path.basename('/foo/bar.lua') == 'bar.lua')
+  assert(path.basename('/foo/bar.lua', '.lua') == 'bar')
+else
+  assert(path.basename('c:\\foo\\bar.lua') == 'bar.lua')
+  assert(path.basename('c:\\foo\\bar.lua', '.lua') == 'bar')
+end
