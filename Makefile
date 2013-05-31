@@ -40,6 +40,7 @@ USE_SYSTEM_SSL?=0
 USE_SYSTEM_LUAJIT?=0
 USE_SYSTEM_ZLIB?=0
 USE_SYSTEM_YAJL?=0
+USE_SYSTEM_LUACRYPTO?=0
 
 DEBUG ?= 1
 ifeq (${DEBUG},1)
@@ -113,6 +114,11 @@ CPPFLAGS+=-I${SSLDIR}/openssl/include
 LIBS+=${SSLDIR}/libopenssl.a
 endif
 
+ifeq (${USE_SYSTEM_LUACRYPTO},1)
+CPPFLAGS += $(shell ${PKG_CONFIG} --cflags luacrypto)
+LIBS += $(shell ${PKG_CONFIG} --libs luacrypto)
+endif
+
 
 ifeq (${OS_NAME},Linux)
 LIBS+=-lrt
@@ -171,6 +177,8 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
+LUVIT_OBJECTS = ${BUILDDIR}/luvit_main.o
+
 DEPS= ${UVDIR}/uv.a             \
      ${HTTPDIR}/http_parser.o
 
@@ -188,6 +196,11 @@ endif
 
 ifeq (${USE_SYSTEM_YAJL},0)
 DEPS+=${YAJLDIR}/yajl.a
+endif
+
+ifeq (${USE_SYSTEM_LUACRYPTO},0)
+LUACRYPTO_DEPS += ${CRYPTODIR}/Makefile
+LUVIT_OBJECTS += ${CRYPTODIR}/src/lcrypto.o
 endif
 
 BUNDLE_LIBS= $(shell ls lib/luvit/*.lua)
@@ -250,7 +263,7 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 		-DLUVIT_VERSION=\"${VERSION}\" \
 		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
-${BUILDDIR}/libluvit.a: ${CRYPTODIR}/Makefile ${LUVLIBS} ${DEPS}
+${BUILDDIR}/libluvit.a: ${LUACRYPTO_DEPS} ${LUVLIBS} ${DEPS}
 	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 
 ${CRYPTODIR}/Makefile:
@@ -260,7 +273,7 @@ ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 	${CC} ${CPPFLAGS} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
-${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
+${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${LUVIT_OBJECTS}
 	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
 		${CRYPTODIR}/src/lcrypto.o ${LIBS}
 
