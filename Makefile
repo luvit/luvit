@@ -14,6 +14,8 @@
 ## disable -Werror:
 #   WERROR=0
 
+# tools
+PKG_CONFIG ?= pkg-config
 
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
@@ -75,16 +77,16 @@ LDFLAGS+=-L${BUILDDIR}
 LIBS += -lluvit
 
 ifeq (${USE_SYSTEM_ZLIB},1)
-CPPFLAGS+=$(shell pkg-config --cflags zlib)
-LIBS+=$(shell pkg-config --libs zlib)
+CPPFLAGS+=$(shell ${PKG_CONFIG} --cflags zlib)
+LIBS+=$(shell ${PKG_CONFIG} --libs zlib)
 else
 CPPFLAGS+=-I${ZLIBDIR}
 LIBS+=${ZLIBDIR}/libz.a
 endif
 
 ifeq (${USE_SYSTEM_YAJL},1)
-CPPFLAS+=$(shell pkg-config --cflags yajl)
-LIBS+=$(shell pkg-config --libs yajl)
+CPPFLAS+=$(shell ${PKG_CONFIG} --cflags yajl)
+LIBS+=$(shell ${PKG_CONFIG} --libs yajl)
 else
 CPPFLAGS += -I${YAJLDIR}/src -I${YAJLDIR}/src/api
 LIBS+=${YAJLDIR}/yajl.a
@@ -93,8 +95,8 @@ endif
 LIBS += ${UVDIR}/uv.a
 
 ifeq (${USE_SYSTEM_LUAJIT},1)
-CPPFLAGS+=$(shell pkg-config --cflags luajit)
-LIBS+=$(shell pkg-config --libs luajit)
+CPPFLAGS+=$(shell ${PKG_CONFIG} --cflags luajit)
+LIBS+=$(shell ${PKG_CONFIG} --libs luajit)
 else
 CPPFLAGS+=-I${LUADIR}/src
 LIBS+=${LUADIR}/src/libluajit.a
@@ -104,8 +106,8 @@ LIBS += -lm -ldl -lpthread
 
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
-CPPFLAGS+=$(shell pkg-config --cflags openssl)
-LIBS+=$(shell pkg-config --libs openssl)
+CPPFLAGS+=$(shell ${PKG_CONFIG} --cflags openssl)
+LIBS+=$(shell ${PKG_CONFIG} --libs openssl)
 else
 CPPFLAGS+=-I${SSLDIR}/openssl/include
 LIBS+=${SSLDIR}/libopenssl.a
