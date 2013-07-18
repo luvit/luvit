@@ -33,7 +33,7 @@ local function mapcat(array, fn, join)
   return Table.concat(map(array, fn), join or "")
 end
 
-local libdir = Path.join(Path.dirname(process.execPath), "../lib/luvit")
+local libdir = Path.join(Path.dirname(process.execPath), Path.join("..", "lib", "luvit"))
 
 local files = FS.readdirSync(libdir)
 local names = map(files, function (file)
@@ -87,10 +87,10 @@ FS.mkdir("bundle", "0755", function (err)
     end
   end
 
-  FS.writeFile("src/luvit_exports.c", exports_c, pend())
-  FS.writeFile("src/luvit_exports.h", exports_h, pend())
+  FS.writeFile(Path.join("src", "luvit_exports.c"), exports_c, pend())
+  FS.writeFile(Path.join("src", "luvit_exports.h"), exports_h, pend())
   for i, file in ipairs(files) do
-    ChildProcess.execFile("deps/luajit/src/luajit", {"-bg", "lib/luvit/" .. file, "bundle/" .. names[i] .. ".c"}, {}, pend())
+    ChildProcess.execFile(Path.join("deps", "luajit", "src", "luajit"), {"-bg", Path.join("lib", "luvit", file), Path.join("bundle", names[i] .. ".c")}, {}, pend())
   end
 
 end);
