@@ -52,9 +52,64 @@ assert(buf:readUInt32LE(1) == 0x422304FB)
 assert(buf:readInt32BE(1) == -0x04FBDCBE)
 assert(buf:readInt32LE(1) == 0x422304FB)
 
-local buf2 = Buffer:new('abcd')
-assert(tostring(buf2) == 'abcd')
+local buf2 = Buffer:new('abcdefghij')
+assert(tostring(buf2) == 'abcdefghij')
 assert(buf2:toString(1, 2) == 'ab')
 assert(buf2:toString(2, 3) == 'bc')
-assert(buf2:toString(3) == 'cd')
-assert(buf2:toString() == 'abcd')
+assert(buf2:toString(3) == 'cdefghij')
+assert(buf2:toString() == 'abcdefghij')
+
+-- test Buffer:upUntil
+assert(buf2:upUntil("") == '')
+assert(buf2:upUntil("d") == 'abc')
+assert(buf2:upUntil("d", 4) == '')
+assert(buf2:upUntil("d", 5) == 'efghij')
+
+-- test Buffer.isBuffer
+assert(Buffer.isBuffer(buf2) == true)
+assert(Buffer.isBuffer("buf") == false)
+
+-- test Buffer.length
+assert(buf2.length == 10)
+
+-- test Buffer:inspect
+assert(buf:inspect() == "<Buffer FB 04 23 42 >")
+
+-- test Buffer.meta:__concat
+local concat_buf = buf .. buf2
+assert( concat_buf:inspect() == "<Buffer FB 04 23 42 61 62 63 64 65 66 67 68 69 6A >")
+
+-- test Buffer.fill
+concat_buf:fill("", 4, 4)
+assert( concat_buf:inspect() == "<Buffer FB 04 23 00 61 62 63 64 65 66 67 68 69 6A >")
+concat_buf:fill("", 4, 8)
+assert( concat_buf:inspect() == "<Buffer FB 04 23 00 00 00 00 00 65 66 67 68 69 6A >")
+concat_buf:fill(0x05, 4, 8)
+assert( concat_buf:inspect() == "<Buffer FB 04 23 05 05 05 05 05 65 66 67 68 69 6A >")
+concat_buf:fill(0x42, 1)
+assert( concat_buf:inspect() == "<Buffer 42 42 42 42 42 42 42 42 42 42 42 42 42 42 >")
+concat_buf:fill("\0", 1)
+assert( concat_buf:inspect() == "<Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 >")
+
+-- test bitwise write
+local writebuf = Buffer:new(4)
+writebuf:writeUInt8(0xFB, 1)
+writebuf:writeUInt8(0x04, 2)
+writebuf:writeUInt8(0x23, 3)
+writebuf:writeUInt8(0x42, 4)
+writebuf:writeInt8(-0x05, 1)
+writebuf:writeInt8(0x04, 2)
+writebuf:writeInt8(0x23, 3)
+writebuf:writeInt8(0x42, 4)
+writebuf:writeUInt16BE(0xFB04, 1)
+writebuf:writeUInt16LE(0x04FB, 1)
+writebuf:writeUInt16BE(0x0423, 2)
+writebuf:writeUInt16LE(0x2304, 2)
+writebuf:writeUInt16BE(0x2342, 3)
+writebuf:writeUInt16LE(0x4223, 3)
+writebuf:writeUInt32BE(0xFB042342, 1)
+writebuf:writeUInt32LE(0x422304FB, 1)
+writebuf:writeInt32BE(-0x04FBDCBE, 1)
+writebuf:writeInt32LE(0x422304FB, 1)
+assert( writebuf:inspect() == "<Buffer FB 04 23 42 >")
+

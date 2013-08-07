@@ -167,7 +167,8 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/lyajl.o          \
         ${BUILDDIR}/los.o            \
         ${BUILDDIR}/luv_zlib.o       \
-        ${BUILDDIR}/lhttp_parser.o
+        ${BUILDDIR}/lhttp_parser.o   \
+        ${BUILDDIR}/luv_buffer.o
 
 DEPS= ${UVDIR}/uv.a             \
      ${HTTPDIR}/http_parser.o
