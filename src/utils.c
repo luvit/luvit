@@ -152,6 +152,7 @@ const char* luv_handle_type_to_string(uv_handle_type type) {
     case UV_UDP: return "UDP";
     case UV_NAMED_PIPE: return "NAMED_PIPE";
     case UV_TTY: return "TTY";
+    case UV_SIGNAL: return "SIGNAL";
     case UV_FILE: return "FILE";
     case UV_TIMER: return "TIMER";
     case UV_PREPARE: return "PREPARE";
@@ -197,7 +198,7 @@ luv_handle_t* luv_handle_create(lua_State* L, size_t size, const char* type) {
   lhandle->handle->data = lhandle; /* Point back to lhandle from handle */
   lhandle->refCount = 0;
   lhandle->L = L;
- 
+
   /* if handle create in a coroutine, we need hold the coroutine */
   mainthread = luv_get_main_thread(L);
   if (L != mainthread) { 
@@ -228,6 +229,9 @@ uv_tcp_t* luv_create_tcp(lua_State* L) {
 }
 uv_pipe_t* luv_create_pipe(lua_State* L) {
   return (uv_pipe_t*)luv_handle_create(L, sizeof(uv_pipe_t), "luv_pipe")->handle;
+}
+uv_signal_t* luv_create_signal(lua_State* L) {
+  return (uv_signal_t*)luv_handle_create(L, sizeof(uv_signal_t), "luv_signal")->handle;
 }
 uv_tty_t* luv_create_tty(lua_State* L) {
   return (uv_tty_t*)luv_handle_create(L, sizeof(uv_tty_t), "luv_tty")->handle;
