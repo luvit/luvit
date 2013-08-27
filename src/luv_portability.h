@@ -31,15 +31,9 @@
 
 /* Temporary hack: libuv should provide uv_inet_pton and uv_inet_ntop. */
 #if defined(__MINGW32__) || defined(_MSC_VER)
-# include <inet_net_pton.h>
-# include <inet_ntop.h>
-# define uv_inet_pton ares_inet_pton
-# define uv_inet_ntop ares_inet_ntop
-
+# include <uv.h>
 #else /* __POSIX__ */
 # include <arpa/inet.h>
-# define uv_inet_pton inet_pton
-# define uv_inet_ntop inet_ntop
 #endif
 
 /* These macros are standard POSIX but aren't in window's sys/stat.h */

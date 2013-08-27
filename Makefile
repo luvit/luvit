@@ -28,11 +28,13 @@ ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
 CRYPTODIR=deps/luacrypto
+CARESDIR=deps/cares
 
 PREFIX?=/usr/local
 BINDIR?=${DESTDIR}${PREFIX}/bin
 INCDIR?=${DESTDIR}${PREFIX}/include/luvit
 LIBDIR?=${DESTDIR}${PREFIX}/lib/luvit
+RANLIB?=ranlib
 
 USE_SYSTEM_SSL?=0
 USE_SYSTEM_LUAJIT?=0
@@ -54,7 +56,7 @@ OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
 ifeq (${MH_NAME},x86_64)
-LDFLAGS+=-framework CoreServices -pagezero_size 10000 -image_base 100000000
+LDFLAGS+=-framework CoreServices -framework Carbon -pagezero_size 10000 -image_base 100000000
 else
 LDFLAGS+=-framework CoreServices
 endif
@@ -90,7 +92,8 @@ CPPFLAGS += -I${YAJLDIR}/src -I${YAJLDIR}/src/api
 LIBS+=${YAJLDIR}/yajl.a
 endif
 
-LIBS += ${UVDIR}/uv.a
+LIBS += ${UVDIR}/libuv.a
+LIBS += ${CARESDIR}/libcares.a
 
 ifeq (${USE_SYSTEM_LUAJIT},1)
 CPPFLAGS+=$(shell pkg-config --cflags luajit)
@@ -153,6 +156,7 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_fs_watcher.o \
         ${BUILDDIR}/luv_timer.o      \
         ${BUILDDIR}/luv_process.o    \
+        ${BUILDDIR}/luv_signal.o     \
         ${BUILDDIR}/luv_stream.o     \
         ${BUILDDIR}/luv_tcp.o        \
         ${BUILDDIR}/luv_tls.o        \
@@ -169,8 +173,9 @@ LUVLIBS=${BUILDDIR}/utils.o          \
         ${BUILDDIR}/luv_zlib.o       \
         ${BUILDDIR}/lhttp_parser.o
 
-DEPS= ${UVDIR}/uv.a             \
-     ${HTTPDIR}/http_parser.o
+DEPS= ${UVDIR}/libuv.a             \
+		${CARESDIR}/libcares.a \
+		${HTTPDIR}/http_parser.o
 
 ifeq (${USE_SYSTEM_LUAJIT},0)
 DEPS+=${LUADIR}/src/libluajit.a
@@ -214,8 +219,11 @@ ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
 ${UVDIR}/Makefile:
 	git submodule update --init ${UVDIR}
 
-${UVDIR}/uv.a: ${UVDIR}/Makefile
-	$(MAKE) -C ${UVDIR} uv.a
+${UVDIR}/libuv.a: ${UVDIR}/Makefile
+	$(MAKE) -C ${UVDIR}
+
+${CARESDIR}/libcares.a: ${CARESDIR}/Makefile
+	$(MAKE) -C ${CARESDIR}
 
 ${HTTPDIR}/Makefile:
 	git submodule update --init ${HTTPDIR}
@@ -228,7 +236,8 @@ ${ZLIBDIR}/zlib.gyp:
 
 ${ZLIBDIR}/libz.a: ${ZLIBDIR}/zlib.gyp
 	cd ${ZLIBDIR} && ${CC} -c *.c && \
-	$(AR) rvs libz.a *.o
+	$(AR) rvs libz.a *.o && \
+	$(RANLIB) libz.a
 
 ${SSLDIR}/Makefile.openssl:
 	git submodule update --init ${SSLDIR}
@@ -239,6 +248,7 @@ ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 ${BUILDDIR}/%.o: src/%.c ${DEPS}
 	mkdir -p ${BUILDDIR}
 	$(CC) ${CPPFLAGS} ${CFLAGS} --std=c89 -D_GNU_SOURCE -Wall -c $< -o $@ \
+		-I${CARESDIR}/include \
 		-I${HTTPDIR} -I${UVDIR}/include -I${CRYPTODIR}/src \
 		-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 		-DUSE_SYSTEM_SSL=${USE_SYSTEM_SSL} \
@@ -249,7 +259,8 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/libluvit.a: ${CRYPTODIR}/Makefile ${LUVLIBS} ${DEPS}
-	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
+	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS} 
+	$(RANLIB) ${BUILDDIR}/libluvit.a
 
 ${CRYPTODIR}/Makefile:
 	git submodule update --init ${CRYPTODIR}
@@ -269,7 +280,8 @@ clean:
 	${MAKE} -C ${YAJLDIR} clean
 	${MAKE} -C ${UVDIR} distclean
 	${MAKE} -C examples/native clean
-	-rm ${ZLIBDIR}/*.o
+	-rm ${ZLIBDIR}/*.o ${ZLIBDIR}/*.a
+	-rm ${CARESDIR}/src/*.o ${CARESDIR}/*.a
 	-rm ${CRYPTODIR}/src/lcrypto.o
 	rm -rf build bundle
 
