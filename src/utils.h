@@ -91,13 +91,14 @@ void luv_io_ctx_callback_rawgeti(lua_State *L, luv_io_ctx_t *cbs);
 void luv_io_ctx_unref(lua_State* L, luv_io_ctx_t *cbs);
 
 /* Convenience wrappers */
-uv_udp_t* luv_create_udp(lua_State* L);
+uv_udp_t*      luv_create_udp(lua_State* L);
 uv_fs_event_t* luv_create_fs_watcher(lua_State* L);
-uv_timer_t* luv_create_timer(lua_State* L);
-uv_process_t* luv_create_process(lua_State* L);
-uv_tcp_t* luv_create_tcp(lua_State* L);
-uv_pipe_t* luv_create_pipe(lua_State* L);
-uv_tty_t* luv_create_tty(lua_State* L);
+uv_timer_t*    luv_create_timer(lua_State* L);
+uv_process_t*  luv_create_process(lua_State* L);
+uv_tcp_t*      luv_create_tcp(lua_State* L);
+uv_pipe_t*     luv_create_pipe(lua_State* L);
+uv_signal_t*   luv_create_signal(lua_State* L);
+uv_tty_t*      luv_create_tty(lua_State* L);
 
 /**/
 lua_State* luv_handle_get_lua(luv_handle_t* lhandle);

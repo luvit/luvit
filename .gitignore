@@ -10,3 +10,9 @@ options.gypi
 out/
 *.swp
 *.dist
+Debug/
+Release/
+*.sln
+*.suo
+*.vcxproj
+*.vcxproj.*

@@ -8,7 +8,8 @@
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
        'deps/yajl.gyp:copy_headers',
-       'deps/uv/uv.gyp:uv',
+       'deps/cares/cares.gyp:cares',
+       'deps/uv/uv.gyp:libuv',
        'deps/zlib/zlib.gyp:zlib',
        'deps/luacrypto.gyp:luacrypto',
      ],
@@ -17,7 +18,8 @@
        'deps/luajit.gyp:luajit',
        'deps/luajit.gyp:libluajit',
        'deps/yajl.gyp:yajl',
-       'deps/uv/uv.gyp:uv',
+       'deps/cares/cares.gyp:cares',
+       'deps/uv/uv.gyp:libuv',
        'deps/luacrypto.gyp:luacrypto',
       ],
       'conditions': [
@@ -54,6 +56,7 @@
        'src/luv_misc.c',
        'src/luv_pipe.c',
        'src/luv_process.c',
+       'src/luv_signal.c',
        'src/luv_stream.c',
        'src/luv_tcp.c',
        'src/luv_timer.c',
@@ -96,15 +99,14 @@
        'LUAJIT_VERSION="<!(git --git-dir deps/luajit/.git describe --tags)"',
        'YAJL_VERSIONISH="<!(git --git-dir deps/yajl/.git describe --tags)"',
        'BUNDLE=1',
+       'CARES_STATICLIB'
      ],
      'include_dirs': [
        'src',
-       'deps/uv/src/ares'
      ],
      'direct_dependent_settings': {
        'include_dirs': [
          'src',
-         'deps/uv/src/ares'
        ]
      },
      'rules': [
@@ -140,6 +142,12 @@
         },
       },
       'conditions': [
+        ['OS == "win"', {
+          'libraries': [
+            '-lgdi32.lib',
+            '-luser32.lib'
+          ],
+        }],
         ['OS == "linux"', {
           'libraries': ['-ldl'],
         }],
@@ -175,95 +183,100 @@
     {
       'target_name': 'install',
       'type': 'none',
-      'copies': [
-        {
-          'destination': '<(luvit_prefix)/bin',
-          'files': [
-            'out/Debug/luvit'
+      'conditions': [
+        ['OS!="win"', {
+          'type': 'none',
+          'copies': [
+            {
+              'destination': '<(luvit_prefix)/bin',
+              'files': [
+                'out/Debug/luvit'
+              ]
+            },
+            {
+              'destination': '<(luvit_prefix)/lib/luvit',
+              'files': [
+                'lib/luvit/buffer.lua',
+                'lib/luvit/childprocess.lua',
+                'lib/luvit/core.lua',
+                'lib/luvit/dns.lua',
+                'lib/luvit/fiber.lua',
+                'lib/luvit/fs.lua',
+                'lib/luvit/http.lua',
+                'lib/luvit/https.lua',
+                'lib/luvit/json.lua',
+                'lib/luvit/luvit.lua',
+                'lib/luvit/mime.lua',
+                'lib/luvit/module.lua',
+                'lib/luvit/net.lua',
+                'lib/luvit/path.lua',
+                'lib/luvit/querystring.lua',
+                'lib/luvit/repl.lua',
+                'lib/luvit/stack.lua',
+                'lib/luvit/timer.lua',
+                'lib/luvit/tls.lua',
+                'lib/luvit/url.lua',
+                'lib/luvit/utils.lua',
+                'lib/luvit/uv.lua',
+                'lib/luvit/zlib.lua'
+              ]
+            },
+            {
+              'destination': '<(luvit_prefix)/include/luvit/luajit',
+              'files': [
+                'deps/luajit/src/lua.h',
+                'deps/luajit/src/lauxlib.h',
+                'deps/luajit/src/luaconf.h',
+                'deps/luajit/src/luajit.h',
+                'deps/luajit/src/lualib.h'
+              ]
+            },
+            {
+              'destination': '<(luvit_prefix)/include/luvit/http_parser',
+              'files': [
+                'deps/http-parser/http_parser.h'
+              ]
+            },
+            {
+              'destination': '<(luvit_prefix)/include/luvit/uv',
+              'files': [
+                'deps/uv/include/'
+              ]
+            },
+            {
+              'destination': '<(luvit_prefix)/include/luvit',
+              'files': [
+                'src/lconstants.h',
+                'src/lenv.h',
+                'src/lhttp_parser.h',
+                'src/los.h',
+                'src/luv.h',
+                'src/luv_debug.h',
+                'src/luv_dns.h',
+                'src/luv_fs.h',
+                'src/luv_fs_watcher.h',
+                'src/luv_handle.h',
+                'src/luv_misc.h',
+                'src/luv_pipe.h',
+                'src/luv_portability.h',
+                'src/luv_process.h',
+                'src/luv_stream.h',
+                'src/luv_tcp.h',
+                'src/luv_timer.h',
+                'src/luv_tls.h',
+                'src/luv_tls_root_certs.h',
+                'src/luv_tty.h',
+                'src/luv_udp.h',
+                'src/luv_zlib.h',
+                'src/luvit.h',
+                'src/luvit_exports.h',
+                'src/luvit_init.h',
+                'src/lyajl.h',
+                'src/utils.h'
+              ]
+            }
           ]
-        },
-        {
-          'destination': '<(luvit_prefix)/lib/luvit',
-          'files': [
-            'lib/luvit/buffer.lua',
-            'lib/luvit/childprocess.lua',
-            'lib/luvit/core.lua',
-            'lib/luvit/dns.lua',
-            'lib/luvit/fiber.lua',
-            'lib/luvit/fs.lua',
-            'lib/luvit/http.lua',
-            'lib/luvit/https.lua',
-            'lib/luvit/json.lua',
-            'lib/luvit/luvit.lua',
-            'lib/luvit/mime.lua',
-            'lib/luvit/module.lua',
-            'lib/luvit/net.lua',
-            'lib/luvit/path.lua',
-            'lib/luvit/querystring.lua',
-            'lib/luvit/repl.lua',
-            'lib/luvit/stack.lua',
-            'lib/luvit/timer.lua',
-            'lib/luvit/tls.lua',
-            'lib/luvit/url.lua',
-            'lib/luvit/utils.lua',
-            'lib/luvit/uv.lua',
-            'lib/luvit/zlib.lua'
-          ]
-        },
-        {
-          'destination': '<(luvit_prefix)/include/luvit/luajit',
-          'files': [
-            'deps/luajit/src/lua.h',
-            'deps/luajit/src/lauxlib.h',
-            'deps/luajit/src/luaconf.h',
-            'deps/luajit/src/luajit.h',
-            'deps/luajit/src/lualib.h'
-          ]
-        },
-        {
-          'destination': '<(luvit_prefix)/include/luvit/http_parser',
-          'files': [
-            'deps/http-parser/http_parser.h'
-          ]
-        },
-        {
-          'destination': '<(luvit_prefix)/include/luvit/uv',
-          'files': [
-            'deps/uv/include/'
-          ]
-        },
-        {
-          'destination': '<(luvit_prefix)/include/luvit',
-          'files': [
-            'src/lconstants.h',
-            'src/lenv.h',
-            'src/lhttp_parser.h',
-            'src/los.h',
-            'src/luv.h',
-            'src/luv_debug.h',
-            'src/luv_dns.h',
-            'src/luv_fs.h',
-            'src/luv_fs_watcher.h',
-            'src/luv_handle.h',
-            'src/luv_misc.h',
-            'src/luv_pipe.h',
-            'src/luv_portability.h',
-            'src/luv_process.h',
-            'src/luv_stream.h',
-            'src/luv_tcp.h',
-            'src/luv_timer.h',
-            'src/luv_tls.h',
-            'src/luv_tls_root_certs.h',
-            'src/luv_tty.h',
-            'src/luv_udp.h',
-            'src/luv_zlib.h',
-            'src/luvit.h',
-            'src/luvit_exports.h',
-            'src/luvit_init.h',
-            'src/lyajl.h',
-            'src/utils.h'
-          ]
-        }
+        }]
       ]
     }
   ],

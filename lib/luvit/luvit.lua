@@ -18,21 +18,25 @@ limitations under the License.
 
 -- Bootstrap require system
 local native = require('uv_native')
-process = {
-  execPath = native.execpath(),
-  cwd = getcwd,
-  argv = argv
-}
-_G.getcwd = nil
-_G.argv = nil
-require = require('module').require
 
 local Emitter = require('core').Emitter
+
+local Process = Emitter:extend()
+process = Process:new()
+process.execPath = native.execpath()
+process.cwd = getcwd
+process.argv = argv
+
+require = require('module').require
 local timer = require('timer')
 local env = require('env')
 local constants = require('constants')
 local uv = require('uv')
 local utils = require('utils')
+
+_G.getcwd = nil
+_G.argv = nil
+_G.process = process
 
 setmetatable(process, {
   __index = function (table, key)
@@ -63,6 +67,112 @@ setmetatable(process, {
     end
   end
 })
+
+function signalStringToNumber(name)
+  if name == 'SIGHUP' then
+    return constants.SIGHUP
+  elseif name == 'SIGINT' then
+    return constants.SIGINT
+  elseif name == 'SIGQUIT' then
+    return constants.SIGQUIT
+  elseif name == 'SIGILL' then
+    return constants.SIGILL
+  elseif name == 'SIGTRAP' then
+    return constants.SIGTRAP
+  elseif name == 'SIGABRT' then
+    return constants.SIGABRT
+  elseif name == 'SIGIOT' then
+    return constants.SIGIOT
+  elseif name == 'SIGBUS' then
+    return constants.SIGBUS
+  elseif name == 'SIGFPE' then
+    return constants.SIGFPE
+  elseif name == 'SIGKILL' then
+    return constants.SIGKILL
+  elseif name == 'SIGUSR1' then
+    return constants.SIGUSR1
+  elseif name == 'SIGSEGV' then
+    return constants.SIGSEGV
+  elseif name == 'SIGUSR2' then
+    return constants.SIGUSR2
+  elseif name == 'SIGPIPE' then
+    return constants.SIGPIPE
+  elseif name == 'SIGALRM' then
+    return constants.SIGALRM
+  elseif name == 'SIGTERM' then
+    return constants.SIGTERM
+  elseif name == 'SIGCHLD' then
+    return constants.SIGCHLD
+  elseif name == 'SIGSTKFLT' then
+    return constants.SIGSTKFLT
+  elseif name == 'SIGCONT' then
+    return constants.SIGCONT
+  elseif name == 'SIGSTOP' then
+    return constants.SIGSTOP
+  elseif name == 'SIGTSTP' then
+    return constants.SIGSTSP
+  elseif name == 'SIGTTIN' then
+    return constants.SIGTTIN
+  elseif name == 'SIGTTOU' then
+    return constants.SIGTTOU
+  elseif name == 'SIGURG' then
+    return constants.SIGURG
+  elseif name == 'SIGXCPU' then
+    return constants.SIGXCPU
+  elseif name == 'SIGXFSZ' then
+    return constants.SIGXFSX
+  elseif name == 'SIGVTALRM' then
+    return constants.SIGVTALRM
+  elseif name == 'SIGPROF' then
+    return constants.SIGPROF
+  elseif name == 'SIGWINCH' then
+    return constants.SIGWINCH
+  elseif name == 'SIGIO' then
+    return constants.SIGIO
+  elseif name == 'SIGPOLL' then
+    return constants.SIGPOLL
+  elseif name == 'SIGLOST' then
+    return constants.SIGLOST
+  elseif name == 'SIGPWR' then
+    return constants.SIGPWR
+  elseif name == 'SIGSYS' then
+    return constants.SIGSYS
+  elseif name == 'SIGUNUSED' then
+    return constants.SIGUNUSED
+  end
+  return nil
+end
+
+--
+process.signalWraps = {}
+process.on = function(self, _type, listener)
+  if _type:find('SIG') then
+    local number = signalStringToNumber(_type)
+    if number then
+      local signal = process.signalWraps[_type]
+      if not signal then
+        signal = uv.Signal:new()
+        process.signalWraps[_type] = signal
+        signal:on('signal', function()
+          self:emit(_type, number)
+        end)
+        signal:start(number)
+      end
+    end
+  end
+  Emitter.on(self, _type, listener)
+end
+
+process.removeListener = function(self, _type, callback)
+  if _type:find('SIG') then
+    local signal = process.signalWraps[_type]
+    if signal then
+      signal:stop()
+      process.signalWraps[_type] = nil
+    end
+  end
+  Emitter.removeListener(self, _type, callback)
+end
 
 -- Replace lua's stdio with luvit's
 -- leave stderr using lua's blocking implementation
@@ -116,21 +226,6 @@ function process.exit(exit_code)
   exitProcess(exit_code or 0)
 end
 
-function process:addHandlerType(name)
-  local code = constants[name]
-  if code then
-    native.activateSignalHandler(code)
-  end
-end
-
-function process:missingHandlerType(name, ...)
-  if name == "error" then
-    error(...)
-  elseif name == "SIGINT" or name == "SIGTERM" then
-    process.exit()
-  end
-end
-
 function process.nextTick(callback)
   timer.setTimeout(0, callback)
 end
@@ -174,15 +269,6 @@ package.loaded.os_binding = nil
 OS_BINDING.date = OLD_OS.date
 OS_BINDING.time = OLD_OS.time
 OS_BINDING.clock = OLD_OS.clock
-
-
--- Ignore sigpipe and exit cleanly on SIGINT and SIGTERM
--- These shouldn't hold open the event loop
-if OS_BINDING.type() ~= "win32" then
-  native.activateSignalHandler(constants.SIGPIPE)
-  native.activateSignalHandler(constants.SIGINT)
-  native.activateSignalHandler(constants.SIGTERM)
-end
 
 local traceback = require('debug').traceback
 

@@ -469,10 +469,10 @@ int luv_dns_getHostByAddr(lua_State* L)
   const char* ip = luaL_checkstring(L, 1);
   luv_dns_ref_t* ref = luv_dns_store_callback(L, 2);
 
-  if (uv_inet_pton(AF_INET, ip, &address_buffer) == 1) {
+  if (ares_inet_pton(AF_INET, ip, &address_buffer) == 1) {
     length = sizeof(struct in_addr);
     family = AF_INET;
-  } else if (uv_inet_pton(AF_INET6, ip, &address_buffer) == 1) {
+  } else if (ares_inet_pton(AF_INET6, ip, &address_buffer) == 1) {
     length = sizeof(struct in6_addr);
     family = AF_INET6;
   } else {
@@ -547,9 +547,9 @@ static int luv_dns__isIp(lua_State *L, const char *ip, int v4v6) {
   int family;
   char address_buffer[sizeof(struct in6_addr)];
 
-  if (uv_inet_pton(AF_INET, ip, &address_buffer) == 1) {
+  if (ares_inet_pton(AF_INET, ip, &address_buffer) == 1) {
     family = AF_INET;
-  } else if (uv_inet_pton(AF_INET6, ip, &address_buffer) == 1) {
+  } else if (ares_inet_pton(AF_INET6, ip, &address_buffer) == 1) {
     family = AF_INET6;
   } else {
     /* failure */

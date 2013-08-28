@@ -270,6 +270,26 @@ end
 
 --------------------------------------------------------------------------------
 
+local Signal = Handle:extend()
+uv.Signal = Signal
+
+function Signal:initialize()
+  self.userdata = native.newSignal()
+end
+
+function Signal:start(signum)
+  native.signalStart(self.userdata, signum, function()
+    self:emit('signal', signum)
+  end)
+end
+
+function Signal:stop()
+  native.signalStop(self.userdata)
+end
+
+
+--------------------------------------------------------------------------------
+
 
 local Timer = Handle:extend()
 uv.Timer = Timer
@@ -338,7 +358,7 @@ uv.createReadableStdioStream = function(fd)
   local fd_type = native.handleType(fd);
   local stdin
   if (fd_type == "TTY") then
-    stdin = Tty:new(fd)
+    stdin = Tty:new(fd, true)
   elseif (fd_type == "FILE") then
     stdin = fs.createReadStream(nil, {fd = fd})
   elseif (fd_type == "NAMED_PIPE") then
