@@ -1,8 +1,11 @@
 
 local fs = require 'fs'
 local pathJoin = require('path').join
+local osPathSep = require('path').sep
+local pathNormalize = require('path').normalize
 local urlParse = require('url').parse
 local getType = require('mime').getType
+local osType = require('os').type
 local osDate = require('os').date
 local iStream = require('core').iStream
 
@@ -76,11 +79,17 @@ return function (app, options)
     end
 
     local function serve(path, fallback)
+      -- Windows doesn't allow to mix '/' and '\' within fs requests.
+      if osType() == "win32" then
+        path = path:gsub("/", osPathSep)
+        path = pathNormalize(path)
+      end
+
       fs.open(path, "r", function (err, fd)
         if err then
           if err.code == 'ENOENT' or err.code == 'ENOTDIR' then
             if fallback then return serve(fallback) end
-            if err.code == 'ENOTDIR' and path:sub(#path) == '/' then
+            if err.code == 'ENOTDIR' and path:sub(#path) == osPathSep then
               return res(302, {
                 ["Location"] = req.url.path:sub(1, #req.url.path - 1)
               })
@@ -109,7 +118,7 @@ return function (app, options)
             code = 304
           end
 
-          if path:sub(#path) == '/' then
+          if path:sub(#path) == osPathSep then
             -- We're done with the fd, createDirStream opens it again by path.
             fs.close(fd)
 

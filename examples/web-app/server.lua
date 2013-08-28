@@ -1,5 +1,4 @@
 local pathJoin = require('path').join
-local root = pathJoin(__dirname, 'public')
 local createServer = require('web').createServer
 
 -- Define a simple custom app
@@ -18,7 +17,7 @@ end
 
 -- Serve static files and index directories
 app = require('static')(app, {
-  root = __dirname .. "/public",
+  root = pathJoin(__dirname, 'public'),
   index = "index.html",
   autoIndex = true
 })

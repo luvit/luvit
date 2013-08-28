@@ -19,7 +19,6 @@
 #include "uv.h"
 #include <stdlib.h>
 #include <string.h>
-#include "uv-private/ev.h"
 
 #include "luv_fs.h"
 #include "luv_dns.h"
@@ -28,6 +27,7 @@
 #include "luv_fs_watcher.h"
 #include "luv_timer.h"
 #include "luv_process.h"
+#include "luv_signal.h"
 #include "luv_stream.h"
 #include "luv_tcp.h"
 #include "luv_pipe.h"
@@ -80,7 +80,7 @@ static const luaL_reg luv_f[] = {
   {"setuid", luv_setuid},
   {"setgid", luv_setgid},
 #endif
-  
+
   /* Stream functions */
   {"shutdown", luv_shutdown},
   {"listen", luv_listen},
@@ -114,6 +114,11 @@ static const luaL_reg luv_f[] = {
   {"ttySetMode", luv_tty_set_mode},
   {"ttyResetMode", luv_tty_reset_mode},
   {"ttyGetWinsize", luv_tty_get_winsize},
+
+  /* Signal functions */
+  {"newSignal",   luv_new_signal},
+  {"signalStart", luv_signal_start},
+  {"signalStop",  luv_signal_stop},
 
   /* DNS functions */
   {"dnsQueryA", luv_dns_queryA},
@@ -173,7 +178,6 @@ static const luaL_reg luv_f[] = {
   {"getProcessTitle", luv_get_process_title},
   {"setProcessTitle", luv_set_process_title},
   {"handleType", luv_handle_type},
-  {"activateSignalHandler", luv_activate_signal_handler},
   {NULL, NULL}
 };
 

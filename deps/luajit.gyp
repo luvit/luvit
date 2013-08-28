@@ -247,7 +247,7 @@
             ['target_arch == "arm"', {
               'DASM_ARCH': 'arm'
             }],
-            ['target_arch == "x64" and OS != "win"', {
+            ['target_arch == "x64"', {
                'DASM_FLAGS': ['-D', 'P64']
             }],
             ['OS == "win"', {

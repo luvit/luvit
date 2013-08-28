@@ -152,11 +152,35 @@ int luvit_init_ssl()
 }
 #endif
 
+#ifdef __POSIX__
+static void _luv_register_signal_handler(int signal, void (*handler)(int signal))
+{
+  struct sigaction sa;
+
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = handler;
+  sigfillset(&sa.sa_mask);
+  sigaction(signal, &sa, NULL);
+}
+
+static void _signal_exit(int signal)
+{
+  uv_tty_reset_mode();
+  _exit(128 + signal);
+}
+#endif
+
 int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 {
   int index, rc;
   ares_channel channel;
   struct ares_options options;
+
+#ifdef __POSIX__
+  _luv_register_signal_handler(SIGPIPE, SIG_IGN);
+  _luv_register_signal_handler(SIGINT, _signal_exit);
+  _luv_register_signal_handler(SIGTERM, _signal_exit);
+#endif
 
   memset(&options, 0, sizeof(options));
 
@@ -253,7 +277,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   luv_set_loop(L, loop);
 
   /* Store the ARES Channel */
-  uv_ares_init_options(luv_get_loop(L), &channel, &options, 0);
+  ares_init_options(&channel, &options, 0);
   luv_set_ares_channel(L, channel);
 
   return 0;

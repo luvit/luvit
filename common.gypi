@@ -12,6 +12,11 @@
       'Debug': {
         'defines': [ 'DEBUG', '_DEBUG' ],
         'cflags': [ '-g', '-O0' ],
+        'conditions': [
+          ['target_arch=="x64"', {
+            'msvs_configuration_platform': 'x64',
+          }],
+        ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'target_conditions': [
@@ -34,6 +39,11 @@
       },
       'Release': {
         'cflags': [ '-O3', '-fdata-sections', '-ffunction-sections' ],
+        'conditions': [
+          ['target_arch=="x64"', {
+            'msvs_configuration_platform': 'x64',
+          }],
+        ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'target_conditions': [
