@@ -53,6 +53,7 @@ int luv_new_fs_watcher (lua_State* L) {
   const char* filename = luaL_checkstring(L, 1);
   uv_fs_event_t* handle = luv_create_fs_watcher(L);
   uv_fs_event_init(luv_get_loop(L), handle, filename, luv_on_fs_event, 0);
+  luv_handle_ref(L, handle->data, -1);
   return 1;
 }
 
