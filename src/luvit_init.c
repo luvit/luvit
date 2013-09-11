@@ -173,19 +173,12 @@ static void _signal_exit(int signal)
 int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 {
   int index, rc;
-  ares_channel channel;
-  struct ares_options options;
 
 #ifdef __POSIX__
   _luv_register_signal_handler(SIGPIPE, SIG_IGN);
   _luv_register_signal_handler(SIGINT, _signal_exit);
   _luv_register_signal_handler(SIGTERM, _signal_exit);
 #endif
-
-  memset(&options, 0, sizeof(options));
-
-  rc = ares_library_init(ARES_LIB_INIT_ALL);
-  assert(rc == ARES_SUCCESS);
 
   /* Pull up the preload table */
   lua_getglobal(L, "package");
@@ -276,9 +269,8 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
   /* Store the loop within the registry */
   luv_set_loop(L, loop);
 
-  /* Store the ARES Channel */
-  ares_init_options(&channel, &options, 0);
-  luv_set_ares_channel(L, channel);
+  /* ares setup */
+  luv_dns_initialize(L);
 
   return 0;
 }

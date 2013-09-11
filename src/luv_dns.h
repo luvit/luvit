@@ -39,6 +39,6 @@ int luv_dns_isIp(lua_State* L);
 int luv_dns_isIpV4(lua_State* L);
 int luv_dns_isIpV6(lua_State* L);
 
-void luv_dns_open(void);
+void luv_dns_initialize(lua_State *L);
 
 #endif
