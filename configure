@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+#
+# Copyright (c) 2007-2011, Lloyd Hilaiel <lloyd@hilaiel.com>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+require 'fileutils'
+require 'optparse'
+
+prefix = "/usr/local"
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: configure [options]"
+  opts.on("-p", "--prefix PATH", "Set installation prefix") do |p|
+    prefix = p
+  end
+  opts.on_tail("-h", "--help", "Output usage summary") do 
+    puts opts
+    exit
+  end
+
+  opts.parse!(ARGV)
+end
+
+puts "== removing old build files"
+FileUtils.rm_rf("build")
+FileUtils.rm_f("Makefile")
+puts "== running CMake in build directory"
+FileUtils.mkdir("build")
+FileUtils.cd("build") do 
+  if (!system("cmake -DCMAKE_INSTALL_PREFIX='#{prefix}' .."))
+    puts "The \"cmake\" program is required to configure yajl.  It's"
+    puts "available from most ports/packaging systems and http://cmake.org"
+    exit 1
+  end
+end
+
+# now generate a Makefile
+puts "== Generating Makefile"
+File.open("Makefile", "w+") do |f| 
+  f.puts ".PHONY: all clean distclean install package test distro"
+  f.puts "all: distro doc test"
+  f.puts
+  f.puts "distro:"
+  f.puts "	@cd build && make"
+  f.puts
+  f.puts "doc:"
+  f.puts "	@cd build && make doc"
+  f.puts
+  f.puts "test:"
+  f.puts "	@cd build && make test"
+  f.puts
+  f.puts "clean:"  
+  f.puts "	@cd build && make clean"
+  f.puts
+  f.puts "distclean:"  
+  f.puts "	@rm -rf Makefile build"
+  f.puts "	@rm -f yajl-*.tgz"
+  f.puts
+  f.puts "install: all" 
+  f.puts "	@cd build && make install"
+  f.puts
+  f.puts "package: all"
+  f.puts "	@echo \"compressing to `basename build/yajl-*`.tgz\""
+  f.puts "	@cd build && tar czf ../`basename yajl-*`.tgz yajl-*"
+end
+
+puts "== Configured with installation prefix: #{prefix}"
+
