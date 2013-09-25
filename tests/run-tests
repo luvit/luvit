@@ -1,0 +1,12 @@
+#!/bin/sh
+
+DIR=`dirname $0`
+
+for i in $DIR/*.lua; do
+  echo "Running: $i"
+  lua $i
+  if [ $? -ne 0 ]; then
+    echo "ERROR: $i failed"
+    exit 1
+  fi
+done

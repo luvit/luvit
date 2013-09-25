@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+	<title>LuaCrypto: A Lua frontend to OpenSSL</title>
+    <link rel="stylesheet" href="http://www.keplerproject.org/doc.css" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+	
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"><a href="http://www.keplerproject.org">
+		<img alt="LuaCrypto logo" src="luacrypto-128.png"/>
+	</a></div>
+	<div id="product_name"><big><strong>LuaCrypto</strong></big></div>
+	<div id="product_description">A Lua frontend to OpenSSL</div>
+</div> <!-- id="product" -->
+
+<div id="main">
+	
+<div id="navigation">
+<h1>LuaCrypto</h1>
+	<ul>
+		<li><strong>Home</strong>
+			<ul>
+				<li><a href="index.html#overview">Overview</a></li>
+				<li><a href="index.html#status">Status</a></li>
+				<li><a href="index.html#download">Download</a></li>
+                <li><a href="index.html#dependencies">Dependencies</a></li>
+				<li><a href="index.html#history">History</a></li>
+				<li><a href="index.html#credits">Credits</a></li>
+				<li><a href="index.html#contact">Contact</a></li>
+			</ul>
+		</li>
+		<li><a href="manual.html">Manual</a>
+			<ul>
+				<li><a href="manual.html#introduction">Introduction</a></li>
+				<li><a href="manual.html#building">Building</a></li>
+				<li><a href="manual.html#installation">Installation</a></li>
+				<li><a href="manual.html#reference">Reference</a></li>
+			</ul>
+		</li>
+		<li><a href="examples.html">Examples</a></li>
+        <li><a href="https://github.com/mkottman/luacrypto">Project</a>
+            <ul>
+                <li><a href="https://github.com/mkottman/luacrypto/issues">Bug Tracker</a></li>
+                <li><a href="https://github.com/mkottman/luacrypto/commits/master">Changelog</a></li>
+            </ul>
+        </li>
+		<li><a href="license.html">License</a></li>
+	</ul>
+</div> <!-- id="navigation" -->
+
+<div id="content">
+<h2><a name="overview"></a>Overview</h2>
+
+<p>LuaCrypto provides a Lua frontend to the OpenSSL cryptographic library. The OpenSSL features that are currently exposed are digests (MD5, SHA-1, HMAC, and more) and crypto-grade random number generators.</p>
+
+<p>
+LuaCrypto is free software and uses the same <a href="license.html">license</a> as Lua 5.0. It is currently a stand-alone component with the goal of eventually becoming part of the <a href="http://www.keplerproject.org">Kepler Project</a>.</p>
+
+<h2><a name="status"></a>Status</h2>
+
+<p>Current version is 0.3.1. It was developed for Lua 5.1 but it is compatible with Lua 5.0 through the use of <a href="http://www.keplerproject.org/compat/">Compat-5.1.</a></p>
+
+<h2><a name="download"></a>Download</h2>
+
+<p>LuaCrypto can be downloaded from <a href="https://github.com/mkottman/luacrypto">GitHub</a> project page.</p>
+
+<h2><a name="dependencies"></a>Dependencies</h2>
+
+<ul>
+    <li><a href="http://www.openssl.org/">OpenSSL</a> (0.9.7 or higher)</li>
+    <li><a href="http://www.lua.org/">Lua 5.1</a> (or Lua 5.0 plus <a href="http://www.keplerproject.org/compat">Compat-5.1 Release 5</a>)</li>
+</ul>
+
+<h2><a name="history"></a>History</h2>
+
+<dl class="history">
+    <dt><strong>0.3.1</strong> [6/Mar/2012]</dt>
+    <dd>Added a compile-time option to initialize OpenSSL outside of LuaCrypto.</dd>
+
+    <dt><strong>0.3.0</strong> [1/Mar/2012]</dt>
+    <dd>Added encryption, decryption, signing, verifying, sealing and opening functionality.</dd>
+
+    <dt><strong>0.2.0</strong> [24/Aug/2006]</dt>
+    <dd>Added random support.</dd>
+    <dd>Removed Lua stub files and collapsed modules.</dd>
+    <dd>Changed all supporting materials (documentation, build, etc.) to Kepler standards.</dd>
+
+    <dt><a href="http://luacrypto.luaforge.net/0.1/">0.1.1</a> [22/Jan/2006]</dt>
+    <dd>Added Lua 5.0/Compat-5.1 support.</dd>
+    
+    <dt><strong>0.1.0</strong> [13/Jan/2006]</dt>
+    <dd>Initial release.</dd>
+</dl>
+
+<h2><a name="credits"></a>Credits</h2>
+
+<p>Much of the original release was based on the lmd5 project, written by <a href="http://lua-users.org/wiki/LuizHenriqueDeFigueiredo">Luiz Henrique de Figueiredo</a>. More recent versions were based on existing Kepler components and also incorporate changes contributed by <a href="http://lua-users.org/wiki/MarkEdgar">Mark Edgar</a>. Encryption and decryption support was added by Michal Kottman, additional functionality and fixes were contributed by Ignacio Burgueño, Aleksandr Novitskiy and Brandon Philips.</p>
+
+<h2><a name="contact"></a>Contact</h2>
+
+The project is currently maintained by Michal Kottman on <a href="https://github.com/mkottman/luacrypto">GitHub</a>, where you can file bug reports, feature requests and contribute modifications.
+
+</div> <!-- id="content" -->
+
+</div> <!-- id="main" -->
+
+<div id="about">
+	<p><a href="http://validator.w3.org/check?uri=referer">
+    <img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
+</div> <!-- id="about" -->
+
+</div> <!-- id="container" -->
+
+</body>
+</html>
