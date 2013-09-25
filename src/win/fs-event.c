@@ -149,7 +149,8 @@ int uv_fs_event_init(uv_loop_t* loop, uv_fs_event_t* handle,
 
   if (!uv_utf8_to_utf16(filename, filenamew,
       name_size / sizeof(WCHAR))) {
-    return uv_translate_sys_error(GetLastError());
+    uv__set_sys_error(loop, GetLastError());
+    return -1;
   }
 
   /* Determine whether filename is a file or a directory. */
@@ -278,14 +279,15 @@ error:
     handle->buffer = NULL;
   }
 
-  return uv_translate_sys_error(last_error);
+  uv__set_sys_error(loop, last_error);
+  return -1;
 }
 
 
 void uv_process_fs_event_req(uv_loop_t* loop, uv_req_t* req,
     uv_fs_event_t* handle) {
   FILE_NOTIFY_INFORMATION* file_info;
-  int err, sizew, size, result;
+  int sizew, size, result;
   char* filename = NULL;
   WCHAR* filenamew, *long_filenamew = NULL;
   DWORD offset = 0;
@@ -443,8 +445,8 @@ void uv_process_fs_event_req(uv_loop_t* loop, uv_req_t* req,
       handle->cb(handle, NULL, UV_CHANGE, 0);
     }
   } else {
-    err = GET_REQ_ERROR(req);
-    handle->cb(handle, NULL, 0, uv_translate_sys_error(err));
+    uv__set_sys_error(loop, GET_REQ_ERROR(req));
+    handle->cb(handle, NULL, 0, -1);
   }
 
   if (!(handle->flags & UV__HANDLE_CLOSING)) {

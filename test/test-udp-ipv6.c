@@ -44,13 +44,10 @@ static int recv_cb_called;
 static int close_cb_called;
 
 
-static void alloc_cb(uv_handle_t* handle,
-                     size_t suggested_size,
-                     uv_buf_t* buf) {
+static uv_buf_t alloc_cb(uv_handle_t* handle, size_t suggested_size) {
   static char slab[65536];
   CHECK_HANDLE(handle);
-  buf->base = slab;
-  buf->len = sizeof(slab);
+  return uv_buf_init(slab, sizeof slab);
 }
 
 
@@ -70,8 +67,8 @@ static void send_cb(uv_udp_send_t* req, int status) {
 
 static void ipv6_recv_fail(uv_udp_t* handle,
                            ssize_t nread,
-                           const uv_buf_t* buf,
-                           const struct sockaddr* addr,
+                           uv_buf_t buf,
+                           struct sockaddr* addr,
                            unsigned flags) {
   ASSERT(0 && "this function should not have been called");
 }
@@ -79,8 +76,8 @@ static void ipv6_recv_fail(uv_udp_t* handle,
 
 static void ipv6_recv_ok(uv_udp_t* handle,
                          ssize_t nread,
-                         const uv_buf_t* buf,
-                         const struct sockaddr* addr,
+                         uv_buf_t buf,
+                         struct sockaddr* addr,
                          unsigned flags) {
   CHECK_HANDLE(handle);
   ASSERT(nread >= 0);
@@ -103,12 +100,12 @@ static void do_test(uv_udp_recv_cb recv_cb, int bind_flags) {
   uv_buf_t buf;
   int r;
 
-  ASSERT(0 == uv_ip6_addr("::0", TEST_PORT, &addr6));
+  addr6 = uv_ip6_addr("::0", TEST_PORT);
 
   r = uv_udp_init(uv_default_loop(), &server);
   ASSERT(r == 0);
 
-  r = uv_udp_bind(&server, (const struct sockaddr*) &addr6, bind_flags);
+  r = uv_udp_bind6(&server, addr6, bind_flags);
   ASSERT(r == 0);
 
   r = uv_udp_recv_start(&server, alloc_cb, recv_cb);
@@ -118,14 +115,9 @@ static void do_test(uv_udp_recv_cb recv_cb, int bind_flags) {
   ASSERT(r == 0);
 
   buf = uv_buf_init("PING", 4);
-  ASSERT(0 == uv_ip4_addr("127.0.0.1", TEST_PORT, &addr));
+  addr = uv_ip4_addr("127.0.0.1", TEST_PORT);
 
-  r = uv_udp_send(&req_,
-                  &client,
-                  &buf,
-                  1,
-                  (const struct sockaddr*) &addr,
-                  send_cb);
+  r = uv_udp_send(&req_, &client, &buf, 1, addr, send_cb);
   ASSERT(r == 0);
 
   r = uv_timer_init(uv_default_loop(), &timeout);

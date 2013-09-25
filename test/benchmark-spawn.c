@@ -64,20 +64,18 @@ static void process_close_cb(uv_handle_t* handle) {
 }
 
 
-static void exit_cb(uv_process_t* process,
-                    int64_t exit_status,
-                    int term_signal) {
+static void exit_cb(uv_process_t* process, int exit_status, int term_signal) {
   ASSERT(exit_status == 42);
   ASSERT(term_signal == 0);
   uv_close((uv_handle_t*)process, process_close_cb);
 }
 
 
-static void on_alloc(uv_handle_t* handle,
-                     size_t suggested_size,
-                     uv_buf_t* buf) {
-  buf->base = output + output_used;
-  buf->len = OUTPUT_SIZE - output_used;
+static uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
+  uv_buf_t buf;
+  buf.base = output + output_used;
+  buf.len = OUTPUT_SIZE - output_used;
+  return buf;
 }
 
 
@@ -88,12 +86,14 @@ static void pipe_close_cb(uv_handle_t* pipe) {
 }
 
 
-static void on_read(uv_stream_t* pipe, ssize_t nread, const uv_buf_t* buf) {
+static void on_read(uv_stream_t* pipe, ssize_t nread, uv_buf_t buf) {
+  uv_err_t err = uv_last_error(loop);
+
   if (nread > 0) {
     ASSERT(pipe_open == 1);
     output_used += nread;
   } else if (nread < 0) {
-    if (nread == UV_EOF) {
+    if (err.code == UV_EOF) {
       uv_close((uv_handle_t*)pipe, pipe_close_cb);
     }
   }
@@ -122,7 +122,7 @@ static void spawn(void) {
   options.stdio[1].flags = UV_CREATE_PIPE | UV_WRITABLE_PIPE;
   options.stdio[1].data.stream = (uv_stream_t*)&out;
 
-  r = uv_spawn(loop, &process, &options);
+  r = uv_spawn(loop, &process, options);
   ASSERT(r == 0);
 
   process_open = 1;

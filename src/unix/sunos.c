@@ -32,7 +32,6 @@
 # include <ifaddrs.h>
 #endif
 #include <net/if.h>
-#include <net/if_dl.h>
 
 #include <sys/loadavg.h>
 #include <sys/time.h>
@@ -63,22 +62,13 @@
 
 
 int uv__platform_loop_init(uv_loop_t* loop, int default_loop) {
-  int err;
-  int fd;
-
   loop->fs_fd = -1;
-  loop->backend_fd = -1;
+  loop->backend_fd = port_create();
 
-  fd = port_create();
-  if (fd == -1)
-    return -errno;
+  if (loop->backend_fd == -1)
+    return -1;
 
-  err = uv__cloexec(fd, 1);
-  if (err) {
-    close(fd);
-    return err;
-  }
-  loop->backend_fd = fd;
+  uv__cloexec(loop->backend_fd, 1);
 
   return 0;
 }
@@ -101,7 +91,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
   struct port_event events[1024];
   struct port_event* pe;
   struct timespec spec;
-  QUEUE* q;
+  ngx_queue_t* q;
   uv__io_t* w;
   uint64_t base;
   uint64_t diff;
@@ -113,16 +103,16 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
   int fd;
 
   if (loop->nfds == 0) {
-    assert(QUEUE_EMPTY(&loop->watcher_queue));
+    assert(ngx_queue_empty(&loop->watcher_queue));
     return;
   }
 
-  while (!QUEUE_EMPTY(&loop->watcher_queue)) {
-    q = QUEUE_HEAD(&loop->watcher_queue);
-    QUEUE_REMOVE(q);
-    QUEUE_INIT(q);
+  while (!ngx_queue_empty(&loop->watcher_queue)) {
+    q = ngx_queue_head(&loop->watcher_queue);
+    ngx_queue_remove(q);
+    ngx_queue_init(q);
 
-    w = QUEUE_DATA(q, uv__io_t, watcher_queue);
+    w = ngx_queue_data(q, uv__io_t, watcher_queue);
     assert(w->pevents != 0);
 
     if (port_associate(loop->backend_fd, PORT_SOURCE_FD, w->fd, w->pevents, 0))
@@ -199,12 +189,9 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
       w->cb(loop, w, pe->portev_events);
       nevents++;
 
-      if (w != loop->watchers[fd])
-        continue;  /* Disabled by callback. */
-
       /* Events Ports operates in oneshot mode, rearm timer on next run. */
-      if (w->pevents != 0 && QUEUE_EMPTY(&w->watcher_queue))
-        QUEUE_INSERT_TAIL(&loop->watcher_queue, &w->watcher_queue);
+      if (w->pevents != 0 && ngx_queue_empty(&w->watcher_queue))
+        ngx_queue_insert_tail(&loop->watcher_queue, &w->watcher_queue);
     }
 
     if (nevents != 0) {
@@ -253,17 +240,21 @@ int uv_exepath(char* buffer, size_t* size) {
   ssize_t res;
   char buf[128];
 
-  if (buffer == NULL || size == NULL)
-    return -EINVAL;
+  if (buffer == NULL)
+    return (-1);
 
-  snprintf(buf, sizeof(buf), "/proc/%lu/path/a.out", (unsigned long) getpid());
+  if (size == NULL)
+    return (-1);
+
+  (void) snprintf(buf, sizeof(buf), "/proc/%lu/path/a.out", (unsigned long) getpid());
   res = readlink(buf, buffer, *size - 1);
-  if (res == -1)
-    return -errno;
+
+  if (res < 0)
+    return (res);
 
   buffer[res] = '\0';
   *size = res;
-  return 0;
+  return (0);
 }
 
 
@@ -284,20 +275,18 @@ void uv_loadavg(double avg[3]) {
 
 #if defined(PORT_SOURCE_FILE)
 
-static int uv__fs_event_rearm(uv_fs_event_t *handle) {
+static void uv__fs_event_rearm(uv_fs_event_t *handle) {
   if (handle->fd == -1)
-    return -EBADF;
+    return;
 
   if (port_associate(handle->loop->fs_fd,
                      PORT_SOURCE_FILE,
                      (uintptr_t) &handle->fo,
                      FILE_ATTRIB | FILE_MODIFIED,
                      handle) == -1) {
-    return -errno;
+    uv__set_sys_error(handle->loop, errno);
   }
   handle->fd = PORT_LOADED;
-
-  return 0;
 }
 
 
@@ -333,7 +322,7 @@ static void uv__fs_event_read(uv_loop_t* loop,
     if ((r == -1 && errno == ETIME) || n == 0)
       break;
 
-    handle = (uv_fs_event_t*) pe.portev_user;
+    handle = (uv_fs_event_t *)pe.portev_user;
     assert((r == 0) && "unexpected port_get() error");
 
     events = 0;
@@ -348,7 +337,7 @@ static void uv__fs_event_read(uv_loop_t* loop,
   while (handle->fd != PORT_DELETED);
 
   if (handle != NULL && handle->fd != PORT_DELETED)
-    uv__fs_event_rearm(handle);  /* FIXME(bnoordhuis) Check return code. */
+    uv__fs_event_rearm(handle);
 }
 
 
@@ -361,9 +350,10 @@ int uv_fs_event_init(uv_loop_t* loop,
   int first_run = 0;
 
   if (loop->fs_fd == -1) {
-    portfd = port_create();
-    if (portfd == -1)
-      return -errno;
+    if ((portfd = port_create()) == -1) {
+      uv__set_sys_error(loop, errno);
+      return -1;
+    }
     loop->fs_fd = portfd;
     first_run = 1;
   }
@@ -376,7 +366,7 @@ int uv_fs_event_init(uv_loop_t* loop,
 
   memset(&handle->fo, 0, sizeof handle->fo);
   handle->fo.fo_name = handle->filename;
-  uv__fs_event_rearm(handle);  /* FIXME(bnoordhuis) Check return code. */
+  uv__fs_event_rearm(handle);
 
   if (first_run) {
     uv__io_init(&loop->fs_event_watcher, uv__fs_event_read, portfd);
@@ -389,9 +379,7 @@ int uv_fs_event_init(uv_loop_t* loop,
 
 void uv__fs_event_close(uv_fs_event_t* handle) {
   if (handle->fd == PORT_FIRED || handle->fd == PORT_LOADED) {
-    port_dissociate(handle->loop->fs_fd,
-                    PORT_SOURCE_FILE,
-                    (uintptr_t) &handle->fo);
+    port_dissociate(handle->loop->fs_fd, PORT_SOURCE_FILE, (uintptr_t)&handle->fo);
   }
   handle->fd = PORT_DELETED;
   free(handle->filename);
@@ -407,7 +395,8 @@ int uv_fs_event_init(uv_loop_t* loop,
                      const char* filename,
                      uv_fs_event_cb cb,
                      int flags) {
-  return -ENOSYS;
+  uv__set_sys_error(loop, ENOSYS);
+  return -1;
 }
 
 
@@ -423,103 +412,105 @@ char** uv_setup_args(int argc, char** argv) {
 }
 
 
-int uv_set_process_title(const char* title) {
-  return 0;
+uv_err_t uv_set_process_title(const char* title) {
+  return uv_ok_;
 }
 
 
-int uv_get_process_title(char* buffer, size_t size) {
+uv_err_t uv_get_process_title(char* buffer, size_t size) {
   if (size > 0) {
     buffer[0] = '\0';
   }
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_resident_set_memory(size_t* rss) {
+uv_err_t uv_resident_set_memory(size_t* rss) {
   psinfo_t psinfo;
-  int err;
+  uv_err_t err;
   int fd;
 
   fd = open("/proc/self/psinfo", O_RDONLY);
   if (fd == -1)
-    return -errno;
+    return uv__new_sys_error(errno);
 
-  /* FIXME(bnoordhuis) Handle EINTR. */
-  err = -EINVAL;
-  if (read(fd, &psinfo, sizeof(psinfo)) == sizeof(psinfo)) {
+  err = uv_ok_;
+
+  if (read(fd, &psinfo, sizeof(psinfo)) == sizeof(psinfo))
     *rss = (size_t)psinfo.pr_rssize * 1024;
-    err = 0;
-  }
+  else
+    err = uv__new_sys_error(EINVAL);
+
   close(fd);
 
   return err;
 }
 
 
-int uv_uptime(double* uptime) {
+uv_err_t uv_uptime(double* uptime) {
   kstat_ctl_t   *kc;
   kstat_t       *ksp;
   kstat_named_t *knp;
 
   long hz = sysconf(_SC_CLK_TCK);
 
-  kc = kstat_open();
-  if (kc == NULL)
-    return -EPERM;
+  if ((kc = kstat_open()) == NULL)
+    return uv__new_sys_error(errno);
 
-  ksp = kstat_lookup(kc, (char*) "unix", 0, (char*) "system_misc");
+  ksp = kstat_lookup(kc, (char *)"unix", 0, (char *)"system_misc");
+
   if (kstat_read(kc, ksp, NULL) == -1) {
     *uptime = -1;
   } else {
-    knp = (kstat_named_t*)  kstat_data_lookup(ksp, (char*) "clk_intr");
+    knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"clk_intr");
     *uptime = knp->value.ul / hz;
   }
+
   kstat_close(kc);
 
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
+uv_err_t uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
   int           lookup_instance;
   kstat_ctl_t   *kc;
   kstat_t       *ksp;
   kstat_named_t *knp;
   uv_cpu_info_t* cpu_info;
 
-  kc = kstat_open();
-  if (kc == NULL)
-    return -EPERM;
+  if ((kc = kstat_open()) == NULL) {
+    return uv__new_sys_error(errno);
+  }
 
   /* Get count of cpus */
   lookup_instance = 0;
-  while ((ksp = kstat_lookup(kc, (char*) "cpu_info", lookup_instance, NULL))) {
+  while ((ksp = kstat_lookup(kc, (char *)"cpu_info", lookup_instance, NULL))) {
     lookup_instance++;
   }
 
-  *cpu_infos =  malloc(lookup_instance * sizeof(**cpu_infos));
+  *cpu_infos = (uv_cpu_info_t*)
+    malloc(lookup_instance * sizeof(uv_cpu_info_t));
   if (!(*cpu_infos)) {
-    kstat_close(kc);
-    return -ENOMEM;
+    return uv__new_artificial_error(UV_ENOMEM);
   }
 
   *count = lookup_instance;
 
   cpu_info = *cpu_infos;
   lookup_instance = 0;
-  while ((ksp = kstat_lookup(kc, (char*) "cpu_info", lookup_instance, NULL))) {
+  while ((ksp = kstat_lookup(kc, (char *)"cpu_info", lookup_instance, NULL))) {
     if (kstat_read(kc, ksp, NULL) == -1) {
       cpu_info->speed = 0;
       cpu_info->model = NULL;
     } else {
-      knp = kstat_data_lookup(ksp, (char*) "clock_MHz");
+      knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"clock_MHz");
       assert(knp->data_type == KSTAT_DATA_INT32 ||
              knp->data_type == KSTAT_DATA_INT64);
       cpu_info->speed = (knp->data_type == KSTAT_DATA_INT32) ? knp->value.i32
                                                              : knp->value.i64;
 
-      knp = kstat_data_lookup(ksp, (char*) "brand");
+      knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"brand");
       assert(knp->data_type == KSTAT_DATA_STRING);
       cpu_info->model = strdup(KSTAT_NAMED_STR_PTR(knp));
     }
@@ -530,11 +521,7 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
 
   cpu_info = *cpu_infos;
   lookup_instance = 0;
-  for (;;) {
-    ksp = kstat_lookup(kc, (char*) "cpu", lookup_instance, (char*) "sys");
-
-    if (ksp == NULL)
-      break;
+  while ((ksp = kstat_lookup(kc, (char *)"cpu", lookup_instance, (char *)"sys"))){
 
     if (kstat_read(kc, ksp, NULL) == -1) {
       cpu_info->cpu_times.user = 0;
@@ -543,19 +530,19 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
       cpu_info->cpu_times.idle = 0;
       cpu_info->cpu_times.irq = 0;
     } else {
-      knp = kstat_data_lookup(ksp, (char*) "cpu_ticks_user");
+      knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"cpu_ticks_user");
       assert(knp->data_type == KSTAT_DATA_UINT64);
       cpu_info->cpu_times.user = knp->value.ui64;
 
-      knp = kstat_data_lookup(ksp, (char*) "cpu_ticks_kernel");
+      knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"cpu_ticks_kernel");
       assert(knp->data_type == KSTAT_DATA_UINT64);
       cpu_info->cpu_times.sys = knp->value.ui64;
 
-      knp = kstat_data_lookup(ksp, (char*) "cpu_ticks_idle");
+      knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"cpu_ticks_idle");
       assert(knp->data_type == KSTAT_DATA_UINT64);
       cpu_info->cpu_times.idle = knp->value.ui64;
 
-      knp = kstat_data_lookup(ksp, (char*) "intr");
+      knp = (kstat_named_t *) kstat_data_lookup(ksp, (char *)"intr");
       assert(knp->data_type == KSTAT_DATA_UINT64);
       cpu_info->cpu_times.irq = knp->value.ui64;
       cpu_info->cpu_times.nice = 0;
@@ -567,7 +554,7 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
 
   kstat_close(kc);
 
-  return 0;
+  return uv_ok_;
 }
 
 
@@ -582,24 +569,24 @@ void uv_free_cpu_info(uv_cpu_info_t* cpu_infos, int count) {
 }
 
 
-int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
+uv_err_t uv_interface_addresses(uv_interface_address_t** addresses,
+  int* count) {
 #ifdef SUNOS_NO_IFADDRS
-  return -ENOSYS;
+  return uv__new_artificial_error(UV_ENOSYS);
 #else
+  struct ifaddrs *addrs, *ent;
+  char ip[INET6_ADDRSTRLEN];
   uv_interface_address_t* address;
-  struct sockaddr_dl* sa_addr;
-  struct ifaddrs* addrs;
-  struct ifaddrs* ent;
-  int i;
 
-  if (getifaddrs(&addrs))
-    return -errno;
+  if (getifaddrs(&addrs) != 0) {
+    return uv__new_sys_error(errno);
+  }
 
   *count = 0;
 
   /* Count the number of interfaces */
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
+    if (!(ent->ifa_flags & IFF_UP && ent->ifa_flags & IFF_RUNNING) ||
         (ent->ifa_addr == NULL) ||
         (ent->ifa_addr->sa_family == PF_PACKET)) {
       continue;
@@ -608,61 +595,42 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
     (*count)++;
   }
 
-  *addresses = malloc(*count * sizeof(**addresses));
-  if (!(*addresses))
-    return -ENOMEM;
+  *addresses = (uv_interface_address_t*)
+    malloc(*count * sizeof(uv_interface_address_t));
+  if (!(*addresses)) {
+    return uv__new_artificial_error(UV_ENOMEM);
+  }
 
   address = *addresses;
 
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)))
-      continue;
+    memset(&ip, 0, sizeof(ip));
 
-    if (ent->ifa_addr == NULL)
+    if (!(ent->ifa_flags & IFF_UP && ent->ifa_flags & IFF_RUNNING)) {
       continue;
+    }
+
+    if (ent->ifa_addr == NULL) {
+      continue;
+    }
 
     address->name = strdup(ent->ifa_name);
 
     if (ent->ifa_addr->sa_family == AF_INET6) {
-      address->address.address6 = *((struct sockaddr_in6*) ent->ifa_addr);
+      address->address.address6 = *((struct sockaddr_in6 *)ent->ifa_addr);
     } else {
-      address->address.address4 = *((struct sockaddr_in*) ent->ifa_addr);
+      address->address.address4 = *((struct sockaddr_in *)ent->ifa_addr);
     }
 
-    if (ent->ifa_netmask->sa_family == AF_INET6) {
-      address->netmask.netmask6 = *((struct sockaddr_in6*) ent->ifa_netmask);
-    } else {
-      address->netmask.netmask4 = *((struct sockaddr_in*) ent->ifa_netmask);
-    }
-
-    address->is_internal = !!((ent->ifa_flags & IFF_PRIVATE) ||
-                           (ent->ifa_flags & IFF_LOOPBACK));
+    address->is_internal = ent->ifa_flags & IFF_PRIVATE || ent->ifa_flags &
+	IFF_LOOPBACK ? 1 : 0;
 
     address++;
   }
 
-  /* Fill in physical addresses for each interface */
-  for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
-        (ent->ifa_addr == NULL) ||
-        (ent->ifa_addr->sa_family != AF_LINK)) {
-      continue;
-    }
-
-    address = *addresses;
-
-    for (i = 0; i < (*count); i++) {
-      if (strcmp(address->name, ent->ifa_name) == 0) {
-        sa_addr = (struct sockaddr_dl*)(ent->ifa_addr);
-        memcpy(address->phys_addr, LLADDR(sa_addr), sizeof(address->phys_addr));
-      }
-      address++;
-    }
-  }
-
   freeifaddrs(addrs);
 
-  return 0;
+  return uv_ok_;
 #endif  /* SUNOS_NO_IFADDRS */
 }
 

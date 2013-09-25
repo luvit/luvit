@@ -39,17 +39,14 @@ static int uv__async_eventfd(void);
 
 
 int uv_async_init(uv_loop_t* loop, uv_async_t* handle, uv_async_cb async_cb) {
-  int err;
-
-  err = uv__async_start(loop, &loop->async_watcher, uv__async_event);
-  if (err)
-    return err;
+  if (uv__async_start(loop, &loop->async_watcher, uv__async_event))
+    return uv__set_sys_error(loop, errno);
 
   uv__handle_init(loop, (uv_handle_t*)handle, UV_ASYNC);
   handle->async_cb = async_cb;
   handle->pending = 0;
 
-  QUEUE_INSERT_TAIL(&loop->async_handles, &handle->queue);
+  ngx_queue_insert_tail(&loop->async_handles, &handle->queue);
   uv__handle_start(handle);
 
   return 0;
@@ -65,7 +62,7 @@ int uv_async_send(uv_async_t* handle) {
 
 
 void uv__async_close(uv_async_t* handle) {
-  QUEUE_REMOVE(&handle->queue);
+  ngx_queue_remove(&handle->queue);
   uv__handle_stop(handle);
 }
 
@@ -73,18 +70,13 @@ void uv__async_close(uv_async_t* handle) {
 static void uv__async_event(uv_loop_t* loop,
                             struct uv__async* w,
                             unsigned int nevents) {
-  QUEUE* q;
+  ngx_queue_t* q;
   uv_async_t* h;
 
-  QUEUE_FOREACH(q, &loop->async_handles) {
-    h = QUEUE_DATA(q, uv_async_t, queue);
-
-    if (h->pending == 0)
-      continue;
+  ngx_queue_foreach(q, &loop->async_handles) {
+    h = ngx_queue_data(q, uv_async_t, queue);
+    if (!h->pending) continue;
     h->pending = 0;
-
-    if (h->async_cb == NULL)
-      continue;
     h->async_cb(h, 0);
   }
 }
@@ -207,21 +199,20 @@ void uv__async_init(struct uv__async* wa) {
 
 int uv__async_start(uv_loop_t* loop, struct uv__async* wa, uv__async_cb cb) {
   int pipefd[2];
-  int err;
+  int fd;
 
   if (wa->io_watcher.fd != -1)
     return 0;
 
-  err = uv__async_eventfd();
-  if (err >= 0) {
-    pipefd[0] = err;
+  fd = uv__async_eventfd();
+  if (fd >= 0) {
+    pipefd[0] = fd;
     pipefd[1] = -1;
   }
-  else if (err == -ENOSYS)
-    err = uv__make_pipe(pipefd, UV__F_NONBLOCK);
-
-  if (err < 0)
-    return err;
+  else if (fd != -ENOSYS)
+    return -1;
+  else if (uv__make_pipe(pipefd, UV__F_NONBLOCK))
+    return -1;
 
   uv__io_init(&wa->io_watcher, uv__async_io, pipefd[0]);
   uv__io_start(loop, &wa->io_watcher, UV__POLLIN);

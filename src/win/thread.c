@@ -119,7 +119,7 @@ void uv_once(uv_once_t* guard, void (*callback)(void)) {
 
 int uv_thread_join(uv_thread_t *tid) {
   if (WaitForSingleObject(*tid, INFINITE))
-    return uv_translate_sys_error(GetLastError());
+    return -1;
   else {
     CloseHandle(*tid);
     *tid = 0;
@@ -148,7 +148,7 @@ int uv_mutex_trylock(uv_mutex_t* mutex) {
   if (TryEnterCriticalSection(mutex))
     return 0;
   else
-    return UV_EAGAIN;
+    return -1;
 }
 
 
@@ -225,10 +225,7 @@ void uv_rwlock_wrunlock(uv_rwlock_t* rwlock) {
 
 int uv_sem_init(uv_sem_t* sem, unsigned int value) {
   *sem = CreateSemaphore(NULL, value, INT_MAX, NULL);
-  if (*sem == NULL)
-    return uv_translate_sys_error(GetLastError());
-  else
-    return 0;
+  return *sem ? 0 : -1;
 }
 
 
@@ -257,7 +254,7 @@ int uv_sem_trywait(uv_sem_t* sem) {
     return 0;
 
   if (r == WAIT_TIMEOUT)
-    return UV_EAGAIN;
+    return -1;
 
   abort();
   return -1; /* Satisfy the compiler. */
@@ -284,7 +281,7 @@ inline static int uv__rwlock_srwlock_tryrdlock(uv_rwlock_t* rwlock) {
   if (pTryAcquireSRWLockShared(&rwlock->srwlock_))
     return 0;
   else
-    return UV_EBUSY;  /* TODO(bnoordhuis) EAGAIN when owned by this thread. */
+    return -1;
 }
 
 
@@ -302,7 +299,7 @@ inline static int uv__rwlock_srwlock_trywrlock(uv_rwlock_t* rwlock) {
   if (pTryAcquireSRWLockExclusive(&rwlock->srwlock_))
     return 0;
   else
-    return UV_EBUSY;  /* TODO(bnoordhuis) EAGAIN when owned by this thread. */
+    return -1;
 }
 
 
@@ -312,16 +309,12 @@ inline static void uv__rwlock_srwlock_wrunlock(uv_rwlock_t* rwlock) {
 
 
 inline static int uv__rwlock_fallback_init(uv_rwlock_t* rwlock) {
-  int err;
+  if (uv_mutex_init(&rwlock->fallback_.read_mutex_))
+    return -1;
 
-  err = uv_mutex_init(&rwlock->fallback_.read_mutex_);
-  if (err)
-    return err;
-
-  err = uv_mutex_init(&rwlock->fallback_.write_mutex_);
-  if (err) {
+  if (uv_mutex_init(&rwlock->fallback_.write_mutex_)) {
     uv_mutex_destroy(&rwlock->fallback_.read_mutex_);
-    return err;
+    return -1;
   }
 
   rwlock->fallback_.num_readers_ = 0;
@@ -347,23 +340,25 @@ inline static void uv__rwlock_fallback_rdlock(uv_rwlock_t* rwlock) {
 
 
 inline static int uv__rwlock_fallback_tryrdlock(uv_rwlock_t* rwlock) {
-  int err;
+  int ret;
 
-  err = uv_mutex_trylock(&rwlock->fallback_.read_mutex_);
-  if (err)
+  ret = -1;
+
+  if (uv_mutex_trylock(&rwlock->fallback_.read_mutex_))
     goto out;
 
-  err = 0;
   if (rwlock->fallback_.num_readers_ == 0)
-    err = uv_mutex_trylock(&rwlock->fallback_.write_mutex_);
+    ret = uv_mutex_trylock(&rwlock->fallback_.write_mutex_);
+  else
+    ret = 0;
 
-  if (err == 0)
+  if (ret == 0)
     rwlock->fallback_.num_readers_++;
 
   uv_mutex_unlock(&rwlock->fallback_.read_mutex_);
 
 out:
-  return err;
+  return ret;
 }
 
 
@@ -401,8 +396,6 @@ inline static void uv__rwlock_fallback_wrunlock(uv_rwlock_t* rwlock) {
  */
 
 inline static int uv_cond_fallback_init(uv_cond_t* cond) {
-  int err;
-
   /* Initialize the count to 0. */
   cond->fallback.waiters_count = 0;
 
@@ -413,20 +406,16 @@ inline static int uv_cond_fallback_init(uv_cond_t* cond) {
                                             FALSE, /* auto-reset event */
                                             FALSE, /* non-signaled initially */
                                             NULL); /* unnamed */
-  if (!cond->fallback.signal_event) {
-    err = GetLastError();
+  if (!cond->fallback.signal_event)
     goto error2;
-  }
 
   /* Create a manual-reset event. */
   cond->fallback.broadcast_event = CreateEvent(NULL,  /* no security */
                                                TRUE,  /* manual-reset */
                                                FALSE, /* non-signaled */
                                                NULL); /* unnamed */
-  if (!cond->fallback.broadcast_event) {
-    err = GetLastError();
+  if (!cond->fallback.broadcast_event)
     goto error;
-  }
 
   return 0;
 
@@ -434,7 +423,7 @@ error:
   CloseHandle(cond->fallback.signal_event);
 error2:
   DeleteCriticalSection(&cond->fallback.waiters_count_lock);
-  return uv_translate_sys_error(err);
+  return -1;
 }
 
 
@@ -571,7 +560,7 @@ inline int uv_cond_wait_helper(uv_cond_t* cond, uv_mutex_t* mutex,
     return 0;
 
   if (result == WAIT_TIMEOUT)
-    return UV_ETIMEDOUT;
+    return -1;
 
   abort();
   return -1; /* Satisfy the compiler. */
@@ -610,7 +599,7 @@ inline static int uv_cond_condvar_timedwait(uv_cond_t* cond,
     return 0;
   if (GetLastError() != ERROR_TIMEOUT)
     abort();
-  return UV_ETIMEDOUT;
+  return -1;
 }
 
 
@@ -624,21 +613,16 @@ int uv_cond_timedwait(uv_cond_t* cond, uv_mutex_t* mutex,
 
 
 int uv_barrier_init(uv_barrier_t* barrier, unsigned int count) {
-  int err;
-
   barrier->n = count;
   barrier->count = 0;
 
-  err = uv_mutex_init(&barrier->mutex);
-  if (err)
-    return err;
+  if (uv_mutex_init(&barrier->mutex))
+    return -1;
 
-  err = uv_sem_init(&barrier->turnstile1, 0);
-  if (err)
+  if (uv_sem_init(&barrier->turnstile1, 0))
     goto error2;
 
-  err = uv_sem_init(&barrier->turnstile2, 1);
-  if (err)
+  if (uv_sem_init(&barrier->turnstile2, 1))
     goto error;
 
   return 0;
@@ -647,7 +631,7 @@ error:
   uv_sem_destroy(&barrier->turnstile1);
 error2:
   uv_mutex_destroy(&barrier->mutex);
-  return err;
+  return -1;
 
 }
 
@@ -679,37 +663,4 @@ void uv_barrier_wait(uv_barrier_t* barrier) {
 
   uv_sem_wait(&barrier->turnstile2);
   uv_sem_post(&barrier->turnstile2);
-}
-
-
-int uv_key_create(uv_key_t* key) {
-  key->tls_index = TlsAlloc();
-  if (key->tls_index == TLS_OUT_OF_INDEXES)
-    return UV_ENOMEM;
-  return 0;
-}
-
-
-void uv_key_delete(uv_key_t* key) {
-  if (TlsFree(key->tls_index) == FALSE)
-    abort();
-  key->tls_index = TLS_OUT_OF_INDEXES;
-}
-
-
-void* uv_key_get(uv_key_t* key) {
-  void* value;
-
-  value = TlsGetValue(key->tls_index);
-  if (value == NULL)
-    if (GetLastError() != ERROR_SUCCESS)
-      abort();
-
-  return value;
-}
-
-
-void uv_key_set(uv_key_t* key, void* value) {
-  if (TlsSetValue(key->tls_index, value) == FALSE)
-    abort();
 }

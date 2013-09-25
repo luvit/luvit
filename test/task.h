@@ -27,7 +27,7 @@
 #include <stdlib.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
-# include "stdint-msvc2008.h"
+# include "uv-private/stdint-msvc2008.h"
 #else
 # include <stdint.h>
 #endif
@@ -41,16 +41,6 @@
 #else
 # define TEST_PIPENAME "/tmp/uv-test-sock"
 # define TEST_PIPENAME_2 "/tmp/uv-test-sock2"
-#endif
-
-#ifdef _WIN32
-# include <io.h>
-# ifndef S_IRUSR
-#  define S_IRUSR _S_IREAD
-# endif
-# ifndef S_IWUSR
-#  define S_IWUSR _S_IWRITE
-# endif
 #endif
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
@@ -152,33 +142,5 @@ enum test_status {
     LOGF("%s\n", explanation);                                                \
     return TEST_SKIP;                                                         \
   } while (0)
-
-#ifdef _WIN32
-
-#include <stdarg.h>
-
-/* Emulate snprintf() on Windows, _snprintf() doesn't zero-terminate the buffer
- * on overflow...
- */
-static int snprintf(char* buf, size_t len, const char* fmt, ...) {
-  va_list ap;
-  int n;
-
-  va_start(ap, fmt);
-  n = _vsprintf_p(buf, len, fmt, ap);
-  va_end(ap);
-
-  /* It's a sad fact of life that no one ever checks the return value of
-   * snprintf(). Zero-terminating the buffer hopefully reduces the risk
-   * of gaping security holes.
-   */
-  if (n < 0)
-    if (len > 0)
-      buf[0] = '\0';
-
-  return n;
-}
-
-#endif
 
 #endif /* TASK_H_ */

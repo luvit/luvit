@@ -71,13 +71,10 @@ static uv_os_sock_t create_tcp_socket(void) {
 }
 
 
-static void alloc_cb(uv_handle_t* handle,
-                     size_t suggested_size,
-                     uv_buf_t* buf) {
+static uv_buf_t alloc_cb(uv_handle_t* handle, size_t suggested_size) {
   static char slab[65536];
-  ASSERT(suggested_size <= sizeof(slab));
-  buf->base = slab;
-  buf->len = sizeof(slab);
+  ASSERT(suggested_size <= sizeof slab);
+  return uv_buf_init(slab, sizeof slab);
 }
 
 
@@ -96,15 +93,15 @@ static void shutdown_cb(uv_shutdown_t* req, int status) {
 }
 
 
-static void read_cb(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf) {
+static void read_cb(uv_stream_t* tcp, ssize_t nread, uv_buf_t buf) {
   ASSERT(tcp != NULL);
 
   if (nread >= 0) {
     ASSERT(nread == 4);
-    ASSERT(memcmp("PING", buf->base, nread) == 0);
+    ASSERT(memcmp("PING", buf.base, nread) == 0);
   }
   else {
-    ASSERT(nread == UV_EOF);
+    ASSERT(uv_last_error(uv_default_loop()).code == UV_EOF);
     printf("GOT EOF\n");
     uv_close((uv_handle_t*)tcp, close_cb);
   }
@@ -115,7 +112,8 @@ static void write_cb(uv_write_t* req, int status) {
   ASSERT(req != NULL);
 
   if (status) {
-    fprintf(stderr, "uv_write error: %s\n", uv_strerror(status));
+    uv_err_t err = uv_last_error(uv_default_loop());
+    fprintf(stderr, "uv_write error: %s\n", uv_strerror(err));
     ASSERT(0);
   }
 
@@ -148,12 +146,10 @@ static void connect_cb(uv_connect_t* req, int status) {
 
 
 TEST_IMPL(tcp_open) {
-  struct sockaddr_in addr;
+  struct sockaddr_in addr = uv_ip4_addr("127.0.0.1", TEST_PORT);
   uv_tcp_t client;
   uv_os_sock_t sock;
   int r;
-
-  ASSERT(0 == uv_ip4_addr("127.0.0.1", TEST_PORT, &addr));
 
   startup();
   sock = create_tcp_socket();
@@ -164,10 +160,7 @@ TEST_IMPL(tcp_open) {
   r = uv_tcp_open(&client, sock);
   ASSERT(r == 0);
 
-  r = uv_tcp_connect(&connect_req,
-                     &client,
-                     (const struct sockaddr*) &addr,
-                     connect_cb);
+  r = uv_tcp_connect(&connect_req, &client, addr, connect_cb);
   ASSERT(r == 0);
 
   uv_run(uv_default_loop(), UV_RUN_DEFAULT);

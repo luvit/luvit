@@ -49,7 +49,8 @@ static void send_cb(uv_udp_send_t* req, int status) {
   CHECK_REQ(req);
   CHECK_HANDLE(req->handle);
 
-  ASSERT(status == UV_EMSGSIZE);
+  ASSERT(status == -1);
+  ASSERT(uv_last_error(uv_default_loop()).code == UV_EMSGSIZE);
 
   uv_close((uv_handle_t*)req->handle, close_cb);
   send_cb_called++;
@@ -68,14 +69,9 @@ TEST_IMPL(udp_dgram_too_big) {
   ASSERT(r == 0);
 
   buf = uv_buf_init(dgram, sizeof dgram);
-  ASSERT(0 == uv_ip4_addr("127.0.0.1", TEST_PORT, &addr));
+  addr = uv_ip4_addr("127.0.0.1", TEST_PORT);
 
-  r = uv_udp_send(&req_,
-                  &handle_,
-                  &buf,
-                  1,
-                  (const struct sockaddr*) &addr,
-                  send_cb);
+  r = uv_udp_send(&req_, &handle_, &buf, 1, addr, send_cb);
   ASSERT(r == 0);
 
   ASSERT(close_cb_called == 0);

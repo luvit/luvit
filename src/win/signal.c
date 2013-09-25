@@ -124,20 +124,20 @@ static BOOL WINAPI uv__signal_control_handler(DWORD type) {
 }
 
 
-static int uv__signal_register_control_handler() {
+static uv_err_t uv__signal_register_control_handler() {
   /* When this function is called, the uv__signal_lock must be held. */
 
   /* If the console control handler has already been hooked, just add a */
   /* reference. */
   if (uv__signal_control_handler_refs > 0)
-    return 0;
+    return uv_ok_;
 
   if (!SetConsoleCtrlHandler(uv__signal_control_handler, TRUE))
-    return GetLastError();
+    return uv__new_sys_error(GetLastError());
 
   uv__signal_control_handler_refs++;
 
-  return 0;
+  return uv_ok_;
 }
 
 
@@ -162,7 +162,7 @@ static void uv__signal_unregister_control_handler() {
 }
 
 
-static int uv__signal_register(int signum) {
+static uv_err_t uv__signal_register(int signum) {
   switch (signum) {
     case SIGINT:
     case SIGBREAK:
@@ -171,7 +171,7 @@ static int uv__signal_register(int signum) {
 
     case SIGWINCH:
       /* SIGWINCH is generated in tty.c. No need to register anything. */
-      return 0;
+      return uv_ok_;
 
     case SIGILL:
     case SIGABRT_COMPAT:
@@ -180,11 +180,11 @@ static int uv__signal_register(int signum) {
     case SIGTERM:
     case SIGABRT:
       /* Signal is never raised. */
-      return 0;
+      return uv_ok_;
 
     default:
       /* Invalid signal. */
-      return ERROR_INVALID_PARAMETER;
+      return uv__new_artificial_error(UV_EINVAL);
   }
 }
 
@@ -259,13 +259,14 @@ int uv_signal_stop(uv_signal_t* handle) {
 
 
 int uv_signal_start(uv_signal_t* handle, uv_signal_cb signal_cb, int signum) {
-  int err;
+  uv_err_t err;
 
   /* If the user supplies signum == 0, then return an error already. If the */
   /* signum is otherwise invalid then uv__signal_register will find out */
   /* eventually. */
   if (signum == 0) {
-    return UV_EINVAL;
+    uv__set_artificial_error(handle->loop, UV_EINVAL);
+    return -1;
   }
 
   /* Short circuit: if the signal watcher is already watching {signum} don't */
@@ -287,10 +288,11 @@ int uv_signal_start(uv_signal_t* handle, uv_signal_cb signal_cb, int signum) {
   EnterCriticalSection(&uv__signal_lock);
 
   err = uv__signal_register(signum);
-  if (err) {
+  if (err.code != UV_OK) {
     /* Uh-oh, didn't work. */
+    handle->loop->last_err = err;
     LeaveCriticalSection(&uv__signal_lock);
-    return uv_translate_sys_error(err);
+    return -1;
   }
 
   handle->signum = signum;

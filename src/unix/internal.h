@@ -26,7 +26,6 @@
 
 #include <assert.h>
 #include <stdlib.h> /* abort */
-#include <string.h> /* strrchr */
 
 #if defined(__STRICT_ANSI__)
 # define inline __inline
@@ -39,6 +38,7 @@
 #if defined(__sun)
 # include <sys/port.h>
 # include <port.h>
+# define futimes(fd, tv) futimesat(fd, (void*)0, tv)
 #endif /* __sun */
 
 #if defined(__APPLE__) && !TARGET_OS_IPHONE
@@ -65,21 +65,6 @@
     errno = _saved_errno;                                                     \
   }                                                                           \
   while (0)
-
-/* The __clang__ and __INTEL_COMPILER checks are superfluous because they
- * define __GNUC__. They are here to convey to you, dear reader, that these
- * macros are enabled when compiling with clang or icc.
- */
-#if defined(__clang__) ||                                                     \
-    defined(__GNUC__) ||                                                      \
-    defined(__INTEL_COMPILER) ||                                              \
-    defined(__SUNPRO_C)
-# define UV_DESTRUCTOR(declaration) __attribute__((destructor)) declaration
-# define UV_UNUSED(declaration)     __attribute__((unused)) declaration
-#else
-# define UV_DESTRUCTOR(declaration) declaration
-# define UV_UNUSED(declaration)     declaration
-#endif
 
 #if defined(__linux__)
 # define UV__POLLIN   UV__EPOLLIN
@@ -113,19 +98,17 @@
 
 /* handle flags */
 enum {
-  UV_CLOSING              = 0x01,   /* uv_close() called but not finished. */
-  UV_CLOSED               = 0x02,   /* close(2) finished. */
-  UV_STREAM_READING       = 0x04,   /* uv_read_start() called. */
-  UV_STREAM_SHUTTING      = 0x08,   /* uv_shutdown() called but not complete. */
-  UV_STREAM_SHUT          = 0x10,   /* Write side closed. */
-  UV_STREAM_READABLE      = 0x20,   /* The stream is readable */
-  UV_STREAM_WRITABLE      = 0x40,   /* The stream is writable */
-  UV_STREAM_BLOCKING      = 0x80,   /* Synchronous writes. */
-  UV_STREAM_READ_PARTIAL  = 0x100,  /* read(2) read less than requested. */
-  UV_STREAM_READ_EOF      = 0x200,  /* read(2) read EOF. */
-  UV_TCP_NODELAY          = 0x400,  /* Disable Nagle. */
-  UV_TCP_KEEPALIVE        = 0x800,  /* Turn on keep-alive. */
-  UV_TCP_SINGLE_ACCEPT    = 0x1000  /* Only accept() when idle. */
+  UV_CLOSING          = 0x01,   /* uv_close() called but not finished. */
+  UV_CLOSED           = 0x02,   /* close(2) finished. */
+  UV_STREAM_READING   = 0x04,   /* uv_read_start() called. */
+  UV_STREAM_SHUTTING  = 0x08,   /* uv_shutdown() called but not complete. */
+  UV_STREAM_SHUT      = 0x10,   /* Write side closed. */
+  UV_STREAM_READABLE  = 0x20,   /* The stream is readable */
+  UV_STREAM_WRITABLE  = 0x40,   /* The stream is writable */
+  UV_STREAM_BLOCKING  = 0x80,   /* Synchronous writes. */
+  UV_TCP_NODELAY      = 0x100,  /* Disable Nagle. */
+  UV_TCP_KEEPALIVE    = 0x200,  /* Turn on keep-alive. */
+  UV_TCP_SINGLE_ACCEPT = 0x400  /* Only accept() when idle. */
 };
 
 /* core */
@@ -150,9 +133,15 @@ int uv__async_start(uv_loop_t* loop, struct uv__async* wa, uv__async_cb cb);
 void uv__async_stop(uv_loop_t* loop, struct uv__async* wa);
 
 /* loop */
+int uv__loop_init(uv_loop_t* loop, int default_loop);
+void uv__loop_delete(uv_loop_t* loop);
 void uv__run_idle(uv_loop_t* loop);
 void uv__run_check(uv_loop_t* loop);
 void uv__run_prepare(uv_loop_t* loop);
+
+/* error */
+uv_err_code uv_translate_sys_error(int sys_errno);
+void uv_fatal_error(const int errorno, const char* syscall);
 
 /* stream */
 void uv__stream_init(uv_loop_t* loop, uv_stream_t* stream,
@@ -227,10 +216,12 @@ int uv__make_socketpair(int fds[2], int flags);
 int uv__make_pipe(int fds[2], int flags);
 
 #if defined(__APPLE__)
+typedef void (*cf_loop_signal_cb)(void*);
+
+void uv__cf_loop_signal(uv_loop_t* loop, cf_loop_signal_cb cb, void* arg);
 
 int uv__fsevents_init(uv_fs_event_t* handle);
 int uv__fsevents_close(uv_fs_event_t* handle);
-void uv__fsevents_loop_delete(uv_loop_t* loop);
 
 /* OSX < 10.7 has no file events, polyfill them */
 #ifndef MAC_OS_X_VERSION_10_7
@@ -252,29 +243,18 @@ static const int kFSEventStreamEventFlagItemIsSymlink = 0x00040000;
 
 #endif /* defined(__APPLE__) */
 
-UV_UNUSED(static void uv__req_init(uv_loop_t* loop,
-                                   uv_req_t* req,
-                                   uv_req_type type)) {
+__attribute__((unused))
+static void uv__req_init(uv_loop_t* loop, uv_req_t* req, uv_req_type type) {
   req->type = type;
   uv__req_register(loop, req);
 }
 #define uv__req_init(loop, req, type) \
   uv__req_init((loop), (uv_req_t*)(req), (type))
 
-UV_UNUSED(static void uv__update_time(uv_loop_t* loop)) {
+__attribute__((unused))
+static void uv__update_time(uv_loop_t* loop) {
   loop->time = uv__hrtime() / 1000000;
 }
-
-UV_UNUSED(static char* uv__basename_r(const char* path)) {
-  char* s;
-
-  s = strrchr(path, '/');
-  if (s == NULL)
-    return (char*) path;
-
-  return s + 1;
-}
-
 
 #ifdef HAVE_DTRACE
 #include "uv-dtrace.h"

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define EXPECTED "RANG TANG DING DONG I AM THE JAPANESE SANDMAN"
+#define EXPECTED "RANG TANG DING DONG I AM THE JAPANESE SANDMAN" /* "Take eight!" */
 
 #define TEST_DURATION 5000 /* ms */
 
@@ -59,13 +59,10 @@ static int timed;
 static int exiting;
 
 
-static void alloc_cb(uv_handle_t* handle,
-                     size_t suggested_size,
-                     uv_buf_t* buf) {
+static uv_buf_t alloc_cb(uv_handle_t* handle, size_t suggested_size) {
   static char slab[65536];
-  ASSERT(suggested_size <= sizeof(slab));
-  buf->base = slab;
-  buf->len = sizeof(slab);
+  ASSERT(suggested_size <= sizeof slab);
+  return uv_buf_init(slab, sizeof slab);
 }
 
 
@@ -75,7 +72,8 @@ static void send_cb(uv_udp_send_t* req, int status) {
   ASSERT(req != NULL);
 
   if (status != 0) {
-    ASSERT(status == UV_ECANCELED);
+    ASSERT(status == -1);
+    ASSERT(uv_last_error(req->handle->loop).code == UV_ECANCELED);
     return;
   }
 
@@ -100,7 +98,7 @@ send:
                           &s->udp_handle,
                           bufs,
                           ARRAY_SIZE(bufs),
-                          (const struct sockaddr*) &s->addr,
+                          s->addr,
                           send_cb));
   send_cb_called++;
 }
@@ -108,19 +106,19 @@ send:
 
 static void recv_cb(uv_udp_t* handle,
                     ssize_t nread,
-                    const uv_buf_t* buf,
-                    const struct sockaddr* addr,
+                    uv_buf_t buf,
+                    struct sockaddr* addr,
                     unsigned flags) {
   if (nread == 0)
     return;
 
-  if (nread < 0) {
-    ASSERT(nread == UV_ECANCELED);
+  if (nread == -1) {
+    ASSERT(uv_last_error(handle->loop).code == UV_ECANCELED);
     return;
   }
 
   ASSERT(addr->sa_family == AF_INET);
-  ASSERT(!memcmp(buf->base, EXPECTED, nread));
+  ASSERT(!memcmp(buf.base, EXPECTED, nread));
 
   recv_cb_called++;
 }
@@ -171,10 +169,9 @@ static int pummel(unsigned int n_senders,
 
   for (i = 0; i < n_receivers; i++) {
     struct receiver_state* s = receivers + i;
-    struct sockaddr_in addr;
-    ASSERT(0 == uv_ip4_addr("0.0.0.0", BASE_PORT + i, &addr));
+    struct sockaddr_in addr = uv_ip4_addr("0.0.0.0", BASE_PORT + i);
     ASSERT(0 == uv_udp_init(loop, &s->udp_handle));
-    ASSERT(0 == uv_udp_bind(&s->udp_handle, (const struct sockaddr*) &addr, 0));
+    ASSERT(0 == uv_udp_bind(&s->udp_handle, addr, 0));
     ASSERT(0 == uv_udp_recv_start(&s->udp_handle, alloc_cb, recv_cb));
     uv_unref((uv_handle_t*)&s->udp_handle);
   }
@@ -187,15 +184,13 @@ static int pummel(unsigned int n_senders,
 
   for (i = 0; i < n_senders; i++) {
     struct sender_state* s = senders + i;
-    ASSERT(0 == uv_ip4_addr("127.0.0.1",
-                            BASE_PORT + (i % n_receivers),
-                            &s->addr));
+    s->addr = uv_ip4_addr("127.0.0.1", BASE_PORT + (i % n_receivers));
     ASSERT(0 == uv_udp_init(loop, &s->udp_handle));
     ASSERT(0 == uv_udp_send(&s->send_req,
                             &s->udp_handle,
                             bufs,
                             ARRAY_SIZE(bufs),
-                            (const struct sockaddr*) &s->addr,
+                            s->addr,
                             send_cb));
   }
 

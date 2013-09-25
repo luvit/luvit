@@ -18,10 +18,6 @@
  * IN THE SOFTWARE.
  */
 
-#include <dlfcn.h>
-#include <errno.h>
-#include <stdlib.h>
-
 #include <TargetConditionals.h>
 
 #if !TARGET_OS_IPHONE
@@ -30,136 +26,62 @@
 #endif
 
 
-static int uv__pthread_setname_np(const char* name) {
-  int (*dynamic_pthread_setname_np)(const char* name);
-  char namebuf[64];  /* MAXTHREADNAMESIZE */
-  int err;
-
-  /* pthread_setname_np() first appeared in OS X 10.6 and iOS 3.2. */
-  dynamic_pthread_setname_np = dlsym(RTLD_DEFAULT, "pthread_setname_np");
-  if (dynamic_pthread_setname_np == NULL)
-    return -ENOSYS;
-
-  strncpy(namebuf, name, sizeof(namebuf) - 1);
-  namebuf[sizeof(namebuf) - 1] = '\0';
-
-  err = dynamic_pthread_setname_np(namebuf);
-  if (err)
-    return -err;
-
-  return 0;
-}
-
-
 int uv__set_process_title(const char* title) {
 #if TARGET_OS_IPHONE
-  return uv__pthread_setname_np(title);
+  return -1;
 #else
-  CFStringRef (*pCFStringCreateWithCString)(CFAllocatorRef,
-                                            const char*,
-                                            CFStringEncoding);
-  CFBundleRef (*pCFBundleGetBundleWithIdentifier)(CFStringRef);
-  void *(*pCFBundleGetDataPointerForName)(CFBundleRef, CFStringRef);
-  void *(*pCFBundleGetFunctionPointerForName)(CFBundleRef, CFStringRef);
-  OSErr (*pGetCurrentProcess)(ProcessSerialNumber*);
-  CFTypeRef (*pLSGetCurrentApplicationASN)(void);
-  OSStatus (*pLSSetApplicationInformationItem)(int,
-                                               CFTypeRef,
-                                               CFStringRef,
-                                               CFStringRef,
-                                               CFDictionaryRef*);
-  void* application_services_handle;
-  void* core_foundation_handle;
+  typedef CFTypeRef (*LSGetCurrentApplicationASNType)(void);
+  typedef OSStatus (*LSSetApplicationInformationItemType)(int,
+                                                          CFTypeRef,
+                                                          CFStringRef,
+                                                          CFStringRef,
+                                                          CFDictionaryRef*);
   CFBundleRef launch_services_bundle;
+  LSGetCurrentApplicationASNType ls_get_current_application_asn;
+  LSSetApplicationInformationItemType ls_set_application_information_item;
   CFStringRef* display_name_key;
   ProcessSerialNumber psn;
   CFTypeRef asn;
-  int err;
-
-  err = -ENOENT;
-  application_services_handle = dlopen("/System/Library/Frameworks/"
-                                       "ApplicationServices.framework/"
-                                       "Versions/A/ApplicationServices",
-                                       RTLD_LAZY | RTLD_LOCAL);
-  core_foundation_handle = dlopen("/System/Library/Frameworks/"
-                                  "CoreFoundation.framework/"
-                                  "Versions/A/CoreFoundation",
-                                  RTLD_LAZY | RTLD_LOCAL);
-
-  if (application_services_handle == NULL || core_foundation_handle == NULL)
-    goto out;
-
-  pGetCurrentProcess =
-      dlsym(application_services_handle, "GetCurrentProcess");
-  pCFStringCreateWithCString =
-      dlsym(core_foundation_handle, "CFStringCreateWithCString");
-  pCFBundleGetBundleWithIdentifier =
-      dlsym(core_foundation_handle, "CFBundleGetBundleWithIdentifier");
-  pCFBundleGetDataPointerForName =
-      dlsym(core_foundation_handle, "CFBundleGetDataPointerForName");
-  pCFBundleGetFunctionPointerForName =
-      dlsym(core_foundation_handle, "CFBundleGetFunctionPointerForName");
-
-  if (pGetCurrentProcess == NULL ||
-      pCFStringCreateWithCString == NULL ||
-      pCFBundleGetBundleWithIdentifier == NULL ||
-      pCFBundleGetDataPointerForName == NULL ||
-      pCFBundleGetFunctionPointerForName == NULL) {
-    goto out;
-  }
-
-#define S(s) pCFStringCreateWithCString(NULL, (s), kCFStringEncodingUTF8)
+  CFStringRef display_name;
+  OSStatus err;
 
   launch_services_bundle =
-      pCFBundleGetBundleWithIdentifier(S("com.apple.LaunchServices"));
+      CFBundleGetBundleWithIdentifier(CFSTR("com.apple.LaunchServices"));
 
   if (launch_services_bundle == NULL)
-    goto out;
+    return -1;
 
-  pLSGetCurrentApplicationASN =
-      pCFBundleGetFunctionPointerForName(launch_services_bundle,
-                                         S("_LSGetCurrentApplicationASN"));
+  ls_get_current_application_asn = (LSGetCurrentApplicationASNType)
+      CFBundleGetFunctionPointerForName(launch_services_bundle,
+                                        CFSTR("_LSGetCurrentApplicationASN"));
 
-  if (pLSGetCurrentApplicationASN == NULL)
-    goto out;
+  if (ls_get_current_application_asn == NULL)
+    return -1;
 
-  pLSSetApplicationInformationItem =
-      pCFBundleGetFunctionPointerForName(launch_services_bundle,
-                                         S("_LSSetApplicationInformationItem"));
+  ls_set_application_information_item = (LSSetApplicationInformationItemType)
+      CFBundleGetFunctionPointerForName(launch_services_bundle,
+                                        CFSTR("_LSSetApplicationInformationItem"));
 
-  if (pLSSetApplicationInformationItem == NULL)
-    goto out;
+  if (ls_set_application_information_item == NULL)
+    return -1;
 
-  display_name_key = pCFBundleGetDataPointerForName(launch_services_bundle,
-                                                    S("_kLSDisplayNameKey"));
+  display_name_key = CFBundleGetDataPointerForName(launch_services_bundle,
+                                                   CFSTR("_kLSDisplayNameKey"));
 
   if (display_name_key == NULL || *display_name_key == NULL)
-    goto out;
+    return -1;
 
   /* Force the process manager to initialize. */
-  pGetCurrentProcess(&psn);
+  GetCurrentProcess(&psn);
 
-  asn = pLSGetCurrentApplicationASN();
+  display_name = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+  asn = ls_get_current_application_asn();
+  err = ls_set_application_information_item(-2,  /* Magic value. */
+                                            asn,
+                                            *display_name_key,
+                                            display_name,
+                                            NULL);
 
-  err = -EINVAL;
-  if (pLSSetApplicationInformationItem(-2,  /* Magic value. */
-                                       asn,
-                                       *display_name_key,
-                                       S(title),
-                                       NULL) != noErr) {
-    goto out;
-  }
-
-  uv__pthread_setname_np(title);  /* Don't care if it fails. */
-  err = 0;
-
-out:
-  if (core_foundation_handle != NULL)
-    dlclose(core_foundation_handle);
-
-  if (application_services_handle != NULL)
-    dlclose(application_services_handle);
-
-  return err;
+  return (err == noErr) ? 0 : -1;
 #endif  /* !TARGET_OS_IPHONE */
 }
