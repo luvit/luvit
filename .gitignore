@@ -1,0 +1,10 @@
+configure.log
+*.o
+example
+example64
+foo.gz
+libz.a
+minigzip
+minigzip64
+zlib.pc
+
