@@ -65,7 +65,7 @@ const char* uv_dlerror(uv_lib_t* lib) {
 
 
 static int uv__dlerror(uv_lib_t* lib) {
-  const char* errmsg;
+  char* errmsg;
 
   if (lib->errmsg)
     free(lib->errmsg);

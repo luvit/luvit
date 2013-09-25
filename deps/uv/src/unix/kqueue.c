@@ -39,8 +39,9 @@ static void uv__fs_event(uv_loop_t* loop, uv__io_t* w, unsigned int fflags);
 
 int uv__kqueue_init(uv_loop_t* loop) {
   loop->backend_fd = kqueue();
+
   if (loop->backend_fd == -1)
-    return -errno;
+    return -1;
 
   uv__cloexec(loop->backend_fd, 1);
 
@@ -54,7 +55,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
   struct timespec spec;
   unsigned int nevents;
   unsigned int revents;
-  QUEUE* q;
+  ngx_queue_t* q;
   uint64_t base;
   uint64_t diff;
   uv__io_t* w;
@@ -67,18 +68,18 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
   int i;
 
   if (loop->nfds == 0) {
-    assert(QUEUE_EMPTY(&loop->watcher_queue));
+    assert(ngx_queue_empty(&loop->watcher_queue));
     return;
   }
 
   nevents = 0;
 
-  while (!QUEUE_EMPTY(&loop->watcher_queue)) {
-    q = QUEUE_HEAD(&loop->watcher_queue);
-    QUEUE_REMOVE(q);
-    QUEUE_INIT(q);
+  while (!ngx_queue_empty(&loop->watcher_queue)) {
+    q = ngx_queue_head(&loop->watcher_queue);
+    ngx_queue_remove(q);
+    ngx_queue_init(q);
 
-    w = QUEUE_DATA(q, uv__io_t, watcher_queue);
+    w = ngx_queue_data(q, uv__io_t, watcher_queue);
     assert(w->pevents != 0);
     assert(w->fd >= 0);
     assert(w->fd < (int) loop->nwatchers);
@@ -258,11 +259,6 @@ static void uv__fs_event(uv_loop_t* loop, uv__io_t* w, unsigned int fflags) {
   uv_fs_event_t* handle;
   struct kevent ev;
   int events;
-  const char* path;
-#if defined(F_GETPATH)
-  /* MAXPATHLEN == PATH_MAX but the former is what XNU calls it internally. */
-  char pathbuf[MAXPATHLEN];
-#endif
 
   handle = container_of(w, uv_fs_event_t, event_watcher);
 
@@ -271,16 +267,7 @@ static void uv__fs_event(uv_loop_t* loop, uv__io_t* w, unsigned int fflags) {
   else
     events = UV_RENAME;
 
-  path = NULL;
-#if defined(F_GETPATH)
-  /* Also works when the file has been unlinked from the file system. Passing
-   * in the path when the file has been deleted is arguably a little strange
-   * but it's consistent with what the inotify backend does.
-   */
-  if (fcntl(handle->event_watcher.fd, F_GETPATH, pathbuf) == 0)
-    path = uv__basename_r(pathbuf);
-#endif
-  handle->cb(handle, path, events, 0);
+  handle->cb(handle, NULL, events, 0);
 
   if (handle->event_watcher.fd == -1)
     return;
@@ -307,9 +294,10 @@ int uv_fs_event_init(uv_loop_t* loop,
   int fd;
 
   /* TODO open asynchronously - but how do we report back errors? */
-  fd = open(filename, O_RDONLY);
-  if (fd == -1)
-    return -errno;
+  if ((fd = open(filename, O_RDONLY)) == -1) {
+    uv__set_sys_error(loop, errno);
+    return -1;
+  }
 
   uv__handle_init(loop, (uv_handle_t*)handle, UV_FS_EVENT);
   uv__handle_start(handle); /* FIXME shouldn't start automatically */
@@ -319,7 +307,7 @@ int uv_fs_event_init(uv_loop_t* loop,
 
 #if defined(__APPLE__)
   /* Nullify field to perform checks later */
-  handle->cf_cb = NULL;
+  handle->cf_eventstream = NULL;
   handle->realpath = NULL;
   handle->realpath_len = 0;
   handle->cf_flags = flags;

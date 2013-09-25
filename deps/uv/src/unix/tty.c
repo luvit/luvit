@@ -37,11 +37,8 @@ int uv_tty_init(uv_loop_t* loop, uv_tty_t* tty, int fd, int readable) {
   uv__stream_init(loop, (uv_stream_t*)tty, UV_TTY);
 
 #if defined(__APPLE__)
-  {
-    int err = uv__stream_try_select((uv_stream_t*) tty, &fd);
-    if (err)
-      return err;
-  }
+  if (uv__stream_try_select((uv_stream_t*) tty, &fd))
+    return -1;
 #endif /* defined(__APPLE__) */
 
   if (readable) {
@@ -105,15 +102,18 @@ int uv_tty_set_mode(uv_tty_t* tty, int mode) {
   }
 
 fatal:
-  return -errno;
+  uv__set_sys_error(tty->loop, errno);
+  return -1;
 }
 
 
 int uv_tty_get_winsize(uv_tty_t* tty, int* width, int* height) {
   struct winsize ws;
 
-  if (ioctl(uv__stream_fd(tty), TIOCGWINSZ, &ws))
-    return -errno;
+  if (ioctl(uv__stream_fd(tty), TIOCGWINSZ, &ws) < 0) {
+    uv__set_sys_error(tty->loop, errno);
+    return -1;
+  }
 
   *width = ws.ws_col;
   *height = ws.ws_row;

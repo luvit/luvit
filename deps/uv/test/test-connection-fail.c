@@ -68,7 +68,8 @@ static void timer_cb(uv_timer_t* handle, int status) {
 
 static void on_connect_with_close(uv_connect_t *req, int status) {
   ASSERT((uv_stream_t*) &tcp == req->handle);
-  ASSERT(status == UV_ECONNREFUSED);
+  ASSERT(status == -1);
+  ASSERT(uv_last_error(uv_default_loop()).code == UV_ECONNREFUSED);
   connect_cb_calls++;
 
   ASSERT(close_cb_calls == 0);
@@ -77,7 +78,8 @@ static void on_connect_with_close(uv_connect_t *req, int status) {
 
 
 static void on_connect_without_close(uv_connect_t *req, int status) {
-  ASSERT(status == UV_ECONNREFUSED);
+  ASSERT(status == -1);
+  ASSERT(uv_last_error(uv_default_loop()).code == UV_ECONNREFUSED);
   connect_cb_calls++;
 
   uv_timer_start(&timer, timer_cb, 100, 0);
@@ -90,10 +92,10 @@ static void connection_fail(uv_connect_cb connect_cb) {
   struct sockaddr_in client_addr, server_addr;
   int r;
 
-  ASSERT(0 == uv_ip4_addr("0.0.0.0", 0, &client_addr));
+  client_addr = uv_ip4_addr("0.0.0.0", 0);
 
   /* There should be no servers listening on this port. */
-  ASSERT(0 == uv_ip4_addr("127.0.0.1", TEST_PORT, &server_addr));
+  server_addr = uv_ip4_addr("127.0.0.1", TEST_PORT);
 
   /* Try to connect to the server and do NUM_PINGS ping-pongs. */
   r = uv_tcp_init(uv_default_loop(), &tcp);
@@ -101,12 +103,8 @@ static void connection_fail(uv_connect_cb connect_cb) {
 
   /* We are never doing multiple reads/connects at a time anyway. */
   /* so these handles can be pre-initialized. */
-  ASSERT(0 == uv_tcp_bind(&tcp, (const struct sockaddr*) &client_addr));
-
-  r = uv_tcp_connect(&req,
-                     &tcp,
-                     (const struct sockaddr*) &server_addr,
-                     connect_cb);
+  uv_tcp_bind(&tcp, client_addr);
+  r = uv_tcp_connect(&req, &tcp, server_addr, connect_cb);
   ASSERT(!r);
 
   uv_run(uv_default_loop(), UV_RUN_DEFAULT);

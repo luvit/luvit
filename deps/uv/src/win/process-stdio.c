@@ -94,26 +94,22 @@ void uv_disable_stdio_inheritance(void) {
 }
 
 
-static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
+static uv_err_t uv__create_stdio_pipe_pair(uv_loop_t* loop,
     uv_pipe_t* server_pipe, HANDLE* child_pipe_ptr, unsigned int flags) {
   char pipe_name[64];
   SECURITY_ATTRIBUTES sa;
   DWORD server_access = 0;
   DWORD client_access = 0;
   HANDLE child_pipe = INVALID_HANDLE_VALUE;
-  int err;
+  uv_err_t err;
 
   if (flags & UV_READABLE_PIPE) {
-    /* The server needs inbound access too, otherwise CreateNamedPipe() */
-    /* won't give us the FILE_READ_ATTRIBUTES permission. We need that to */
-    /* probe the state of the write buffer when we're trying to shutdown */
-    /* the pipe. */
-    server_access |= PIPE_ACCESS_OUTBOUND | PIPE_ACCESS_INBOUND;
+    server_access |= PIPE_ACCESS_OUTBOUND;
     client_access |= GENERIC_READ | FILE_WRITE_ATTRIBUTES;
   }
   if (flags & UV_WRITABLE_PIPE) {
     server_access |= PIPE_ACCESS_INBOUND;
-    client_access |= GENERIC_WRITE | FILE_READ_ATTRIBUTES;
+    client_access |= GENERIC_WRITE;
   }
 
   /* Create server pipe handle. */
@@ -122,7 +118,7 @@ static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
                              server_access,
                              pipe_name,
                              sizeof(pipe_name));
-  if (err)
+  if (err.code != UV_OK)
     goto error;
 
   /* Create child pipe handle. */
@@ -138,7 +134,7 @@ static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
                            server_pipe->ipc ? FILE_FLAG_OVERLAPPED : 0,
                            NULL);
   if (child_pipe == INVALID_HANDLE_VALUE) {
-    err = GetLastError();
+    err = uv__new_sys_error(GetLastError());
     goto error;
   }
 
@@ -162,19 +158,16 @@ static int uv__create_stdio_pipe_pair(uv_loop_t* loop,
   /* both ends of the pipe created. */
   if (!ConnectNamedPipe(server_pipe->handle, NULL)) {
     if (GetLastError() != ERROR_PIPE_CONNECTED) {
-      err = GetLastError();
+      err = uv__new_sys_error(GetLastError());
       goto error;
     }
   }
 
-  /* The server end is now readable and/or writable. */
-  if (flags & UV_READABLE_PIPE)
-    server_pipe->flags |= UV_HANDLE_WRITABLE;
-  if (flags & UV_WRITABLE_PIPE)
-    server_pipe->flags |= UV_HANDLE_READABLE;
+  /* The server end is now readable and writable. */
+  server_pipe->flags |= UV_HANDLE_READABLE | UV_HANDLE_WRITABLE;
 
   *child_pipe_ptr = child_pipe;
-  return 0;
+  return uv_ok_;
 
  error:
   if (server_pipe->handle != INVALID_HANDLE_VALUE) {
@@ -195,14 +188,15 @@ static int uv__duplicate_handle(uv_loop_t* loop, HANDLE handle, HANDLE* dup) {
 
   /* _get_osfhandle will sometimes return -2 in case of an error. This seems */
   /* to happen when fd <= 2 and the process' corresponding stdio handle is */
-  /* set to NULL. Unfortunately DuplicateHandle will happily duplicate */
+  /* set to NULL. Unfortunately DuplicateHandle will happily duplicate /*
   /* (HANDLE) -2, so this situation goes unnoticed until someone tries to */
   /* use the duplicate. Therefore we filter out known-invalid handles here. */
   if (handle == INVALID_HANDLE_VALUE ||
       handle == NULL ||
       handle == (HANDLE) -2) {
     *dup = INVALID_HANDLE_VALUE;
-    return ERROR_INVALID_HANDLE;
+    uv__set_artificial_error(loop, UV_EBADF);
+    return -1;
   }
 
   current_process = GetCurrentProcess();
@@ -215,7 +209,8 @@ static int uv__duplicate_handle(uv_loop_t* loop, HANDLE handle, HANDLE* dup) {
                        TRUE,
                        DUPLICATE_SAME_ACCESS)) {
     *dup = INVALID_HANDLE_VALUE;
-    return GetLastError();
+    uv__set_sys_error(loop, GetLastError());
+    return -1;
   }
 
   return 0;
@@ -227,7 +222,8 @@ static int uv__duplicate_fd(uv_loop_t* loop, int fd, HANDLE* dup) {
 
   if (fd == -1) {
     *dup = INVALID_HANDLE_VALUE;
-    return ERROR_INVALID_HANDLE;
+    uv__set_artificial_error(loop, UV_EBADF);
+    return -1;
   }
 
   handle = (HANDLE) _get_osfhandle(fd);
@@ -235,7 +231,7 @@ static int uv__duplicate_fd(uv_loop_t* loop, int fd, HANDLE* dup) {
 }
 
 
-int uv__create_nul_handle(HANDLE* handle_ptr,
+uv_err_t uv__create_nul_handle(HANDLE* handle_ptr,
     DWORD access) {
   HANDLE handle;
   SECURITY_ATTRIBUTES sa;
@@ -252,26 +248,25 @@ int uv__create_nul_handle(HANDLE* handle_ptr,
                        0,
                        NULL);
   if (handle == INVALID_HANDLE_VALUE) {
-    return GetLastError();
+    return uv__new_sys_error(GetLastError());
   }
 
   *handle_ptr = handle;
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv__stdio_create(uv_loop_t* loop,
-                     const uv_process_options_t* options,
-                     BYTE** buffer_ptr) {
+uv_err_t uv__stdio_create(uv_loop_t* loop, uv_process_options_t* options,
+    BYTE** buffer_ptr) {
   BYTE* buffer;
   int count, i;
-  int err;
+  uv_err_t err;
 
   count = options->stdio_count;
 
   if (count < 0 || count > 255) {
     /* Only support FDs 0-255 */
-    return ERROR_NOT_SUPPORTED;
+    return uv__new_artificial_error(UV_ENOTSUP);
   } else if (count < 3) {
     /* There should always be at least 3 stdio handles. */
     count = 3;
@@ -280,7 +275,7 @@ int uv__stdio_create(uv_loop_t* loop,
   /* Allocate the child stdio buffer */
   buffer = (BYTE*) malloc(CHILD_STDIO_SIZE(count));
   if (buffer == NULL) {
-    return ERROR_OUTOFMEMORY;
+    return uv__new_artificial_error(UV_ENOMEM);
   }
 
   /* Prepopulate the buffer with INVALID_HANDLE_VALUE handles so we can */
@@ -314,7 +309,7 @@ int uv__stdio_create(uv_loop_t* loop,
 
           err = uv__create_nul_handle(&CHILD_STDIO_HANDLE(buffer, i),
                                       access);
-          if (err)
+          if (err.code != UV_OK)
             goto error;
 
           CHILD_STDIO_CRT_FLAGS(buffer, i) = FOPEN | FDEV;
@@ -338,7 +333,7 @@ int uv__stdio_create(uv_loop_t* loop,
                                          parent_pipe,
                                          &child_pipe,
                                          fdopt.flags);
-        if (err)
+        if (err.code != UV_OK)
           goto error;
 
         CHILD_STDIO_HANDLE(buffer, i) = child_pipe;
@@ -351,11 +346,10 @@ int uv__stdio_create(uv_loop_t* loop,
         HANDLE child_handle;
 
         /* Make an inheritable duplicate of the handle. */
-        err = uv__duplicate_fd(loop, fdopt.data.fd, &child_handle);
-        if (err) {
+        if (uv__duplicate_fd(loop, fdopt.data.fd, &child_handle) < 0) {
           /* If fdopt.data.fd is not valid and fd fd <= 2, then ignore the */
           /* error. */
-          if (fdopt.data.fd <= 2 && err == ERROR_INVALID_HANDLE) {
+          if (fdopt.data.fd <= 2 && loop->last_err.code == UV_EBADF) {
             CHILD_STDIO_CRT_FLAGS(buffer, i) = 0;
             CHILD_STDIO_HANDLE(buffer, i) = INVALID_HANDLE_VALUE;
             break;
@@ -379,7 +373,7 @@ int uv__stdio_create(uv_loop_t* loop,
 
           case FILE_TYPE_UNKNOWN:
             if (GetLastError() != 0) {
-              err = GetLastError();
+              uv__set_sys_error(loop, GetLastError());
               CloseHandle(child_handle);
               goto error;
             }
@@ -417,7 +411,7 @@ int uv__stdio_create(uv_loop_t* loop,
             stream_handle == INVALID_HANDLE_VALUE) {
           /* The handle is already closed, or not yet created, or the */
           /* stream type is not supported. */
-          err = ERROR_NOT_SUPPORTED;
+          uv__set_artificial_error(loop, UV_ENOTSUP);
           goto error;
         }
 
@@ -439,7 +433,7 @@ int uv__stdio_create(uv_loop_t* loop,
   }
 
   *buffer_ptr  = buffer;
-  return 0;
+  return uv_ok_;
 
  error:
   uv__stdio_destroy(buffer);

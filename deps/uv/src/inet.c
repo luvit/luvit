@@ -19,7 +19,7 @@
 #include <string.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
-# include "stdint-msvc2008.h"
+# include "uv-private/stdint-msvc2008.h"
 #else
 # include <stdint.h>
 #endif
@@ -28,26 +28,30 @@
 #include "uv-common.h"
 
 
-static int inet_ntop4(const unsigned char *src, char *dst, size_t size);
-static int inet_ntop6(const unsigned char *src, char *dst, size_t size);
-static int inet_pton4(const char *src, unsigned char *dst);
-static int inet_pton6(const char *src, unsigned char *dst);
+static const uv_err_t uv_eafnosupport_ = { UV_EAFNOSUPPORT, 0 };
+static const uv_err_t uv_enospc_ = { UV_ENOSPC, 0 };
+static const uv_err_t uv_einval_ = { UV_EINVAL, 0 };
+
+static uv_err_t inet_ntop4(const unsigned char *src, char *dst, size_t size);
+static uv_err_t inet_ntop6(const unsigned char *src, char *dst, size_t size);
+static uv_err_t inet_pton4(const char *src, unsigned char *dst);
+static uv_err_t inet_pton6(const char *src, unsigned char *dst);
 
 
-int uv_inet_ntop(int af, const void* src, char* dst, size_t size) {
+uv_err_t uv_inet_ntop(int af, const void* src, char* dst, size_t size) {
   switch (af) {
   case AF_INET:
     return (inet_ntop4(src, dst, size));
   case AF_INET6:
     return (inet_ntop6(src, dst, size));
   default:
-    return UV_EAFNOSUPPORT;
+    return uv_eafnosupport_;
   }
   /* NOTREACHED */
 }
 
 
-static int inet_ntop4(const unsigned char *src, char *dst, size_t size) {
+static uv_err_t inet_ntop4(const unsigned char *src, char *dst, size_t size) {
   static const char fmt[] = "%u.%u.%u.%u";
   char tmp[sizeof "255.255.255.255"];
   int l;
@@ -58,15 +62,15 @@ static int inet_ntop4(const unsigned char *src, char *dst, size_t size) {
   l = _snprintf(tmp, sizeof(tmp), fmt, src[0], src[1], src[2], src[3]);
 #endif
   if (l <= 0 || (size_t) l >= size) {
-    return UV_ENOSPC;
+    return uv_enospc_;
   }
   strncpy(dst, tmp, size);
   dst[size - 1] = '\0';
-  return 0;
+  return uv_ok_;
 }
 
 
-static int inet_ntop6(const unsigned char *src, char *dst, size_t size) {
+static uv_err_t inet_ntop6(const unsigned char *src, char *dst, size_t size) {
   /*
    * Note that int32_t and int16_t need only be "at least" large enough
    * to contain a value of the specified size.  On some systems, like
@@ -131,8 +135,8 @@ static int inet_ntop6(const unsigned char *src, char *dst, size_t size) {
     if (i == 6 && best.base == 0 && (best.len == 6 ||
         (best.len == 7 && words[7] != 0x0001) ||
         (best.len == 5 && words[5] == 0xffff))) {
-      int err = inet_ntop4(src+12, tp, sizeof tmp - (tp - tmp));
-      if (err)
+      uv_err_t err = inet_ntop4(src+12, tp, sizeof tmp - (tp - tmp));
+      if (err.code != UV_OK)
         return err;
       tp += strlen(tp);
       break;
@@ -148,27 +152,27 @@ static int inet_ntop6(const unsigned char *src, char *dst, size_t size) {
    * Check for overflow, copy, and we're done.
    */
   if ((size_t)(tp - tmp) > size) {
-    return UV_ENOSPC;
+    return uv_enospc_;
   }
   strcpy(dst, tmp);
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_inet_pton(int af, const char* src, void* dst) {
+uv_err_t uv_inet_pton(int af, const char* src, void* dst) {
   switch (af) {
   case AF_INET:
     return (inet_pton4(src, dst));
   case AF_INET6:
     return (inet_pton6(src, dst));
   default:
-    return UV_EAFNOSUPPORT;
+    return uv_eafnosupport_;
   }
   /* NOTREACHED */
 }
 
 
-static int inet_pton4(const char *src, unsigned char *dst) {
+static uv_err_t inet_pton4(const char *src, unsigned char *dst) {
   static const char digits[] = "0123456789";
   int saw_digit, octets, ch;
   unsigned char tmp[sizeof(struct in_addr)], *tp;
@@ -183,31 +187,31 @@ static int inet_pton4(const char *src, unsigned char *dst) {
       unsigned int nw = *tp * 10 + (pch - digits);
 
       if (saw_digit && *tp == 0)
-        return UV_EINVAL;
+        return uv_einval_;
       if (nw > 255)
-        return UV_EINVAL;
+        return uv_einval_;
       *tp = nw;
       if (!saw_digit) {
         if (++octets > 4)
-          return UV_EINVAL;
+          return uv_einval_;
         saw_digit = 1;
       }
     } else if (ch == '.' && saw_digit) {
       if (octets == 4)
-        return UV_EINVAL;
+        return uv_einval_;
       *++tp = 0;
       saw_digit = 0;
     } else
-      return UV_EINVAL;
+      return uv_einval_;
   }
   if (octets < 4)
-    return UV_EINVAL;
+    return uv_einval_;
   memcpy(dst, tmp, sizeof(struct in_addr));
-  return 0;
+  return uv_ok_;
 }
 
 
-static int inet_pton6(const char *src, unsigned char *dst) {
+static uv_err_t inet_pton6(const char *src, unsigned char *dst) {
   static const char xdigits_l[] = "0123456789abcdef",
                     xdigits_u[] = "0123456789ABCDEF";
   unsigned char tmp[sizeof(struct in6_addr)], *tp, *endp, *colonp;
@@ -221,7 +225,7 @@ static int inet_pton6(const char *src, unsigned char *dst) {
   /* Leading :: requires some special handling. */
   if (*src == ':')
     if (*++src != ':')
-      return UV_EINVAL;
+      return uv_einval_;
   curtok = src;
   seen_xdigits = 0;
   val = 0;
@@ -234,21 +238,21 @@ static int inet_pton6(const char *src, unsigned char *dst) {
       val <<= 4;
       val |= (pch - xdigits);
       if (++seen_xdigits > 4)
-        return UV_EINVAL;
+        return uv_einval_;
       continue;
     }
     if (ch == ':') {
       curtok = src;
       if (!seen_xdigits) {
         if (colonp)
-          return UV_EINVAL;
+          return uv_einval_;
         colonp = tp;
         continue;
       } else if (*src == '\0') {
-        return UV_EINVAL;
+        return uv_einval_;
       }
       if (tp + sizeof(uint16_t) > endp)
-        return UV_EINVAL;
+        return uv_einval_;
       *tp++ = (unsigned char) (val >> 8) & 0xff;
       *tp++ = (unsigned char) val & 0xff;
       seen_xdigits = 0;
@@ -256,18 +260,18 @@ static int inet_pton6(const char *src, unsigned char *dst) {
       continue;
     }
     if (ch == '.' && ((tp + sizeof(struct in_addr)) <= endp)) {
-      int err = inet_pton4(curtok, tp);
-      if (err == 0) {
+      uv_err_t err = inet_pton4(curtok, tp);
+      if (err.code == 0) {
         tp += sizeof(struct in_addr);
         seen_xdigits = 0;
         break;  /*%< '\\0' was seen by inet_pton4(). */
       }
     }
-    return UV_EINVAL;
+    return uv_einval_;
   }
   if (seen_xdigits) {
     if (tp + sizeof(uint16_t) > endp)
-      return UV_EINVAL;
+      return uv_einval_;
     *tp++ = (unsigned char) (val >> 8) & 0xff;
     *tp++ = (unsigned char) val & 0xff;
   }
@@ -280,7 +284,7 @@ static int inet_pton6(const char *src, unsigned char *dst) {
     int i;
 
     if (tp == endp)
-      return UV_EINVAL;
+      return uv_einval_;
     for (i = 1; i <= n; i++) {
       endp[- i] = colonp[n - i];
       colonp[n - i] = 0;
@@ -288,7 +292,7 @@ static int inet_pton6(const char *src, unsigned char *dst) {
     tp = endp;
   }
   if (tp != endp)
-    return UV_EINVAL;
+    return uv_einval_;
   memcpy(dst, tmp, sizeof tmp);
-  return 0;
+  return uv_ok_;
 }

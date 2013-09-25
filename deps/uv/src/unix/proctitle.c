@@ -74,29 +74,30 @@ char** uv_setup_args(int argc, char** argv) {
 }
 
 
-int uv_set_process_title(const char* title) {
+uv_err_t uv_set_process_title(const char* title) {
   if (process_title.len == 0)
-    return 0;
+    return uv_ok_;
 
   /* No need to terminate, byte after is always '\0'. */
   strncpy(process_title.str, title, process_title.len);
   uv__set_process_title(title);
 
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_get_process_title(char* buffer, size_t size) {
+uv_err_t uv_get_process_title(char* buffer, size_t size) {
   if (process_title.len > 0)
     strncpy(buffer, process_title.str, size);
   else if (size > 0)
     buffer[0] = '\0';
 
-  return 0;
+  return uv_ok_;
 }
 
 
-UV_DESTRUCTOR(static void free_args_mem(void)) {
+__attribute__((destructor))
+static void free_args_mem(void) {
   free(args_mem);  /* Keep valgrind happy. */
   args_mem = NULL;
 }

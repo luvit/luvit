@@ -1,37 +1,40 @@
 # libuv
 
-libuv is a multi-platform support library with a focus on asynchronous I/O. It
-was primarily developed for use by [Node.js](http://node.js.org), but it's also
-used by Mozilla's [Rust language](http://www.rust-lang.org/),
-[Luvit](http://luvit.io/), [Julia](http://julialang.org/),
-[pyuv](https://crate.io/packages/pyuv/), and others.
+libuv is a new platform layer for Node. Its purpose is to abstract IOCP on
+Windows and epoll/kqueue/event ports/etc. on Unix systems. We intend to
+eventually contain all platform differences in this library.
 
-## Feature highlights
+http://nodejs.org/
 
- * Full-featured event loop backed by epoll, kqueue, IOCP, event ports.
+## Features
 
- * Asynchronous TCP and UDP sockets
+ * Non-blocking TCP sockets
 
- * Asynchronous DNS resolution
+ * Non-blocking named pipes
 
- * Asynchronous file and file system operations
+ * UDP
 
- * File system events
+ * Timers
 
- * ANSI escape code controlled TTY
+ * Child process spawning
 
- * IPC with socket sharing, using Unix domain sockets or named pipes (Windows)
+ * Asynchronous DNS via `uv_getaddrinfo`.
 
- * Child processes
+ * Asynchronous file system APIs `uv_fs_*`
 
- * Thread pool
+ * High resolution time `uv_hrtime`
 
- * Signal handling
+ * Current executable path look up `uv_exepath`
 
- * High resolution clock
+ * Thread pool scheduling `uv_queue_work`
 
- * Threading and synchronization primitives
+ * ANSI escape code controlled TTY `uv_tty_t`
 
+ * File system events Currently supports inotify, `ReadDirectoryChangesW`
+   and kqueue. Event ports in the near future.
+   `uv_fs_event_t`
+
+ * IPC and socket sharing between processes `uv_write2`
 
 ## Community
 
@@ -50,72 +53,66 @@ used by Mozilla's [Rust language](http://www.rust-lang.org/),
 
 ## Build Instructions
 
-For GCC there are two methods building: via autotools or via [GYP][].
-GYP is a meta-build system which can generate MSVS, Makefile, and XCode
-backends. It is best used for integration into other projects.
+For GCC (including MinGW) there are two methods building: via normal
+makefiles or via GYP. GYP is a meta-build system which can generate MSVS,
+Makefile, and XCode backends. It is best used for integration into other
+projects.  The old system is using plain GNU Makefiles.
 
-To build with autotools:
+To build via Makefile simply execute:
 
-    $ sh autogen.sh
-    $ ./configure
-    $ make
-    $ make check
-    $ make install
+    make
 
-### Windows
+MinGW users should run this instead:
 
-First, Python 2.6 or 2.7 must be installed as it is required by [GYP][].
+    make PLATFORM=mingw
 
-Also, the directory for the preferred Python executable must be specified
-by the `PYTHON` or `Path` environment variables.
+Out-of-tree builds are supported:
 
-To build with Visual Studio, launch a git shell (e.g. Cmd or PowerShell)
-and run vcbuild.bat which will checkout the GYP code into build/gyp and
-generate uv.sln as well as related project files.
+    make builddir_name=/path/to/builddir
 
-To have GYP generate build script for another system, checkout GYP into the
+To build with Visual Studio run the vcbuild.bat file which will
+checkout the GYP code into build/gyp and generate the uv.sln and
+related files.
+
+Windows users can also build from cmd-line using msbuild.  This is
+done by running vcbuild.bat from Visual Studio command prompt.
+
+To have GYP generate build script for another system, make sure that
+you have Python 2.6 or 2.7 installed, then checkout GYP into the
 project tree manually:
 
-    $ mkdir -p build
-    $ git clone https://git.chromium.org/external/gyp.git build/gyp
+    mkdir -p build
+    svn co http://gyp.googlecode.com/svn/trunk build/gyp
 
-### Unix
+Or:
 
-Run:
+    mkdir -p build
+    git clone https://git.chromium.org/external/gyp.git build/gyp
 
-    $ ./gyp_uv -f make
-    $ make -C out
+Unix users run
 
-### OS X
+    ./gyp_uv -f make
+    make -C out
 
-Run:
+Macintosh users run
 
-    $ ./gyp_uv -f xcode
-    $ xcodebuild -project uv.xcodeproj -configuration Release -target All
-
-### Android
-
-Run:
-
-    $ source ./android-configure NDK_PATH gyp
-    $ make -C out
+    ./gyp_uv -f xcode
+    xcodebuild -project uv.xcodeproj -configuration Release -target All
 
 Note for UNIX users: compile your project with `-D_LARGEFILE_SOURCE` and
 `-D_FILE_OFFSET_BITS=64`. GYP builds take care of that automatically.
 
+Note for Linux users: compile your project with `-D_GNU_SOURCE` when you
+include `uv.h`. GYP builds take care of that automatically. If you use
+autotools, add a `AC_GNU_SOURCE` declaration to your `configure.ac`.
+
 ## Supported Platforms
 
 Microsoft Windows operating systems since Windows XP SP2. It can be built
-with either Visual Studio or MinGW. Consider using
-[Visual Studio Express 2010][] or later if you do not have a full Visual
-Studio license.
+with either Visual Studio or MinGW.
 
-Linux using the GCC toolchain.
+Linux 2.6 using the GCC toolchain.
 
-OS X using the GCC or XCode toolchain.
+MacOS using the GCC or XCode toolchain.
 
 Solaris 121 and later using GCC toolchain.
-
-[node.js]: http://nodejs.org/
-[GYP]: http://code.google.com/p/gyp/
-[Visual Studio Express 2010]: http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express

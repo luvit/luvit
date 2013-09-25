@@ -19,13 +19,6 @@
  * IN THE SOFTWARE.
  */
 
-/* Caveat emptor: this file deviates from the libuv convention of returning
- * negated errno codes. Most uv_fs_*() functions map directly to the system
- * call of the same name. For more complex wrappers, it's easier to just
- * return -1 with errno set. The dispatcher in uv__fs_work() takes care of
- * getting the errno to the right place (req->result or as the return value.)
- */
-
 #include "uv.h"
 #include "internal.h"
 
@@ -55,6 +48,7 @@
   do {                                                                        \
     uv__req_init((loop), (req), UV_FS);                                       \
     (req)->fs_type = UV_FS_ ## type;                                          \
+    (req)->errorno = 0;                                                       \
     (req)->result = 0;                                                        \
     (req)->ptr = NULL;                                                        \
     (req)->loop = loop;                                                       \
@@ -66,9 +60,8 @@
 
 #define PATH                                                                  \
   do {                                                                        \
-    (req)->path = strdup(path);                                               \
-    if ((req)->path == NULL)                                                  \
-      return -ENOMEM;                                                         \
+    if (NULL == ((req)->path = strdup((path))))                               \
+      return uv__set_sys_error((loop), ENOMEM);                               \
   }                                                                           \
   while (0)
 
@@ -76,11 +69,13 @@
   do {                                                                        \
     size_t path_len;                                                          \
     size_t new_path_len;                                                      \
+                                                                              \
     path_len = strlen((path)) + 1;                                            \
     new_path_len = strlen((new_path)) + 1;                                    \
-    (req)->path = malloc(path_len + new_path_len);                            \
-    if ((req)->path == NULL)                                                  \
-      return -ENOMEM;                                                         \
+                                                                              \
+    if (NULL == ((req)->path = malloc(path_len + new_path_len)))              \
+      return uv__set_sys_error((loop), ENOMEM);                               \
+                                                                              \
     (req)->new_path = (req)->path + path_len;                                 \
     memcpy((void*) (req)->path, (path), path_len);                            \
     memcpy((void*) (req)->new_path, (new_path), new_path_len);                \
@@ -176,11 +171,7 @@ skip:
   tv[0].tv_usec = (unsigned long)(req->atime * 1000000) % 1000000;
   tv[1].tv_sec  = req->mtime;
   tv[1].tv_usec = (unsigned long)(req->mtime * 1000000) % 1000000;
-# if defined(__sun)
-  return futimesat(req->file, NULL, tv);
-# else
   return futimes(req->file, tv);
-# endif
 #else
   errno = ENOSYS;
   return -1;
@@ -472,10 +463,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t* req) {
     return -1;
   }
 #else
-  /* Squelch compiler warnings. */
-  (void) &in_fd;
-  (void) &out_fd;
-
   return uv__fs_sendfile_emul(req);
 #endif
 }
@@ -513,91 +500,6 @@ static ssize_t uv__fs_write(uv_fs_t* req) {
   return r;
 }
 
-static void uv__to_stat(struct stat* src, uv_stat_t* dst) {
-  dst->st_dev = src->st_dev;
-  dst->st_mode = src->st_mode;
-  dst->st_nlink = src->st_nlink;
-  dst->st_uid = src->st_uid;
-  dst->st_gid = src->st_gid;
-  dst->st_rdev = src->st_rdev;
-  dst->st_ino = src->st_ino;
-  dst->st_size = src->st_size;
-  dst->st_blksize = src->st_blksize;
-  dst->st_blocks = src->st_blocks;
-
-#if defined(__APPLE__)
-  dst->st_atim.tv_sec = src->st_atimespec.tv_sec;
-  dst->st_atim.tv_nsec = src->st_atimespec.tv_nsec;
-  dst->st_mtim.tv_sec = src->st_mtimespec.tv_sec;
-  dst->st_mtim.tv_nsec = src->st_mtimespec.tv_nsec;
-  dst->st_ctim.tv_sec = src->st_ctimespec.tv_sec;
-  dst->st_ctim.tv_nsec = src->st_ctimespec.tv_nsec;
-  dst->st_birthtim.tv_sec = src->st_birthtimespec.tv_sec;
-  dst->st_birthtim.tv_nsec = src->st_birthtimespec.tv_nsec;
-  dst->st_flags = src->st_flags;
-  dst->st_gen = src->st_gen;
-#elif defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || defined(_XOPEN_SOURCE)
-  dst->st_atim.tv_sec = src->st_atim.tv_sec;
-  dst->st_atim.tv_nsec = src->st_atim.tv_nsec;
-  dst->st_mtim.tv_sec = src->st_mtim.tv_sec;
-  dst->st_mtim.tv_nsec = src->st_mtim.tv_nsec;
-  dst->st_ctim.tv_sec = src->st_ctim.tv_sec;
-  dst->st_ctim.tv_nsec = src->st_ctim.tv_nsec;
-# if defined(__DragonFly__)  || \
-     defined(__FreeBSD__)    || \
-     defined(__OpenBSD__)    || \
-     defined(__NetBSD__)
-  dst->st_birthtim.tv_sec = src->st_birthtim.tv_sec;
-  dst->st_birthtim.tv_nsec = src->st_birthtim.tv_nsec;
-  dst->st_flags = src->st_flags;
-  dst->st_gen = src->st_gen;
-# else
-  dst->st_birthtim.tv_sec = src->st_ctim.tv_sec;
-  dst->st_birthtim.tv_nsec = src->st_ctim.tv_nsec;
-  dst->st_flags = 0;
-  dst->st_gen = 0;
-# endif
-#else
-  dst->st_atim.tv_sec = src->st_atime;
-  dst->st_atim.tv_nsec = 0;
-  dst->st_mtim.tv_sec = src->st_mtime;
-  dst->st_mtim.tv_nsec = 0;
-  dst->st_ctim.tv_sec = src->st_ctime;
-  dst->st_ctim.tv_nsec = 0;
-  dst->st_birthtim.tv_sec = src->st_ctime;
-  dst->st_birthtim.tv_nsec = 0;
-  dst->st_flags = 0;
-  dst->st_gen = 0;
-#endif
-}
-
-
-static int uv__fs_stat(const char *path, uv_stat_t *buf) {
-  struct stat pbuf;
-  int ret;
-  ret = stat(path, &pbuf);
-  uv__to_stat(&pbuf, buf);
-  return ret;
-}
-
-
-static int uv__fs_lstat(const char *path, uv_stat_t *buf) {
-  struct stat pbuf;
-  int ret;
-  ret = lstat(path, &pbuf);
-  uv__to_stat(&pbuf, buf);
-  return ret;
-}
-
-
-static int uv__fs_fstat(int fd, uv_stat_t *buf) {
-  struct stat pbuf;
-  int ret;
-  ret = fstat(fd, &pbuf);
-  uv__to_stat(&pbuf, buf);
-  return ret;
-}
-
 
 static void uv__fs_work(struct uv__work* w) {
   int retry_on_eintr;
@@ -622,11 +524,11 @@ static void uv__fs_work(struct uv__work* w) {
     X(FCHMOD, fchmod(req->file, req->mode));
     X(FCHOWN, fchown(req->file, req->uid, req->gid));
     X(FDATASYNC, uv__fs_fdatasync(req));
-    X(FSTAT, uv__fs_fstat(req->file, &req->statbuf));
+    X(FSTAT, fstat(req->file, &req->statbuf));
     X(FSYNC, fsync(req->file));
     X(FTRUNCATE, ftruncate(req->file, req->off));
     X(FUTIME, uv__fs_futime(req));
-    X(LSTAT, uv__fs_lstat(req->path, &req->statbuf));
+    X(LSTAT, lstat(req->path, &req->statbuf));
     X(LINK, link(req->path, req->new_path));
     X(MKDIR, mkdir(req->path, req->mode));
     X(OPEN, open(req->path, req->flags, req->mode));
@@ -636,7 +538,7 @@ static void uv__fs_work(struct uv__work* w) {
     X(RENAME, rename(req->path, req->new_path));
     X(RMDIR, rmdir(req->path));
     X(SENDFILE, uv__fs_sendfile(req));
-    X(STAT, uv__fs_stat(req->path, &req->statbuf));
+    X(STAT, stat(req->path, &req->statbuf));
     X(SYMLINK, symlink(req->path, req->new_path));
     X(UNLINK, unlink(req->path));
     X(UTIME, uv__fs_utime(req));
@@ -648,10 +550,8 @@ static void uv__fs_work(struct uv__work* w) {
   }
   while (r == -1 && errno == EINTR && retry_on_eintr);
 
-  if (r == -1)
-    req->result = -errno;
-  else
-    req->result = r;
+  req->errorno = errno;
+  req->result = r;
 
   if (r == 0 && (req->fs_type == UV_FS_STAT ||
                  req->fs_type == UV_FS_FSTAT ||
@@ -667,9 +567,15 @@ static void uv__fs_done(struct uv__work* w, int status) {
   req = container_of(w, uv_fs_t, work_req);
   uv__req_unregister(req->loop, req);
 
-  if (status == -ECANCELED) {
-    assert(req->result == 0);
-    req->result = -ECANCELED;
+  if (req->errorno != 0) {
+    req->errorno = uv_translate_sys_error(req->errorno);
+    uv__set_artificial_error(req->loop, req->errorno);
+  }
+
+  if (status == -UV_ECANCELED) {
+    assert(req->errorno == 0);
+    req->errorno = UV_ECANCELED;
+    uv__set_artificial_error(req->loop, UV_ECANCELED);
   }
 
   if (req->cb != NULL)
@@ -942,13 +848,13 @@ int uv_fs_utime(uv_loop_t* loop,
 int uv_fs_write(uv_loop_t* loop,
                 uv_fs_t* req,
                 uv_file file,
-                const void* buf,
+                void* buf,
                 size_t len,
                 int64_t off,
                 uv_fs_cb cb) {
   INIT(WRITE);
   req->file = file;
-  req->buf = (void*) buf;
+  req->buf = buf;
   req->len = len;
   req->off = off;
   POST;

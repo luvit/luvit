@@ -29,10 +29,13 @@
  * not UV_VERSION_PATCH.)
  */
 
+#undef UV_VERSION_MAJOR   /* TODO(bnoordhuis) Remove in v0.11. */
+#undef UV_VERSION_MINOR   /* TODO(bnoordhuis) Remove in v0.11. */
+
 #define UV_VERSION_MAJOR 0
-#define UV_VERSION_MINOR 11
-#define UV_VERSION_PATCH 14
-#define UV_VERSION_IS_RELEASE 0
+#define UV_VERSION_MINOR 10
+#define UV_VERSION_PATCH 13
+#define UV_VERSION_IS_RELEASE 1
 
 
 #define UV_VERSION  ((UV_VERSION_MAJOR << 16) | \

@@ -90,11 +90,10 @@ static void uv_loop_init(uv_loop_t* loop) {
   /* To prevent uninitialized memory access, loop->time must be intialized */
   /* to zero before calling uv_update_time for the first time. */
   loop->time = 0;
-  loop->last_tick_count = 0;
   uv_update_time(loop);
 
-  QUEUE_INIT(&loop->handle_queue);
-  QUEUE_INIT(&loop->active_reqs);
+  ngx_queue_init(&loop->handle_queue);
+  ngx_queue_init(&loop->active_reqs);
   loop->active_handles = 0;
 
   loop->pending_reqs_tail = NULL;
@@ -118,6 +117,8 @@ static void uv_loop_init(uv_loop_t* loop) {
 
   loop->timer_counter = 0;
   loop->stop_flag = 0;
+
+  loop->last_err = uv_ok_;
 }
 
 
@@ -208,11 +209,6 @@ static void uv_poll(uv_loop_t* loop, int block) {
   } else if (GetLastError() != WAIT_TIMEOUT) {
     /* Serious error */
     uv_fatal_error(GetLastError(), "GetQueuedCompletionStatus");
-  } else {
-    /* We're sure that at least `timeout` milliseconds have expired, but */
-    /* this may not be reflected yet in the GetTickCount() return value. */
-    /* Therefore we ensure it's taken into account here. */
-    uv__time_forward(loop, timeout);
   }
 }
 
@@ -247,18 +243,13 @@ static void uv_poll_ex(uv_loop_t* loop, int block) {
   } else if (GetLastError() != WAIT_TIMEOUT) {
     /* Serious error */
     uv_fatal_error(GetLastError(), "GetQueuedCompletionStatusEx");
-  } else if (timeout > 0) {
-    /* We're sure that at least `timeout` milliseconds have expired, but */
-    /* this may not be reflected yet in the GetTickCount() return value. */
-    /* Therefore we ensure it's taken into account here. */
-    uv__time_forward(loop, timeout);
   }
 }
 
 
 static int uv__loop_alive(uv_loop_t* loop) {
   return loop->active_handles > 0 ||
-         !QUEUE_EMPTY(&loop->active_reqs) ||
+         !ngx_queue_empty(&loop->active_reqs) ||
          loop->endgame_handles != NULL;
 }
 
@@ -280,8 +271,15 @@ int uv_run(uv_loop_t *loop, uv_run_mode mode) {
     uv_update_time(loop);
     uv_process_timers(loop);
 
+    /* Call idle callbacks if nothing to do. */
+    if (loop->pending_reqs_tail == NULL &&
+        loop->endgame_handles == NULL) {
+      uv_idle_invoke(loop);
+    }
+
     uv_process_reqs(loop);
-    uv_idle_invoke(loop);
+    uv_process_endgames(loop);
+
     uv_prepare_invoke(loop);
 
     (*poll)(loop, loop->idle_handles == NULL &&
@@ -289,25 +287,10 @@ int uv_run(uv_loop_t *loop, uv_run_mode mode) {
                   loop->endgame_handles == NULL &&
                   !loop->stop_flag &&
                   (loop->active_handles > 0 ||
-                   !QUEUE_EMPTY(&loop->active_reqs)) &&
+                   !ngx_queue_empty(&loop->active_reqs)) &&
                   !(mode & UV_RUN_NOWAIT));
 
     uv_check_invoke(loop);
-    uv_process_endgames(loop);
-
-    if (mode == UV_RUN_ONCE) {
-      /* UV_RUN_ONCE implies forward progess: at least one callback must have
-       * been invoked when it returns. uv__io_poll() can return without doing
-       * I/O (meaning: no callbacks) when its timeout expires - which means we
-       * have pending timers that satisfy the forward progress constraint.
-       *
-       * UV_RUN_NOWAIT makes no guarantees about progress so it's omitted from
-       * the check.
-       */
-      uv_update_time(loop);
-      uv_process_timers(loop);
-    }
-
     r = uv__loop_alive(loop);
     if (mode & (UV_RUN_ONCE | UV_RUN_NOWAIT))
       break;

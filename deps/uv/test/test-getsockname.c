@@ -42,9 +42,11 @@ static uv_udp_t udpServer;
 static uv_udp_send_t send_req;
 
 
-static void alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-  buf->base = malloc(suggested_size);
-  buf->len = suggested_size;
+static uv_buf_t alloc(uv_handle_t* handle, size_t suggested_size) {
+  uv_buf_t buf;
+  buf.base = (char*) malloc(suggested_size);
+  buf.len = suggested_size;
+  return buf;
 }
 
 
@@ -60,14 +62,12 @@ static void after_shutdown(uv_shutdown_t* req, int status) {
 }
 
 
-static void after_read(uv_stream_t* handle,
-                       ssize_t nread,
-                       const uv_buf_t* buf) {
+static void after_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
   uv_shutdown_t* req;
   int r;
 
-  if (buf->base) {
-    free(buf->base);
+  if (buf.base) {
+    free(buf.base);
   }
 
   req = (uv_shutdown_t*) malloc(sizeof *req);
@@ -79,11 +79,9 @@ static void after_read(uv_stream_t* handle,
 static void check_sockname(struct sockaddr* addr, const char* compare_ip,
   int compare_port, const char* context) {
   struct sockaddr_in check_addr = *(struct sockaddr_in*) addr;
-  struct sockaddr_in compare_addr;
+  struct sockaddr_in compare_addr = uv_ip4_addr(compare_ip, compare_port);
   char check_ip[17];
   int r;
-
-  ASSERT(0 == uv_ip4_addr(compare_ip, compare_port, &compare_addr));
 
   /* Both addresses should be ipv4 */
   ASSERT(check_addr.sin_family == AF_INET);
@@ -111,7 +109,8 @@ static void on_connection(uv_stream_t* server, int status) {
   int r;
 
   if (status != 0) {
-    fprintf(stderr, "Connect error %s\n", uv_err_name(status));
+    fprintf(stderr, "Connect error %d\n",
+        uv_last_error(loop).code);
   }
   ASSERT(status == 0);
 
@@ -167,12 +166,10 @@ static void on_connect(uv_connect_t* req, int status) {
 
 
 static int tcp_listener(void) {
-  struct sockaddr_in addr;
+  struct sockaddr_in addr = uv_ip4_addr("0.0.0.0", server_port);
   struct sockaddr sockname, peername;
   int namelen;
   int r;
-
-  ASSERT(0 == uv_ip4_addr("0.0.0.0", server_port, &addr));
 
   r = uv_tcp_init(loop, &tcpServer);
   if (r) {
@@ -180,7 +177,7 @@ static int tcp_listener(void) {
     return 1;
   }
 
-  r = uv_tcp_bind(&tcpServer, (const struct sockaddr*) &addr);
+  r = uv_tcp_bind(&tcpServer, addr);
   if (r) {
     fprintf(stderr, "Bind error\n");
     return 1;
@@ -201,7 +198,8 @@ static int tcp_listener(void) {
 
   namelen = sizeof sockname;
   r = uv_tcp_getpeername(&tcpServer, &peername, &namelen);
-  ASSERT(r == UV_ENOTCONN);
+  ASSERT(r == -1);
+  ASSERT(uv_last_error(loop).code == UV_ENOTCONN);
   getpeernamecount++;
 
   return 0;
@@ -209,20 +207,15 @@ static int tcp_listener(void) {
 
 
 static void tcp_connector(void) {
-  struct sockaddr_in server_addr;
+  struct sockaddr_in server_addr = uv_ip4_addr("127.0.0.1", server_port);
   struct sockaddr sockname;
   int r, namelen;
-
-  ASSERT(0 == uv_ip4_addr("127.0.0.1", server_port, &server_addr));
 
   r = uv_tcp_init(loop, &tcp);
   tcp.data = &connect_req;
   ASSERT(!r);
 
-  r = uv_tcp_connect(&connect_req,
-                     &tcp,
-                     (const struct sockaddr*) &server_addr,
-                     on_connect);
+  r = uv_tcp_connect(&connect_req, &tcp, server_addr, on_connect);
   ASSERT(!r);
 
   /* Fetch the actual port used by the connecting socket. */
@@ -237,15 +230,15 @@ static void tcp_connector(void) {
 
 static void udp_recv(uv_udp_t* handle,
                      ssize_t nread,
-                     const uv_buf_t* buf,
-                     const struct sockaddr* addr,
+                     uv_buf_t buf,
+                     struct sockaddr* addr,
                      unsigned flags) {
   struct sockaddr sockname;
   int namelen;
   int r;
 
   ASSERT(nread >= 0);
-  free(buf->base);
+  free(buf.base);
 
   if (nread == 0) {
     return;
@@ -269,12 +262,10 @@ static void udp_send(uv_udp_send_t* req, int status) {
 
 
 static int udp_listener(void) {
-  struct sockaddr_in addr;
+  struct sockaddr_in addr = uv_ip4_addr("0.0.0.0", server_port);
   struct sockaddr sockname;
   int namelen;
   int r;
-
-  ASSERT(0 == uv_ip4_addr("0.0.0.0", server_port, &addr));
 
   r = uv_udp_init(loop, &udpServer);
   if (r) {
@@ -282,7 +273,7 @@ static int udp_listener(void) {
     return 1;
   }
 
-  r = uv_udp_bind(&udpServer, (const struct sockaddr*) &addr, 0);
+  r = uv_udp_bind(&udpServer, addr, 0);
   if (r) {
     fprintf(stderr, "Bind error\n");
     return 1;
@@ -311,14 +302,9 @@ static void udp_sender(void) {
   ASSERT(!r);
 
   buf = uv_buf_init("PING", 4);
-  ASSERT(0 == uv_ip4_addr("127.0.0.1", server_port, &server_addr));
+  server_addr = uv_ip4_addr("127.0.0.1", server_port);
 
-  r = uv_udp_send(&send_req,
-                  &udp,
-                  &buf,
-                  1,
-                  (const struct sockaddr*) &server_addr,
-                  udp_send);
+  r = uv_udp_send(&send_req, &udp, &buf, 1, server_addr, udp_send);
   ASSERT(!r);
 }
 

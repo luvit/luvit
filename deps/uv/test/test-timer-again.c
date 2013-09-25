@@ -78,7 +78,7 @@ static void repeat_2_cb(uv_timer_t* handle, int status) {
   repeat_2_cb_called++;
 
   if (uv_timer_get_repeat(&repeat_2) == 0) {
-    ASSERT(0 == uv_is_active((uv_handle_t*) handle));
+    ASSERT(!uv_is_active((uv_handle_t*)handle));
     uv_close((uv_handle_t*)handle, close_cb);
     return;
   }
@@ -102,7 +102,8 @@ TEST_IMPL(timer_again) {
   r = uv_timer_init(uv_default_loop(), &dummy);
   ASSERT(r == 0);
   r = uv_timer_again(&dummy);
-  ASSERT(r == UV_EINVAL);
+  ASSERT(r == -1);
+  ASSERT(uv_last_error(uv_default_loop()).code == UV_EINVAL);
   uv_unref((uv_handle_t*)&dummy);
 
   /* Start timer repeat_1. */

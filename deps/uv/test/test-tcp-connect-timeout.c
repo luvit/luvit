@@ -39,7 +39,7 @@ static void close_cb(uv_handle_t* handle);
 
 static void connect_cb(uv_connect_t* req, int status) {
   ASSERT(req == &connect_req);
-  ASSERT(status == UV_ECANCELED);
+  ASSERT(status == -1);
   connect_cb_called++;
 }
 
@@ -64,7 +64,7 @@ TEST_IMPL(tcp_connect_timeout) {
   struct sockaddr_in addr;
   int r;
 
-  ASSERT(0 == uv_ip4_addr("8.8.8.8", 9999, &addr));
+  addr = uv_ip4_addr("8.8.8.8", 9999);
 
   r = uv_timer_init(uv_default_loop(), &timer);
   ASSERT(r == 0);
@@ -75,10 +75,7 @@ TEST_IMPL(tcp_connect_timeout) {
   r = uv_tcp_init(uv_default_loop(), &conn);
   ASSERT(r == 0);
 
-  r = uv_tcp_connect(&connect_req,
-                     &conn,
-                     (const struct sockaddr*) &addr,
-                     connect_cb);
+  r = uv_tcp_connect(&connect_req, &conn, addr, connect_cb);
   ASSERT(r == 0);
 
   r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);

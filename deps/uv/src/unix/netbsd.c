@@ -34,7 +34,6 @@
 #include <fcntl.h>
 
 #include <net/if.h>
-#include <net/if_dl.h>
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
@@ -82,8 +81,9 @@ int uv_exepath(char* buffer, size_t* size) {
   size_t cb;
   pid_t mypid;
 
-  if (buffer == NULL || size == NULL)
-    return -EINVAL;
+  if (!buffer || !size) {
+    return -1;
+  }
 
   mypid = getpid();
   mib[0] = CTL_KERN;
@@ -92,8 +92,10 @@ int uv_exepath(char* buffer, size_t* size) {
   mib[3] = KERN_PROC_ARGV;
 
   cb = *size;
-  if (sysctl(mib, 4, buffer, &cb, NULL, 0))
-    return -errno;
+  if (sysctl(mib, 4, buffer, &cb, NULL, 0) == -1) {
+    *size = 0;
+    return -1;
+  }
   *size = strlen(buffer);
 
   return 0;
@@ -105,8 +107,9 @@ uint64_t uv_get_free_memory(void) {
   size_t size = sizeof(info);
   int which[] = {CTL_VM, VM_UVMEXP};
 
-  if (sysctl(which, 2, &info, &size, NULL, 0))
-    return -errno;
+  if (sysctl(which, 2, &info, &size, NULL, 0) == -1) {
+    return -1;
+  }
 
   return (uint64_t) info.free * sysconf(_SC_PAGESIZE);
 }
@@ -122,8 +125,9 @@ uint64_t uv_get_total_memory(void) {
 #endif
   size_t size = sizeof(info);
 
-  if (sysctl(which, 2, &info, &size, NULL, 0))
-    return -errno;
+  if (sysctl(which, 2, &info, &size, NULL, 0) == -1) {
+    return -1;
+  }
 
   return (uint64_t) info;
 }
@@ -135,17 +139,17 @@ char** uv_setup_args(int argc, char** argv) {
 }
 
 
-int uv_set_process_title(const char* title) {
+uv_err_t uv_set_process_title(const char* title) {
   if (process_title) free(process_title);
 
   process_title = strdup(title);
   setproctitle("%s", title);
 
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_get_process_title(char* buffer, size_t size) {
+uv_err_t uv_get_process_title(char* buffer, size_t size) {
   if (process_title) {
     strncpy(buffer, process_title, size);
   } else {
@@ -154,11 +158,11 @@ int uv_get_process_title(char* buffer, size_t size) {
     }
   }
 
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_resident_set_memory(size_t* rss) {
+uv_err_t uv_resident_set_memory(size_t* rss) {
   kvm_t *kd = NULL;
   struct kinfo_proc2 *kinfo = NULL;
   pid_t pid;
@@ -180,31 +184,32 @@ int uv_resident_set_memory(size_t* rss) {
 
   kvm_close(kd);
 
-  return 0;
+  return uv_ok_;
 
 error:
   if (kd) kvm_close(kd);
-  return -EPERM;
+  return uv__new_sys_error(errno);
 }
 
 
-int uv_uptime(double* uptime) {
+uv_err_t uv_uptime(double* uptime) {
   time_t now;
   struct timeval info;
   size_t size = sizeof(info);
   static int which[] = {CTL_KERN, KERN_BOOTTIME};
 
-  if (sysctl(which, 2, &info, &size, NULL, 0))
-    return -errno;
+  if (sysctl(which, 2, &info, &size, NULL, 0) == -1) {
+    return uv__new_sys_error(errno);
+  }
 
   now = time(NULL);
 
   *uptime = (double)(now - info.tv_sec);
-  return 0;
+  return uv_ok_;
 }
 
 
-int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
+uv_err_t uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
   unsigned int ticks = (unsigned int)sysconf(_SC_CLK_TCK);
   unsigned int multiplier = ((uint64_t)1000L / ticks);
   unsigned int cur = 0;
@@ -217,34 +222,37 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
   int i;
 
   size = sizeof(model);
-  if (sysctlbyname("machdep.cpu_brand", &model, &size, NULL, 0) &&
-      sysctlbyname("hw.model", &model, &size, NULL, 0)) {
-    return -errno;
+  if (sysctlbyname("machdep.cpu_brand", &model, &size, NULL, 0) == -1 &&
+      sysctlbyname("hw.model", &model, &size, NULL, 0) == -1) {
+    return uv__new_sys_error(errno);
   }
 
   size = sizeof(numcpus);
-  if (sysctlbyname("hw.ncpu", &numcpus, &size, NULL, 0))
-    return -errno;
+  if (sysctlbyname("hw.ncpu", &numcpus, &size, NULL, 0) == -1) {
+    return uv__new_sys_error(errno);
+  }
   *count = numcpus;
 
   /* Only i386 and amd64 have machdep.tsc_freq */
   size = sizeof(cpuspeed);
-  if (sysctlbyname("machdep.tsc_freq", &cpuspeed, &size, NULL, 0))
+  if (sysctlbyname("machdep.tsc_freq", &cpuspeed, &size, NULL, 0) == -1) {
     cpuspeed = 0;
+  }
 
   size = numcpus * CPUSTATES * sizeof(*cp_times);
   cp_times = malloc(size);
-  if (cp_times == NULL)
-    return -ENOMEM;
-
-  if (sysctlbyname("kern.cp_time", cp_times, &size, NULL, 0))
-    return -errno;
+  if (cp_times == NULL) {
+    return uv__new_artificial_error(UV_ENOMEM);
+  }
+  if (sysctlbyname("kern.cp_time", cp_times, &size, NULL, 0) == -1) {
+    return uv__new_sys_error(errno);
+  }
 
   *cpu_infos = malloc(numcpus * sizeof(**cpu_infos));
   if (!(*cpu_infos)) {
     free(cp_times);
     free(*cpu_infos);
-    return -ENOMEM;
+    return uv__new_artificial_error(UV_ENOMEM);
   }
 
   for (i = 0; i < numcpus; i++) {
@@ -259,9 +267,8 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
     cur += CPUSTATES;
   }
   free(cp_times);
-  return 0;
+  return uv_ok_;
 }
-
 
 void uv_free_cpu_info(uv_cpu_info_t* cpu_infos, int count) {
   int i;
@@ -274,20 +281,20 @@ void uv_free_cpu_info(uv_cpu_info_t* cpu_infos, int count) {
 }
 
 
-int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
-  struct ifaddrs *addrs, *ent;
+uv_err_t uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
+  struct ifaddrs *addrs;
+  struct ifaddrs *ent;
   uv_interface_address_t* address;
-  int i;
-  struct sockaddr_dl *sa_addr;
 
-  if (getifaddrs(&addrs))
-    return -errno;
+  if (getifaddrs(&addrs) != 0) {
+    return uv__new_sys_error(errno);
+  }
 
   *count = 0;
 
   /* Count the number of interfaces */
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
+    if (!(ent->ifa_flags & IFF_UP && ent->ifa_flags & IFF_RUNNING) ||
         (ent->ifa_addr == NULL) ||
         (ent->ifa_addr->sa_family != PF_INET)) {
       continue;
@@ -297,62 +304,41 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
 
   *addresses = malloc(*count * sizeof(**addresses));
 
-  if (!(*addresses))
-    return -ENOMEM;
+  if (!(*addresses)) {
+    return uv__new_artificial_error(UV_ENOMEM);
+  }
 
   address = *addresses;
 
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)))
+    if (!(ent->ifa_flags & IFF_UP && ent->ifa_flags & IFF_RUNNING)) {
       continue;
+    }
 
-    if (ent->ifa_addr == NULL)
+    if (ent->ifa_addr == NULL) {
       continue;
+    }
 
-    if (ent->ifa_addr->sa_family != PF_INET)
+    if (ent->ifa_addr->sa_family != PF_INET) {
       continue;
+    }
 
     address->name = strdup(ent->ifa_name);
 
     if (ent->ifa_addr->sa_family == AF_INET6) {
-      address->address.address6 = *((struct sockaddr_in6*) ent->ifa_addr);
+      address->address.address6 = *((struct sockaddr_in6 *)ent->ifa_addr);
     } else {
-      address->address.address4 = *((struct sockaddr_in*) ent->ifa_addr);
+      address->address.address4 = *((struct sockaddr_in *)ent->ifa_addr);
     }
 
-    if (ent->ifa_netmask->sa_family == AF_INET6) {
-      address->netmask.netmask6 = *((struct sockaddr_in6*) ent->ifa_netmask);
-    } else {
-      address->netmask.netmask4 = *((struct sockaddr_in*) ent->ifa_netmask);
-    }
-
-    address->is_internal = !!(ent->ifa_flags & IFF_LOOPBACK);
+    address->is_internal = !!(ent->ifa_flags & IFF_LOOPBACK) ? 1 : 0;
 
     address++;
   }
 
-  /* Fill in physical addresses for each interface */
-  for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
-        (ent->ifa_addr == NULL) ||
-        (ent->ifa_addr->sa_family != AF_LINK)) {
-      continue;
-    }
-
-    address = *addresses;
-
-    for (i = 0; i < (*count); i++) {
-      if (strcmp(address->name, ent->ifa_name) == 0) {
-        sa_addr = (struct sockaddr_dl*)(ent->ifa_addr);
-        memcpy(address->phys_addr, LLADDR(sa_addr), sizeof(address->phys_addr));
-      }
-      address++;
-    }
-  }
-
   freeifaddrs(addrs);
 
-  return 0;
+  return uv_ok_;
 }
 
 

@@ -28,7 +28,6 @@
 #include <stdint.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/time.h>
 #include <sys/socket.h>
 
 #if defined(__alpha__)
