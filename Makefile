@@ -17,13 +17,13 @@
 
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
-LUAJIT_VERSION=
+LUAJIT_VERSION=$(shell tools/subtree-version.sh ${LUADIR})
 YAJLDIR=deps/yajl
-YAJL_VERSION=
+YAJL_VERSION=$(shell tools/subtree-version.sh ${YAJLDIR})
 UVDIR=deps/uv
-UV_VERSION=
+UV_VERSION=$(shell tools/subtree-version.sh ${UVDIR})
 HTTPDIR=deps/http-parser
-HTTP_VERSION=
+HTTP_VERSION=$(shell tools/subtree-version.sh ${HTTPDIR})
 ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
