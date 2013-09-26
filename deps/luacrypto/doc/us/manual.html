@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title>LuaCrypto: A Lua frontend to OpenSSL</title>
+    <link rel="stylesheet" href="http://www.keplerproject.org/doc.css" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo">
+        <a href="http://www.keplerproject.org"><img alt="LuaCrypto logo" src="luacrypto-128.png"/></a>
+    </div>
+	<div id="product_name"><big><strong>LuaCrypto</strong></big></div>
+	<div id="product_description">A Lua frontend to OpenSSL</div>
+</div> <!-- id="product" -->
+
+<div id="main">
+
+<div id="navigation">
+<h1>LuaCrypto</h1>
+	<ul>
+		<li><a href="index.html">Home</a>
+			<ul>
+				<li><a href="index.html#overview">Overview</a></li>
+				<li><a href="index.html#status">Status</a></li>
+				<li><a href="index.html#download">Download</a></li>
+                <li><a href="index.html#dependencies">Dependencies</a></li>
+				<li><a href="index.html#history">History</a></li>
+				<li><a href="index.html#credits">Credits</a></li>
+				<li><a href="index.html#contact">Contact</a></li>
+			</ul>
+		</li>
+		<li><strong>Manual</strong>
+			<ul>
+				<li><a href="manual.html#introduction">Introduction</a></li>
+				<li><a href="manual.html#building">Building</a></li>
+				<li><a href="manual.html#installation">Installation</a></li>
+				<li><a href="manual.html#reference">Reference</a></li>
+			</ul>
+		</li>
+		<li><a href="examples.html">Examples</a></li>
+        <li><a href="https://github.com/mkottman/luacrypto">Project</a>
+            <ul>
+                <li><a href="https://github.com/mkottman/luacrypto/issues">Bug Tracker</a></li>
+                <li><a href="https://github.com/mkottman/luacrypto/commits/master">Changelog</a></li>
+            </ul>
+        </li>
+		<li><a href="license.html">License</a></li>
+	</ul>
+</div> <!-- id="navigation" -->
+
+<div id="content">
+<h2><a name="introduction"></a>Introduction</h2>
+
+<p>LuaCrypto is a <a href="http://www.lua.org">Lua</a> frontend to the <a href="http://www.openssl.org/">OpenSSL</a> cryptographic library. The OpenSSL features that are currently exposed are digests (MD5, SHA-1, HMAC, and more) and crypto-grade random number generators.</p>
+
+<p>The API tries to hide the OpenSSL setup and teardown, so in most cases it is not simply a pass-through to the existing OpenSSL API. Since this is still a very early version of the software, the API may undergo significant future changes! You have been warned.</p>
+
+<h2><a name="building"></a>Building</h2>
+
+<p>LuaCrypto could be built to Lua 5.0 or to Lua 5.1. In both cases, the language library and headers files for the target version must be installed properly.</p>
+
+<p>LuaCrypto offers a Makefile and a separate configuration file,
+<code>config</code>, which should be edited to suit your installation before runnig <code>make</code>. The file has some definitions like paths to the external libraries, compiler options and the like. In particular, you must set the correct path to your installed OpenSSL libraries. Another important setting is the version of Lua language, which is not obtained from the installed software.</p>
+
+<h2><a name="installation"></a>Installation</h2>
+
+<p>The LuaCrypto compiled binary should be copied to a directory in your <a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.cpath">C path</a>. Lua 5.0 users should install <a href="http://www.keplerproject.org/compat">Compat-5.1</a> also.</p>
+
+<h2><a name="reference"></a>Reference</h2>
+
+<h3>Parameters</h3>
+<dl>
+    <dt><strong>dtype</strong></dt>
+    <dd>This parameter is a <b>string</b> naming the hashing algorithm to use for a digest operation. The list of supported algorithms may change with each version of the OpenSSL library. Refer to the <a href="http://www.openssl.org/docs/apps/dgst.html">OpenSSL documentation</a> for a complete and up to date list. As of 0.9.7, the supported types are:
+    <ul>
+        <li>md5</li>
+        <li>md4</li>
+        <li>md2</li>
+        <li>sha1</li>
+        <li>sha</li>
+        <li>mdc2</li>
+        <li>ripemd160</li>
+    </ul>
+    The list of supported hashing algorithms can also be retrieved by using the <code>crypto.list("digests")</code>.
+    </dd>
+    <dt><strong>ktype</strong></dt>
+    <dd>A <b>string</b> representing public/private key type. Can be <code>"rsa"</code> or <code>"dsa"</code>.</dd>
+    <dt><strong>cipher</strong></dt>
+    <dd>This parameter is a <b>string</b> naming the cipher algorithm used by encryption and decryption. The list of supported hashing algorithms can also be retrieved by using the <code>crypto.list("ciphers")</code>.
+    </dd>
+    <dt><strong>key</strong></dt>
+    <dd>The <b>string</b> key/password used for encryption/decryption.</dd>
+    </dd>
+    <dt><strong>iv</strong></dt>
+    <dd>An optional <b>string</b> initialization vector for encryption/decryption. It has to be of correct size (usually block size), otherwise the functions return an error.</dd>
+    </dd>
+    <dt><strong>pad</strong></dt>
+    <dd>An optional <b>boolean</b> flag whether padding should be used. The default is true, which means that input of any size can be provided. Returned date may be larger than input string due to the padding. If explicitly set to <b>false</b>, the padding is turned off and the input data size has to be multiple of block length.</dd>
+    </dd>
+    <dt><strong>pem</strong></dt>
+    <dd>A <b>string</b> containing a PEM formatted certificate.</dd>
+</dl>
+
+<h3>Error handling</h3>
+
+The functions throw an error when known invalid parameters are passed, such as nonexistent digest/cipher and too large key or initialization vector. Otherwise, the functions return <code>nil, error</code> in case of runtime errors, such as incorrect input size when padding is enabled.
+
+
+
+<h3>Message Digest - crypto.digest</h3>
+<p>Functions used to calculate cryptographic hashes of strings. Supported digest algorithms are returned by <code>crypto.list("digests")</code>.</p>
+<dl>
+    <dt><strong>crypto.digest(dtype, string [, raw])</strong></dt>
+    <dd>This function generates the message digest of the input <code>string</code> and returns it. The hashing algorithm to use is specified by <code>dtype</code>. The optional <code>raw</code> flag, defaulted to false, is a boolean indicating whether the output should be a direct binary equivalent of the message digest, or formatted as a hexadecimal string (the default).</dd>
+
+    <dt><strong>crypto.digest.new(dtype)</strong></dt>
+    <dd>Creates a new message digest object using the algorithm specified by <code>dtype</code>.</dd>
+
+    <dt><strong>digest:reset()</strong></dt>
+    <dd>Resets the EVP message digest object to a clean slate.</dd>
+
+    <dt><strong>digest:clone()</strong></dt>
+    <dd>Returns a new message digest object which is a clone of the object and its current state, including any data loaded to this point.</dd>
+
+    <dt><strong>digest:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data set to be hashed. Returns the object so that it can be reused in nested calls.</dd>
+
+    <dt><strong>digest:final([string] [, raw])</strong></dt>
+    <dd>Generates the message digest for the loaded data, optionally appending on new data provided by <code>string</code> prior to hashing. The optional <code>raw</code> flag, defaulted to false, is a boolean indicating whether the output should be a direct binary equivalent of the message digest, or formatted as a hexadecimal string (the default).</dd>
+</dl>
+
+
+
+<h3>Encryption, decryption - crypto.encrypt, crypto.decrypt</h3>
+<p>A high-level API to encryption and decryption using ciphers. Supported ciphers can be detected by calling <code>crypto.list("ciphers")</code>.</p>
+<dl>
+    <dt><strong>crypto.encrypt(cipher, input, key [, iv[, pad]])</strong></dt>
+    <dd>This function encrypts the the <code>input</code> string and returns the result. The encryption algorithm to use is specified by <code>cipher</code>. Encryption key is specified by the <code>key</code> parameter and is required. The optional <code>iv</code> parameter specifies an optional initialization vector. If boolean <code>pad</code> is specified after <code>iv</code>, it determines whether padding will be used (on by default).</dd>
+
+    <dt><strong>crypto.decrypt(cipher, input, key [, iv[, pad]])</strong></dt>
+    <dd>This function decrypts the the <code>input</code> string and returns the result. The decryption algorithm to use is specified by <code>cipher</code>. Decryption key is specified by the <code>key</code> parameter and is required. The optional <code>iv</code> parameter specifies an optional initialization vector. If boolean <code>pad</code> is specified after <code>iv</code>, it determines whether padding will be used (on by default).</dd>
+
+    <dt><strong>crypto.encrypt.new(cipher, key [, iv[, pad]])</strong></dt>
+    <dd>Creates a new encryption object using the algorithm specified by <code>cipher</code> and encryption key <code>key</code>. Optionally, initialization vector <code>iv</code> may be specified, followed by <code>pad</code> argument.</dd>
+
+    <dt><strong>encrypt:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data. Returns a string with encrypted data, which may be of zero length if less than a message block size of data is provided.</dd>
+
+    <dt><strong>encrypt:final()</strong></dt>
+    <dd>Finishes the encryption, and returns any leftover encrypted data as string if necessary (due to padding).</dd>
+
+    <dt><strong>crypto.decrypt.new(cipher, key [, iv[, pad]])</strong></dt>
+    <dd>Creates a new decryption object using the algorithm specified by <code>cipher</code> and decryption key <code>key</code>. Initialization vector <code>iv</code> may optionally be specified, followed by <code>pad</code> argument.</dd>
+
+    <dt><strong>decrypt:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data. Returns a string with decrypted data, which may be of zero length if less than a message block size of data is provided.</dd>
+
+    <dt><strong>decrypt:final()</strong></dt>
+    <dd>Finishes the decryption, and returns a string with any leftover decrypted data.</dd>
+</dl>
+
+
+
+<h3>Public keys - crypto.pkey</h3>
+<p>Functions to work with public and private keys.</p>
+<dl>
+    <dt><strong>crypto.pkey.generate(ktype, len)</strong></dt>
+    <dd>Generates a new <code>ktype</code> ("rsa", "dsa") public/private key pair object of length <code>len</code> bits.</dd>
+
+    <dt><strong>crypto.pkey.read(filename [, private])</strong></dt>
+    <dd>Reads a public key from PEM file <code>filename</code>. If <code>private</code> is set, reads a private key instead.</dd>
+
+    <dt><strong>crypto.pkey.from_pem(key [, private])</strong></dt>
+    <dd>Reads a public key from PEM string <code>key</code>. If <code>private</code> is set, reads it as a private key instead.</dd>
+
+    <dt><strong>pkey:write(publicfile, privatefile)</strong></dt>
+    <dd>If <code>publicfile</code> is a string, writes the public key into PEM file <code>publicfile</code>. If <code>privatefile</code> is a string, writes the private key into PEM file <code>privatefile</code>.</dd>
+
+    <dt><strong>pkey:to_pem([private])</strong></dt>
+    <dd>Generates a PEM string representation of the public key. If <code>private</code> is set, generates a PEM string for the private key.</dd>
+</dl>
+
+
+<h3>Signing, verifying - crypto.sign, crypto.verify</h3>
+<p>A high-level interface to digital signatures. A digest algorithm is used to calculate a hash of the data, which is then signed using a private key into a signature. The signature can be used to verify a message using a public key.</p>
+
+<dl>
+    <dt><strong>crypto.sign(dtype, string, privkey)</strong></dt>
+    <dd>This function generates the message digest of the input <code>string</code>, signs it using the private key <code>privkey</code> and returns it as a raw binary string. The hashing algorithm to use is specified by <code>dtype</code>.</dd>
+
+    <dt><strong>crypto.verify(dtype, string, sig, pubkey)</strong></dt>
+    <dd>This function generates the message digest of the input <code>string</code> using digest <code>dtype</code>, and verifies it against signature <code>sig</code> using public key <code>pubkey</code>. Returns <b>true</b> if the message was verified correctly.</dd>
+
+    <dt><strong>crypto.sign.new(dtype)</strong></dt>
+    <dd>Creates a new signing object using the digest algorithm specified by <code>dtype</code>.</dd>
+
+    <dt><strong>sign:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data set to be signed.</dd>
+
+    <dt><strong>sign:final(privkey)</strong></dt>
+    <dd>Generates the message digest for the loaded data and signs it using the private key <code>privkey</code>. The resulting signed hash is returned as a raw binary string.</dd>
+
+    <dt><strong>crypto.verify.new(dtype)</strong></dt>
+    <dd>Creates a new verifying object using the digest algorithm specified by <code>dtype</code>.</dd>
+
+    <dt><strong>verify:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data set to be verified.</dd>
+
+    <dt><strong>verify:final(sign, pubkey)</strong></dt>
+    <dd>Generates the message digest for the loaded data and verifies it agains <code>sig</code> using the public key <code>pubkey</code>. Returns <b>true</b> if the message was verified correctly.</dd>
+</dl>
+
+
+
+<h3>Sealing and opening - crypto.seal, crypto.open</h3>
+<p>A high-level interface to digital envelopes. They generate a random key and IV, and then envelope it by using public key encryption. Data can then be encrypted using this key.
+<dl>
+    <dt><strong>envelope, ek, iv = crypto.seal(cipher, message, pubkey)</strong></dt>
+    <dd>Seals a string <code>message</code> using cipher <code>cipher</code> and public key <code>pubkey</code>. Returns 3 string values: sealed message, the generated encryption key signed with public key and the initialization vector.</dd>
+    
+    <dt><strong>crypto.open(cipher, envelope, privkey, ek, iv)</strong></dt>
+    <dd>Opens a sealed <code>envelope</code> using private key <code>privkey</code>, key <code>ek</code> and initialization vector <code>iv</code>. Returns the sealed message.</dd>
+    
+    <dt><strong>crypto.seal.new(cipher, pubkey)</strong></dt>
+    <dd>Creates a new sealing object using the algorithm specified by <code>cipher</code> and a public key <code>pubkey</code>.</dd>
+
+    <dt><strong>seal:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data. Returns a string with encrypted data, which may be of zero length if less than a message block size of data is provided.</dd>
+
+    <dt><strong>seal:final()</strong></dt>
+    <dd>Finishes the sealing and returns 3 values: any leftover encrypted data as string, followed by the encryption key and initialization vector.</dd>
+    
+    <dt><strong>crypto.open.new(cipher, privkey, ek, iv)</strong></dt>
+    <dd>Creates a new opening object using the algorithm specified by <code>cipher</code>, private key <code>privkey</code>, encryption key <code>ek</code> and initialization vector <code>iv</code>.</dd>
+
+    <dt><strong>open:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data. Returns a string with decrypted data, which may be of zero length if less than a message block size of data is provided.</dd>
+
+    <dt><strong>open:final()</strong></dt>
+    <dd>Finishes the opening, and returns leftover decrypted data as string.</dd>
+</dl>
+
+
+<h3>HMAC - crypto.hmac</h3>
+<dl>
+    <dt><strong>crypto.hmac.digest(dtype, string, key [, raw])</strong></dt>
+    <dd>This function returns the HMAC of the <code>string</code>. The hashing algorithm to use is specified by <code>dtype</code>. The value provided in <code>key</code> will be used as the seed for the HMAC generation. The optional <code>raw</code> flag, defaulted to false, is a boolean indicating whether the output should be a direct binary equivalent of the HMAC or formatted as a hexadecimal string (the default).</dd>
+
+    <dt><strong>crypto.hmac.new(dtype, key)</strong></dt>
+    <dd>Creates a new HMAC object using the algorithm specified by <code>type</code>. The HMAC seed key to use is provided by <code>key</code>.</dd>
+
+    <dt><strong>hmac:reset()</strong></dt>
+    <dd>Resets the HMAC object to a clean slate.</dd>
+
+    <dt><strong>hmac:clone()</strong></dt>
+    <dd>Returns a new HMAC object which is a clone of the object and its current state, including data loaded to this point. DOES NOT WORK YET. Just returns a new pointer to the same object.</dd>
+
+    <dt><strong>hmac:update(string)</strong></dt>
+    <dd>Appends the data in <code>string</code> to the current internal data set to be hashed.</dd>
+
+    <dt><strong>hmac:final([string] [, raw])</strong></dt>
+    <dd>Generates the HMAC for the loaded data, optionally appending on new data provided by <code>string</code> prior to hashing. The optional <code>raw</code> flag, defaulted to false, is a boolean indicating whether the output should be a direct binary equivalent of the message digest or formatted as a hexadecimal string (the default). Note that you can only run this method once on an object; running it a second time will product a bogus HMAC because the internal state is irrecoverably destroyed after the first call.</dd>
+</dl>
+
+<h3>X509 Certificate - crypto.x509_cert</h3>
+<dl>
+    <dt><strong>crypto.x509_cert()</strong></dt>
+    <dd>Return an empty x509 certificate object.</dd>
+
+    <dt><strong>x509_cert:pubkey()</strong></dt>
+    <dd>Get a <code>crypto.pkey</code> object that represents the raw key of the <code>x509_cert</code>.</dd>
+
+</dl>
+
+<h3>X509 Certificate Authority - crypto.x509_ca</h3>
+<dl>
+    <dt><strong>crypto.x509()</strong></dt>
+    <dd>Return an empty x509 certificate authority.</dd>
+
+    <dt><strong>x509_ca:add_pem(pem)</strong></dt>
+    <dd>Add a x509 CA certificate as a trusted cert.</dd>
+
+    <dt><strong>x509_ca:verify_pem(pem)</strong></dt>
+    <dd>Verify that the pem is signed by one of the x509 CA's added via <code>x509_ca:add_pem</code></dd>
+
+</dl>
+
+<h3>Misc functions - crypto</h3>
+<dl>
+    <dt><strong>crypto.list(type)</strong></dt>
+    <dd>Returns a Lua table array of supported digests and ciphers (strings), depending on then <code>type</code> argument:
+    <ul>
+    <li><code>"ciphers"</code> - returns list of ciphers supported by <code>crypto.encrypt</code> and <code>crypto.decrypt</code></li>
+    <li><code>"digests"</code> - returns list of digests supported by <code>crypto.digest</code></li>
+    </ul>
+    </dd>
+
+    <dt><strong>crypto.hex(s)</strong></dt>
+    <dd>Expects a string <code>s</code> and returns it encoded as hex string (lowercase).</dd>
+</dl>
+
+</div> <!-- id="content" -->
+
+</div> <!-- id="main" -->
+
+<div id="about">
+	<p><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
+</div> <!-- id="about" -->
+
+</div> <!-- id="container" -->
+
+</body>
+</html>

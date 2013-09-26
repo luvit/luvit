@@ -1,0 +1,7 @@
+LuaCrypto provides a Lua frontend to the OpenSSL cryptographic library.
+The OpenSSL features that are currently exposed are digests (MD5, SHA-1,
+HMAC, and more) and crypto-grade random number generators.
+
+LuaCrypto also supports encryption and decryption, signing and verifying, sealing and opening using the OpenSSL EVP API.
+
+Please see docs at doc/us/index.html or http://luacrypto.luaforge.net/.

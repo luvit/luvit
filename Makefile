@@ -17,13 +17,13 @@
 
 VERSION=$(shell git describe --tags)
 LUADIR=deps/luajit
-LUAJIT_VERSION=$(shell git --git-dir ${LUADIR}/.git describe --tags)
+LUAJIT_VERSION=$(shell tools/subtree-version.sh ${LUADIR})
 YAJLDIR=deps/yajl
-YAJL_VERSION=$(shell git --git-dir ${YAJLDIR}/.git describe --tags)
+YAJL_VERSION=$(shell tools/subtree-version.sh ${YAJLDIR})
 UVDIR=deps/uv
-UV_VERSION=$(shell git --git-dir ${UVDIR}/.git describe --all --long | cut -f 3 -d -)
+UV_VERSION=$(shell tools/subtree-version.sh ${UVDIR})
 HTTPDIR=deps/http-parser
-HTTP_VERSION=$(shell git --git-dir ${HTTPDIR}/.git describe --tags)
+HTTP_VERSION=$(shell tools/subtree-version.sh ${HTTPDIR})
 ZLIBDIR=deps/zlib
 SSLDIR=deps/openssl
 BUILDDIR=build
@@ -199,14 +199,12 @@ BUNDLE_LIBS= $(shell ls lib/luvit/*.lua)
 all: ${BUILDDIR}/luvit
 
 ${LUADIR}/Makefile:
-	git submodule update --init ${LUADIR}
 
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
 
 ${YAJLDIR}/CMakeLists.txt:
-	git submodule update --init ${YAJLDIR}
 
 ${YAJLDIR}/Makefile: deps/Makefile.yajl ${YAJLDIR}/CMakeLists.txt
 	cp deps/Makefile.yajl ${YAJLDIR}/Makefile
@@ -217,7 +215,6 @@ ${YAJLDIR}/yajl.a: ${YAJLDIR}/Makefile
 	$(MAKE) -C ${YAJLDIR}
 
 ${UVDIR}/Makefile:
-	git submodule update --init ${UVDIR}
 
 ${UVDIR}/libuv.a: ${UVDIR}/Makefile
 	$(MAKE) -C ${UVDIR}
@@ -226,13 +223,11 @@ ${CARESDIR}/libcares.a: ${CARESDIR}/Makefile
 	$(MAKE) -C ${CARESDIR}
 
 ${HTTPDIR}/Makefile:
-	git submodule update --init ${HTTPDIR}
 
 ${HTTPDIR}/http_parser.o: ${HTTPDIR}/Makefile
 	$(MAKE) -C ${HTTPDIR} http_parser.o
 
 ${ZLIBDIR}/zlib.gyp:
-	git submodule update --init ${ZLIBDIR}
 
 ${ZLIBDIR}/libz.a: ${ZLIBDIR}/zlib.gyp
 	cd ${ZLIBDIR} && ${CC} -c *.c && \
@@ -240,7 +235,6 @@ ${ZLIBDIR}/libz.a: ${ZLIBDIR}/zlib.gyp
 	$(RANLIB) libz.a
 
 ${SSLDIR}/Makefile.openssl:
-	git submodule update --init ${SSLDIR}
 
 ${SSLDIR}/libopenssl.a: ${SSLDIR}/Makefile.openssl
 	$(MAKE) -C ${SSLDIR} -f Makefile.openssl
@@ -263,7 +257,6 @@ ${BUILDDIR}/libluvit.a: ${CRYPTODIR}/Makefile ${LUVLIBS} ${DEPS}
 	$(RANLIB) ${BUILDDIR}/libluvit.a
 
 ${CRYPTODIR}/Makefile:
-	git submodule update --init ${CRYPTODIR}
 
 ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 	${CC} ${CPPFLAGS} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
@@ -366,7 +359,6 @@ tarball: dist_build
 	mkdir -p ${DIST_DIR}
 	git clone . ${DIST_FOLDER}
 	cp deps/gitmodules.local ${DIST_FOLDER}/.gitmodules
-	cd ${DIST_FOLDER} ; git submodule update --init
 	find ${DIST_FOLDER} -name ".git*" | xargs rm -r
 	mv Makefile.dist ${DIST_FOLDER}/Makefile
 	mv luvit.gyp.dist ${DIST_FOLDER}/luvit.gyp

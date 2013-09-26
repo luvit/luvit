@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title>LuaCrypto: A Lua frontend to OpenSSL</title>
+    <link rel="stylesheet" href="http://www.keplerproject.org/doc.css" type="text/css"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+
+<div id="container">
+	
+<div id="product">
+	<div id="product_logo">
+        <a href="http://www.keplerproject.org"><img alt="LuaCrypto logo" src="luacrypto-128.png"/></a>
+    </div>
+	<div id="product_name"><big><strong>LuaCrypto</strong></big></div>
+	<div id="product_description">A Lua frontend to OpenSSL</div>
+</div> <!-- id="product" -->
+
+<div id="main">
+	
+<div id="navigation">
+<h1>LuaCrypto</h1>
+	<ul>
+		<li><a href="index.html">Home</a>
+			<ul>
+				<li><a href="index.html#overview">Overview</a></li>
+				<li><a href="index.html#status">Status</a></li>
+				<li><a href="index.html#download">Download</a></li>
+                <li><a href="index.html#dependencies">Dependencies</a></li>
+				<li><a href="index.html#history">History</a></li>
+				<li><a href="index.html#credits">Credits</a></li>
+				<li><a href="index.html#contact">Contact</a></li>
+			</ul>
+		</li>
+		<li><a href="manual.html">Manual</a>
+			<ul>
+				<li><a href="manual.html#introduction">Introduction</a></li>
+				<li><a href="manual.html#building">Building</a></li>
+				<li><a href="manual.html#installation">Installation</a></li>
+				<li><a href="manual.html#reference">Reference</a></li>
+			</ul>
+		</li>
+		<li><strong>Examples</strong></li>
+        <li><a href="https://github.com/mkottman/luacrypto">Project</a>
+            <ul>
+                <li><a href="https://github.com/mkottman/luacrypto/issues">Bug Tracker</a></li>
+                <li><a href="https://github.com/mkottman/luacrypto/commits/master">Changelog</a></li>
+            </ul>
+        </li>
+		<li><a href="license.html">License</a></li>
+	</ul>
+</div> <!-- id="navigation" -->
+
+<div id="content">
+
+
+<h2><a name="examples"></a>Example</h2>
+
+Below is a sample displaying the basic use of the library.
+
+<pre class="example">
+local crypto = require("crypto")
+
+assert(io.input(some_file))
+local md5_of_some_file = crypto.digest("md5", io.read("*all"))
+   
+assert(io.input(some_file))
+local hmac_of_some_file = crypto.hmac("sha1", io.read("*all"), "hmackey")
+</pre>
+
+And here is a sample of the object interface to the code.
+
+<pre class="example">
+require("crypto")
+
+local evp = crypto.digest.new("md5")
+for line in io.lines(some_file) do 
+    evp:update(line)
+end
+local md5_of_some_file = evp:final()
+</pre>
+
+A quick encryption/decryption example. Uses the Blowfish algorithm. You pass the key and source file from command line, following the operation. If no file is given, uses standard input.
+
+<pre class="example">
+require("crypto")
+assert(#arg >= 2, "Usage: lua crypt.lua &lt;encrypt/decrypt&gt; &lt;key&gt; [file]")
+cmd = arg[1]
+key = arg[2]
+file = #arg>2 and assert(io.open(arg[3], "rb")) or io.stdin
+content = file:read("*a")
+if cmd == "encrypt" then
+  result = crypto.encrypt("blowfish", content, key)
+else
+  result = crypto.decrypt("blowfish", content, key)
+end
+io.write(result)
+</pre>
+
+
+</div> <!-- id="content" -->
+
+</div> <!-- id="main" -->
+
+<div id="about">
+	<p><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
+</div> <!-- id="about" -->
+
+</div> <!-- id="container" -->
+
+</body>
+</html> 
