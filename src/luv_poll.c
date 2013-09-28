@@ -47,7 +47,7 @@ static int _luv_get_rw_events(const char* rw) {
 
 int luv_new_poll(lua_State* L) {
   int fd = luaL_checkint(L, 1);
-  uv_tcp_t* handle = luv_create_poll(L);
+  uv_poll_t* handle = luv_create_poll(L);
   uv_poll_init(luv_get_loop(L), handle, fd);
   return 1;
 }
