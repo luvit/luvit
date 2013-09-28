@@ -240,18 +240,17 @@ local Poll = Stream:extend()
 uv.Poll = Poll
 
 function Poll:initialize(fd)
---	self.userdata = native.newPoll(fd)
-	self.userdata = native.newPoll(0)
+  self.userdata = native.newPoll(fd)
 end
 
-function Poll:start()
-	native.pollStart(self, function()
-		self:emit('readable')
-	end)
+function Poll:start(rw)
+  native.pollStart(self.userdata, rw,
+    function() self:emit('readable') end,
+    function() self:emit('writable') end)
 end
 
 function Poll:stop()
-	native.pollStop(self)
+  native.pollStop(self.userdata)
 end
 
 --------------------------------------------------------------------------------
