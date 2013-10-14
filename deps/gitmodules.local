@@ -22,3 +22,6 @@
 [submodule "tools/gyp"]
         path = tools/gyp
         url = ../tools/gyp/.git
+[submodule "deps/cares"]
+        path = deps/gyp
+        url = ../deps/cares/.git
