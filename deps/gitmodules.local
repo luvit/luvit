@@ -23,5 +23,5 @@
         path = tools/gyp
         url = ../tools/gyp/.git
 [submodule "deps/cares"]
-        path = deps/gyp
+        path = deps/cares
         url = ../deps/cares/.git
