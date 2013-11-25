@@ -41,6 +41,7 @@ To use the gyp build system run:
 
 ```
 cd luvit
+git submodule update --init --recursive
 ./configure
 make -C out
 tools/build.py test
