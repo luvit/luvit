@@ -97,6 +97,7 @@ def host_arch():
 
   return {
     'arm': 'arm',
+    'armv6l': 'arm',
     'x86': 'ia32',
     'i386': 'ia32',
     'i486': 'ia32',
