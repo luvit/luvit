@@ -95,8 +95,11 @@ def host_arch():
   if arch == 'unknown':
     arch = uname('-m')
 
+  if arch.startswith('arm'):
+      # handle arm, armv3l, armv6l, etc.
+      return 'arm'
+
   return {
-    'arm': 'arm',
     'x86': 'ia32',
     'i386': 'ia32',
     'i486': 'ia32',
