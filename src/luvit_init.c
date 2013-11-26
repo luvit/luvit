@@ -152,7 +152,7 @@ int luvit_init_ssl()
 }
 #endif
 
-#ifdef __POSIX__
+#if defined(__unix__) || defined(__POSIX__)
 static void _luv_register_signal_handler(int signal, void (*handler)(int signal))
 {
   struct sigaction sa;
@@ -174,7 +174,7 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 {
   int index, rc;
 
-#ifdef __POSIX__
+#if defined(__unix__) || defined(__POSIX__)
   _luv_register_signal_handler(SIGPIPE, SIG_IGN);
   _luv_register_signal_handler(SIGINT, _signal_exit);
   _luv_register_signal_handler(SIGTERM, _signal_exit);
