@@ -65,14 +65,16 @@ local function runTest(filename, callback)
 end
 
 local function run(callback)
-  fs.readdir('.', function(err, files)
+  fs.readdir(__dirname, function(err, files)
     assert(err == nil)
     test_files = {}
 
     for i, v in ipairs(files) do
       local _, _, ext = string.find(v, '^test-.*%.(.*)')
+      local file_path
       if ext == 'lua' then
-        table.insert(test_files, v)
+        file_path = path.join(__dirname, v)
+        table.insert(test_files, file_path)
       end
     end
 

@@ -19,6 +19,7 @@ limitations under the License.
 require("helper")
 
 local Zlib = require("zlib_native")
+local path = require('path')
 
 --
 -- smoke test: low level inflate/deflate
@@ -26,7 +27,8 @@ local Zlib = require("zlib_native")
 
 assert(Zlib.new('inflate'):write(Zlib.new('deflate',6):write('test\n','finish')) == 'test\n')
 
-local test_str = require("fs").readFileSync("./fixtures/test.gz")
+local fixture_path = path.join(__dirname, './fixtures/test.gz')
+local test_str = require("fs").readFileSync(fixture_path)
 --assert(#test_str == 30)
 local inflated = Zlib.new('inflate'):write(test_str, "finish")
 assert(inflated == "test\n")
@@ -57,7 +59,7 @@ assert(inflated == test_str)
 local Table = require('table')
 local Zlib = require("zlib")
 
-local file = require('fs').createReadStream('./fixtures/test.gz', {
+local file = require('fs').createReadStream(fixture_path, {
   chunk_size = 3,
 })
 local gunzip = Zlib.Zlib:new('inflate')
