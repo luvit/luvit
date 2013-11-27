@@ -34,6 +34,12 @@ parser.add_option("--arch",
     dest="arch",
     help="Select the default architecture (ia32,x64,arm)")
 
+parser.add_option("--msvs-ver",
+    action="store",
+    dest="msvs_ver",
+    default="auto",
+    help="Select version of MSVS version to build to (auto, 2005e, 2005, 2008e, 2008, 2010e, 2010, etc.; default=auto)")
+
 parser.add_option("--without-ssl",
     action="store_true",
     dest="without_ssl",
@@ -185,7 +191,7 @@ def render_openssl_symlinks(src, dest):
 if sys.platform == "win32":
     render_openssl_symlinks('deps/openssl/openssl/include/openssl',
         'deps/openssl/openssl-configs/realized/openssl')
-    code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=auto")
+    code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=%s"%(options.msvs_ver))
 else:
     code = os.system("tools/gyp_luvit")
 
