@@ -845,6 +845,10 @@ function Response:initialize(socket)
   self.header_names = {}
   self.headers_sent = false
   self.socket = socket
+
+  self.socket:on('error', function(err)
+      self:emit('error', err)
+  end)
 end
 
 Response.auto_date = true
