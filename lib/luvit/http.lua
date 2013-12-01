@@ -784,7 +784,8 @@ function ClientRequest:onSocket(socket)
     local nparsed = self.parser:execute(chunk, 0, #chunk)
     -- If it wasn't all parsed then there was an error parsing
     if nparsed < #chunk then
-      response:emit("error", "parse error")
+      local err = Error:new('parse error')
+      self:emit("error", err)
     end
   end)
   socket:on('error', function(err)
