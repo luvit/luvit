@@ -39,7 +39,7 @@ int luv_get_process_title(lua_State* L);
 int luv_set_process_title(lua_State* L);
 int luv_handle_type(lua_State* L);
 
-#ifndef NDEBU
+#ifndef NDEBUG
 int luv_print_active_handles(lua_State* L);
 int luv_print_all_handles(lua_State* L);
 #endif
