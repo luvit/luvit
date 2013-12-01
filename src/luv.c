@@ -163,8 +163,10 @@ static const luaL_reg luv_f[] = {
 
   /* Misc functions */
   {"run", luv_run},
+#ifndef NDEBUG
   {"printActiveHandles", luv_print_active_handles},
   {"printAllHandles", luv_print_all_handles},
+#endif  
   {"updateTime", luv_update_time},
   {"now", luv_now},
   {"hrtime", luv_hrtime},

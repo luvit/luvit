@@ -192,6 +192,7 @@ int luv_handle_type(lua_State* L) {
   return 1;
 }
 
+#ifndef NDEBUG
 extern void uv_print_active_handles(uv_loop_t *loop);
 extern void uv_print_all_handles(uv_loop_t *loop);
 
@@ -204,3 +205,4 @@ int luv_print_all_handles(lua_State* L) {
   uv_print_all_handles(luv_get_loop(L));
   return 0;
 }
+#endif
