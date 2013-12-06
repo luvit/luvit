@@ -51,10 +51,9 @@ const void *luvit_ugly_hack = NULL;
 ]] .. mapcat(names, function (name) return "extern const char *luaJIT_BC_" .. name .. "[];\n" end) .. [[
 const void *luvit__suck_in_symbols(void)
 {
-  const char **luvit_ugly_hack[] =
+  int luvit_ugly_hack =
   {
-]] .. mapcat(names, function (name) return "    luaJIT_BC_" .. name end, ",\n") .. [[    0
-  };
+]] .. mapcat(names, function (name) return "    (int)*luaJIT_BC_" .. name end, " +\n") .. [[    0;
 
   return (const void *)&luvit_ugly_hack[0];
 }
