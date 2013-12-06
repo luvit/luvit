@@ -27,7 +27,7 @@ local path = require('path')
 
 assert(Zlib.new('inflate'):write(Zlib.new('deflate',6):write('test\n','finish')) == 'test\n')
 
-local fixture_path = path.join(__dirname, './fixtures/test.gz')
+local fixture_path = path.join(__dirname, 'fixtures', 'test.gz')
 local test_str = require("fs").readFileSync(fixture_path)
 --assert(#test_str == 30)
 local inflated = Zlib.new('inflate'):write(test_str, "finish")
