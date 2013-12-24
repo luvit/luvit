@@ -191,7 +191,9 @@ local function clearTimer(timer)
       unenroll(timer)
     end
   else
-    timer:close()
+    if timer.close then
+      timer:close()
+    end
   end
 end
 
