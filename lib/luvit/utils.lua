@@ -86,7 +86,7 @@ local function colorize_nop(color, obj)
 end
 
 function utils.dump(o, depth, no_colorize)
-  local _colorize_func
+  local colorize_func
   local _escapes
 
   if no_colorize then

@@ -144,7 +144,9 @@ function CryptoStream:write(data, ...)
     dbg('encrypted.write called with length ' .. #data)
   end
 
-  local args = {...}, callback
+  local args = {...}
+  local callback
+  local encoding
 
   if type(args[1]) == 'string' then
     encoding = args[1]
@@ -388,7 +390,7 @@ function string:split(sep)
   return fields
 end
 
-function parseCertString(s)
+local function parseCertString(s)
   local out = {}
   local parts = s:split('\n')
   for i, k in ipairs(parts) do
@@ -651,7 +653,7 @@ end
 
 --[[ Private ]]--
 
-function pipe(pair, socket)
+local function pipe(pair, socket)
   pair.encrypted:pipe(socket)
   socket:pipe(pair.encrypted)
 
@@ -662,17 +664,17 @@ function pipe(pair, socket)
   cleartext.encrypted = pair.encrypted
   cleartext.authorized = false
 
-  function onerror(e)
+  local function onerror(e)
     cleartext:emit('error', e)
   end
 
-  function onclose()
-    socket:removeListener('error', onerror)
-    socket:removeListener('timeout', ontimeout)
+  local function ontimeout()
+    cleartext:emit('timeout')
   end
 
-  function ontimeout()
-    cleartext:emit('timeout')
+  local function onclose()
+    socket:removeListener('error', onerror)
+    socket:removeListener('timeout', ontimeout)
   end
 
   socket:on('error', onerror)
@@ -825,13 +827,13 @@ function Server:setOptions(options)
   end
 end
 
-function createServer(options, listener)
+local function createServer(options, listener)
   return Server:new(options, listener)
 end
 
 --[[ Public ]]--
 
-function connect(...)
+local function connect(...)
   local args = {...}
   local options = {}
   local callback
@@ -852,6 +854,7 @@ function connect(...)
   end
 
   local socket = options.socket or Socket:new()
+  local sslcontext
 
   if options.context then
     sslcontext = createCredentials(options, options.context)

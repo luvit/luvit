@@ -158,7 +158,7 @@ function IncomingMessage:_addHeaderLine(field, value)
   local headerMap = {}
   field = field:lower()
 
-  function commaSeparate()
+  local function commaSeparate()
     if dest[field] then
       dest[field] = dest[field] .. ', ' .. value
     else
@@ -166,7 +166,7 @@ function IncomingMessage:_addHeaderLine(field, value)
     end
   end
 
-  function default()
+  local function default()
     if field:sub(1,2) == 'x-' then
       if dest[field] then
         dest[field] = dest[field] .. ', ' .. value
@@ -180,7 +180,7 @@ function IncomingMessage:_addHeaderLine(field, value)
     end
   end
 
-  function setCoookie()
+  local function setCookie()
     if dest[field] then
       table.insert(dest[field], value)
     else
@@ -293,7 +293,7 @@ function OutgoingMessage:_storeHeader(firstLine, headers)
   local messageHeader = firstLine
   local field, value
 
-  function store(field, value)
+  local function store(field, value)
     local matchField = field:lower()
     messageHeader = messageHeader .. field .. ': ' .. value .. CRLF
     if matchField == connectionExpression then
@@ -681,7 +681,7 @@ function ClientRequest:setTimeout(msecs, callback)
     self:once('timeout', callback)
   end
 
-  function emitTimeout()
+  local function emitTimeout()
     self:emit('timeout')
   end
 
@@ -721,6 +721,7 @@ end
 
 function ClientRequest:onSocket(socket)
   local response = ServerResponse:new(self)
+  local headers, current_field
   response.socket = socket
 
   self.socket = socket
@@ -869,7 +870,7 @@ function Response:setHeader(name, value)
   local lower = name:lower()
   local old_name = self.header_names[lower]
   if old_name then
-    headers[old_name] = nil
+    self.headers[old_name] = nil
   end
   self.header_names[lower] = name
   self.headers[name] = value

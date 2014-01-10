@@ -43,7 +43,7 @@ function Path:_splitPath(filename)
     dir = filename:sub(1, i - 1)
   end
   local basename = filename:sub(i, j)
-  return root, dir, basename, ext
+  return root, dir, basename
 end
 
 -- Modifies an array of path parts in place by interpreting "." and ".." segments

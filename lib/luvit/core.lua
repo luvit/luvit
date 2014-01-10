@@ -278,7 +278,7 @@ function iStream:pipe(target)
   end)
 
   local didOnEnd = false
-  function onend()
+  local function onend()
     if (didOnEnd) then
       return
     end
@@ -290,7 +290,7 @@ function iStream:pipe(target)
     end
   end
 
-  function onclose()
+  local function onclose()
     if (didOnEnd) then
       return
     end
