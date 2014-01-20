@@ -20,7 +20,7 @@ local http = require('http')
 local tls = require('tls')
 local url = require('url')
 
-function createConnection(...)
+local function createConnection(...)
   local args = {...}
   local options = {}
   local callback
@@ -49,7 +49,7 @@ function createConnection(...)
   return tls.connect(options, callback)
 end
 
-function request(options, callback)
+local function request(options, callback)
   if options.protocol and options.protocol ~= 'https' then
     error(fmt('Protocol %s not supported', options.protocol))
   end

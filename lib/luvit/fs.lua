@@ -98,7 +98,7 @@ for name, param_handlers in pairs(func_descs) do
   fs[name:lower() .. "Sync"] = sync
 end
 
-function modeNum(m, def)
+local function modeNum(m, def)
   local t = type(m)
   if t == 'number' then
     return m
@@ -145,7 +145,7 @@ function fs.existsSync(path)
   error(err)
 end
 
-function writeAll(fd, offset, buffer, callback)
+local function writeAll(fd, offset, buffer, callback)
   fs.write(fd, offset, buffer, function(err, written)
     if err then
       fs.close(fd, function()
@@ -413,7 +413,7 @@ function fs.createWriteStream(path, options)
     return WriteStream:new(options.fd)
   end
 
-  fd = fs.openSync(pathlib._makeLong(path), options.flags, options.mode)
+  local fd = fs.openSync(pathlib._makeLong(path), options.flags, options.mode)
   return WriteStream:new(fd)
 end
 

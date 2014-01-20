@@ -160,7 +160,7 @@ function Socket:setMulticastLoopback(opt)
   self._handle:setMulticastLoopback(opt and 1 or 0)
 end
 
-function Socket:setMembership(multicastAddress, interfaceAddress, op)
+function Socket:setMembership(multicastAddress, multicastInterface, op)
   self:_healthCheck()
 
   if not multicastAddress then

@@ -38,12 +38,12 @@ function JSON.streamingParser(callback, options)
       callback(value)
     end
   end
-  function open(value)
+  local function open(value)
     if current then
       current[key or #current + 1] = value
     end
   end
-  function close(value)
+  local function close(value)
     if not current then
       callback(value)
     end
@@ -117,7 +117,7 @@ function JSON.stringify(value, options)
     end
   end
 
-  function add(o)
+  local function add(o)
     local t = type(o)
     if t == 'nil' or o == JSON.null then
       generator:null()
