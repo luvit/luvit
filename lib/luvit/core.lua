@@ -36,10 +36,10 @@ Returns whether obj is instance of class or not.
     assert(instanceof(emitter, Object))
     assert(instanceof(emitter, Emitter))
 
-    assert(instanceof(2, Object))
-    assert(instanceof('a', Object))
-    assert(instanceof({}, Object))
-    assert(instanceof(function() end, Object))
+    assert(not instanceof(2, Object))
+    assert(not instanceof('a', Object))
+    assert(not instanceof({}, Object))
+    assert(not instanceof(function() end, Object))
 
 Caveats: This function returns true for classes.
     assert(instanceof(Object, Object))
