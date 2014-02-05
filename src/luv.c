@@ -31,6 +31,7 @@
 #include "luv_stream.h"
 #include "luv_tcp.h"
 #include "luv_pipe.h"
+#include "luv_poll.h"
 #include "luv_tty.h"
 #include "luv_misc.h"
 
@@ -108,6 +109,11 @@ static const luaL_reg luv_f[] = {
   {"pipeOpen", luv_pipe_open},
   {"pipeBind", luv_pipe_bind},
   {"pipeConnect", luv_pipe_connect},
+
+  /* Poll functions */
+  {"newPoll", luv_new_poll},
+  {"pollStart", luv_poll_start},
+  {"pollStop", luv_poll_stop},
 
   /* TTY functions */
   {"newTty", luv_new_tty},

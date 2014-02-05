@@ -236,6 +236,25 @@ end
 
 --------------------------------------------------------------------------------
 
+local Poll = Stream:extend()
+uv.Poll = Poll
+
+function Poll:initialize(fd)
+  self.userdata = native.newPoll(fd)
+end
+
+function Poll:start(rw)
+  native.pollStart(self.userdata, rw,
+    function() self:emit('readable') end,
+    function() self:emit('writable') end)
+end
+
+function Poll:stop()
+  native.pollStop(self.userdata)
+end
+
+--------------------------------------------------------------------------------
+
 local Tty = Stream:extend()
 uv.Tty = Tty
 

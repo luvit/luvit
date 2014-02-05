@@ -227,6 +227,9 @@ uv_process_t* luv_create_process(lua_State* L) {
 uv_tcp_t* luv_create_tcp(lua_State* L) {
   return (uv_tcp_t*)luv_handle_create(L, sizeof(uv_tcp_t), "luv_tcp")->handle;
 }
+uv_poll_t* luv_create_poll(lua_State* L) {
+  return (uv_poll_t*)luv_handle_create(L, sizeof(uv_poll_t), "luv_poll")->handle;
+}
 uv_pipe_t* luv_create_pipe(lua_State* L) {
   return (uv_pipe_t*)luv_handle_create(L, sizeof(uv_pipe_t), "luv_pipe")->handle;
 }

@@ -97,6 +97,7 @@ uv_timer_t*    luv_create_timer(lua_State* L);
 uv_process_t*  luv_create_process(lua_State* L);
 uv_tcp_t*      luv_create_tcp(lua_State* L);
 uv_pipe_t*     luv_create_pipe(lua_State* L);
+uv_poll_t*     luv_create_poll(lua_State* L);
 uv_signal_t*   luv_create_signal(lua_State* L);
 uv_tty_t*      luv_create_tty(lua_State* L);
 
