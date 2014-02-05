@@ -87,9 +87,6 @@ def host_arch():
   if sys.platform == "win32":
       return host_arch_win()
 
-  if sys.platform == "darwin":
-      return 'ia32'
-
   arch = uname('-p')
 
   if arch == 'unknown':
