@@ -28,7 +28,7 @@
   ignore = dirty
 [submodule "tools/gyp"]
 	path = tools/gyp
-	url = https://github.com/luvit/gyp.git
+	url = https://github.com/luvit/gyp-svn2github.git
   ignore = dirty
 [submodule "deps/cares"]
 	path = deps/cares
