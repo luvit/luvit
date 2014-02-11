@@ -127,6 +127,7 @@ end
 local builtinLoader = package.loaders[1]
 local base_path = process.cwd()
 local libpath = process.execPath:match('^(.*)' .. path.sep .. '[^' ..path.sep.. ']+' ..path.sep.. '[^' ..path.sep.. ']+$') ..path.sep.. 'lib' ..path.sep.. 'luvit' ..path.sep
+local bundled_paths = {"modules", "node_modules"}
 function module.require(filepath, dirname)
   if not dirname then dirname = base_path end
 
@@ -177,13 +178,15 @@ function module.require(filepath, dirname)
   -- Bundled path modules
   local dir = dirname .. path.sep
   repeat
-    local full_path = path.join(dir, "modules", filepath)
-    local loader = loadModule(full_path)
-    if type(loader) == "function" then
-      return loader()
-    else
-      errors[#errors + 1] = loader
+    local loader
+    for _, bundled_path in ipairs(bundled_paths) do
+      local full_path = path.join(dir, bundled_path, filepath)
+      loader = loadModule(full_path)
+      if type(loader) == "function" then
+        return loader()
+      end
     end
+    errors[#errors + 1] = loader
     dir = path.dirname(dir)
   until dir == "."
 
