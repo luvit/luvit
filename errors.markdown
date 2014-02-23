@@ -19,4 +19,3 @@ I know errno and path, this is a fs error
 I only know it was the last error (`after shutdown`, `after_write`, `on_connection`)
 
     luv_io_error(L, uv_last_error(uv_default_loop()).code, NULL, NULL, NULL);
-

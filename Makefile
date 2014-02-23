@@ -259,7 +259,7 @@ ${BUILDDIR}/%.o: src/%.c ${DEPS}
 		-DLUAJIT_VERSION=\"${LUAJIT_VERSION}\"
 
 ${BUILDDIR}/libluvit.a: ${CRYPTODIR}/Makefile ${LUVLIBS} ${DEPS}
-	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS} 
+	$(AR) rvs ${BUILDDIR}/libluvit.a ${LUVLIBS} ${DEPS}
 	$(RANLIB) ${BUILDDIR}/libluvit.a
 
 ${CRYPTODIR}/Makefile:
@@ -374,4 +374,3 @@ tarball: dist_build
 	rm -rf ${DIST_FOLDER}
 
 .PHONY: test install uninstall all api.markdown bundle tarball
-

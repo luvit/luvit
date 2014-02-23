@@ -22,7 +22,7 @@ src/api/yajl_version.h: src/api/yajl_version.h.cmake CMakeLists.txt
 		-e 's/.{YAJL_MINOR}/${YAJL_MINOR}/' \
 		-e 's/.{YAJL_MICRO}/${YAJL_MICRO}/' < src/api/yajl_version.h.cmake > src/api/yajl_version.h
 
-clean: 
+clean:
 	rm -f src/api/yajl_version.h src/api/yajl yajl.a
 	rm -fr build
 
@@ -33,8 +33,7 @@ yajl.a: ${OBJECTS}
 	ar rcs yajl.a ${OBJECTS}
 
 src/api/yajl:
-	ln -s . src/api/yajl 
+	ln -s . src/api/yajl
 
 build/%.o: src/%.c build src/api/yajl src/api/yajl_version.h
 	$(CC) $(CFLAGS) -g -Wall -c $< -o $@ -I src/api
-

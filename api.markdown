@@ -98,7 +98,7 @@ would be to wait a second and then try again. This can be done with
 
 (Note: All sockets in Luvit set `SO_REUSEADDR` already)
 
-If a path is given instead of a port, then start a UNIX socket server 
+If a path is given instead of a port, then start a UNIX socket server
 listening for connections on the given `path`.
 
 This function is asynchronous.  When the server has been bound,
@@ -262,7 +262,7 @@ Here is an example of a client of echo server as described previously:
       debug('on_connect')
       client:write('world!\r\n')
     end)
-    client:on('data', function (data) 
+    client:on('data', function (data)
       debug('on_data', data)
       client:end()
     end)
@@ -300,7 +300,7 @@ on port 8124:
       c:write('hello\r\n')
       c:pipe(c)
     end)
-    server:listen(8124, function () 
+    server:listen(8124, function ()
       print('server bound')
     end)
 
@@ -316,4 +316,3 @@ just be changed to
 Use `nc` to connect to a UNIX domain socket server:
 
     nc -U /tmp/echo.sock
-
