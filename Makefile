@@ -60,7 +60,7 @@ else
 LDFLAGS+=-framework CoreServices
 endif
 else ifeq (${OS_NAME},Linux)
-LDFLAGS+=-ldl -Wl,-E
+LDFLAGS+=-Wl,-E
 else ifeq (${OS_NAME},FreeBSD)
 LDFLAGS+=-lkvm -Wl,-E
 endif
@@ -117,7 +117,7 @@ endif
 
 
 ifeq (${OS_NAME},Linux)
-LIBS+=-lrt
+LIBS+=-lrt -ldl
 endif
 
 CPPFLAGS += -DUSE_OPENSSL
