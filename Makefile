@@ -51,7 +51,6 @@ ifeq (${WERROR},1)
 CFLAGS += -Werror
 endif
 
-
 OS_NAME=$(shell uname -s)
 MH_NAME=$(shell uname -m)
 ifeq (${OS_NAME},Darwin)
@@ -61,7 +60,9 @@ else
 LDFLAGS+=-framework CoreServices
 endif
 else ifeq (${OS_NAME},Linux)
-LDFLAGS+=-Wl,-E
+LDFLAGS+=-ldl -Wl,-E
+else ifeq (${OS_NAME},FreeBSD)
+LDFLAGS+=-lkvm -Wl,-E
 endif
 # LUAJIT CONFIGURATION #
 #XCFLAGS=-g
@@ -74,7 +75,7 @@ export Q=
 MAKEFLAGS+=-e
 
 LDFLAGS+=-L${BUILDDIR}
-LIBS += -lluvit
+LIBS += -lluvit -lpthread
 
 ifeq (${USE_SYSTEM_ZLIB},1)
 CPPFLAGS+=$(shell pkg-config --cflags zlib)
@@ -103,7 +104,7 @@ CPPFLAGS+=-I${LUADIR}/src
 LIBS+=${LUADIR}/src/libluajit.a
 endif
 
-LIBS += -lm -ldl -lpthread
+LIBS += -lm
 
 ifeq (${USE_SYSTEM_SSL},1)
 CFLAGS+=-Wall -w
@@ -142,6 +143,8 @@ CPPFLAGS += -DOPENSSL_NO_SEED
 CPPFLAGS += -DOPENSSL_NO_SOCK
 
 ifeq (${MH_NAME},x86_64)
+CPPFLAGS += -I${SSLDIR}/openssl-configs/x64
+else ifeq (${MH_NAME},amd64)
 CPPFLAGS += -I${SSLDIR}/openssl-configs/x64
 else
 CPPFLAGS += -I${SSLDIR}/openssl-configs/ia32
