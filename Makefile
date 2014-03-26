@@ -225,6 +225,9 @@ ${UVDIR}/Makefile:
 ${UVDIR}/libuv.a: ${UVDIR}/Makefile
 	$(MAKE) -C ${UVDIR}
 
+${CARESDIR}/Makefile:
+	git submodule update --init --recursive
+
 ${CARESDIR}/libcares.a: ${CARESDIR}/Makefile
 	$(MAKE) -C ${CARESDIR}
 
