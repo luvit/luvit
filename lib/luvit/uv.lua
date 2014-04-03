@@ -235,6 +235,21 @@ function Pipe:resume()
 end
 
 --------------------------------------------------------------------------------
+local Poll = Stream:extend()
+uv.Poll = Poll
+
+function Poll:initialize(fd)
+  self.userdata = native.newPoll(fd)
+end
+
+function Poll:start(rw, callback)
+  native.pollStart(self.userdata, rw, callback)
+end
+
+function Poll:stop()
+  native.pollStop(self.userdata)
+end
+--------------------------------------------------------------------------------
 
 local Tty = Stream:extend()
 uv.Tty = Tty

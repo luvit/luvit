@@ -30,6 +30,7 @@
 #include "luv_signal.h"
 #include "luv_stream.h"
 #include "luv_tcp.h"
+#include "luv_poll.h"
 #include "luv_pipe.h"
 #include "luv_tty.h"
 #include "luv_misc.h"
@@ -133,6 +134,11 @@ static const luaL_reg luv_f[] = {
   {"dnsIsIp", luv_dns_isIp},
   {"dnsIsIpV4", luv_dns_isIpV4},
   {"dnsIsIpV6", luv_dns_isIpV6},
+
+  /* Poll functions */
+  {"newPoll", luv_new_poll},
+  {"pollStart", luv_poll_start},
+  {"pollStop", luv_poll_stop},
 
   /* FS functions */
   {"fsOpen", luv_fs_open},

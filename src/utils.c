@@ -157,6 +157,7 @@ const char* luv_handle_type_to_string(uv_handle_type type) {
     case UV_TIMER: return "TIMER";
     case UV_PREPARE: return "PREPARE";
     case UV_CHECK: return "CHECK";
+    case UV_POLL: return "POLL";
     case UV_IDLE: return "IDLE";
     case UV_ASYNC: return "ASYNC";
     case UV_PROCESS: return "PROCESS";
@@ -229,6 +230,9 @@ uv_tcp_t* luv_create_tcp(lua_State* L) {
 }
 uv_pipe_t* luv_create_pipe(lua_State* L) {
   return (uv_pipe_t*)luv_handle_create(L, sizeof(uv_pipe_t), "luv_pipe")->handle;
+}
+uv_poll_t* luv_create_poll(lua_State* L) {
+  return (uv_poll_t*)luv_handle_create(L, sizeof(uv_poll_t), "luv_poll")->handle;
 }
 uv_signal_t* luv_create_signal(lua_State* L) {
   return (uv_signal_t*)luv_handle_create(L, sizeof(uv_signal_t), "luv_signal")->handle;
