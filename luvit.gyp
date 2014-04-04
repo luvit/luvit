@@ -55,6 +55,7 @@
        'src/luv_handle.c',
        'src/luv_misc.c',
        'src/luv_pipe.c',
+       'src/luv_poll.c',
        'src/luv_process.c',
        'src/luv_signal.c',
        'src/luv_stream.c',
