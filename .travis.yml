@@ -1,10 +1,10 @@
 language: erlang
 
 script:
+  - ./configure
+  - make -C out
   - make test
   - make clean
-  - ./configure
-  - make -C out -j
 
 notifications:
   email: true
