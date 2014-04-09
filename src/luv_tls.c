@@ -14,12 +14,12 @@
  *  limitations under the License.
  *
  */
-#include <openssl/ssl.h>
-
 
 #include "luv.h"
 #include "luv_tls.h"
 #include "luv_tls_root_certs.h"
+
+#include <openssl/ssl.h>
 
 
 /**
