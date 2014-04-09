@@ -185,8 +185,8 @@ function module.require(filepath, dirname)
       if type(loader) == "function" then
         return loader()
       end
+      errors[#errors + 1] = loader
     end
-    errors[#errors + 1] = loader
     dir = path.dirname(dir)
   until dir == "."
 
