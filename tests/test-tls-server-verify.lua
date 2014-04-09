@@ -103,7 +103,7 @@ local serverKey = fixture.loadPEM('agent2-key');
 local serverCert = fixture.loadPEM('agent2-cert');
 
 function runClient(options, callback)
-  local args = { 's_client', '-connect', '127.0.0.1:' .. fixture.commonPort}
+  local args = { 's_client', '-tls1', '-connect', '127.0.0.1:' .. fixture.commonPort}
   print('  connecting with ' .. options.name)
 
   if options.name == 'agent1' then
