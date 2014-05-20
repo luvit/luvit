@@ -1,0 +1,20 @@
+CFLAGS += ${CFLAGS_LUV} -g  -DLUV_STACK_CHECK -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -fPIC
+
+all: luv.a
+
+temp:
+	mkdir temp
+
+temp/common.o: src/common.c src/common.h temp
+	$(CC) -c $< -o $@ ${CFLAGS}
+
+temp/luv.o: src/luv.c src/luv.h src/luv_functions.c temp
+	$(CC) -c $< -o $@ ${CFLAGS}
+
+luv.a: temp/luv.o temp/common.o
+	ar rcs luv.a temp/luv.o temp/common.o
+
+clean:
+	make -C libuv clean
+	rm -rf temp
+	rm -f luv.a

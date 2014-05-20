@@ -29,6 +29,8 @@ SSLDIR=deps/openssl
 BUILDDIR=build
 CRYPTODIR=deps/luacrypto
 CARESDIR=deps/cares
+LUVDIR=deps/luv
+PWD=$(shell pwd)
 
 PREFIX?=/usr/local
 BINDIR?=${DESTDIR}${PREFIX}/bin
@@ -207,6 +209,15 @@ all: ${BUILDDIR}/luvit
 ${LUADIR}/Makefile:
 	git submodule update --init ${LUADIR}
 
+CFLAGS_LUV=-I${PWD}/${LUADIR}/src -I${PWD}/${UVDIR}/include
+export CFLAGS_LUV
+
+${LUVDIR}/Makefile.forluvit: deps/Makefile.luv
+	cp deps/Makefile.luv deps/luv/Makefile.forluvit
+
+${LUVDIR}/luv.a: ${LUVDIR}/Makefile.forluvit ${LUADIR}/src/libluajit.a ${LUADIR}/Makefile ${UVDIR}/libuv.a
+	$(MAKE) -C deps/luv -f Makefile.forluvit
+
 ${LUADIR}/src/libluajit.a: ${LUADIR}/Makefile
 	touch -c ${LUADIR}/src/*.h
 	$(MAKE) -C ${LUADIR}
@@ -278,9 +289,9 @@ ${CRYPTODIR}/src/lcrypto.o: ${CRYPTODIR}/Makefile
 	${CC} ${CPPFLAGS} -c -o ${CRYPTODIR}/src/lcrypto.o -I${CRYPTODIR}/src/ \
 		 -I${LUADIR}/src/ ${CRYPTODIR}/src/lcrypto.c
 
-${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o
+${BUILDDIR}/luvit: ${BUILDDIR}/libluvit.a ${BUILDDIR}/luvit_main.o ${CRYPTODIR}/src/lcrypto.o ${LUVDIR}/luv.a
 	$(CC) ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} -o ${BUILDDIR}/luvit ${BUILDDIR}/luvit_main.o ${BUILDDIR}/libluvit.a \
-		${CRYPTODIR}/src/lcrypto.o ${LIBS}
+		${CRYPTODIR}/src/lcrypto.o ${LUVDIR}/luv.a ${LIBS}
 
 clean:
 	${MAKE} -C ${LUADIR} clean

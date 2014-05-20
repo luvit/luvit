@@ -33,3 +33,6 @@
 [submodule "deps/cares"]
 	path = deps/cares
 	url = https://github.com/piscisaureus/cares
+[submodule "deps/luv"]
+	path = deps/luv
+	url = https://github.com/creationix/luv.git
