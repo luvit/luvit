@@ -19,6 +19,16 @@ limitations under the License.
 require("helper")
 
 --
+-- test listenerCount
+--
+assert(2 == require('core').Emitter:new()
+  :on("foo", function(a) end)
+  :on("foo", function(a,b) end)
+  :on("bar", function(a,b) end)
+  :listenerCount("foo"))
+assert(0 == require('core').Emitter:new():listenerCount("non-exist"))
+
+--
 -- chaining works
 --
 require('core').Emitter:new()
