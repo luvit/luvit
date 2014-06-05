@@ -141,6 +141,16 @@ Also it can easily be sub-classed.
     local Custom = Emitter:extend()
     local c = Custom:new()
     c:on('bar', onBar)
+
+Unlike EventEmitter in node.js, Emitter class doesn't auto binds `self`
+reference. This means, if a callback handler is expecting a `self` reference,
+utils.bind() should be used, and the callback handler should have a `self` at
+the beginning its parameter list.
+
+    function some_func(self, a, b, c)
+    end
+    emitter:on('end', utils.bind(some_func, emitter))
+    emitter:emit('end', 'a', 'b', 'c')
 ]]
 local Emitter = Object:extend()
 core.Emitter = Emitter
