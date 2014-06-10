@@ -81,6 +81,7 @@
        'lib/luvit/mime.lua',
        'lib/luvit/module.lua',
        'lib/luvit/net.lua',
+       'lib/luvit/path_base.lua',
        'lib/luvit/path.lua',
        'lib/luvit/querystring.lua',
        'lib/luvit/repl.lua',
