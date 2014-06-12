@@ -39,6 +39,8 @@ local function partialRealpath(filepath)
   return path.normalize(filepath)
 end
 
+package.loading = {}
+
 local function myloadfile(filepath)
   if not fs.existsSync(filepath) then return end
 
@@ -57,16 +59,38 @@ local function myloadfile(filepath)
   assert(fn, err)
   local dirname = path.dirname(filepath)
   local realRequire = require
-  setfenv(fn, setmetatable({
-    __filename = filepath,
-    __dirname = dirname,
-    require = function (filepath)
-      return realRequire(filepath, dirname)
-    end,
-  }, global_meta))
-  local module = fn()
+  local exports = {}
+  exports.__filename = filepath
+  exports.__dirname = dirname
+  exports.exports = package.loading[filepath] or {}
+  exports.require = function(filepath)
+    local function exists(fn)
+      if pcall(function () fs.statSync(fn) end) then
+        return fn
+      end
+    end
+
+    local stem = path.normalize(path.join(dirname, filepath))
+    local realName = exists(stem) or exists(stem .. '.lua') or exists(stem .. '.luvit') or exists(stem .. 'init.lua') or exists(stem .. 'init.luvit')
+
+    if not realName then
+      return realRequire(filepath)
+    end
+
+    if package.loading[realName] then
+      return package.loading[realName]
+    end
+
+    local m = realRequire(filepath, dirname) or package.loading[realName]
+    package.loading[realName] = nil
+    return m
+  end
+  local fn = setfenv(fn, setmetatable(exports, global_meta))
+  package.loading[filepath] = exports.exports
+  local module = fn() or package.loading[filepath]
   package.loaded[filepath] = module
-  return function() return module end
+  package.loading[filepath] = nil
+  return function() return package.loaded[filepath] end
 end
 module.myloadfile = myloadfile
 
