@@ -31,7 +31,10 @@ local gotParseError = false
 
 local server = net.createServer(function(client)
   client:write('test')
-  client:destroy()
+
+  client:on("end", function()
+    client:destroy()
+  end)
 end)
 
 server:listen(PORT, HOST, function()
