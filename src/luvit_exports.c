@@ -18,6 +18,7 @@ extern const char *luaJIT_BC_luvit[];
 extern const char *luaJIT_BC_mime[];
 extern const char *luaJIT_BC_module[];
 extern const char *luaJIT_BC_net[];
+extern const char *luaJIT_BC_path_base[];
 extern const char *luaJIT_BC_path[];
 extern const char *luaJIT_BC_querystring[];
 extern const char *luaJIT_BC_repl[];
@@ -51,6 +52,7 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const char *)luaJIT_BC_module +
     (size_t)(const char *)luaJIT_BC_net +
     (size_t)(const char *)luaJIT_BC_path +
+    (size_t)(const char *)luaJIT_BC_path_base +
     (size_t)(const char *)luaJIT_BC_querystring +
     (size_t)(const char *)luaJIT_BC_repl +
     (size_t)(const char *)luaJIT_BC_stack +
