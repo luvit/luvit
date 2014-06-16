@@ -19,6 +19,7 @@ limitations under the License.
 require("helper")
 
 local path = require('path')
+local path_base = require('path_base')
 local os = require('os')
 
 -- test `path.dirname`
@@ -33,25 +34,25 @@ else
 end
 
 -- Test out the OS path objects
-assert(path.posix:dirname('/usr/bin/vim') == '/usr/bin')
-assert(path.posix:dirname('/usr/bin/') == '/usr')
-assert(path.posix:dirname('/usr/bin') == '/usr')
-assert(path.nt:dirname('C:\\Users\\philips\\vim.exe') == 'C:\\Users\\philips')
-assert(path.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
-assert(path.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
+assert(path_base.posix:dirname('/usr/bin/vim') == '/usr/bin')
+assert(path_base.posix:dirname('/usr/bin/') == '/usr')
+assert(path_base.posix:dirname('/usr/bin') == '/usr')
+assert(path_base.nt:dirname('C:\\Users\\philips\\vim.exe') == 'C:\\Users\\philips')
+assert(path_base.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
+assert(path_base.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
 
-assert(path.posix:join('foo', '/bar') == "foo/bar")
-assert(path.posix:join('foo', 'bar') == "foo/bar")
-assert(path.posix:join('foo/', 'bar') == "foo/bar")
-assert(path.posix:join('foo/', '/bar') == "foo/bar")
-assert(path.posix:join('/foo', '/bar') == "/foo/bar")
-assert(path.posix:join('/foo', 'bar') == "/foo/bar")
-assert(path.posix:join('/foo/', 'bar') == "/foo/bar")
-assert(path.posix:join('/foo/', '/bar') == "/foo/bar")
-assert(path.posix:join('foo', '/bar/') == "foo/bar/")
-assert(path.posix:join('foo', 'bar/') == "foo/bar/")
-assert(path.posix:join('foo/', 'bar/') == "foo/bar/")
-assert(path.posix:join('foo/', '/bar/') == "foo/bar/")
+assert(path_base.posix:join('foo', '/bar') == "foo/bar")
+assert(path_base.posix:join('foo', 'bar') == "foo/bar")
+assert(path_base.posix:join('foo/', 'bar') == "foo/bar")
+assert(path_base.posix:join('foo/', '/bar') == "foo/bar")
+assert(path_base.posix:join('/foo', '/bar') == "/foo/bar")
+assert(path_base.posix:join('/foo', 'bar') == "/foo/bar")
+assert(path_base.posix:join('/foo/', 'bar') == "/foo/bar")
+assert(path_base.posix:join('/foo/', '/bar') == "/foo/bar")
+assert(path_base.posix:join('foo', '/bar/') == "foo/bar/")
+assert(path_base.posix:join('foo', 'bar/') == "foo/bar/")
+assert(path_base.posix:join('foo/', 'bar/') == "foo/bar/")
+assert(path_base.posix:join('foo/', '/bar/') == "foo/bar/")
 
 assert(path.basename('bar.lua') == 'bar.lua')
 assert(path.basename('bar.lua', '.lua') == 'bar')
@@ -60,10 +61,8 @@ assert(path.basename('.lua', 'lua') == '.')
 assert(path.basename('bar', '.lua') == 'bar')
 
 -- test path.basename os specifics
-if (os.type() ~= "win32") then
-  assert(path.basename('/foo/bar.lua') == 'bar.lua')
-  assert(path.basename('/foo/bar.lua', '.lua') == 'bar')
-else
-  assert(path.basename('c:\\foo\\bar.lua') == 'bar.lua')
-  assert(path.basename('c:\\foo\\bar.lua', '.lua') == 'bar')
-end
+assert(path_base.posix:basename('/foo/bar.lua') == 'bar.lua')
+assert(path_base.posix:basename('/foo/bar.lua', '.lua') == 'bar')
+assert(path_base.nt:basename('c:\\foo\\bar.lua') == 'bar.lua')
+assert(path_base.nt:basename('c:\\foo\\bar.lua', '.lua') == 'bar')
+
