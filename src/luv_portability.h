@@ -23,7 +23,7 @@
 #define getpid _getpid
 #endif
 
-#if defined(__OpenBSD__) || defined(__MINGW32__) || defined(_MSC_VER)
+#if defined(__MINGW32__) || defined(_MSC_VER)
 # include <nameser.h>
 #else
 # include <arpa/nameser.h>
