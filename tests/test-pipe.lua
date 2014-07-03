@@ -23,8 +23,18 @@ local fs = require('fs')
 local tmp_file = path.join(__dirname, 'tmp', 'test_pipe')
 fs.writeFileSync(tmp_file, "")
 
+local streamEventClosed = false
+
 local file_path = path.join(__dirname, 'test-pipe.lua')
 local fp = fs.createReadStream(file_path)
 local null = fs.createWriteStream(tmp_file)
+null:on('closed', function()
+  streamEventClosed = true
+end)
 fp:pipe(null)
+
+process:on('exit', function()
+  assert(streamEventClosed == true)
+end)
+
 assert(true)
