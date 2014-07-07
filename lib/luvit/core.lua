@@ -308,6 +308,10 @@ function iStream:pipe(target)
 
     didOnEnd = true
 
+    if target._closeStream then
+      target:_closeStream()
+    end
+
     if target.done then
       target:done()
     end

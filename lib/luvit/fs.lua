@@ -16,6 +16,7 @@ limitations under the License.
 
 --]]
 
+local Error = require('core').Error
 local native = require('uv_native')
 local table = require('table')
 local pathlib = require('path')
@@ -370,24 +371,34 @@ fs.SyncWriteStream = SyncWriteStream
 function SyncWriteStream:initialize(fd)
   self.fd = fd
   self.offset = 0
+  self.closed = false
 end
 
-function SyncWriteStream:write(chunk, callback)
+function SyncWriteStream:write(chunk)
+  if self.closed then
+    self:emit('error', Error:new('write after end'))
+    return
+  end
   local len = fs.writeSync(self.fd, self.offset, chunk)
   self.offset = self.offset + len
   return len
 end
 
-function SyncWriteStream:finish(chunk, callback)
-  if (chunk ~= nil) then
+function SyncWriteStream:finish(chunk)
+  if chunk then
     self:write(chunk)
   end
   self:emit("end")
-  self:close()
+  self:_closeStream()
 end
 
-function SyncWriteStream:close(chunk, callback)
+function SyncWriteStream:_closeStream()
+  if self.closed then
+    return
+  end
   fs.closeSync(self.fd)
+  self.closed = true
+  self:emit("closed")
 end
 
 -- TODO: Create non-sync writestream
