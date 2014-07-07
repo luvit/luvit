@@ -31,8 +31,8 @@ local fp = fs.createReadStream(file_path)
 local null = fs.createWriteStream(tmp_file)
 null:on('error', function(err)
   if err.message:find('write after end') then
-  streamEventAlreadyClosed = true
-end
+    streamEventAlreadyClosed = true
+  end
 end)
 null:on('closed', function()
   streamEventClosed = true
