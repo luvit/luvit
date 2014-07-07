@@ -16,6 +16,7 @@ limitations under the License.
 
 --]]
 
+local Error = require('core').Error
 local native = require('uv_native')
 local table = require('table')
 local pathlib = require('path')
@@ -375,6 +376,7 @@ end
 
 function SyncWriteStream:write(chunk)
   if self.closed then
+    self:emit('error', Error:new('write after end'))
     return
   end
   local len = fs.writeSync(self.fd, self.offset, chunk)
