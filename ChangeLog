@@ -1,3 +1,44 @@
+* Changes between 0.8.0 to 0.8.1
+
+  Bugfixes
+
+    * File descriptor leak on SyncWriteStream (Ryan Phillips)
+      * Emit error on double write
+    * Improve loading of Root CA Certs (Ryan Phillips)
+    * Pathing fixes for windows (Rob Emanuele)
+
+* Changes between 0.7.0 to 0.8.0
+
+  Api Changes
+
+    * ListenerCount on EventEmitter (Song Gao)
+
+  New features
+
+    * libuv poll binding (Ryan Phillips)
+
+  Bugfixes
+
+    * errors table misplaced (gsick)
+    * Freebsd Tweaks (Ryan Phillips)
+    * Whitespace cleanup (Tim Caswell)
+    * NPM Support (Wouter Scherphof)
+    * Documentation tweak for core module (Rafis Ganeyev)
+    * Global leaks + DNS Callback (Ryan Phillips)
+    * MSVC Linker tweak to not strip LuaJIT symbols (Andread Lange)
+    * poor use of path join in the zlib test (Rob Emanuele)
+    * uv_print_*_handles (Andread Lange)
+    * Absolute Paths (Tomaz Muraus)
+    * Response Object Error Propagation (Tomaz Muraus)
+    * Posix Signal Handling (Ryan Phillips)
+    * Build fixes for ARM (Tomaz Muraus)
+
+    Updates
+
+    * LuaJIT bump to 2.0.3
+    * LibUV bump to 0.10.27
+    * OpenSSL Bump to 1.0.1h
+
 * Changes between 0.6.0 to 0.7.0
 
   API Changes
