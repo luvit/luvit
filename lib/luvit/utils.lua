@@ -133,7 +133,7 @@ function utils.dump(o, depth, no_colorize)
 
     -- Check to see if this is an array
     local is_array = true
-    local i = 1
+    local i = 1, k, v
     for k,v in pairs(o) do
       if not (k == i) then
         is_array = false
@@ -162,7 +162,12 @@ function utils.dump(o, depth, no_colorize)
       i = i + 1
     end
     if estimated > 200 then
-      return "{\n  " .. indent .. table.concat(lines, ",\n  " .. indent) .. "\n" .. indent .. "}"
+      local s = "{\n  " .. indent
+      for k, v in pairs(lines) do
+        s = s .. v .. ",\n  " .. indent
+      end
+      s = s .. "\n" .. indent .. "}"
+      return s
     else
       return "{ " .. table.concat(lines, ", ") .. " }"
     end
