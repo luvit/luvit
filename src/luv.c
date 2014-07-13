@@ -98,6 +98,7 @@ static const luaL_reg luv_f[] = {
   {"newTcp", luv_new_tcp},
   {"tcpBind", luv_tcp_bind},
   {"tcpBind6", luv_tcp_bind6},
+  {"tcpKeepalive", luv_tcp_keepalive},
   {"tcpNodelay", luv_tcp_nodelay},
   {"tcpGetsockname", luv_tcp_getsockname},
   {"tcpGetpeername", luv_tcp_getpeername},

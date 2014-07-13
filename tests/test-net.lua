@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2012 The Luvit Authors. All Rights Reserved.
+Copyright 2014 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,6 +36,42 @@ local server = net.createServer(function(client)
 end)
 
 server:listen(PORT, HOST, function(err)
+  local function test_keepalive(on_done)    -- test :keepalive(enable, delay)
+    local client
+    client = net.createConnection(PORT, HOST, function(err)
+      client:keepalive(true, 10)
+      if err then
+        assert(err)
+      end
+      client:on('data', function(data)
+        assert(#data == 5)
+        assert(data == 'hello')
+        client:destroy()
+        if on_done then on_done() end
+      end)
+
+      client:write('hello')
+    end)
+  end
+
+  local function test_nodelay(on_done)    -- test :nodelay(enable) function
+    local client
+    client = net.createConnection(PORT, HOST, function(err)
+      client:nodelay(true)
+      if err then
+        assert(err)
+      end
+      client:on('data', function(data)
+        assert(#data == 5)
+        assert(data == 'hello')
+        client:destroy()
+        if on_done then on_done() end
+      end)
+
+      client:write('hello')
+    end)
+  end
+
   local client
   client = net.createConnection(PORT, HOST, function(err)
     if err then
@@ -44,16 +80,12 @@ server:listen(PORT, HOST, function(err)
     client:on('data', function(data)
       assert(#data == 5)
       assert(data == 'hello')
-
       client:destroy()
-      -- Ensure double destroy doesn't return an error
-      client:destroy()
-
-      server:close()
-      -- Ensure double close returns an error
-      local success, err = pcall(server.close, server)
-      assert(success == false)
-      assert(err)
+      test_nodelay(function()
+        test_keepalive(function()
+          server:close()
+        end)
+      end)
     end)
 
     client:write('hello')
