@@ -13,18 +13,31 @@
         'defines': [ 'DEBUG', '_DEBUG' ],
         'cflags': [ '-g', '-O0' ],
         'conditions': [
-          ['target_arch=="x64"', {
-            'msvs_configuration_platform': 'x64',
-          }],
+          ['target_arch=="x64"',
+            {
+              'msvs_configuration_platform': 'x64',
+              'xcode_settings': { 'ARCHS': ['x86_64']
+              },
+            }
+          ],
+          ['target_arch=="ia32"',
+            {
+              'xcode_settings': { 'ARCHS': ['i386']
+              },
+            }
+          ],
         ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'target_conditions': [
-              ['library=="static_library"', {
-                'RuntimeLibrary': 1, # static debug
-              }, {
-                'RuntimeLibrary': 3, # DLL debug
-              }],
+              ['library=="static_library"',
+                {
+                  'RuntimeLibrary': 1, # static debug
+                },
+                {
+                  'RuntimeLibrary': 3, # DLL debug
+                }
+              ],
             ],
             'Optimization': 0, # /Od, no optimization
             'MinimalRebuild': 'true',
@@ -40,18 +53,31 @@
       'Release': {
         'cflags': [ '-O3', '-fdata-sections', '-ffunction-sections' ],
         'conditions': [
-          ['target_arch=="x64"', {
-            'msvs_configuration_platform': 'x64',
-          }],
+          ['target_arch=="x64"',
+            {
+              'msvs_configuration_platform': 'x64',
+              'xcode_settings': { 'ARCHS': ['x86_64']
+              },
+            }
+          ],
+          ['target_arch=="ia32"',
+            {
+              'xcode_settings': { 'ARCHS': ['i386']
+              },
+            }
+          ],
         ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'target_conditions': [
-              ['library=="static_library"', {
-                'RuntimeLibrary': 0, # static release
-              }, {
-                'RuntimeLibrary': 2, # debug release
-              }],
+              ['library=="static_library"',
+                {
+                  'RuntimeLibrary': 0, # static release
+                },
+                {
+                  'RuntimeLibrary': 2, # debug release
+                }
+              ],
             ],
             'Optimization': 3, # /Ox, full optimization
             'FavorSizeOrSpeed': 1, # /Ot, favour speed over size
@@ -95,92 +121,113 @@
         'AllowIsolation': 'true',
         'SuppressStartupBanner': 'true',
         'target_conditions': [
-          ['_type=="executable"', {
-            'SubSystem': 1, # console executable
-          }],
+          ['_type=="executable"',
+            {
+              'SubSystem': 1, # console executable
+            }
+          ],
         ],
       },
     },
     'conditions': [
-      ['OS == "win"', {
-        'msvs_cygwin_shell': 0, # prevent actions from trying to use cygwin
-        'defines': [
-          'WIN32',
+      ['OS == "win"',
+        {
+          'msvs_cygwin_shell': 0, # prevent actions from trying to use cygwin
+          'defines': [
+            'WIN32',
           # we don't really want VC++ warning us about
           # how dangerous C functions are...
-          '_CRT_SECURE_NO_DEPRECATE',
+            '_CRT_SECURE_NO_DEPRECATE',
           # ... or that C implementations shouldn't use
           # POSIX names
-          '_CRT_NONSTDC_NO_DEPRECATE',
-          'BUILDING_UV_SHARED=1',
-        ],
-      }],
-      [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
-        'cflags': [ '-Wall', '-pthread'],
-        'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
-        'ldflags': [ '-pthread', '-Wl,-E' ],
-        'defines': [ '_LARGEFILE_SOURCE', '_FILE_OFFSET_BITS=64' ],
-        'conditions': [
-          [ 'target_arch=="x64"', {
-            'cflags': [ '-fPIC' ],
-            'ldflags': [ '-fPIC' ],
-          }],
-          [ 'target_arch=="ia32"', {
-            'cflags': [ '-m32' ],
-            'ldflags': [ '-m32' ],
-          }],
-          [ 'OS=="linux"', {
-            'libraries': [ '-lm', '-lrt' ],
-          }],
-          [ 'OS=="freebsd"', {
-            'ldflags': [ '-lm' ],
-          }],
-          [ 'OS=="solaris"', {
-            'defines': [ '__EXTENSIONS__' ],
-            'ldflags!': [ '-Wl,-E' ], # solaris ld doesn't have --export-dynamic
-            'libraries': [ '-lm' ],
-          }],
-        ],
-      }],
-      ['OS=="mac"', {
-        'ldflags': [ '-pthread', '-Wl,-E' ],
-        'defines': [
-          'DARWIN',
-          'DARWIN_10',
-          '_REENTRANT',
-        ],
-        'xcode_settings': {
-          'ALWAYS_SEARCH_USER_PATHS': 'NO',
-          'GCC_CW_ASM_SYNTAX': 'NO',                # No -fasm-blocks
-          'GCC_DYNAMIC_NO_PIC': 'NO',               # No -mdynamic-no-pic
+            '_CRT_NONSTDC_NO_DEPRECATE',
+            'BUILDING_UV_SHARED=1',
+          ],
+        }
+      ],
+      [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"',
+        {
+          'cflags': [ '-Wall', '-pthread'],
+          'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
+          'ldflags': [ '-pthread', '-Wl,-E' ],
+          'defines': [ '_LARGEFILE_SOURCE', '_FILE_OFFSET_BITS=64' ],
+          'conditions': [
+            [ 'target_arch=="x64"',
+              {
+                'cflags': [ '-fPIC' ],
+                'ldflags': [ '-fPIC' ],
+              }
+            ],
+            [ 'target_arch=="ia32"',
+              {
+                'cflags': [ '-m32' ],
+                'ldflags': [ '-m32' ],
+              }
+            ],
+            [ 'OS=="linux"',
+              {
+                'libraries': [ '-lm', '-lrt' ],
+              }
+            ],
+            [ 'OS=="freebsd"',
+              {
+                'ldflags': [ '-lm' ],
+              }
+            ],
+            [ 'OS=="solaris"',
+              {
+                'defines': [ '__EXTENSIONS__' ],
+                'ldflags!': [ '-Wl,-E' ], # solaris ld doesn't have --export-dynamic
+                'libraries': [ '-lm' ],
+              }
+            ],
+          ],
+        }
+      ],
+      ['OS=="mac"',
+        {
+          'ldflags': [ '-pthread', '-Wl,-E' ],
+          'defines': [
+            'DARWIN',
+            'DARWIN_10',
+            '_REENTRANT',
+          ],
+          'xcode_settings': {
+            'ALWAYS_SEARCH_USER_PATHS': 'NO',
+            'GCC_CW_ASM_SYNTAX': 'NO',                # No -fasm-blocks
+            'GCC_DYNAMIC_NO_PIC': 'NO',               # No -mdynamic-no-pic
                                                     # (Equivalent to -fPIC)
-          'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',        # -fno-exceptions
-          'GCC_ENABLE_CPP_RTTI': 'NO',              # -fno-rtti
-          'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
+            'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',        # -fno-exceptions
+            'GCC_ENABLE_CPP_RTTI': 'NO',              # -fno-rtti
+            'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
           # GCC_INLINES_ARE_PRIVATE_EXTERN maps to -fvisibility-inlines-hidden
-          'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
-          'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
-          'GCC_THREADSAFE_STATICS': 'NO',           # -fno-threadsafe-statics
-          'GCC_WARN_ABOUT_MISSING_NEWLINE': 'YES',  # -Wnewline-eof
-          'MACOSX_DEPLOYMENT_TARGET': '10.6',       # -mmacosx-version-min=10.6
-          'PREBINDING': 'NO',                       # No -Wl,-prebind
-          'USE_HEADERMAP': 'NO',
-          'OTHER_CFLAGS': [
-            '-fno-strict-aliasing',
+            'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
+            'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
+            'GCC_THREADSAFE_STATICS': 'NO',           # -fno-threadsafe-statics
+            'GCC_WARN_ABOUT_MISSING_NEWLINE': 'YES',  # -Wnewline-eof
+            'MACOSX_DEPLOYMENT_TARGET': '10.6',       # -mmacosx-version-min=10.6
+            'PREBINDING': 'NO',                       # No -Wl,-prebind
+            'USE_HEADERMAP': 'NO',
+            'OTHER_CFLAGS': [
+              '-fno-strict-aliasing',
+            ],
+            'WARNING_CFLAGS': [
+              '-Wall',
+              '-Wendif-labels',
+              '-W',
+              '-Wno-unused-parameter',
+            ],
+          },
+          'target_conditions': [
+            ['_type!="static_library"',
+              {
+                'xcode_settings': {'OTHER_LDFLAGS': ['-Wl,-search_paths_first']
+                },
+              }
+            ],
           ],
-          'WARNING_CFLAGS': [
-            '-Wall',
-            '-Wendif-labels',
-            '-W',
-            '-Wno-unused-parameter',
-          ],
-        },
-        'target_conditions': [
-          ['_type!="static_library"', {
-            'xcode_settings': {'OTHER_LDFLAGS': ['-Wl,-search_paths_first']},
-          }],
-        ],
-      }],
+        }
+      ],
     ],
   }
 }
