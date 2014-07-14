@@ -98,6 +98,9 @@ function utils.dump(o, depth, no_colorize, seen_tables)
   end
 
   local function addTable(tbl)
+    if tostring(tbl) == nil then
+      return
+    end
     seen_tables[tostring(tbl)] = true
   end
 

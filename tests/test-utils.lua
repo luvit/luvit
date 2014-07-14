@@ -92,6 +92,11 @@ bound('!', function(arg1, arg2, arg3)
   assert(arg3 == '!')
 end)
 
+local tblA = { 1, 2, 3 }
+local tblB = { tblA, 'test1', 'test2', { tblA } }
+local s = utils.dump(tblB, 0, true)
+assert(s == '{ { 1, 2, 3 }, "test1", "test2", {  } }')
+
 local Error = require('core').Error
 local MyError = Error:extend()
 assert(pcall(utils.dump, MyError))
