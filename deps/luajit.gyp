@@ -23,6 +23,7 @@
   },
   'target_defaults': {
     'defines': [
+      'LUAJIT_ENABLE_LUA52COMPAT'
     ],
     'conditions': [
       ['target_arch=="x64"',
