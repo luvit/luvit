@@ -85,9 +85,24 @@ local function colorize_nop(color, obj)
   return obj
 end
 
-function utils.dump(o, depth, no_colorize)
+function utils.dump(o, depth, no_colorize, seen_tables)
   local colorize_func
   local _escapes
+
+  if not seen_tables then
+    seen_tables = {}
+  end
+
+  local function seenTable(tbl)
+    return seen_tables[tostring(tbl)]
+  end
+
+  local function addTable(tbl)
+    if tostring(tbl) == nil then
+      return
+    end
+    seen_tables[tostring(tbl)] = true
+  end
 
   if no_colorize then
     _escapes = escapes
@@ -123,6 +138,12 @@ function utils.dump(o, depth, no_colorize)
     return colorize_func("Bmagenta", tostring(o))
   end
   if t == 'table' then
+    if seenTable(o) then
+      return ''
+    end
+
+    addTable(o)
+
     if type(depth) == 'nil' then
       depth = 0
     end
@@ -153,10 +174,10 @@ function utils.dump(o, depth, no_colorize)
         if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
           s = k .. ' = '
         else
-          s = '[' .. utils.dump(k, 100, no_colorize) .. '] = '
+          s = '[' .. utils.dump(k, 100, no_colorize, seen_tables) .. '] = '
         end
       end
-      s = s .. utils.dump(v, depth + 1, no_colorize)
+      s = s .. utils.dump(v, depth + 1, no_colorize, seen_tables)
       lines[i] = s
       estimated = estimated + #s
       i = i + 1
