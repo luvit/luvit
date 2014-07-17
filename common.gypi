@@ -150,7 +150,7 @@
           'cflags': [ '-Wall', '-pthread'],
           'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
           'ldflags': [ '-pthread', '-Wl,-E' ],
-          'defines': [ '_LARGEFILE_SOURCE', '_FILE_OFFSET_BITS=64' ],
+          'defines': [ '_LARGEFILE_SOURCE', '_FILE_OFFSET_BITS=64', '_GNU_SOURCE' ],
           'conditions': [
             [ 'target_arch=="x64"',
               {
