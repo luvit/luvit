@@ -362,7 +362,7 @@ assert(xpcall(function ()
           -- TODO: "-L" .. lib_dir,
           "-lm"
         }
-        if require('os').type() == "Darwin" then
+        if require('os').type() == "darwin" then
           if false then -- TODO: check if 64 bit
             Table.insert(libs, "-pagezero_size 10000")
             Table.insert(libs, "-image_base 100000000")

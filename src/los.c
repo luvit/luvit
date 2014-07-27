@@ -16,6 +16,7 @@
  */
 
 #ifndef WIN32
+#include <ctype.h>
 #include <unistd.h>
 #include <sys/utsname.h>
 #endif
@@ -31,12 +32,19 @@ static int los_hostname(lua_State* L) {
   return 1;
 }
 
+static void tolower_str_in_place(char* str) {
+  for (; *str; str++) {
+    *str = (char)tolower((unsigned char)*str);
+  }
+}
+
 static int los_type(lua_State* L) {
 #ifdef WIN32
   lua_pushstring(L, "win32");
 #else
   struct utsname info;
   uname(&info);
+  tolower_str_in_place(info.sysname);
   lua_pushstring(L, info.sysname);
 #endif
   return 1;
