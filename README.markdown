@@ -116,3 +116,65 @@ Supports the following commands:
 * bt
 
 The debugger will execute any arbitrary Lua statement by default.
+
+## Embedding
+
+A static library is generated when compiling Luvit. This allows for easy
+embedding into other projects. LuaJIT, libuv, and all other dependencies are
+included.
+
+```c
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h> /* PATH_MAX */
+
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+
+#ifndef WIN32
+#include <pthread.h>
+#endif
+#include "uv.h"
+
+#include "luvit.h"
+#include "luvit_init.h"
+#include "luv.h"
+
+int main(int argc, char *argv[])
+{
+  lua_State *L;
+  uv_loop_t *loop;
+
+  argv = uv_setup_args(argc, argv);
+
+  L = luaL_newstate();
+  if (L == NULL) {
+    fprintf(stderr, "luaL_newstate has failed\n");
+    return 1;
+  }
+
+  luaL_openlibs(L);
+
+  loop = uv_default_loop();
+
+#ifdef LUV_EXPORTS
+  luvit__suck_in_symbols();
+#endif
+
+#ifdef USE_OPENSSL
+  luvit_init_ssl();
+#endif
+
+  if (luvit_init(L, loop, argc, argv)) {
+    fprintf(stderr, "luvit_init has failed\n");
+    return 1;
+  }
+
+  ... Run a luvit file from memory or disk ...
+  ...    or call uv_run ...
+
+  lua_close(L);
+  return 0;
+}
+```
