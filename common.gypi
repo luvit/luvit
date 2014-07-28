@@ -186,12 +186,6 @@
       ],
       ['OS=="mac"',
         {
-          'ldflags': [ '-pthread', '-Wl,-E' ],
-          'defines': [
-            'DARWIN',
-            'DARWIN_10',
-            '_REENTRANT',
-          ],
           'xcode_settings': {
             'ALWAYS_SEARCH_USER_PATHS': 'NO',
             'GCC_CW_ASM_SYNTAX': 'NO',                # No -fasm-blocks
@@ -200,7 +194,6 @@
             'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',        # -fno-exceptions
             'GCC_ENABLE_CPP_RTTI': 'NO',              # -fno-rtti
             'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
-          # GCC_INLINES_ARE_PRIVATE_EXTERN maps to -fvisibility-inlines-hidden
             'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
             'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
             'GCC_THREADSAFE_STATICS': 'NO',           # -fno-threadsafe-statics
