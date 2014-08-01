@@ -187,7 +187,9 @@ function utils.dump(o, depth, no_colorize, seen_tables)
     if estimated > 200 then
       local s = "{\n  " .. indent
       for k = 1, i do
-        s = s .. lines[k] .. ",\n  " .. indent
+        if lines[k] then
+          s = s .. lines[k] .. ",\n  " .. indent
+        end
       end
       s = s .. "\n" .. indent .. "}"
       return s
