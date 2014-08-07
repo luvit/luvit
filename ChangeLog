@@ -1,5 +1,11 @@
 * Changes between 0.8.1 to 0.8.2
 
+	Updates
+
+    * Upgrade OpenSSL to 1.0.1i
+
+* Changes between 0.8.1 to 0.8.2
+
   Bugfixes
 
     * Fix an issue with an infinite loop in utils.dump (Ryan Phillips)
