@@ -31,11 +31,31 @@ assert(0 == require('core').Emitter:new():listenerCount("non-exist"))
 --
 -- chaining works
 --
+local bCallback = false
 require('core').Emitter:new()
   :on("foo", function (x)
+    bCallback = true
     assert(deep_equal(x, { a = "b" }))
-    process.exit(0)
   end)
   :emit("foo", { a = "b" })
 
-assert(false)
+--
+-- remove all listeners
+--
+local dataCallback1 = false
+local dataCallback2 = false
+local em = require('core').Emitter:new()
+em:on('data', function(data)
+  dataCallback1 = true
+end)
+em:removeAllListeners()
+em:on('data', function(data)
+  dataCallback2 = true
+end)
+em:emit('data', 'Go Fish')
+
+process:on('exit', function()
+  assert(bCallback == true)
+  assert(dataCallback1 == false)
+  assert(dataCallback2 == true)
+end)
