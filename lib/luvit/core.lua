@@ -256,6 +256,36 @@ function Emitter:removeListener(name, callback)
   end
 end
 
+-- Remove all listeners
+--  @param {String?} name optional event name
+function Emitter:removeAllListeners(name)
+  local handlers = rawget(self, "handlers")
+  if not handlers then return end
+  local handlers_for_type = rawget(handlers, name)
+  if handlers_for_type then
+    for i = #handlers_for_type, 1, -1 do
+        handlers_for_type[i] = nil
+    end
+  else
+    rawset(self, "handlers", {})
+  end
+end
+
+-- Get listeners
+--  @param {String} name event name
+function Emitter:listeners(name)
+  local handlers = rawget(self, "handlers")
+  if not handlers then
+    return 0
+  end
+  local handlers_for_type = rawget(handlers, name)
+  if not handlers_for_type then
+    return {}
+  else
+    return handlers_for_type
+  end
+end
+
 --[[
 Utility that binds the named method `self[name]` for use as a callback.  The
 first argument (`err`) is re-routed to the "error" event instead.
