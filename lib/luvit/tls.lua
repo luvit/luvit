@@ -862,7 +862,9 @@ local function connect(...)
     sslcontext = createCredentials(options)
   end
 
-  socket:connect(options.port, options.host)
+  if not socket:isConnected() then
+    socket:connect(options.port, options.host)
+  end
 
   local servername = options.servername or options.host
   if not servername then

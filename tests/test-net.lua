@@ -43,6 +43,7 @@ server:listen(PORT, HOST, function(err)
       if err then
         assert(err)
       end
+      assert(client:isConnected() == true)
       client:on('data', function(data)
         assert(#data == 5)
         assert(data == 'hello')
@@ -52,6 +53,7 @@ server:listen(PORT, HOST, function(err)
 
       client:write('hello')
     end)
+    assert(client:isConnected() == false)
   end
 
   local function test_nodelay(on_done)    -- test :nodelay(enable) function

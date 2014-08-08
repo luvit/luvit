@@ -140,6 +140,10 @@ function Socket:resume()
   self._handle:readStart()
 end
 
+function Socket:isConnected()
+  return self._connected
+end
+
 function Socket:_initEmitters()
   self._handle:once('close', function()
     self:destroy()
@@ -150,6 +154,7 @@ function Socket:_initEmitters()
   end)
 
   self._handle:on('connect', function()
+    self._connected = true
     self:emit('connect')
   end)
 
@@ -271,6 +276,7 @@ function Socket:initialize(handle)
   self._onTimeout = utils.bind(Socket._onTimeoutReal, self)
   self._handle = handle or Tcp:new()
   self._pendingWriteRequests = 0
+  self._connected = false
   self._connecting = false
   self._connectQueueSize = 0
   self.bytesWritten = 0
