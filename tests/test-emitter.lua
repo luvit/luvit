@@ -53,6 +53,9 @@ em:on('data', function(data)
   dataCallback2 = true
 end)
 em:emit('data', 'Go Fish')
+assert(#em:listeners('data') == 1)
+em:removeAllListeners()
+assert(#em:listeners('data') == 0)
 
 process:on('exit', function()
   assert(bCallback == true)
