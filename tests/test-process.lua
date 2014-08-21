@@ -12,7 +12,7 @@ function test()
   if os.type() == 'win32' then
     child = spawn('cmd.exe', {'/C', 'set'}, options)
   else
-    child = spawn('bash', {'-c', 'set'}, options)
+    child = spawn('env', {}, options)
   end
   child.stdout:on('data', function(chunk)
     print(chunk)
