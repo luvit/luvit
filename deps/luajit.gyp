@@ -19,7 +19,73 @@
           'lj_vm': '<(INTERMEDIATE_DIR)/luajit/src/lj_vm.s',
         }
       ]
-    ]
+    ],
+    'lj_all_lib': [
+      'luajit/src/lib_base.c',
+      'luajit/src/lib_bit.c',
+      'luajit/src/lib_debug.c',
+      'luajit/src/lib_ffi.c',
+      'luajit/src/lib_math.c',
+      'luajit/src/lib_init.c',
+      'luajit/src/lib_io.c',
+      'luajit/src/lib_jit.c',
+      'luajit/src/lib_os.c',
+      'luajit/src/lib_package.c',
+      'luajit/src/lib_string.c',
+      'luajit/src/lib_table.c',
+    ],
+    'lj_sources': [
+      '<@(lj_all_lib)',
+      'luajit/src/lib_aux.c',
+      'luajit/src/lj_gc.c',
+      'luajit/src/lj_err.c',
+      'luajit/src/lj_char.c',
+      'luajit/src/lj_bc.c',
+      'luajit/src/lj_obj.c',
+      'luajit/src/lj_str.c',
+      'luajit/src/lj_tab.c',
+      'luajit/src/lj_func.c',
+      'luajit/src/lj_udata.c',
+      'luajit/src/lj_meta.c',
+      'luajit/src/lj_debug.c',
+      'luajit/src/lj_state.c',
+      'luajit/src/lj_dispatch.c',
+      'luajit/src/lj_vmevent.c',
+      'luajit/src/lj_vmmath.c',
+      'luajit/src/lj_strscan.c',
+      'luajit/src/lj_api.c',
+      'luajit/src/lj_lex.c',
+      'luajit/src/lj_parse.c',
+      'luajit/src/lj_bcread.c',
+      'luajit/src/lj_bcwrite.c',
+      'luajit/src/lj_load.c',
+      'luajit/src/lj_ctype.c',
+      'luajit/src/lj_cdata.c',
+      'luajit/src/lj_cconv.c',
+      'luajit/src/lj_ccall.c',
+      'luajit/src/lj_ccallback.c',
+      'luajit/src/lj_carith.c',
+      'luajit/src/lj_clib.c',
+      'luajit/src/lj_cparse.c',
+      'luajit/src/lj_lib.c',
+      'luajit/src/lj_ir.c',
+      'luajit/src/lj_opt_mem.c',
+      'luajit/src/lj_opt_fold.c',
+      'luajit/src/lj_opt_narrow.c',
+      'luajit/src/lj_opt_dce.c',
+      'luajit/src/lj_opt_loop.c',
+      'luajit/src/lj_opt_split.c',
+      'luajit/src/lj_opt_sink.c',
+      'luajit/src/lj_mcode.c',
+      'luajit/src/lj_snap.c',
+      'luajit/src/lj_record.c',
+      'luajit/src/lj_crecord.c',
+      'luajit/src/lj_ffrecord.c',
+      'luajit/src/lj_asm.c',
+      'luajit/src/lj_trace.c',
+      'luajit/src/lj_gdbjit.c',
+      'luajit/src/lj_alloc.c'
+    ] 
   },
   'target_defaults': {
     'defines': [
@@ -37,6 +103,13 @@
         {
           'defines': [
             'LUAJIT_TARGET=LUAJIT_ARCH_x86',
+          ],
+        }
+      ],
+      ['OS == "win"',
+        {
+          'defines': [
+            '_CRT_SECURE_NO_DEPRECATE',
           ],
         }
       ],
@@ -117,28 +190,11 @@
       ],
     },
     {
-      'target_name': 'libluajit',
-      'type': 'static_library',
+      'target_name': 'libluajit_prereqs',
+      'type': 'none',
       'dependencies': [
         'buildvm',
       ],
-      'variables': {
-        'lj_sources': [
-          'luajit/src/lib_aux.c',
-          'luajit/src/lib_base.c',
-          'luajit/src/lib_bit.c',
-          'luajit/src/lib_debug.c',
-          'luajit/src/lib_ffi.c',
-          'luajit/src/lib_math.c',
-          'luajit/src/lib_init.c',
-          'luajit/src/lib_io.c',
-          'luajit/src/lib_jit.c',
-          'luajit/src/lib_os.c',
-          'luajit/src/lib_package.c',
-          'luajit/src/lib_string.c',
-          'luajit/src/lib_table.c',
-        ]
-      },
       'include_dirs': [
         '<(INTERMEDIATE_DIR)',
         'luajit/src',
@@ -150,14 +206,7 @@
         ]
       },
       'sources': [
-        '<(lj_vm)',
-        'luajit/src/ljamalg.c',
-        '<(INTERMEDIATE_DIR)/lj_libdef.h',
-        '<(INTERMEDIATE_DIR)/lj_recdef.h',
-        '<(INTERMEDIATE_DIR)/lj_folddef.h',
-        '<(INTERMEDIATE_DIR)/lj_vmdef.h',
-        '<(INTERMEDIATE_DIR)/lj_ffdef.h',
-        '<(INTERMEDIATE_DIR)/lj_bcdef.h',
+        '<@(lj_all_lib)'
       ],
       'actions': [
         {
@@ -165,7 +214,7 @@
           'outputs': ['<(INTERMEDIATE_DIR)/lj_libdef.h'],
           'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
           'action': [
-            '<(PRODUCT_DIR)/buildvm', '-m', 'libdef', '-o', '<(INTERMEDIATE_DIR)/lj_libdef.h', '<@(lj_sources)'
+            '<(PRODUCT_DIR)/buildvm', '-m', 'libdef', '-o', '<(INTERMEDIATE_DIR)/lj_libdef.h', '<@(lj_all_lib)'
           ]
         },
         {
@@ -173,7 +222,7 @@
           'outputs': ['<(INTERMEDIATE_DIR)/lj_recdef.h'],
           'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
           'action': [
-            '<(PRODUCT_DIR)/buildvm', '-m', 'recdef', '-o', '<(INTERMEDIATE_DIR)/lj_recdef.h', '<@(lj_sources)'
+            '<(PRODUCT_DIR)/buildvm', '-m', 'recdef', '-o', '<(INTERMEDIATE_DIR)/lj_recdef.h', '<@(lj_all_lib)'
           ]
         },
         {
@@ -189,7 +238,7 @@
           'outputs': ['<(INTERMEDIATE_DIR)/vmdef.lua'],
           'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
           'action': [
-            '<(PRODUCT_DIR)/buildvm', '-m', 'vmdef', '-o', '<(INTERMEDIATE_DIR)/vmdef.lua', '<@(lj_sources)'
+            '<(PRODUCT_DIR)/buildvm', '-m', 'vmdef', '-o', '<(INTERMEDIATE_DIR)/vmdef.lua', '<@(lj_all_lib)'
           ]
         },
         {
@@ -197,7 +246,7 @@
           'outputs': ['<(INTERMEDIATE_DIR)/lj_ffdef.h'],
           'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
           'action': [
-            '<(PRODUCT_DIR)/buildvm', '-m', 'ffdef', '-o', '<(INTERMEDIATE_DIR)/lj_ffdef.h', '<@(lj_sources)'
+            '<(PRODUCT_DIR)/buildvm', '-m', 'ffdef', '-o', '<(INTERMEDIATE_DIR)/lj_ffdef.h', '<@(lj_all_lib)'
           ]
         },
         {
@@ -205,9 +254,31 @@
           'outputs': ['<(INTERMEDIATE_DIR)/lj_bcdef.h'],
           'inputs': [ '<(PRODUCT_DIR)/buildvm' ],
           'action': [
-            '<(PRODUCT_DIR)/buildvm', '-m', 'bcdef', '-o', '<(INTERMEDIATE_DIR)/lj_bcdef.h', '<@(lj_sources)'
+            '<(PRODUCT_DIR)/buildvm', '-m', 'bcdef', '-o', '<(INTERMEDIATE_DIR)/lj_bcdef.h', '<@(lj_all_lib)'
           ]
-        },
+        }
+      ],
+    },
+    {
+      'target_name': 'libluajit',
+      'type': 'static_library',
+      'dependencies': [
+        'libluajit_prereqs'
+      ],
+      'include_dirs': [
+        '<(INTERMEDIATE_DIR)',
+        'luajit/src',
+      ],
+      'direct_dependent_settings': {
+        'include_dirs': [
+          '<(INTERMEDIATE_DIR)',
+          'luajit/src',
+        ]
+      },
+      'sources': [
+        '<@(lj_sources)'
+      ],
+      'actions': [
         {
           'action_name': 'generate_lj_vm',
           'outputs': ['<(lj_vm)'],
@@ -216,7 +287,7 @@
             '<(PRODUCT_DIR)/buildvm', '-m', '<(asm_format)', '-o', '<(lj_vm)'
           ]
         }
-      ],
+      ]
     },
     {
       'target_name': 'minilua',
