@@ -854,8 +854,9 @@ local function connect(...)
   end
 
   local socket = options.socket or Socket:new()
-  local sslcontext
+  socket:once('error', callback)
 
+  local sslcontext
   if options.context then
     sslcontext = createCredentials(options, options.context)
   else
