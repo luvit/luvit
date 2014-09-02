@@ -854,7 +854,9 @@ local function connect(...)
   end
 
   local socket = options.socket or Socket:new()
-  socket:once('error', callback)
+  if callback then
+    socket:once('error', callback)
+  end
 
   local sslcontext
   if options.context then
