@@ -264,7 +264,8 @@
               {
                 'destination': '<(luvit_prefix)/include/luvit/uv',
                 'files': [
-                  'deps/uv/include/'
+                  'deps/uv/include/uv-private',
+                  'deps/uv/include/uv.h'
                 ]
               },
               {
