@@ -19,7 +19,16 @@ limitations under the License.
 local fs = require('fs')
 local path = require('path')
 local table = require('table')
+local zipreader = require('zipreader')
+local uv = require('uv_native')
 
+local zip = zipreader(uv.fsOpen(uv.execpath(), "r", tonumber("644", 8)), {
+  fstat = uv.fsFstat,
+  read = function (fd, size, offset)
+    return uv.fsRead(fd, offset, size)
+  end
+})
+_G.zip = zip
 
 local module = {}
 

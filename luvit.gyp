@@ -95,6 +95,7 @@
         'lib/luvit/url.lua',
         'lib/luvit/utils.lua',
         'lib/luvit/uv.lua',
+        'lib/luvit/zipreader.lua',
         'lib/luvit/zlib.lua',
       ],
       'defines': [
@@ -242,6 +243,7 @@
                   'lib/luvit/url.lua',
                   'lib/luvit/utils.lua',
                   'lib/luvit/uv.lua',
+                  'lib/luvit/zipreader.lua',
                   'lib/luvit/zlib.lua'
                 ]
               },
