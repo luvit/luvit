@@ -30,6 +30,22 @@ local zip = zipreader(uv.fsOpen(uv.execpath(), "r", tonumber("644", 8)), {
 })
 _G.zip = zip
 
+local function fileExists(path)
+  if zip and path:sub(1, 4) == "zip:" then
+    local zipPath = path:sub(5)
+    return zip.stat(zipPath)
+  end
+  return fs.existsSync(path)
+end
+
+local function readFile(path)
+  if zip and path:sub(1, 4) == "zip:" then
+    local zipPath = path:sub(5)
+    return zip.readfile(zipPath)
+  end
+  return fs.readFileSync(path)
+end
+
 local module = {}
 
 -- This is the built-in require from lua.
@@ -49,9 +65,11 @@ local function partialRealpath(filepath)
 end
 
 local function myloadfile(filepath)
-  if not fs.existsSync(filepath) then return end
+  if not fileExists(filepath) then return end
 
-  filepath = partialRealpath(filepath)
+  if not zip or filepath:sub(1, 4) ~= "zip:" then
+    filepath = partialRealpath(filepath)
+  end
 
   if package.loaded[filepath] then
     return function ()
@@ -59,7 +77,7 @@ local function myloadfile(filepath)
     end
   end
 
-  local code = fs.readFileSync(filepath)
+  local code = readFile(filepath)
 
   -- TODO: find out why inlining assert here breaks the require test
   local fn, err = loadstring(code, '@' .. filepath)
@@ -80,7 +98,7 @@ end
 module.myloadfile = myloadfile
 
 local function myloadlib(filepath)
-  if not fs.existsSync(filepath) then return end
+  if not fileExists(filepath) then return end
 
   filepath = partialRealpath(filepath)
 
@@ -118,7 +136,7 @@ local function loadModule(filepath, verbose)
   end
 
   -- Then, look for module/package.lua config file
-  if fs.existsSync(path.join(filepath, "package.lua")) then
+  if fileExists(path.join(filepath, "package.lua")) then
     local metadata = loadModule(path.join(filepath, "package.lua"))()
     if metadata.main then
       return loadModule(path.join(filepath, metadata.main))
@@ -181,6 +199,15 @@ function module.require(filepath, dirname)
   if type(loader) == "function" then
     return loader()
   else
+    errors[#errors + 1] = loader
+  end
+
+  -- zip bundled modules
+  if zip then
+    loader = loadModule("zip:" .. filepath)
+    if type(loader) == "function" then
+      return loader()
+    end
     errors[#errors + 1] = loader
   end
 
