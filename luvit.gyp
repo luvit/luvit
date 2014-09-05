@@ -214,7 +214,7 @@
               {
                 'destination': '<(luvit_prefix)/bin',
                 'files': [
-                  'out/Debug/luvit'
+                  '<(PRODUCT_DIR)/luvit'
                 ]
               },
               {
