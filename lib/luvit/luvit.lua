@@ -184,13 +184,6 @@ process.stderr = uv.createWriteableStdioStream(2)
 -- This will break lua code written for other lua runtimes
 _G.io = nil
 _G.os = nil
-_G.math = nil
-_G.string = nil
-_G.coroutine = nil
-_G.jit = nil
-_G.bit = nil
-_G.debug = nil
-_G.table = nil
 _G.loadfile = nil
 _G.dofile = nil
 _G.print = utils.print
