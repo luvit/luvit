@@ -188,7 +188,6 @@ _G.loadfile = nil
 _G.dofile = nil
 _G.print = utils.print
 _G.p = utils.prettyPrint
-_G.debug = utils.debug
 
 -- Move the version variables into a table
 process.version = VERSION
@@ -263,15 +262,13 @@ OS_BINDING.date = OLD_OS.date
 OS_BINDING.time = OLD_OS.time
 OS_BINDING.clock = OLD_OS.clock
 
-local traceback = require('debug').traceback
-
 -- This is called by all the event sources from C
 -- The user can override it to hook into event sources
 function eventSource(name, fn, ...)
   local args = {...}
   return assert(xpcall(function ()
     return fn(unpack(args))
-  end, traceback))
+  end, debug.traceback))
 end
 
 errorMeta = {__tostring=function(table) return table.message end}
@@ -413,7 +410,7 @@ assert(xpcall(function ()
     repl.start()
   end
 
-end, traceback))
+end, debug.traceback))
 
 -- Start the event loop
 native.run()
