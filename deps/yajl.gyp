@@ -29,6 +29,11 @@
         'yajl/src',
         '<(SHARED_INTERMEDIATE_DIR)',
       ],
+      'conditions': [
+        ['OS=="solaris"', {
+          'cflags': [ '--std=c99' ]
+        }]
+      ]
     }, # end libyajl
   {
     'target_name': 'copy_headers',
