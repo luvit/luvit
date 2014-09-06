@@ -79,6 +79,25 @@ local function normalizePath(path)
   for part in string.gmatch(path, "([^/]+)") do
     table.insert(parts, part)
   end
+  local skip = 0
+  local reversed = {}
+  for i = #parts, 1, -1 do
+    local part = parts[i]
+    if part == "." then
+      -- continue
+    elseif part == ".." then
+      skip = skip + 1
+    elseif skip > 0 then
+      skip = skip - 1
+    else
+      table.insert(reversed, part)
+    end
+  end
+  parts = reversed
+  for i = 1, #parts / 2 do
+    local j = #parts - i + 1
+    parts[i], parts[j] = parts[j], parts[i]
+  end
   return table.concat(parts, "/")
 end
 
