@@ -116,8 +116,12 @@ return function (fd, fs)
 
     -- Theoretically, the comment at the end can be 0x10000 bytes long
     -- though there is no sense reading more than that.
-    local maxSize = 391 + 22
+    local maxSize = 0x10000 + 22
     local start = stat.size - maxSize
+    if start < 1 then
+      maxSize = stat.size
+      start = 1
+    end
     local tail = fs.read(fd, maxSize, start)
     local position = #tail
 

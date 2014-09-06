@@ -64,7 +64,7 @@ const void *luvit__suck_in_symbols(void)
     (size_t)(const char *)luaJIT_BC_url +
     (size_t)(const char *)luaJIT_BC_utils +
     (size_t)(const char *)luaJIT_BC_uv +
-    (size_t)(const char *)luaJIT_BC_zipreader;
+    (size_t)(const char *)luaJIT_BC_zipreader +
     (size_t)(const char *)luaJIT_BC_zlib;
 
   return luvit_ugly_hack;
