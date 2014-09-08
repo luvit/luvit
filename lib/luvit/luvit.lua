@@ -294,9 +294,19 @@ function assert(good, error)
   return realAssert(good, tostring(error))
 end
 
-
-
 assert(xpcall(function ()
+
+  -- Hook to allow bundled zips to take over main and arguments processing
+  if zip then
+    if zip.stat("main.lua") then
+      assert(require('module').myloadfile("zip:main.lua"))()
+      return
+    end
+    if zip.stat("main/init.lua") then
+      assert(require('module').myloadfile("zip:main/init.lua"))()
+      return
+    end
+  end
 
   local interactive = false
   local usecolors = true
