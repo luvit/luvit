@@ -60,7 +60,7 @@ end
 
 function Socket:address()
   if self._handle then
-    return self._handle:getsockname()
+    return self._handle:getpeername()
   end
   return nil
 end
