@@ -394,8 +394,8 @@ function SyncWriteStream:finish(chunk)
   if chunk then
     self:write(chunk)
   end
-  self:emit("end")
   self:_closeStream()
+  self:emit("end")
 end
 
 function SyncWriteStream:_closeStream()
