@@ -170,11 +170,7 @@ function Socket:_initEmitters()
   end)
 
   self._handle:on('error', function(err)
-    -- destroy on ECONNREFUSED
-    if (err.code == 'ECONNREFUSED') then
-      self:destroy()
-    end
-    self:emit('error', err)
+    self:destroy(err)
   end)
 end
 
