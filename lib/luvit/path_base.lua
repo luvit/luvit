@@ -33,7 +33,7 @@ function Path:_get(key)
   return self[key]
 end
 
-function Path:getRoot()
+function Path:getRoot(filepath)
   return self.root
 end
 
@@ -46,9 +46,9 @@ end
 function Path:_splitPath(filename)
   local root, dir, basename
   local i, j = filename:find("[^" .. self.sep .. "]*$")
-  if filename:sub(1, 1) == self.sep then
-    root = self.root
-    dir = filename:sub(2, i - 1)
+  if self:isAbsolute(filename) then
+    root = self:getRoot(filename)
+    dir = filename:sub(root:len()+1, i - 1)
   else
     root = ""
     dir = filename:sub(1, i - 1)
@@ -201,7 +201,15 @@ function WindowsPath:initialize()
 end
 
 function WindowsPath:isAbsolute(filepath)
-  return filepath:match("^[%a]:")
+  return filepath and self:getRoot(filepath) ~= nil
+end
+
+function WindowsPath:getRoot(filepath)
+  if filepath then
+    return filepath:match("^[%a]:")
+  else
+    return self.meta.super:getRoot(filepath)
+  end
 end
 
 function WindowsPath:_makeLong(filepath)

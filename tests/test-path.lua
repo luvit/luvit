@@ -72,3 +72,10 @@ assert(not path_base.posix:isAbsolute('foo/bar.lua'))
 assert(path_base.nt:isAbsolute('C:\\foo\\bar.lua'))
 assert(path_base.nt:isAbsolute('D:\\foo\\bar.lua'))
 assert(not path_base.nt:isAbsolute('foo\\bar.lua'))
+
+-- test path._splitPath
+assert(deep_equal({"/", "foo/", "bar.lua"}, {path_base.posix:_splitPath('/foo/bar.lua')}))
+assert(deep_equal({"", "foo/", "bar.lua"}, {path_base.posix:_splitPath('foo/bar.lua')}))
+assert(deep_equal({"C:", "\\foo\\", "bar.lua"}, {path_base.nt:_splitPath('C:\\foo\\bar.lua')}))
+assert(deep_equal({"d:", "\\foo\\", "bar.lua"}, {path_base.nt:_splitPath('d:\\foo\\bar.lua')}))
+assert(deep_equal({"", "foo\\", "bar.lua"}, {path_base.nt:_splitPath('foo\\bar.lua')}))
