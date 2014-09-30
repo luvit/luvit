@@ -201,12 +201,12 @@ function WindowsPath:initialize()
 end
 
 function WindowsPath:isAbsolute(filepath)
-  return filepath:sub(1, self.root:len()):lower() == self.root
+  return filepath:match("^[%a]:")
 end
 
 function WindowsPath:_makeLong(filepath)
   -- Standard windows fully qualified path
-  if filepath:match("^[%a]:") then
+  if self:isAbsolute(filepath) then
     -- long paths cannot have relative parts
     return "\\\\?\\" .. derelative(filepath)
   else

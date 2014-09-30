@@ -66,3 +66,9 @@ assert(path_base.posix:basename('/foo/bar.lua', '.lua') == 'bar')
 assert(path_base.nt:basename('c:\\foo\\bar.lua') == 'bar.lua')
 assert(path_base.nt:basename('c:\\foo\\bar.lua', '.lua') == 'bar')
 
+-- test path.isAbsolute
+assert(path_base.posix:isAbsolute('/foo/bar.lua'))
+assert(not path_base.posix:isAbsolute('foo/bar.lua'))
+assert(path_base.nt:isAbsolute('C:\\foo\\bar.lua'))
+assert(path_base.nt:isAbsolute('D:\\foo\\bar.lua'))
+assert(not path_base.nt:isAbsolute('foo\\bar.lua'))
