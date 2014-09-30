@@ -75,8 +75,13 @@ function Path:_normalizeArray(parts)
 end
 
 function Path:normalize(filepath)
-  local is_absolute = filepath:sub(1, 1) == self.sep
+  local is_absolute = self:isAbsolute(filepath)
+  local root = is_absolute and self:getRoot(filepath) or nil
   local trailing_slash = filepath:sub(#filepath) == self.sep
+
+  if root then
+    filepath = filepath:sub(root:len()+1)
+  end
 
   local parts = {}
   for part in filepath:gmatch("[^" .. self.sep .. "]+") do
@@ -87,7 +92,7 @@ function Path:normalize(filepath)
 
   if #filepath == 0 then
     if is_absolute then
-      return self.sep
+      return root
     end
     return "."
   end
@@ -95,7 +100,7 @@ function Path:normalize(filepath)
     filepath = filepath .. self.sep
   end
   if is_absolute then
-    filepath = self.sep .. filepath
+    filepath = root .. filepath
   end
   return filepath
 end
@@ -158,27 +163,6 @@ function Path:extname(filepath)
   return filepath:match(".[^.]+$") or ""
 end
 
--- use this when fully qualified long windows paths cannot have relative parts
-local function derelative(filepath)
-  -- loop . and .. cases until cleared
-  while filepath:match("\\%.\\") do
-    filepath = filepath:gsub("\\%.\\","\\",1)
-  end
-  while filepath:match("\\[^\\]+\\%.%.\\") do
-    -- some X:\..\..\ pairs get eaten by this but no matter
-    filepath = filepath:gsub("\\[^\\]+\\%.%.\\","\\",1)
-  end
-  -- handle .. to the root
-  if filepath:match("^[%a]:\\%.%.\\") then
-    filepath = filepath:gsub("^([%a]:\\)%.%.\\","%1",1)
-  end
-  -- trailing cases last
-  filepath = filepath:gsub("\\%.$","")
-  filepath = filepath:gsub("\\[^\\]+\\%.%.$","")
-  filepath = filepath:gsub("^([%a]:\\)%.%.$","%1",1)
-  return filepath
-end
-
 local PosixPath = Path:extend()
 
 function PosixPath:initialize()
@@ -197,34 +181,32 @@ end
 local WindowsPath = Path:extend()
 
 function WindowsPath:initialize()
-  Path.initialize(self, 'c:', '\\') 
+  Path.initialize(self, 'c:\\', '\\') 
 end
 
 function WindowsPath:isAbsolute(filepath)
   return filepath and self:getRoot(filepath) ~= nil
 end
 
+function WindowsPath:isUNC(filepath)
+  return filepath and filepath:match("^\\\\[^?\\]+\\") ~= nil
+end
+
 function WindowsPath:getRoot(filepath)
   if filepath then
-    return filepath:match("^[%a]:")
+    return filepath:match("^[%a]:\\") or filepath:match("^\\\\[^?\\]+\\")
   else
-    return self.meta.super:getRoot(filepath)
+    return self.meta.super.getRoot(self, filepath)
   end
 end
 
 function WindowsPath:_makeLong(filepath)
-  -- Standard windows fully qualified path
-  if self:isAbsolute(filepath) then
-    -- long paths cannot have relative parts
-    return "\\\\?\\" .. derelative(filepath)
+  if self:isUNC(filepath) then
+    return "\\\\?\\UNC\\" .. self:resolve(self:getRoot(filepath), filepath)
+  elseif self:isAbsolute(filepath) then
+    return "\\\\?\\" .. self:resolve(self:getRoot(filepath), filepath)
   else
-    -- Windows Network Path
-    if filepath:match("^\\\\[^?]") then
-      -- long paths cannot have relative parts
-      return "\\\\?\\UNC\\" .. derelative(filepath)
-    else
-      return filepath
-    end
+    return filepath
   end
 end
 
