@@ -30,7 +30,7 @@ if (os.type() ~= "win32") then
 else
   assert(path.dirname('C:\\Users\\philips\\vim.exe') == 'C:\\Users\\philips')
   assert(path.dirname('C:\\Users\\philips\\') == 'C:\\Users')
-  assert(path.dirname('C:\\Users\\philips\\') == 'C:\\Users')
+  assert(path.dirname('D:\\Users\\philips\\') == 'D:\\Users')
 end
 
 -- Test out the OS path objects
@@ -38,8 +38,10 @@ assert(path_base.posix:dirname('/usr/bin/vim') == '/usr/bin')
 assert(path_base.posix:dirname('/usr/bin/') == '/usr')
 assert(path_base.posix:dirname('/usr/bin') == '/usr')
 assert(path_base.nt:dirname('C:\\Users\\philips\\vim.exe') == 'C:\\Users\\philips')
+assert(path_base.nt:dirname('D:\\Users\\philips\\vim.exe') == 'D:\\Users\\philips')
 assert(path_base.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
 assert(path_base.nt:dirname('C:\\Users\\philips\\') == 'C:\\Users')
+assert(path_base.nt:dirname('D:\\Users\\philips\\') == 'D:\\Users')
 
 assert(path_base.posix:join('foo', '/bar') == "foo/bar")
 assert(path_base.posix:join('foo', 'bar') == "foo/bar")
@@ -65,6 +67,8 @@ assert(path_base.posix:basename('/foo/bar.lua') == 'bar.lua')
 assert(path_base.posix:basename('/foo/bar.lua', '.lua') == 'bar')
 assert(path_base.nt:basename('c:\\foo\\bar.lua') == 'bar.lua')
 assert(path_base.nt:basename('c:\\foo\\bar.lua', '.lua') == 'bar')
+assert(path_base.nt:basename('D:\\foo\\bar.lua') == 'bar.lua')
+assert(path_base.nt:basename('D:\\foo\\bar.lua', '.lua') == 'bar')
 
 -- test path.isAbsolute
 assert(path_base.posix:isAbsolute('/foo/bar.lua'))
