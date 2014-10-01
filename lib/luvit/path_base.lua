@@ -58,7 +58,7 @@ function Path:_splitPath(filename)
 end
 
 -- Modifies an array of path parts in place by interpreting "." and ".." segments
-function Path:_normalizeArray(parts)
+function Path:_normalizeArray(parts, isrelative)
   local skip = 0
   for i = #parts, 1, -1 do
     local part = parts[i]
@@ -69,6 +69,12 @@ function Path:_normalizeArray(parts)
       skip = skip + 1
     elseif skip > 0 then
       table.remove(parts, i)
+      skip = skip - 1
+    end
+  end
+  if isrelative then
+    while skip > 0 do
+      table.insert(parts, 1, "..")
       skip = skip - 1
     end
   end
@@ -87,7 +93,7 @@ function Path:normalize(filepath)
   for part in filepath:gmatch("[^" .. self.sep .. "]+") do
     parts[#parts + 1] = part
   end
-  self:_normalizeArray(parts)
+  self:_normalizeArray(parts, not is_absolute)
   filepath = table.concat(parts, self.sep)
 
   if #filepath == 0 then
@@ -105,9 +111,15 @@ function Path:normalize(filepath)
   return filepath
 end
 
-function Path:join(...)
-  local parts = {...}
+function Path:_filterparts(parts)
+  local filteredparts = {}
+  -- filter out empty parts
   for i, part in ipairs(parts) do
+    if part and part ~= "" then
+      table.insert(filteredparts, part)
+    end
+  end
+  for i, part in ipairs(filteredparts) do
     -- Strip leading slashes on all but first item
     if i > 1 then
       while part:sub(1, 1) == self.sep do
@@ -115,14 +127,25 @@ function Path:join(...)
       end
     end
     -- Strip trailing slashes on all but last item
-    if i < #parts then
+    if i < #filteredparts then
       while part:sub(#part) == self.sep do
         part = part:sub(1, #part - 1)
       end
     end
-    parts[i] = part
+    filteredparts[i] = part
   end
+  return filteredparts
+end
+
+function Path:_rawjoin(parts)
   return table.concat(parts, self.sep)
+end
+
+function Path:join(...)
+  local parts = {...}
+  local filteredparts = self:_filterparts(parts)
+  local joined = self:_rawjoin(filteredparts)
+  return self:normalize(joined)
 end
 
 function Path:resolve(root, filepath)
@@ -189,15 +212,47 @@ function WindowsPath:isAbsolute(filepath)
 end
 
 function WindowsPath:isUNC(filepath)
-  return filepath and filepath:match("^\\\\[^?\\]+\\") ~= nil
+  return filepath and filepath:match("^\\\\[^?\\.]") ~= nil
 end
 
+-- if filepath is not specified, returns the default root (c:\)
+-- if filepath is specified, returns one of the following:
+--   the UNC server and sharename in the format "\\server\" or "\\server\share\"
+--   the drive letter in the format "d:\"
+--   nil if the neither could be found (meaning the filepath is relative)
 function WindowsPath:getRoot(filepath)
   if filepath then
-    return filepath:match("^[%a]:\\") or filepath:match("^\\\\[^?\\]+\\")
+    if self:isUNC(filepath) then
+      local server = filepath:match("^\\\\([^?\\.][^\\]*)")
+      -- share name is optional
+      local share = filepath:sub(server:len()+3):match("^\\([^\\.][^\\]*)")
+      local root = self.sep .. self.sep .. server .. (share and (self.sep .. share) or "")
+      -- always append trailing slash
+      return root .. self.sep
+    else
+      local drive = filepath:match("^[%a]:")
+      -- always append trailing slash
+      return drive and (drive .. self.sep)
+    end
   else
     return self.meta.super.getRoot(self, filepath)
   end
+end
+
+function WindowsPath:join(...)
+  local parts = {...}
+  local filteredparts = self:_filterparts(parts)
+  local joined = self:_rawjoin(filteredparts)
+
+  -- the joined path may be interpretted as a UNC path, so we need to
+  -- make sure that a UNC path was intended. if the first filtered part
+  -- looks like a UNC path, then it is probably a safe assumption.
+  -- if not, then consolidate any initial slashes to avoid ambiguity
+  if not self:isUNC(filteredparts[1]) then
+    joined = joined:gsub("^["..self.sep.."]+", self.sep)
+  end
+
+  return self:normalize(joined)
 end
 
 function WindowsPath:_makeLong(filepath)
