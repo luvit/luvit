@@ -22,8 +22,10 @@ local path = require('path')
 local path_base = require('path_base')
 local os = require('os')
 
+local isWindows = os.type() == "win32"
+
 -- test `path.dirname`
-if (os.type() ~= "win32") then
+if not isWindows then
   assert(path.dirname('/usr/bin/vim') == '/usr/bin')
   assert(path.dirname('/usr/bin/') == '/usr')
   assert(path.dirname('/usr/bin') == '/usr')
@@ -326,10 +328,14 @@ assert(path_base.nt:join('\\\\\\\\foo\\bar') == 'foo\\bar')
 assert(path_base.nt:join('////foo/bar') == 'foo\\bar')
 
 -- test path.resolve
+if not isWindows then
+  assert(path_base.posix:resolve('a/b/c/', '../../..') == process.cwd())
+  assert(path_base.posix:resolve('.') == process.cwd())
+else
+  assert(path_base.nt:resolve('.') == process.cwd())
+end
 assert(path_base.posix:resolve('/var/lib', '../', 'file/') == '/var/file/')
 assert(path_base.posix:resolve('/var/lib', '/../', 'file/') == '/file/')
-assert(path_base.posix:resolve('a/b/c/', '../../..') == process.cwd())
-assert(path_base.posix:resolve('.') == process.cwd())
 assert(path_base.posix:resolve('/some/dir', '.', '/absolute/') == '/absolute/')
 assert(path_base.nt:resolve('c:\\blah\\blah', 'd:\\games', 'c:\\..\\a') == 'c:\\a')
 assert(path_base.nt:resolve('c:/blah/blah', 'd:/games', 'c:/../a') == 'c:\\a')
@@ -339,7 +345,6 @@ assert(path_base.nt:resolve('c:\\ignore', 'c:\\some\\file') == 'c:\\some\\file')
 assert(path_base.nt:resolve('c:/ignore', 'c:/some/file') == 'c:\\some\\file')
 assert(path_base.nt:resolve('d:\\ignore', 'd:\\some\\dir\\\\') == 'd:\\some\\dir\\')
 assert(path_base.nt:resolve('d:/ignore', 'd:/some/dir//') == 'd:\\some\\dir\\')
-assert(path_base.nt:resolve('.') == process.cwd())
 assert(path_base.nt:resolve('\\\\server\\share', '..', 'relative\\') == '\\\\server\\share\\relative\\')
 assert(path_base.nt:resolve('//server/share', '..', 'relative/') == '\\\\server\\share\\relative\\')
 assert(path_base.nt:resolve('c:\\', '\\\\') == 'c:\\')
