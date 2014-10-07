@@ -81,6 +81,7 @@ function Path:_normalizeArray(parts, isrelative)
 end
 
 function Path:normalize(filepath)
+  filepath = self:normalizeSeparators(filepath)
   local is_absolute = self:isAbsolute(filepath)
   local root = is_absolute and self:getRoot(filepath) or nil
   local trailing_slash = filepath:sub(#filepath) == self.sep
@@ -141,10 +142,18 @@ function Path:_rawjoin(parts)
   return table.concat(parts, self.sep)
 end
 
-function Path:join(...)
+function Path:_filteredjoin(...)
   local parts = {...}
+  for i,part in ipairs(parts) do
+    parts[i] = self:normalizeSeparators(part)
+  end
   local filteredparts = self:_filterparts(parts)
   local joined = self:_rawjoin(filteredparts)
+  return joined, filteredparts
+end
+
+function Path:join(...)
+  local joined = self:_filteredjoin(...)
   return self:normalize(joined)
 end
 
@@ -169,6 +178,7 @@ function Path:resolve(...)
 end
 
 function Path:dirname(filepath)
+  filepath = self:normalizeSeparators(filepath)
   if filepath:sub(filepath:len()) == self.sep then
     filepath = filepath:sub(1, -2)
   end
@@ -187,6 +197,7 @@ function Path:dirname(filepath)
 end
 
 function Path:basename(filepath, expected_ext)
+  filepath = self:normalizeSeparators(filepath)
   local base, ext_pos = filepath:match("[^" .. self.sep .. "]+$") or ""
   if expected_ext then
      local ext_pos = base:find(expected_ext:gsub('%.', '%.') .. '$')
@@ -209,6 +220,10 @@ function PosixPath:isAbsolute(filepath)
   return filepath:sub(1, self.root:len()) == self.root
 end
 
+function PosixPath:normalizeSeparators(filepath)
+  return filepath
+end
+
 function PosixPath:_makeLong(filepath)
   return filepath
 end
@@ -225,7 +240,7 @@ function WindowsPath:isAbsolute(filepath)
 end
 
 function WindowsPath:isUNC(filepath)
-  return filepath and filepath:match("^\\\\[^?\\.]") ~= nil
+  return filepath and filepath:match("^[\\/][\\/][^?\\/.]") ~= nil
 end
 
 -- if filepath is not specified, returns the default root (c:\)
@@ -236,14 +251,14 @@ end
 function WindowsPath:getRoot(filepath)
   if filepath then
     if self:isUNC(filepath) then
-      local server = filepath:match("^\\\\([^?\\.][^\\]*)")
+      local server = filepath:match("^[\\/][\\/]([^?\\/.][^\\/]*)")
       -- share name is optional
-      local share = filepath:sub(server:len()+3):match("^\\([^\\.][^\\]*)")
+      local share = filepath:sub(server:len()+3):match("^[\\/]([^\\/.][^\\/]*)")
       local root = self.sep .. self.sep .. server .. (share and (self.sep .. share) or "")
       -- always append trailing slash
       return root .. self.sep
     else
-      local drive = filepath:match("^[%a]:$") or filepath:match("^([%a]:)\\")
+      local drive = filepath:match("^[%a]:$") or filepath:match("^([%a]:)[\\/]")
       -- always append trailing slash
       return drive and (drive .. self.sep)
     end
@@ -253,9 +268,7 @@ function WindowsPath:getRoot(filepath)
 end
 
 function WindowsPath:join(...)
-  local parts = {...}
-  local filteredparts = self:_filterparts(parts)
-  local joined = self:_rawjoin(filteredparts)
+  local joined, filteredparts = self:_filteredjoin(...)
 
   -- the joined path may be interpretted as a UNC path, so we need to
   -- make sure that a UNC path was intended. if the first filtered part
@@ -266,6 +279,10 @@ function WindowsPath:join(...)
   end
 
   return self:normalize(joined)
+end
+
+function WindowsPath:normalizeSeparators(filepath)
+  return filepath:gsub("/", self.sep)
 end
 
 function WindowsPath:_makeLong(filepath)
