@@ -148,11 +148,24 @@ function Path:join(...)
   return self:normalize(joined)
 end
 
-function Path:resolve(root, filepath)
-  if self:isAbsolute(filepath) then
-    return self:normalize(filepath)
+function Path:resolve(...)
+  local paths = {...}
+  local resolvedpath = ""
+  local isabsolute = false
+  for i=#paths, 1, -1 do
+    local path = paths[i]
+    if path and path ~= "" then
+      resolvedpath = self:join(self:normalize(path), resolvedpath)
+      if self:isAbsolute(resolvedpath) then
+        isabsolute = true
+        break
+      end
+    end
   end
-  return self:join(root, filepath)
+  if not isabsolute then
+    resolvedpath = self:join(process.cwd(), resolvedpath)
+  end
+  return resolvedpath
 end
 
 function Path:dirname(filepath)
@@ -257,9 +270,9 @@ end
 
 function WindowsPath:_makeLong(filepath)
   if self:isUNC(filepath) then
-    return "\\\\?\\UNC\\" .. self:resolve(self:getRoot(filepath), filepath)
+    return "\\\\?\\UNC\\" .. self:resolve(filepath)
   elseif self:isAbsolute(filepath) then
-    return "\\\\?\\" .. self:resolve(self:getRoot(filepath), filepath)
+    return "\\\\?\\" .. self:resolve(filepath)
   else
     return filepath
   end
