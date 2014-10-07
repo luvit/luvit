@@ -243,7 +243,7 @@ function WindowsPath:getRoot(filepath)
       -- always append trailing slash
       return root .. self.sep
     else
-      local drive = filepath:match("^[%a]:")
+      local drive = filepath:match("^[%a]:$") or filepath:match("^([%a]:)\\")
       -- always append trailing slash
       return drive and (drive .. self.sep)
     end
