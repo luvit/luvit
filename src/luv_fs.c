@@ -225,6 +225,8 @@ uv_fs_t* luv_fs_store_callback(lua_State* L, int index) {
     }                                                                         \
     argc = luv_process_fs_result(L, req);                                 \
     lua_remove(L, -argc - 1);                                                 \
+    free(req->data);                                                          \
+    uv_fs_req_cleanup(req);                                                   \
     return argc;                                                              \
   } while (0)
 
