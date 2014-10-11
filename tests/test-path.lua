@@ -56,6 +56,9 @@ assert(path_base.nt:dirname('\\\\server\\share\\Users\\philips\\') == '\\\\serve
 assert(path_base.nt:dirname('//server/share/Users/philips/') == '\\\\server\\share\\Users')
 assert(path_base.nt:dirname('\\\\server\\share\\') == '\\\\server\\share\\')
 assert(path_base.nt:dirname('//server/share/') == '\\\\server\\share\\')
+assert(path_base.nt:dirname('d:drive\\relative') == 'd:drive')
+assert(path_base.nt:dirname('d:driverelative') == 'd:')
+assert(path_base.nt:dirname('d:') == 'd:\\')
 
 assert(path_base.posix:join('foo', '/bar') == "foo/bar")
 assert(path_base.posix:join('foo', 'bar') == "foo/bar")
@@ -96,7 +99,6 @@ assert(path_base.nt:basename('//server/share/bar.lua', '.lua') == 'bar')
 assert(path_base.posix:isAbsolute('/foo/bar.lua'))
 assert(not path_base.posix:isAbsolute('foo/bar.lua'))
 assert(path_base.nt:isAbsolute('c:'))
-assert(not path_base.nt:isAbsolute('c:invalid'))
 assert(path_base.nt:isAbsolute('C:\\foo\\bar.lua'))
 assert(path_base.nt:isAbsolute('C:/foo/bar.lua'))
 assert(path_base.nt:isAbsolute('D:\\foo\\bar.lua'))
@@ -107,6 +109,7 @@ assert(path_base.nt:isAbsolute('\\\\server\\share\\bar.lua'))
 assert(path_base.nt:isAbsolute('//server/share/bar.lua'))
 assert(path_base.nt:isAbsolute('\\\\server\\'))
 assert(path_base.nt:isAbsolute('//server/'))
+assert(not path_base.nt:isAbsolute('c:drive\\relative'))
 
 -- test path.getRoot
 assert(path_base.posix:getRoot() == '/')
@@ -117,7 +120,6 @@ assert(path_base.nt:getRoot('C:/foo/bar.lua') == 'C:\\')
 assert(path_base.nt:getRoot('d:\\foo\\bar.lua') == 'd:\\')
 assert(path_base.nt:getRoot('d:/foo/bar.lua') == 'd:\\')
 assert(path_base.nt:getRoot('d:') == 'd:\\')
-assert(path_base.nt:getRoot('d:invalid') == nil)
 assert(path_base.nt:getRoot('\\\\server\\share\\bar.lua') == '\\\\server\\share\\')
 assert(path_base.nt:getRoot('//server/share/bar.lua') == '\\\\server\\share\\')
 assert(path_base.nt:getRoot('\\\\server\\share') == '\\\\server\\share\\')
@@ -126,6 +128,7 @@ assert(path_base.nt:getRoot('\\\\server\\') == '\\\\server\\')
 assert(path_base.nt:getRoot('//server/') == '\\\\server\\')
 assert(path_base.nt:getRoot('\\\\server') == '\\\\server\\')
 assert(path_base.nt:getRoot('//server') == '\\\\server\\')
+assert(path_base.nt:getRoot('d:drive\\relative') == 'd:')
 
 -- test path._splitPath
 assert(deep_equal({"/", "foo/", "bar.lua"}, {path_base.posix:_splitPath('/foo/bar.lua')}))
@@ -134,6 +137,7 @@ assert(deep_equal({"C:\\", "foo\\", "bar.lua"}, {path_base.nt:_splitPath('C:\\fo
 assert(deep_equal({"d:\\", "foo\\", "bar.lua"}, {path_base.nt:_splitPath('d:\\foo\\bar.lua')}))
 assert(deep_equal({"", "foo\\", "bar.lua"}, {path_base.nt:_splitPath('foo\\bar.lua')}))
 assert(deep_equal({"\\\\server\\share\\", "", "bar.lua"}, {path_base.nt:_splitPath('\\\\server\\share\\bar.lua')}))
+assert(deep_equal({"d:", "drive\\", "relative.lua"}, {path_base.nt:_splitPath('d:drive\\relative.lua')}))
 
 -- test path._normalizeArray
 local dotArray = {"foo", ".", "bar"}
@@ -234,8 +238,10 @@ assert(path_base.nt:normalize("\\\\server\\..") == "\\\\server\\")
 assert(path_base.nt:normalize("//server/..") == "\\\\server\\")
 assert(path_base.nt:normalize("\\\\server\\..\\") == "\\\\server\\")
 assert(path_base.nt:normalize("//server/../") == "\\\\server\\")
--- invalid paths
-assert(path_base.nt:normalize('d:invalid') == 'd:invalid')
+-- drive relative paths stay as drive-relative when normalized
+assert(path_base.nt:normalize('d:drive\\relative') == 'd:drive\\relative')
+assert(path_base.nt:normalize('d:..') == 'd:..')
+assert(path_base.nt:normalize('d:.') == 'd:.')
 
 -- test path.join
 assert(path_base.posix:join('.', 'foo/bar', '..', '/foo/bar.lua') == 'foo/foo/bar.lua')
@@ -284,7 +290,7 @@ assert(path_base.nt:join('//foo/bar') == '\\\\foo\\bar\\')
 assert(path_base.nt:join('\\\\foo', 'bar') == '\\\\foo\\bar\\')
 assert(path_base.nt:join('//foo', 'bar') == '\\\\foo\\bar\\')
 assert(path_base.nt:join('\\\\foo\\', 'bar') == '\\\\foo\\bar\\')
-assert(path_base.nt:join('//foo/', 'bar') == '\\\\foo\\bar\\', path_base.nt:join('//foo/', 'bar') )
+assert(path_base.nt:join('//foo/', 'bar') == '\\\\foo\\bar\\')
 assert(path_base.nt:join('\\\\foo', '\\bar') == '\\\\foo\\bar\\')
 assert(path_base.nt:join('//foo', '\\bar') == '\\\\foo\\bar\\')
 assert(path_base.nt:join('\\\\foo', '', 'bar') == '\\\\foo\\bar\\')
@@ -326,6 +332,14 @@ assert(path_base.nt:join('\\\\\\\\foo', 'bar') == 'foo\\bar')
 assert(path_base.nt:join('////foo', 'bar') == 'foo\\bar')
 assert(path_base.nt:join('\\\\\\\\foo\\bar') == 'foo\\bar')
 assert(path_base.nt:join('////foo/bar') == 'foo\\bar')
+-- absolute paths
+assert(path_base.nt:join('D:\\', 'foo\\bar') == 'D:\\foo\\bar')
+assert(path_base.nt:join('D:\\', '\\\\foo\\bar') == 'D:\\foo\\bar')
+assert(path_base.nt:join('D:\\..\\\\', '\\', 'foo\\bar') == 'D:\\foo\\bar')
+-- joining a drive letter will not create a drive-relative path
+assert(path_base.nt:join('D:', 'foo\\bar') == 'D:\\foo\\bar')
+-- joining a drive-relative path will output a drive-relative path
+assert(path_base.nt:join('D:drive\\relative', 'foo\\bar') == 'D:drive\\relative\\foo\\bar')
 
 -- test path.resolve
 if not isWindows then
@@ -357,5 +371,11 @@ assert(path_base.nt:resolve('c:\\', '\\\\server\\\\share') == '\\\\server\\share
 assert(path_base.nt:resolve('c:/', '//server//share') == '\\\\server\\share\\')
 assert(path_base.nt:resolve('c:\\', '\\\\\\some\\\\dir') == 'c:\\some\\dir')
 assert(path_base.nt:resolve('c:/', '///some//dir') == 'c:\\some\\dir')
-assert(path_base.nt:resolve('d:\\foo', 'd:invalid') == 'd:\\foo\\d:invalid')
-assert(path_base.nt:resolve('d:/foo', 'd:invalid') == 'd:\\foo\\d:invalid')
+-- resolving a drive-relative path will give an absolute path
+assert(path_base.nt:resolve('d:drive\\relative') == 'd:\\drive\\relative')
+assert(path_base.nt:resolve('d:..') == 'd:\\')
+assert(path_base.nt:resolve('d:.') == 'd:\\')
+-- drive-relative paths will be treated as relative and the drive letter 
+-- will be ignored when resolved against an absolute path
+assert(path_base.nt:resolve('d:\\foo', 'd:drive\\relative') == 'd:\\foo\\drive\\relative')
+assert(path_base.nt:resolve('C:\\foo', 'd:drive\\relative') == 'C:\\foo\\drive\\relative')

@@ -41,12 +41,11 @@ function Path:getSep()
   return self.sep
 end
 
--- Split a filename into [root, dir, basename], unix version
--- 'root' is just a slash, or nothing.
+-- Split a filename into [root, dir, basename]
 function Path:_splitPath(filename)
   local root, dir, basename
   local i, j = filename:find("[^" .. self.sep .. "]*$")
-  if self:isAbsolute(filename) then
+  if self:isAbsolute(filename) or self:isDriveRelative(filename) then
     root = self:getRoot(filename)
     dir = filename:sub(root:len()+1, i - 1)
   else
@@ -157,13 +156,26 @@ function Path:join(...)
   return self:normalize(joined)
 end
 
+-- Works backwards, joining the arguments until it resolves to an absolute path. 
+-- If an absolute path is not resolved, then the current working directory is 
+-- prepended
+--
+-- Note: To resolve a drive-relative path, the drive-specific current working 
+-- directory should be used (stored in the special env variable "=<letter>:"), 
+-- but luvit currently does not expose these env vars, so, instead, 
+-- drive-relative paths ignore the drive-specific cwd when being resolved
 function Path:resolve(...)
   local paths = {...}
   local resolvedpath = ""
+  local resolveddrive = nil
   local isabsolute = false
   for i=#paths, 1, -1 do
     local path = paths[i]
     if path and path ~= "" then
+      if self:isDriveRelative(path) then
+        resolveddrive = self:getRoot(path)
+        path = path:sub(resolveddrive:len()+1)
+      end
       resolvedpath = self:join(self:normalize(path), resolvedpath)
       if self:isAbsolute(resolvedpath) then
         isabsolute = true
@@ -172,7 +184,11 @@ function Path:resolve(...)
     end
   end
   if not isabsolute then
-    resolvedpath = self:join(process.cwd(), resolvedpath)
+    if resolveddrive then
+      resolvedpath = self:join(resolveddrive, resolvedpath)
+    else
+      resolvedpath = self:join(process.cwd(), resolvedpath)
+    end
   end
   return resolvedpath
 end
@@ -220,6 +236,14 @@ function PosixPath:isAbsolute(filepath)
   return filepath:sub(1, self.root:len()) == self.root
 end
 
+function PosixPath:isUNC(filepath)
+  return false
+end
+
+function PosixPath:isDriveRelative(filepath)
+  return false
+end
+
 function PosixPath:normalizeSeparators(filepath)
   return filepath
 end
@@ -236,11 +260,16 @@ function WindowsPath:initialize()
 end
 
 function WindowsPath:isAbsolute(filepath)
-  return filepath and self:getRoot(filepath) ~= nil
+  return filepath and not self:isDriveRelative(filepath) and self:getRoot(filepath) ~= nil
 end
 
 function WindowsPath:isUNC(filepath)
   return filepath and filepath:match("^[\\/][\\/][^?\\/.]") ~= nil
+end
+
+-- Drive-relative paths are unique to Windows and use the format <letter>:filepath
+function WindowsPath:isDriveRelative(filepath)
+  return filepath and filepath:match("^[%a]:[^\\/]")
 end
 
 -- if filepath is not specified, returns the default root (c:\)
@@ -258,9 +287,10 @@ function WindowsPath:getRoot(filepath)
       -- always append trailing slash
       return root .. self.sep
     else
-      local drive = filepath:match("^[%a]:$") or filepath:match("^([%a]:)[\\/]")
-      -- always append trailing slash
-      return drive and (drive .. self.sep)
+      local drive = filepath:match("^[%a]:")
+      -- only append trailing slash if it's not a drive relative path
+      local sep = (drive and not self:isDriveRelative(filepath)) and self.sep or ""
+      return drive and (drive .. sep)
     end
   else
     return self.meta.super.getRoot(self, filepath)
