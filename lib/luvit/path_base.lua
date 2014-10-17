@@ -47,16 +47,19 @@ end
 
 -- Split a filename into [root, dir, basename]
 function Path:_splitPath(filename)
-  local root, dir, basename
-  local i, j = filename:find("[^" .. self.sep .. "]*$")
+  filename = self:normalizeSeparators(filename)
+  local root = ""
   if self:isAbsolute(filename) or self:isDriveRelative(filename) then
     root = self:getRoot(filename)
-    dir = filename:sub(root:len()+1, i - 1)
-  else
-    root = ""
-    dir = filename:sub(1, i - 1)
+    filename = filename:sub(root:len()+1)
   end
-  local basename = filename:sub(i, j)
+  local trailing_slashes = filename:match("["..self.sep.."]*$")
+  if trailing_slashes then
+    filename = filename:sub(1, -trailing_slashes:len()-1)
+  end
+  local basename = filename:match("[^" .. self.sep .. "]+$")
+  local dir = basename and filename:sub(1, -basename:len()-1) or filename
+  local basename = basename or ""
   return root, dir, basename
 end
 
@@ -273,8 +276,7 @@ function Path:dirname(filepath)
 end
 
 function Path:basename(filepath, expected_ext)
-  filepath = self:normalizeSeparators(filepath)
-  local base, ext_pos = filepath:match("[^" .. self.sep .. "]+$") or ""
+  local root, dir, base = self:_splitPath(filepath)
   if expected_ext then
      local ext_pos = base:find(expected_ext:gsub('%.', '%.') .. '$')
      if ext_pos then base = base:sub(1, ext_pos - 1) end
@@ -283,7 +285,12 @@ function Path:basename(filepath, expected_ext)
 end
 
 function Path:extname(filepath)
-  return filepath:match(".[^.]+$") or ""
+  local basename = self:basename(filepath)
+  if basename == ".." then
+    return ""
+  else
+    return basename:match(".(%.[^.]*)$") or ""
+  end
 end
 
 local PosixPath = Path:extend()
