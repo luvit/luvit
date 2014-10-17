@@ -184,14 +184,18 @@ function Path:resolve(...)
   for i=#paths, 1, -1 do
     local path = paths[i]
     if path and path ~= "" then
+      local root = resolveddrive and self:getRoot(path)
       if self:isDriveRelative(path) then
-        resolveddrive = self:getRoot(path)
-        path = path:sub(resolveddrive:len()+1)
+        root = root or self:getRoot(path)
+        resolveddrive = resolveddrive or root
+        path = path:sub(root:len()+1)
       end
-      resolvedpath = self:join(self:normalize(path), resolvedpath)
-      if self:isAbsolute(resolvedpath) then
-        isabsolute = true
-        break
+      if not root or resolveddrive:sub(1,2) == root:sub(1,2) then
+        resolvedpath = self:join(self:normalize(path), resolvedpath)
+        if self:isAbsolute(resolvedpath) then
+          isabsolute = true
+          break
+        end
       end
     end
   end

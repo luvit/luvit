@@ -442,10 +442,12 @@ assert(path_base.nt:resolve('c:/', '///some//dir') == 'c:\\some\\dir')
 assert(path_base.nt:resolve('d:drive\\relative') == 'd:\\drive\\relative')
 assert(path_base.nt:resolve('d:..') == 'd:\\')
 assert(path_base.nt:resolve('d:.') == 'd:\\')
--- drive-relative paths will be treated as relative and the drive letter 
--- will be ignored when resolved against an absolute path
+assert(path_base.nt:resolve('d:.\\file') == 'd:\\file')
+assert(path_base.nt:resolve('c:\\blah\\blah', 'd:\\games', 'c:..\\a') == "c:\\blah\\a")
 assert(path_base.nt:resolve('d:\\foo', 'd:drive\\relative') == 'd:\\foo\\drive\\relative')
-assert(path_base.nt:resolve('C:\\foo', 'd:drive\\relative') == 'C:\\foo\\drive\\relative')
+assert(path_base.nt:resolve('C:\\foo', 'd:drive\\relative') == 'd:\\drive\\relative')
+assert(path_base.nt:resolve('d:foo', 'd:drive\\relative') == 'd:\\foo\\drive\\relative')
+assert(path_base.nt:resolve('c:foo', 'd:drive\\relative') == 'd:\\drive\\relative')
 
 -- test path._commonParts
 assert(deep_equal({"var"}, path_base.posix:_commonParts("/var/lib/", "/var")))
