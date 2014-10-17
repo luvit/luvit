@@ -41,6 +41,10 @@ function Path:getSep()
   return self.sep
 end
 
+function Path:pathsEqual(a, b)
+  return a == b
+end
+
 -- Split a filename into [root, dir, basename]
 function Path:_splitPath(filename)
   local root, dir, basename
@@ -79,6 +83,14 @@ function Path:_normalizeArray(parts, isrelative)
   end
 end
 
+function Path:_splitBySeparators(filepath)
+  local parts = {}
+  for part in filepath:gmatch("[^" .. self.sep .. "]+") do
+    parts[#parts + 1] = part
+  end
+  return parts
+end
+
 function Path:normalize(filepath)
   filepath = self:normalizeSeparators(filepath)
   local is_absolute = self:isAbsolute(filepath)
@@ -89,10 +101,7 @@ function Path:normalize(filepath)
     filepath = filepath:sub(root:len()+1)
   end
 
-  local parts = {}
-  for part in filepath:gmatch("[^" .. self.sep .. "]+") do
-    parts[#parts + 1] = part
-  end
+  local parts = self:_splitBySeparators(filepath)
   self:_normalizeArray(parts, not is_absolute)
   filepath = table.concat(parts, self.sep)
 
@@ -193,6 +202,57 @@ function Path:resolve(...)
   return resolvedpath
 end
 
+-- Returns the common parts of the given paths or {} if no
+-- common parts were found.
+function Path:_commonParts(...)
+  local common_parts = {}
+  local paths = {...}
+  local split_paths = {}
+  for _,path in ipairs(paths) do
+    table.insert(split_paths, self:_splitBySeparators(path))
+  end
+  for part_i=1,#split_paths[1] do
+    local test_part = split_paths[1][part_i]
+    for path_i=2,#split_paths do
+      local part = split_paths[path_i][part_i]
+      if not self:pathsEqual(test_part, part) then
+        return common_parts
+      end
+    end
+    table.insert(common_parts, test_part)
+  end
+  return common_parts
+end
+
+-- Returns the relative path from 'from' to 'to'
+-- If no relative path can be solved, then 'to' is returned
+function Path:relative(from, to)
+  from = self:resolve(from)
+  to = self:resolve(to)
+
+  local from_root, from_dir, from_basename = self:_splitPath(from)
+  local to_root, to_dir, to_basename = self:_splitPath(to)
+
+  if not self:pathsEqual(from_root, to_root) then
+    return to
+  end
+
+  local from_path, to_path = from_dir..from_basename, to_dir..to_basename
+  local common_parts = self:_commonParts(from_path, to_path)
+  local from_parts = self:_splitBySeparators(from_path)
+  local to_parts = self:_splitBySeparators(to_path)
+
+  local relative_parts = {}
+  for i=#common_parts,#from_parts-1 do
+    table.insert(relative_parts, "..")
+  end
+  for i=#common_parts+1,#to_parts do
+    table.insert(relative_parts, to_parts[i])
+  end
+
+  return self:_rawjoin(relative_parts)
+end
+
 function Path:dirname(filepath)
   filepath = self:normalizeSeparators(filepath)
   if filepath:sub(filepath:len()) == self.sep then
@@ -257,6 +317,11 @@ local WindowsPath = Path:extend()
 
 function WindowsPath:initialize()
   Path.initialize(self, 'c:\\', '\\') 
+end
+
+-- Windows paths are case-insensitive
+function WindowsPath:pathsEqual(a, b)
+  return a and b and a:lower() == b:lower()
 end
 
 function WindowsPath:isAbsolute(filepath)

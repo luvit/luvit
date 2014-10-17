@@ -131,6 +131,8 @@ assert(path_base.nt:getRoot('//server') == '\\\\server\\')
 assert(path_base.nt:getRoot('d:drive\\relative') == 'd:')
 
 -- test path._splitPath
+assert(deep_equal({"/", "foo/", "bar"}, {path_base.posix:_splitPath('/foo/bar')}))
+assert(deep_equal({"/", "foo/bar/", ""}, {path_base.posix:_splitPath('/foo/bar/')}))
 assert(deep_equal({"/", "foo/", "bar.lua"}, {path_base.posix:_splitPath('/foo/bar.lua')}))
 assert(deep_equal({"", "foo/", "bar.lua"}, {path_base.posix:_splitPath('foo/bar.lua')}))
 assert(deep_equal({"C:\\", "foo\\", "bar.lua"}, {path_base.nt:_splitPath('C:\\foo\\bar.lua')}))
@@ -379,3 +381,24 @@ assert(path_base.nt:resolve('d:.') == 'd:\\')
 -- will be ignored when resolved against an absolute path
 assert(path_base.nt:resolve('d:\\foo', 'd:drive\\relative') == 'd:\\foo\\drive\\relative')
 assert(path_base.nt:resolve('C:\\foo', 'd:drive\\relative') == 'C:\\foo\\drive\\relative')
+
+-- test path._commonParts
+assert(deep_equal({"var"}, path_base.posix:_commonParts("/var/lib/", "/var")))
+assert(deep_equal({"foo"}, path_base.posix:_commonParts("/foo/bar/", "/foo/bark/")))
+assert(deep_equal({"foo", "bar"}, path_base.posix:_commonParts("/foo/bar///", "/foo/bar")))
+
+-- test path.relative
+assert(path_base.posix:relative('/var/lib', '/var') == '..')
+assert(path_base.posix:relative('/var/lib', '/bin') == '../../bin')
+assert(path_base.posix:relative('/var/lib', '/var/lib') == '')
+assert(path_base.posix:relative('/var/lib', '/var/apache') == '../apache')
+assert(path_base.posix:relative('/var/', '/var/lib') == 'lib')
+assert(path_base.posix:relative('/', '/var/lib') == 'var/lib')
+assert(path_base.nt:relative('c:/blah\\blah', 'd:/games') == 'd:\\games')
+assert(path_base.nt:relative('c:/aAAa/bbbb', 'c:/aaaa') == '..')
+assert(path_base.nt:relative('c:/aaaa/bbbb', 'c:/cccc') == '..\\..\\cccc')
+assert(path_base.nt:relative('c:/aaaa/bbbb', 'c:/aaaa/bbbb') == '')
+assert(path_base.nt:relative('c:/aaaa/bbbb', 'c:/aaaa/cccc') == '..\\cccc')
+assert(path_base.nt:relative('c:/aaaa/', 'c:/aaaa/cccc') == 'cccc')
+assert(path_base.nt:relative('c:/', 'c:\\aaaa\\bbbb') == 'aaaa\\bbbb')
+assert(path_base.nt:relative('c:/aaaa/bbbb', 'd:\\') == 'd:\\')
