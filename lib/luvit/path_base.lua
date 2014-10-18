@@ -171,11 +171,6 @@ end
 -- Works backwards, joining the arguments until it resolves to an absolute path. 
 -- If an absolute path is not resolved, then the current working directory is 
 -- prepended
---
--- Note: To resolve a drive-relative path, the drive-specific current working 
--- directory should be used (stored in the special env variable "=<letter>:"), 
--- but luvit currently does not expose these env vars, so, instead, 
--- drive-relative paths ignore the drive-specific cwd when being resolved
 function Path:resolve(...)
   local paths = {...}
   local resolvedpath = ""
@@ -201,7 +196,12 @@ function Path:resolve(...)
   end
   if not isabsolute then
     if resolveddrive then
-      resolvedpath = self:join(resolveddrive, resolvedpath)
+      local drivecwd = process.env["="..resolveddrive]
+      if drivecwd and self:pathsEqual(drivecwd:sub(1,2), resolveddrive) then
+        resolvedpath = self:join(drivecwd, resolvedpath)
+      else
+        resolvedpath = self:join(resolveddrive, resolvedpath)
+      end
     else
       resolvedpath = self:join(process.cwd(), resolvedpath)
     end

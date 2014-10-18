@@ -419,12 +419,20 @@ assert(path_base.nt:join('D:', 'foo\\bar') == 'D:\\foo\\bar')
 assert(path_base.nt:join('D:drive\\relative', 'foo\\bar') == 'D:drive\\relative\\foo\\bar')
 
 -- test path.resolve
-if not isWindows then
-  assert(path_base.posix:resolve('a/b/c/', '../../..') == process.cwd())
-  assert(path_base.posix:resolve('.') == process.cwd())
-else
-  assert(path_base.nt:resolve('.') == process.cwd())
+if isWindows then
+  -- test drive relative path resolution
+  local current_drive = process.cwd():sub(1,2)
+  local relative_path = "drive\\relative"
+  local drive_relative_path = current_drive..relative_path
+  local resolved_path = path.join(process.cwd(), relative_path)
+  assert(path_base.nt:resolve(drive_relative_path) == resolved_path)
+  -- when the drive-specific cwd env variable does not contain a path, 
+  -- drive-relative paths are resolved as relative to the drive root
+  process.env["="..current_drive] = "not a cwd path"
+  assert(path_base.nt:resolve(drive_relative_path) == current_drive..path.sep..relative_path)
 end
+assert(path.resolve('a/b/c/', '../../..') == process.cwd())
+assert(path.resolve('.') == process.cwd())
 assert(path_base.posix:resolve('/var/lib', '../', 'file/') == '/var/file/')
 assert(path_base.posix:resolve('/var/lib', '/../', 'file/') == '/file/')
 assert(path_base.posix:resolve('/some/dir', '.', '/absolute/') == '/absolute/')
