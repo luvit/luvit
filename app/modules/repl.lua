@@ -83,16 +83,24 @@ return function (stdin, stdout, greeting)
     uv.write(stdout, prompt .. ' ')
   end
 
-  displayPrompt '>'
 
-  uv.read_start(stdin, function (_, err, line)
-    assert(not err, err)
-    if line then
-      local prompt = evaluateLine(line)
-      displayPrompt(prompt)
-    else
-      uv.write(stdout, "\n")
-    end
-  end)
+  local function start()
+    displayPrompt '>'
+
+    uv.read_start(stdin, function (_, err, line)
+      assert(not err, err)
+      if line then
+        local prompt = evaluateLine(line)
+        displayPrompt(prompt)
+      else
+        uv.write(stdout, "\n")
+      end
+    end)
+  end
+
+  return {
+    start = start,
+    evaluateLine = evaluateLine,
+  }
 
 end
