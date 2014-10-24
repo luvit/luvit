@@ -7,7 +7,7 @@ local realRequire = require
 
 -- Requires are relative
 local function requireSystem(options)
-  local loader, finder, generator
+  local loader, fixedLoader, finder, generator
 
   -- All options are optional
   options = options or {}
@@ -38,6 +38,8 @@ local function requireSystem(options)
   function finder(callerPath, modulePath)
     local prefix, format, base, path
     local match, newPath, module, err
+
+    print(callerPath, modulePath)
 
     -- Extract format from modulePath
     format = string.match(modulePath, "#[^#]+$", -10)
@@ -90,8 +92,13 @@ local function requireSystem(options)
         base = pathJoin(base, "..")
         newPath = pathJoin(base, modulesName, path)
         module, err = loader(prefix, newPath, format)
-      until module or base == ""
+      until module or base == "" or base == "/"
+      if not module and prefix ~= "bundle" then
+        -- If it's not found outside the bundle, look there too.
+        module, err = loader("bundle", pathJoin(modulesName, path), format)
+      end
     end
+
 
     if module then
       return module.exports, module.path
@@ -101,8 +108,17 @@ local function requireSystem(options)
   end
 
   -- Common code for loading a module once it's path has been resolved
-  function loader(prefix, path, format, second)
+  function loader(prefix, path, format)
+    local module, err = fixedLoader(prefix, path, format)
+    if module or format == 'raw' then return module, err end
+    module, err = fixedLoader(prefix, path .. '.' .. format, format)
+    if module then return module, err end
+    return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+  end
+
+  function fixedLoader(prefix, path, format)
     local key = prefix .. ":" .. path .. "#" .. format
+    print(key)
     local module = cachedModules[key]
     if module then
       return module
@@ -120,10 +136,7 @@ local function requireSystem(options)
 
     local data, err = readfile(path)
     if not data then
-      if second and not data then
-        return nil, err
-      end
-      return loader(prefix, path .. '.' .. format, format, true)
+      return nil, err
     end
 
     if prefix ~= "fs" then

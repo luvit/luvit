@@ -19,11 +19,10 @@ limitations under the License.
 local luvi = require('luvi')
 local bundle = luvi.bundle
 
--- Manually register a couple modules in lua's require to bootstrap things
-bundle.register("require", "modules/require.lua");
+-- Manually register the require replacement system to bootstrap things
+bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
-local require = require('require')()("bundle:modules/main.lua")
-
+local require = require('luvit-require')()("bundle:modules/main.lua")
 
 local uv = require('uv')
 local utils = require('utils')
@@ -103,7 +102,7 @@ if combo then error("Missing flag value") end
 if startRepl == nil and not script then startRepl = true end
 
 if script then
-  loadfile(luvi.path.join(uv.cwd(), script))(unpack(extra))
+  require(luvi.path.join(uv.cwd(), script))
 end
 
 if startRepl then
