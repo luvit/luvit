@@ -16,19 +16,17 @@ limitations under the License.
 
 --]]
 
-local uv = require('uv')
 local luvi = require('luvi')
 local bundle = luvi.bundle
 
--- Register all modules in "modules" as global modules.
-local files = bundle.readdir("modules")
-for i = 1, #files do
-  local file = files[i]
-  local path = "modules/" .. file
-  local name = string.sub(file, 1, #file - 4)
-  bundle.register(name, path)
-end
+-- Manually register a couple modules in lua's require to bootstrap things
+bundle.register("require", "modules/require.lua");
+bundle.register("utils", "modules/utils.lua");
+-- Upgrade require system in-place
+local require = require('require')()("bundle:modules/main.lua")
 
+
+local uv = require('uv')
 local utils = require('utils')
 
 local startRepl = nil
