@@ -21,7 +21,6 @@ local bundle = luvi.bundle
 
 -- Manually register a couple modules in lua's require to bootstrap things
 bundle.register("require", "modules/require.lua");
-bundle.register("utils", "modules/utils.lua");
 -- Upgrade require system in-place
 local require = require('require')()("bundle:modules/main.lua")
 
