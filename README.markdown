@@ -1,5 +1,44 @@
 # Luvit (Lua + libUV + jIT = pure awesomesauce)
 
+--------------------------------------------------------------------------------
+
+# LUVI INTEGRATION IN PROGRESS
+
+This branch replaces luvit's backend with [luvi][].  This means that most luvit
+development is now done in pure lua and doesn't require a build step to test.
+
+First build and/or install luvi and put it somewhere in your path.  This should
+work on Windows, OSX, or Linux.  Windows binaries can usually be found at
+<https://ci.appveyor.com/project/creationix/luvi/build/artifacts>.
+
+Then grab the `luvi-up` branch of luvit.
+
+```sh
+git clone git@github.com:luvit/luvit.git --branch luvi-up
+cd luvit
+```
+
+Now configure luvi to run this app in dev mode:
+
+```sh
+export LUVI_DIR=`pwd`/app
+```
+
+Or if you're on windows, use `set` to set the `LUVI_DIR` environment variable to
+point to the `app` subfolder in luvit's clone.
+
+Now, whenever you run luvi, it will act as if the code in `app` was zipped and
+appended to it's excutable (it's the bundle).
+
+Run a file to test it
+
+```sh
+cd tests
+luvi test-colors.lua
+```
+
+--------------------------------------------------------------------------------
+
 [![Build Status](https://travis-ci.org/luvit/luvit.svg?branch=master)](https://travis-ci.org/luvit/luvit)
 
 Luvit is an attempt to do something crazy by taking node.js' awesome
@@ -178,3 +217,5 @@ int main(int argc, char *argv[])
   return 0;
 }
 ```
+
+[luvi]: https://github.com/luvit/luvi
