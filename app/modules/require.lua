@@ -162,10 +162,7 @@ local function requireSystem(options)
   end
 
   function formatters.lua (data, module)
-    local fn, err = loadstring(data, module.path)
-    if not fn then
-      return nil, err
-    end
+    local fn = assert(loadstring(data, module.path))
     setfenv(fn, setmetatable({
       [requireName] = generator(module.path),
       module = module,

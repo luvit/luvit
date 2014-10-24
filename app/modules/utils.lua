@@ -79,6 +79,7 @@ function utils.loadColors(n)
   tab       = utils.colorize("Bgreen", "\\t", "green")
   quote     = utils.colorize("Bgreen", '"', "green")
   quote2    = utils.colorize("Bgreen", '"')
+
 end
 
 utils.loadColors()
