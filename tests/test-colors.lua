@@ -33,6 +33,26 @@ require('tap')(function (test)
 
   end)
 
+  test("Smart quotes in string escapes", function ()
+    local data = "It's a wonderful life"
+    local out = dump(data)
+    local stripped = strip(out)
+    print(data, out, dump(stripped))
+    assert(stripped == '"It\'s a wonderful life"')
+
+    data = 'To "quote" or not to "quote"...'
+    out = dump(data)
+    stripped = strip(out)
+    print(data, out, dump(stripped))
+    assert(stripped == '\'To "quote" or not to "quote"...\'')
+
+    data = "I've always liked \"quotes\"."
+    out = dump(data)
+    stripped = strip(out)
+    print(data, out, dump(stripped))
+    assert(stripped == '\'I\\\'ve always liked "quotes".\'')
+  end)
+
   test("Color mode switching", function ()
     local data = {42,true,"A\nstring"}
 
