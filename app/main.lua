@@ -100,9 +100,11 @@ for i = 1, #args do
     if (string.sub(arg, 2, 2) == "-") then
       flag = string.sub(arg, 3)
     else
-      flag = shorts[string.sub(arg, 2)]
+      arg = string.sub(arg, 2)
+      flag = shorts[arg] or arg
     end
-    flags[flag]()
+    local fn = flags[flag] or usage
+    fn()
   else
     script = arg
   end
