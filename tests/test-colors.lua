@@ -1,15 +1,15 @@
 local ffi = require('ffi')
 local utils = require('utils')
 local dump = utils.dump
-utils.initialize(256)
+utils.loadColors(256)
 print("256 utils", dump(utils))
-utils.initialize(16)
+utils.loadColors(16)
 print("16 utils", dump(utils))
-utils.initialize()
+utils.loadColors()
 print("no-color", dump(utils))
 print(dump(dump(utils)))
 
-utils.initialize(16)
+utils.loadColors(16)
 local p = utils.prettyPrint
 
 p{"This is \n\r\t cool \0 right?"}

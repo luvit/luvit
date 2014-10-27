@@ -83,7 +83,6 @@ return function (stdin, stdout, greeting)
     uv.write(stdout, prompt .. ' ')
   end
 
-
   local function start()
     displayPrompt '>'
 
@@ -102,5 +101,4 @@ return function (stdin, stdout, greeting)
     start = start,
     evaluateLine = evaluateLine,
   }
-
 end

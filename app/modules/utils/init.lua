@@ -1,11 +1,10 @@
 local uv = require('uv')
 
-local prettyPrint, dump, strip, color, colorize, initialize
+local prettyPrint, dump, strip, color, colorize, loadColors
 local theme = {}
 local useColors = false
 
-local stdout = assert(uv.new_tty(1, false))
-local width = uv.tty_get_winsize(stdout)
+local stdout, stdin, stderr, width
 
 local quote, quote2, obracket, cbracket, obrace, cbrace, comma, equals, controls
 
@@ -24,7 +23,7 @@ local special = {
   [13] = 'r'
 }
 
-function initialize(index)
+function loadColors(index)
 
   -- Remove the old theme
   for key in pairs(theme) do
@@ -181,13 +180,40 @@ function strip(str)
   return string.gsub(str, '\027%[[^m]*m', '')
 end
 
+if uv.guess_handle(0) == 'TTY' then
+  stdin = assert(uv.new_tty(0, true))
+else
+  stdin = uv.new_pipe(false)
+  uv.pipe_open(stdin, 0)
+end
+if uv.guess_handle(1) == 'TTY' then
+  stdout = assert(uv.new_tty(1, false))
+  width = uv.tty_get_winsize(stdout)
+  -- TODO: auto-detect when 16 color mode should be used
+  loadColors(256)
+else
+  stdout = uv.new_pipe(false)
+  uv.pipe_open(stdout, 1)
+  width = 80
+end
+print(uv.guess_handle(1))
+
+if uv.guess_handle(2) == 'TTY' then
+  stderr = assert(uv.new_tty(2, false))
+else
+  stderr = uv.new_pipe(false)
+  uv.pipe_open(stderr, 2)
+end
+
 return {
-  initialize = initialize,
+  loadColors = loadColors,
   theme = theme,
   print = print,
   prettyPrint = prettyPrint,
   dump = dump,
   color = color,
   colorize = colorize,
+  stdin = stdin,
   stdout = stdout,
+  stderr = stderr,
 }

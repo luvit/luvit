@@ -23,6 +23,7 @@ local bundle = luvi.bundle
 bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
 local require = require('luvit-require')()("bundle:modules/main.lua")
+_G.require = require
 
 local uv = require('uv')
 local utils = require('utils')
@@ -73,7 +74,7 @@ local flags = {
     startRepl = true
   end,
   ["no-color"] = function ()
-    utils.loadColors(false)
+    utils.loadColors()
   end
 }
 
