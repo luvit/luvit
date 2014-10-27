@@ -44,11 +44,11 @@ function loadColors(index)
 
   quote    = colorize('quotes', "'", 'string')
   quote2   = colorize('quotes', "'")
-  obrace   = colorize('braces', '{')
+  obrace   = colorize('braces', '{ ')
   cbrace   = colorize('braces', '}')
   obracket = colorize('property', '[')
   cbracket = colorize('property', ']')
-  comma    = colorize('sep', ',')
+  comma    = colorize('sep', ', ')
   equals   = colorize('sep', ' = ')
 
   controls = {}
@@ -77,86 +77,115 @@ function colorize(colorName, string, resetName)
     tostring(string)
 end
 
+local function stringEscape(c)
+  return controls[string.byte(c, 1)]
+end
+
 function dump(value)
   local seen = {}
+  local output = {}
+  local offset = 0
+  local stack = {}
 
-  local function count(str)
-    return str, #(strip(str))
+  local function recalcOffset(index)
+    for i = index + 1, #output do
+      local m = string.match(output[i], "\n([^\n]*)$")
+      if m then
+        offset = #(strip(m))
+      else
+        offset = offset + #(strip(output[i]))
+      end
+    end
   end
 
-  local function dumper(o, depth)
-    local t = type(o)
-    if t == 'string' then
-      return count(quote .. string.gsub(o, '%c', function (c)
-        return controls[string.byte(c, 1)]
-      end) .. quote2)
-    end
-    if t ~= 'table' or seen[o] then
-      return count(colorize(t, tostring(o)))
-    end
-
-    seen[o] = true
-
-    local parts = {}
-    local sizes = {}
-    local size = 0
+  local function write(text, length)
+    if not length then length = #(strip(text)) end
+    -- Create room for data by opening parent blocks
+    -- Start at the root and go down.
     local i = 1
-    for k, v in pairs(o) do
-      local innerSize = 0
-      local key = ""
-      local extra
-      if k ~= i then
-        if type(k) == "string" and k:find("^[%a_][%a%d_]*$") then
-          key = colorize("property", k) .. equals
-          innerSize = innerSize + #(strip(key))
-        else
-          key, extra = dumper(k, depth + 1)
-          key = obracket .. key .. cbracket .. equals
-          -- +5 for 2 x brackets and equals with 2 x spaces
-          innerSize = innerSize + extra + 5
+    while offset + length > width and stack[i] do
+      local entry = stack[i]
+      if not entry.opened then
+        entry.opened = true
+        table.insert(output, entry.index + 1, "\n" .. string.rep("  ", i))
+        -- Recalculate the offset
+        recalcOffset(entry.index)
+        -- Bump the index of all deeper entries
+        for j = i + 1, #stack do
+          stack[j].index = stack[j].index + 1
         end
       end
-      local part
-      part, extra = dumper(v, depth + 1)
-      innerSize = innerSize + extra
-      parts[i] = key .. part
-      sizes[i] = innerSize
-      size = size + innerSize
       i = i + 1
     end
-    -- (i-2)*2 for commas and spaces between values,
-    --      +4 for braces
-    ---------- reduces to
-    --   i * 2
-    size = size + i * 2
-    local max = width - depth * 2
-    if size <= max then
-      return obrace .. ' ' .. table.concat(parts, comma .. ' ') .. ' ' .. cbrace, size
+    output[#output + 1] = text
+    offset = offset + length
+    if offset > width then
+      dump(stack)
     end
-
-    local lines = {}
-    local line = {}
-    max = max - 3 -- two for indent and 1 for trailing commas
-    local left = max
-    for j = 1, #parts do
-      if left < sizes[j] then
-        if #line > 0 then
-          lines[#lines + 1] = line
-        end
-        left = max
-        line = {}
-      end
-      line[#line + 1] = parts[j]
-      left = left - sizes[j] - 2
-    end
-    for j = 1, #lines do
-      lines[j] = table.concat(lines[j], comma .. " ")
-    end
-
-    return obrace .. '\n  ' .. table.concat(lines, comma .. '\n  ') .. '\n' .. cbrace, size
   end
-  local output = dumper(value, 0)
-  return output
+
+  local function indent()
+    stack[#stack + 1] = {
+      index = #output,
+      opened = false,
+    }
+  end
+
+  local function unindent()
+    stack[#stack] = nil
+  end
+
+  local function process(value)
+    local typ = type(value)
+    if typ == 'string' then
+      write(quote .. string.gsub(value, '%c', stringEscape) .. quote2)
+    elseif typ == 'table' and not seen[value] then
+      seen[value] = true
+      write(obrace)
+      local i = 1
+      -- Count the number of keys so we know when to stop adding commas
+      local total = 0
+      for _ in pairs(value) do total = total + 1 end
+
+      for k, v in pairs(value) do
+        indent()
+        if k == i then
+          -- if the key matches the index, don't show it.
+          -- This is how lists print without keys
+          process(v)
+        else
+          if type(k) == "string" and string.find(k,"^[%a_][%a%d_]*$") then
+            write(colorize("property", k) .. equals)
+          else
+            write(obracket)
+            process(k)
+            write(cbracket .. equals)
+          end
+          if type(v) == "table" then
+            process(v)
+          else
+            indent()
+            process(v)
+            unindent()
+          end
+        end
+        if i < total then
+          write(comma)
+        else
+          write(" ")
+        end
+        i = i + 1
+        unindent()
+      end
+      write(cbrace)
+    else
+      write(colorize(typ, tostring(value)))
+    end
+  end
+
+  process(value)
+
+  return table.concat(output, "")
 end
 
 -- Print replacement that goes through libuv.  This is useful on windows
@@ -186,6 +215,7 @@ else
   stdin = uv.new_pipe(false)
   uv.pipe_open(stdin, 0)
 end
+
 if uv.guess_handle(1) == 'TTY' then
   stdout = assert(uv.new_tty(1, false))
   width = uv.tty_get_winsize(stdout)
@@ -196,7 +226,6 @@ else
   uv.pipe_open(stdout, 1)
   width = 80
 end
-print(uv.guess_handle(1))
 
 if uv.guess_handle(2) == 'TTY' then
   stderr = assert(uv.new_tty(2, false))

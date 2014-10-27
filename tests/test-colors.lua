@@ -1,16 +1,22 @@
 local ffi = require('ffi')
 local utils = require('utils')
 local dump = utils.dump
+local p = utils.prettyPrint
+
 utils.loadColors(256)
-print("256 utils", dump(utils))
-utils.loadColors(16)
-print("16 utils", dump(utils))
-utils.loadColors()
-print("no-color", dump(utils))
-print(dump(dump(utils)))
+print("256 utils")
+p(utils)
 
 utils.loadColors(16)
-local p = utils.prettyPrint
+print("16 utils")
+p(utils)
+
+utils.loadColors()
+print("no-color")
+p(utils)
+p(dump(utils))
+
+utils.loadColors(256)
 
 p{"This is \n\r\t cool \0 right?"}
 p{1, 2, true, false, nil, "Hello"}
@@ -43,3 +49,6 @@ p{
   player = jack,
 }
 
+local cycle = {a="table"}
+cycle.self = cycle
+p(cycle)

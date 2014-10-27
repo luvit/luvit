@@ -39,8 +39,6 @@ local function requireSystem(options)
     local prefix, format, base, path
     local match, newPath, module, err
 
-    print(callerPath, modulePath)
-
     -- Extract format from modulePath
     format = string.match(modulePath, "#[^#]+$", -10)
     if format then
@@ -117,7 +115,6 @@ local function requireSystem(options)
 
   function fixedLoader(prefix, path, format)
     local key = prefix .. ":" .. path .. "#" .. format
-    print(key)
     local module = cachedModules[key]
     if module then
       return module
