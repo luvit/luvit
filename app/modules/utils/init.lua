@@ -248,6 +248,7 @@ return {
   print = print,
   prettyPrint = prettyPrint,
   dump = dump,
+  strip = strip,
   color = color,
   colorize = colorize,
   stdin = stdin,
