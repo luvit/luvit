@@ -233,6 +233,7 @@ else
   stdout = uv.new_pipe(false)
   uv.pipe_open(stdout, 1)
   width = 80
+  loadColors()
 end
 
 if uv.guess_handle(2) == 'TTY' then
