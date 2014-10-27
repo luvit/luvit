@@ -6,7 +6,7 @@ local useColors = false
 
 local stdout, stdin, stderr, width
 
-local quote, quote2, obracket, cbracket, obrace, cbrace, comma, equals, controls
+local quote, quote2, dquote, dquote2, obracket, cbracket, obrace, cbrace, comma, equals, controls
 
 local themes = {
   [16] = require('./theme-16.lua'),
@@ -44,6 +44,8 @@ function loadColors(index)
 
   quote    = colorize('quotes', "'", 'string')
   quote2   = colorize('quotes', "'")
+  dquote    = colorize('quotes', '"', 'string')
+  dquote2   = colorize('quotes', '"')
   obrace   = colorize('braces', '{ ')
   cbrace   = colorize('braces', '}')
   obracket = colorize('property', '[')
@@ -63,7 +65,9 @@ function loadColors(index)
     end
     controls[i] = colorize('escape', '\\' .. c, 'string')
   end
-
+  controls[92] = colorize('escape', '\\\\', 'string')
+  controls[34] = colorize('escape', '\\"', 'string')
+  controls[39] = colorize('escape', "\\'", 'string')
 
 end
 
@@ -138,7 +142,11 @@ function dump(value)
   local function process(value)
     local typ = type(value)
     if typ == 'string' then
-      write(quote .. string.gsub(value, '%c', stringEscape) .. quote2)
+      if string.match(value, "'") and not string.match(value, '"') then
+        write(dquote .. string.gsub(value, '[%c\\]', stringEscape) .. dquote2)
+      else
+        write(quote .. string.gsub(value, "[%c\\']", stringEscape) .. quote2)
+      end
     elseif typ == 'table' and not seen[value] then
       seen[value] = true
       write(obrace)
