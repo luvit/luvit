@@ -43,6 +43,8 @@ Options:
   -e code_chunk       Evaluate code chunk and print result.
   -i, --interactive   Enter interactive repl after executing script.
   -n, --no-color      Disable colors.
+  -c, --16-colors     Use simple ANSI colors
+  -C, --256-colors    Use 256-mode ANSI colors
                       (Note, if no script is provided, a repl is run instead.)
 ]])
   startRepl = false
@@ -59,7 +61,9 @@ local shorts = {
   v = "version",
   e = "eval",
   i = "interactive",
-  n = "no-color"
+  n = "no-color",
+  c = "16-colors",
+  C = "256-colors",
 }
 
 local flags = {
@@ -75,7 +79,13 @@ local flags = {
   end,
   ["no-color"] = function ()
     utils.loadColors()
-  end
+  end,
+  ["16-colors"] = function ()
+    utils.loadColors(16)
+  end,
+  ["256-colors"] = function ()
+    utils.loadColors(256)
+  end,
 }
 
 for i = 1, #args do
@@ -108,7 +118,7 @@ end
 
 if startRepl then
   local c = utils.color
-  local greeting = "Welcome to the " .. c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c() .. " repl!"
+  local greeting = "Welcome to the " .. c("err") .. "L" .. c("quotes") .. "uv" .. c("table") .. "it" .. c() .. " repl!"
   require('repl')(utils.stdin, utils.stdout, greeting, ...).start()
 end
 
