@@ -2,11 +2,17 @@ local uv = require('uv')
 
 local prettyPrint, dump, strip, color, colorize, initialize
 local theme = {}
+local useColors = false
 
 local stdout = assert(uv.new_tty(1, false))
 local width = uv.tty_get_winsize(stdout)
 
 local quote, quote2, obracket, cbracket, obrace, cbrace, comma, equals, controls
+
+local themes = {
+  [16] = require('./theme-16.lua'),
+  [256] = require('./theme-256.lua'),
+}
 
 local special = {
   [7] = 'a',
@@ -18,18 +24,23 @@ local special = {
   [13] = 'r'
 }
 
-function initialize(themeName)
-  themeName = themeName or '256'
-  local newTheme = require('./theme-' .. themeName .. '.lua')
+function initialize(index)
 
   -- Remove the old theme
   for key in pairs(theme) do
     theme[key] = nil
   end
 
-  -- Add the new theme
-  for key in pairs(newTheme) do
-    theme[key] = newTheme[key]
+  if index then
+    local new = themes[index]
+    if not new then error("Invalid theme index: " .. tostring(index)) end
+    -- Add the new theme
+    for key in pairs(new) do
+      theme[key] = new[key]
+    end
+    useColors = true
+  else
+    useColors = false
   end
 
   quote    = colorize('quotes', "'", 'string')
@@ -62,7 +73,9 @@ function color(colorName)
 end
 
 function colorize(colorName, string, resetName)
-  return color(colorName) .. tostring(string) .. color(resetName)
+  return useColors and
+    (color(colorName) .. tostring(string) .. color(resetName)) or
+    tostring(string)
 end
 
 function dump(value)
