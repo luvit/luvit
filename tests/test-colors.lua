@@ -74,7 +74,7 @@ require('tap')(function (test)
   test("Color mode switching", function ()
     local data = {42,true,"A\nstring"}
 
-    utils.loadColors()
+    utils.loadColors(false)
     local plain = dump(data)
     print("plain", plain, dump(plain))
     assert(plain == "{ 42, true, 'A\\nstring' }")
@@ -89,6 +89,7 @@ require('tap')(function (test)
     print("super", super, dump(super))
     assert(super == "\027[38;5;247m{ \027[0m\027[38;5;202m42\027[0m\027[38;5;240m, \027[0m\027[38;5;220mtrue\027[0m\027[38;5;240m, \027[0m\027[38;5;40m'\027[38;5;34mA\027[38;5;46m\\n\027[38;5;34mstring\027[38;5;40m'\027[0m \027[38;5;247m}\027[0m")
 
+    utils.loadColors()
   end)
 
 end)

@@ -4,6 +4,7 @@ local env = require('luvi').env
 local prettyPrint, dump, strip, color, colorize, loadColors
 local theme = {}
 local useColors = false
+local defaultTheme
 
 local stdout, stdin, stderr, width
 
@@ -25,6 +26,7 @@ local special = {
 }
 
 function loadColors(index)
+  if index == nil then index = defaultTheme end
 
   -- Remove the old theme
   for key in pairs(theme) do
@@ -231,16 +233,16 @@ if uv.guess_handle(1) == 'TTY' then
   -- TODO: auto-detect when 16 color mode should be used
   local term = env.get("TERM")
   if term == 'xterm' or term == 'xterm-256color' then
-    loadColors(256)
+    defaultTheme = 256
   else
-    loadColors(16)
+    defaultTheme = 16
   end
 else
   stdout = uv.new_pipe(false)
   uv.pipe_open(stdout, 1)
   width = 80
-  loadColors()
 end
+loadColors()
 
 if uv.guess_handle(2) == 'TTY' then
   stderr = assert(uv.new_tty(2, false))
