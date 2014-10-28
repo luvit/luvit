@@ -1,11 +1,13 @@
 local uv = require('uv')
 local utils = require('utils')
-local dump = utils.dump
 local stdin = utils.stdin
 local stdout = utils.stdout
 local stderr = utils.stderr
+local colorize = utils.colorize
 
-local function protect(...)
+-- Capture output from global print and prefix with two spaces
+local print = _G.print
+_G.print = function (...)
   local n = select('#', ...)
   local arguments = {...}
   for i = 1, n do
@@ -16,18 +18,6 @@ local function protect(...)
   text = "  " .. string.gsub(text, "\n", "\n  ")
   print(text)
 end
-
-local function pprotect(...)
-  local n = select('#', ...)
-  local arguments = { ... }
-
-  for i = 1, n do
-    arguments[i] = dump(arguments[i])
-  end
-
-  protect(table.concat(arguments, "\t"))
-end
-
 
 local tests = {};
 
@@ -42,6 +32,7 @@ local function run()
   for i = 1, #tests do
     local test = tests[i]
     local cwd = uv.cwd()
+    print("\n# Starting Test: " .. colorize("highlight", test.name))
     local pass, err = xpcall(function ()
       local expected = 0
       local function expect(fn, count)
@@ -53,10 +44,6 @@ local function run()
           return ret
         end
       end
-      setfenv(test.fn, setmetatable({
-        print = protect,
-        p = pprotect,
-      }, {__index=_G}))
       test.fn(expect)
       collectgarbage()
       uv.run()
@@ -92,11 +79,11 @@ local function run()
     uv.chdir(cwd)
 
     if pass then
-      print("ok " .. i .. " " .. test.name)
+      print("ok " .. i .. " " .. colorize("success", test.name))
       passed = passed + 1
     else
-      protect(err)
-      print("not ok " .. i .. " " .. test.name)
+      _G.print(colorize("err", err))
+      print("not ok " .. i .. " " .. colorize("failure", test.name))
     end
   end
 

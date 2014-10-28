@@ -16,17 +16,14 @@ limitations under the License.
 
 --]]
 
-p('load fixtures/b/d.lua')
+print('load fixtures/b/d.lua')
 
 local string = 'D'
 
-local exports = {}
 exports.D = function()
   return string
 end
 
-process:on('exit', function()
+_G.onexit(function()
   string = 'D done'
 end)
-
-return exports

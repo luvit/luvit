@@ -1,4 +1,5 @@
 local uv = require('uv')
+local env = require('luvi').env
 
 local prettyPrint, dump, strip, color, colorize, loadColors
 local theme = {}
@@ -228,7 +229,12 @@ if uv.guess_handle(1) == 'TTY' then
   stdout = assert(uv.new_tty(1, false))
   width = uv.tty_get_winsize(stdout)
   -- TODO: auto-detect when 16 color mode should be used
-  loadColors(256)
+  local term = env.get("TERM")
+  if term == 'xterm' or term == 'xterm-256color' then
+    loadColors(256)
+  else
+    loadColors(16)
+  end
 else
   stdout = uv.new_pipe(false)
   uv.pipe_open(stdout, 1)

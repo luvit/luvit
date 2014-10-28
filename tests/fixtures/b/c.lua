@@ -18,17 +18,14 @@ limitations under the License.
 
 local d = require('./d')
 
-require('helper')
-
 local package = require('./package')
 
 assert('world' == package.hello)
 
-p('load fixtures/b/c.lua')
+print('load fixtures/b/c.lua')
 
 local string = 'C'
 
-local exports = {}
 exports.SomeClass = function()
 
 end
@@ -41,9 +38,7 @@ exports.D = function()
   return d.D()
 end
 
-process:on('exit', function()
+_G.onexit(function()
   string = 'C done'
-  p('b/c.lua exit')
+  print('b/c.lua exit')
 end)
-
-return exports

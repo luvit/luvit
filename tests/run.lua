@@ -2,7 +2,7 @@
 
 Copyright 2012 The Luvit Authors. All Rights Reserved.
 
-Licensed under the Apache License, Version 2.0 (the "License")
+Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -16,28 +16,23 @@ limitations under the License.
 
 --]]
 
-local c = require('./b/c')
+local tap = require("tap")
+local uv = require("uv")
 
-print('load fixtures/a.lua')
+local req = uv.fs_scandir("tests")
 
-local string = 'A'
+repeat
+  local ent = uv.fs_scandir_next(req)
 
-exports.SomeClass = c.SomeClass
+  if not ent then
+    -- run the tests!
+    tap(true)
+  end
+  local match = string.match(ent.name, "^test%-(.*).lua$")
+  if match then
+    local path = "./test-" .. match
+    tap(match)
+    require(path)
+  end
+until not ent
 
-exports.A = function()
-  return string
-end
-
-exports.C = function()
-  return c.C()
-end
-
-exports.D = function()
-  return c.D()
-end
-
-exports.number = 42
-
-_G.onexit(function()
-  string = 'A done'
-end)

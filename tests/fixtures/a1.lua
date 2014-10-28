@@ -18,11 +18,10 @@ limitations under the License.
 
 local c = require('./b/c')
 
-p('load fixtures/a.lua')
+print('load fixtures/a.lua')
 
 local string = 'A'
 
-local exports = {}
 exports.SomeClass = c.SomeClass
 
 exports.A = function()
@@ -39,8 +38,6 @@ end
 
 exports.number = 42
 
-process:on('exit', function()
+_G.onexit(function()
   string = 'A done'
 end)
-
-return exports
