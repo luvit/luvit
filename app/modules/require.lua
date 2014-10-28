@@ -106,11 +106,14 @@ local function requireSystem(options)
 
   -- Common code for loading a module once it's path has been resolved
   function loader(prefix, path, format)
-    local module, err = fixedLoader(prefix, path, format)
-    if module or format == 'raw' then return module, err end
-    module, err = fixedLoader(prefix, path .. '.' .. format, format)
-    if module then return module, err end
-    return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+    local module, err
+    if string.find(path, "%."..format.."$") then
+      return fixedLoader(prefix, path, format)
+    else
+      module, err = fixedLoader(prefix, path .. '.' .. format, format)
+      if module then return module, err end
+      return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+    end
   end
 
   function fixedLoader(prefix, path, format)
@@ -142,6 +145,7 @@ local function requireSystem(options)
     module = {
       format = format,
       path = path,
+      dir = pathJoin(path, ".."),
       exports = {}
     }
     cachedModules[key] = module
