@@ -52,23 +52,23 @@ require('tap')(function (test)
   end)
 
   test("Smart quotes in string escapes", function ()
-    local data = "It's a wonderful life"
-    local out = dump(data)
-    local stripped = strip(out)
-    print(data, out, dump(stripped))
-    assert(stripped == '"It\'s a wonderful life"')
+    local tests = {
+      "It's a wonderful life",
+      '"It\'s a wonderful life"',
 
-    data = 'To "quote" or not to "quote"...'
-    out = dump(data)
-    stripped = strip(out)
-    print(data, out, dump(stripped))
-    assert(stripped == '\'To "quote" or not to "quote"...\'')
+      'To "quote" or not to "quote"...',
+      '\'To "quote" or not to "quote"...\'',
 
-    data = "I've always liked \"quotes\"."
-    out = dump(data)
-    stripped = strip(out)
-    print(data, out, dump(stripped))
-    assert(stripped == '\'I\\\'ve always liked "quotes".\'')
+      "I've always liked \"quotes\".",
+      '\'I\\\'ve always liked "quotes".\'',
+    }
+
+    for i = 1, 6, 2 do
+      local out = dump(tests[i])
+      local stripped = strip(out)
+      print(out, dump(stripped))
+      assert(stripped == tests[i + 1])
+    end
   end)
 
   test("Color mode switching", function ()
@@ -76,20 +76,21 @@ require('tap')(function (test)
 
     utils.loadColors(false)
     local plain = dump(data)
+    utils.loadColors()
     print("plain", plain, dump(plain))
     assert(plain == "{ 42, true, 'A\\nstring' }")
 
     utils.loadColors(16)
     local colored = dump(data)
+    utils.loadColors()
     print("colored", colored, dump(colored))
     assert(colored == "\027[1;30m{ \027[0m\027[1;33m42\027[0m\027[1;30m, \027[0m\027[0;33mtrue\027[0m\027[1;30m, \027[0m\027[1;32m'\027[0;32mA\027[1;32m\\n\027[0;32mstring\027[1;32m'\027[0m \027[1;30m}\027[0m")
 
     utils.loadColors(256)
     local super = dump(data)
+    utils.loadColors()
     print("super", super, dump(super))
     assert(super == "\027[38;5;247m{ \027[0m\027[38;5;202m42\027[0m\027[38;5;240m, \027[0m\027[38;5;220mtrue\027[0m\027[38;5;240m, \027[0m\027[38;5;40m'\027[38;5;34mA\027[38;5;46m\\n\027[38;5;34mstring\027[38;5;40m'\027[0m \027[38;5;247m}\027[0m")
-
-    utils.loadColors()
   end)
 
 end)

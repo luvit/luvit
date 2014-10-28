@@ -16,12 +16,13 @@ limitations under the License.
 
 --]]
 
-local requireSystem = require('luvit-require')
 
 require('tap')(function (test)
 
+  local requireSystem = require('luvit-require')
+  local pathJoin = require('luvi').path.join
   local p = require('utils').prettyPrint
-  local base = module.dir .. "/fixtures/fake.lua"
+  local base = pathJoin(module.dir, "fixtures/fake.lua")
 
   test("relative require with extension", function ()
     local require = requireSystem({})(base)

@@ -36,7 +36,6 @@ local function requireSystem(options)
 
   -- Given a callerPath and modulePath return a new modulePath and the raw body
   function finder(callerPath, modulePath)
-    print(callerPath, modulePath)
     local prefix, format, base, path
     local match, newPath, module, err
 
@@ -53,8 +52,13 @@ local function requireSystem(options)
     -- Extract prefix from callerPath
     match = string.match(callerPath, "^[^:]+:")
     if match then
-      base = string.sub(callerPath, #match + 1)
-      prefix = string.sub(match, 1, -2)
+      if string.match(match, "^[A-Z]:$") then
+        prefix = "fs"
+        base = callerPath
+      else
+        base = string.sub(callerPath, #match + 1)
+        prefix = string.sub(match, 1, -2)
+      end
     else
       base = callerPath
     end
@@ -62,16 +66,16 @@ local function requireSystem(options)
     -- Extract prefix from path
     match = string.match(path, "^[^:]+:")
     if match then
-      path = string.sub(path, #match + 1)
-      if string.sub(path, 1, 1) == "." then
-        return nil, "Don't use prefix with relative requires"
+      if string.match(match, "^[A-Z]:$") then
+        prefix = "fs"
+      else
+        path = string.sub(path, #match + 1)
+        if string.sub(path, 1, 1) == "." then
+          return nil, "Don't use prefix with relative requires"
+        end
+        prefix = string.sub(match, 1, -2)
       end
-      prefix = string.sub(match, 1, -2)
     elseif string.sub(path, 1, 1) == '/' then
-      prefix = 'fs'
-    end
-
-    if not prefix then
       prefix = 'fs'
     end
 
@@ -91,7 +95,7 @@ local function requireSystem(options)
         base = pathJoin(base, "..")
         newPath = pathJoin(base, modulesName, path)
         module, err = loader(prefix, newPath, format)
-      until module or base == "" or base == "/" or base == "\\"
+      until module or base == "" or base == "/" or string.match(base, "^[A-Z]:\\$")
       if not module and prefix ~= "bundle" then
         -- If it's not found outside the bundle, look there too.
         module, err = loader("bundle", pathJoin(modulesName, path), format)
@@ -118,7 +122,6 @@ local function requireSystem(options)
   end
 
   function fixedLoader(prefix, path, format)
-    print(prefix, path)
     local key = prefix .. ":" .. path .. "#" .. format
     local module = cachedModules[key]
     if module then
@@ -127,9 +130,7 @@ local function requireSystem(options)
 
     local readfile = readers[prefix]
     if not readfile then
-      -- Absolute windows paths looks like custom prefixes
-      -- But are really fs paths
-      readfile = readers.fs
+      error("Unknown prefix: " .. prefix)
     end
 
     local formatter = formatters[format]
