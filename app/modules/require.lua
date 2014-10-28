@@ -36,6 +36,7 @@ local function requireSystem(options)
 
   -- Given a callerPath and modulePath return a new modulePath and the raw body
   function finder(callerPath, modulePath)
+    print(callerPath, modulePath)
     local prefix, format, base, path
     local match, newPath, module, err
 
@@ -80,7 +81,7 @@ local function requireSystem(options)
       module, err = loader(prefix, newPath, format)
 
     -- Resolve absolute directly
-    elseif string.sub(path, 1, 1) == "/" then
+    elseif string.sub(path, 1, 1) == "/" or string.sub(path, 1, 1) == "\\" then
       newPath = path
       module, err = loader(prefix, newPath, format)
 
@@ -90,7 +91,7 @@ local function requireSystem(options)
         base = pathJoin(base, "..")
         newPath = pathJoin(base, modulesName, path)
         module, err = loader(prefix, newPath, format)
-      until module or base == "" or base == "/"
+      until module or base == "" or base == "/" or base == "\\"
       if not module and prefix ~= "bundle" then
         -- If it's not found outside the bundle, look there too.
         module, err = loader("bundle", pathJoin(modulesName, path), format)
@@ -117,6 +118,7 @@ local function requireSystem(options)
   end
 
   function fixedLoader(prefix, path, format)
+    print(prefix, path)
     local key = prefix .. ":" .. path .. "#" .. format
     local module = cachedModules[key]
     if module then
@@ -125,7 +127,9 @@ local function requireSystem(options)
 
     local readfile = readers[prefix]
     if not readfile then
-      error("Unknown prefix: " .. prefix)
+      -- Absolute windows paths looks like custom prefixes
+      -- But are really fs paths
+      readfile = readers.fs
     end
 
     local formatter = formatters[format]
