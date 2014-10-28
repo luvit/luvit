@@ -117,7 +117,6 @@ require('tap')(function (test)
     assert(e.A() == 'A done')
     assert(e.C() == 'C done')
     assert(e.D() == 'D done')
-    _G.onexit = nil
   end)
 
   test("circular dependencies", function ()
@@ -128,6 +127,18 @@ require('tap')(function (test)
     local child = require('child');
     p(child)
     assert(child.parent.child == child)
+  end)
+
+  test("custom modules folder", function ()
+    local require = requireSystem({
+      modulesName="node_modules",
+    })(base)
+    _G.num_loaded = 0
+    local N = require('moduleN')
+    p(N, _G.num_loaded)
+    assert(_G.num_loaded == 2)
+    assert(N[1] == 'moduleN')
+    assert(N.M[1] == 'moduleM')
   end)
 
 end)

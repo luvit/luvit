@@ -1,0 +1,3 @@
+[submodule "luvi-binaries"]
+	path = luvi-binaries
+	url = https://github.com/luvit/luvi-binaries.git

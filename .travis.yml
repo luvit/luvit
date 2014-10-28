@@ -1,0 +1,12 @@
+language: lua
+
+os:
+  - linux
+  - osx
+
+script:
+  - make test
+
+notifications:
+  email: true
+  irc: "irc.freenode.org#luvit"
