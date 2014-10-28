@@ -235,7 +235,7 @@ end
 if uv.guess_handle(1) == 'TTY' then
   stdout = assert(uv.new_tty(1, false))
   width = uv.tty_get_winsize(stdout)
-  -- TODO: auto-detect when 16 color mode should be used
+  -- auto-detect when 16 color mode should be used
   local term = env.get("TERM")
   if term == 'xterm' or term == 'xterm-256color' then
     defaultTheme = 256
