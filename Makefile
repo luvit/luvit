@@ -18,4 +18,4 @@ test: luvit
 	./luvit tests/run.lua
 
 clean:
-	rm luvit app.zip
+	rm -f luvit app.zip
