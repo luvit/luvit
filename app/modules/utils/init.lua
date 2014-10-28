@@ -1,5 +1,6 @@
 local uv = require('uv')
 local env = require('luvi').env
+local JSON = require('json')
 
 local prettyPrint, dump, strip, color, colorize, loadColors
 local theme = {}
@@ -150,7 +151,10 @@ function dump(value)
       else
         write(quote .. string.gsub(value, "[%c\\']", stringEscape) .. quote2)
       end
+    elseif value == JSON.null then
+      write(colorize("nil", "null"))
     elseif typ == 'table' and not seen[value] then
+
       seen[value] = true
       write(obrace)
       local i = 1
@@ -256,16 +260,14 @@ else
   uv.pipe_open(stderr, 2)
 end
 
-return {
-  loadColors = loadColors,
-  theme = theme,
-  print = print,
-  prettyPrint = prettyPrint,
-  dump = dump,
-  strip = strip,
-  color = color,
-  colorize = colorize,
-  stdin = stdin,
-  stdout = stdout,
-  stderr = stderr,
-}
+exports.loadColors = loadColors
+exports.theme = theme
+exports.print = print
+exports.prettyPrint = prettyPrint
+exports.dump = dump
+exports.strip = strip
+exports.color = color
+exports.colorize = colorize
+exports.stdin = stdin
+exports.stdout = stdout
+exports.stderr = stderr

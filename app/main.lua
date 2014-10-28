@@ -28,6 +28,8 @@ local uv = require('uv')
 local utils = require('utils')
 -- Make print go through libuv for windows colors
 _G.print = utils.print
+-- Register global 'p' for easy pretty printing
+_G.p = utils.prettyPrint
 
 local startRepl = nil
 local combo = nil
