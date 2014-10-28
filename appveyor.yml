@@ -1,0 +1,21 @@
+configuration: Release
+
+matrix:
+    fast_finish: true
+
+install:
+    - cinst 7zip.commandline
+
+build_script:
+    - git submodule update --init
+    - make.bat
+
+test_script:
+    - luvit.exe test\run.lua
+
+artifacts:
+    - path: luvit.exe
+
+notifications:
+    email: true
+    irc: "irc.freenode.org#luvit"

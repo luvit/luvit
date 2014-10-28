@@ -22,11 +22,12 @@ local bundle = luvi.bundle
 -- Manually register the require replacement system to bootstrap things
 bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
-local require = require('luvit-require')()("bundle:modules/main.lua")
-_G.require = require
+_G.require = require('luvit-require')()("bundle:modules/main.lua")
 
 local uv = require('uv')
 local utils = require('utils')
+-- Make print go through libuv for windows colors
+_G.print = utils.print
 
 local startRepl = nil
 local combo = nil
