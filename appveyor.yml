@@ -11,7 +11,7 @@ build_script:
     - make.bat
 
 test_script:
-    - luvit.exe test\run.lua
+    - luvit.exe tests\run.lua
 
 artifacts:
     - path: luvit.exe
