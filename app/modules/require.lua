@@ -79,6 +79,10 @@ local function requireSystem(options)
       prefix = 'fs'
     end
 
+    if not prefix then
+      prefix = 'fs'
+    end
+
     -- Resolve relative directly
     if string.sub(path, 1, 1) == "." then
       newPath = pathJoin(base, "..", path)
