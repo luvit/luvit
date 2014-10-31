@@ -257,6 +257,9 @@ static int luv_udp__send(lua_State* L, int family) {
     abort();
   }
 
+  free(req->data);
+  free(req);
+
   if (rc) {
     uv_err_t err = uv_last_error(luv_get_loop(L));
     return luaL_error(L, "udp_send: %s", uv_strerror(err));
