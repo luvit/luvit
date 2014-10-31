@@ -16,29 +16,6 @@ local function readfile(path)
   error(err)
 end
 
--- Resolve an address and connect
-local function tcpConnect(host, port, callback)
-  local onAddress, onConnect, address
-
-  function onAddress(err, res)
-    assert(not err, err)
-    assert(#res > 0)
-    address = res[1]
-    local client = uv.new_tcp()
-    uv.tcp_nodelay(client, true)
-    uv.tcp_connect(client, address.addr, address.port, onConnect)
-  end
-
-  function onConnect(client, err)
-    callback(err, client, address)
-  end
-
-  uv.getaddrinfo(host, port, {
-    socktype= "STREAM",
-    family = "INET"
-  }, onAddress)
-end
-
 local function noop() end
 
 local function prep(callback)
@@ -61,11 +38,39 @@ local function prep(callback)
   local function wait()
     if data then return unpack(data) end
     waiting = true
-    return coroutine.suspend()
+    return coroutine.yield()
   end
 
   return next, wait
 end
+
+
+-- Resolve an address and connect
+local function tcpConnect(host, port, callback)
+  local next, wait = prep(callback)
+  local onAddress, onConnect, address
+
+  function onAddress(err, res)
+    if err then return next(err) end
+    if #res == 0 then return next("Can't resolve domain " .. host) end
+    address = res[1]
+    local client = uv.new_tcp()
+    uv.tcp_nodelay(client, true)
+    uv.tcp_connect(client, address.addr, address.port, onConnect)
+  end
+
+  function onConnect(client, err)
+    next(err, client, address)
+  end
+
+  uv.getaddrinfo(host, port, {
+    socktype= "STREAM",
+    family = "INET"
+  }, onAddress)
+
+  return wait()
+end
+
 
 local function makeChannel(watermark)
   local length = 0
@@ -126,7 +131,7 @@ local function makeChannel(watermark)
   function channel.take(callback)
     local next, wait = prep(callback)
     if onRead then error("Only one read at a time please") end
-    if type(callback) ~= "function" then
+    if type(next) ~= "function" then
       error("callback must be a function")
     end
     onRead = next
@@ -205,9 +210,6 @@ local function secureChannel(channel)
   local initialized = false
 
   local ctx = openssl.ssl.ctx_new("TLSv1_2")
-  -- TODO: use root ca cert to verify server
-  local xcert = openssl.x509.read(readfile(pathjoin(module.dir, "ca.cer")))
-  p(xcert:parse())
   ctx:set_verify({"none"})
   -- TODO: Make options configurable in secureChannel call
   ctx:options(bit.bor(
@@ -220,7 +222,6 @@ local function secureChannel(channel)
   local process, onPlainText, onCipherText
 
   function onPlainText(err, data)
-    p{plainText=data}
     if err then return output.fail(err) end
     ssl:write(data)
     input.take(onPlainText)
@@ -228,7 +229,6 @@ local function secureChannel(channel)
   end
 
   function onCipherText(err, data)
-    p{cipherText=data}
     if err then return output.fail(err) end
     bin:write(data)
     channel.take(onCipherText)
@@ -238,10 +238,6 @@ local function secureChannel(channel)
   function process()
     if not initialized then
       local success, message = ssl:handshake()
-      p {
-        success = success,
-        message = message,
-      }
       if success then
         initialized = true
         input.take(onPlainText)
@@ -250,7 +246,6 @@ local function secureChannel(channel)
       if bin:pending() > 0 then
         local data = ssl:read()
         if data then
-          p{writePlain=data}
           output.put(data)
         end
       end
@@ -258,7 +253,6 @@ local function secureChannel(channel)
 
     if bout:pending() > 0 then
       local data = bout:read()
-      p{writeCipher=data}
       channel.put(data)
     end
   end
@@ -275,26 +269,35 @@ local function secureChannel(channel)
   }
 end
 
+-- TODO: use root ca cert to verify server
+local xcert = openssl.x509.read(readfile(pathjoin(module.dir, "ca.cer")))
+p(xcert:parse())
 
-print("Connecting to https://luvit.io/")
-tcpConnect("luvit.io", "https", function (err, stream, address)
-  assert(not err, err)
+coroutine.wrap(function ()
+
+  print("Connecting to https://luvit.io/")
+  local stream, address = tcpConnect("luvit.io", "https")
   print("TCP Connected.")
   p {stream=stream,address=address}
 
   print("Establishing secure socket")
   local channel = secureChannel(streamToChannel(stream))
   p {channel=channel}
+
   channel.put("GET / HTTP/1.1\r\n" ..
               "User-Agent: luvit\r\n" ..
               "Host: luvit.io\r\n" ..
               "Accept: *.*\r\n\r\n")
 
-  channel.take(function (err, data)
-    assert(not err, err)
-    p{onRead=data}
-  end)
-end)
+  print("Reading data")
+  local data
+  repeat
+    data = channel.take()
+    p(data)
+  until not data
+
+end)()
+
 
 -- Run the event loop with stack traces in case of errors
 xpcall(uv.run, debug.traceback)
