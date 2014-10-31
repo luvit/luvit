@@ -26,7 +26,7 @@ local function prep(callback)
 
   local waiting, data
 
-  local function next(err, ...)
+  local function fulfill(err, ...)
     assert(not err, err)
     if waiting then
       coroutine.resume(thread, ...)
@@ -41,18 +41,18 @@ local function prep(callback)
     return coroutine.yield()
   end
 
-  return next, wait
+  return fulfill, wait
 end
 
 
 -- Resolve an address and connect
 local function tcpConnect(host, port, callback)
-  local next, wait = prep(callback)
-  local onAddress, onConnect, address
+  local wait, onAddress, onConnect, address
+  callback, wait = prep(callback)
 
   function onAddress(err, res)
-    if err then return next(err) end
-    if #res == 0 then return next("Can't resolve domain " .. host) end
+    if err then return callback(err) end
+    if #res == 0 then return callback("Can't resolve domain " .. host) end
     address = res[1]
     local client = uv.new_tcp()
     uv.tcp_nodelay(client, true)
@@ -60,7 +60,7 @@ local function tcpConnect(host, port, callback)
   end
 
   function onConnect(client, err)
-    next(err, client, address)
+    callback(err, client, address)
   end
 
   uv.getaddrinfo(host, port, {
@@ -76,15 +76,14 @@ local function makeChannel(watermark)
   local length = 0
   local queue = {}
   local channel = {}
-  local onDrain, onRead
-  local err
+  local err, onDrain, onTake
   watermark = watermark or 2
 
   local function check()
     if err then
-      if onRead then
-        local fn = onRead
-        onRead = nil
+      if onTake then
+        local fn = onTake
+        onTake = nil
         fn(err)
       end
       if onDrain then
@@ -93,9 +92,9 @@ local function makeChannel(watermark)
         fn(err)
       end
     else
-      if onRead and length > 0 then
-        local fn = onRead
-        onRead = nil
+      if onTake and length > 0 then
+        local fn = onTake
+        onTake = nil
         local data = queue[length]
         queue[length] = nil
         length = length - 1
@@ -118,23 +117,25 @@ local function makeChannel(watermark)
   end
 
   function channel.drain(callback)
-    local next, wait = prep(callback)
+    local wait
+    callback, wait = prep(callback)
     if onDrain then error("Only one drain at a time please") end
     if type(callback) ~= "function" then
       error("callback must be a function")
     end
-    onDrain = next
+    onDrain = callback
     check()
     return wait()
   end
 
   function channel.take(callback)
-    local next, wait = prep(callback)
-    if onRead then error("Only one read at a time please") end
-    if type(next) ~= "function" then
+    local wait
+    callback, wait = prep(callback)
+    if onTake then error("Only one take at a time please") end
+    if type(callback) ~= "function" then
       error("callback must be a function")
     end
-    onRead = next
+    onTake = callback
     check()
     return wait()
   end
