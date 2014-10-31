@@ -274,30 +274,27 @@ local xcert = openssl.x509.read(readfile(pathjoin(module.dir, "ca.cer")))
 p(xcert:parse())
 
 coroutine.wrap(function ()
-
-  print("Connecting to https://luvit.io/")
   local stream, address = tcpConnect("luvit.io", "https")
-  print("TCP Connected.")
-  p {stream=stream,address=address}
-
-  print("Establishing secure socket")
   local channel = secureChannel(streamToChannel(stream))
-  p {channel=channel}
-
   channel.put("GET / HTTP/1.1\r\n" ..
               "User-Agent: luvit\r\n" ..
               "Host: luvit.io\r\n" ..
               "Accept: *.*\r\n\r\n")
-
-  print("Reading data")
-  local data
-  repeat
-    data = channel.take()
-    p(data)
-  until not data
-
+  p(channel.take())
 end)()
 
+tcpConnect("luvit.io", "https", function (err, stream)
+  assert(not err, err)
+  local channel = secureChannel(streamToChannel(stream))
+  channel.put("GET / HTTP/1.1\r\n" ..
+              "User-Agent: luvit\r\n" ..
+              "Host: luvit.io\r\n" ..
+              "Accept: *.*\r\n\r\n")
+  channel.take(function (err, data)
+    assert(not err, err)
+    p(data)
+  end)
+end)
 
 -- Run the event loop with stack traces in case of errors
 xpcall(uv.run, debug.traceback)
