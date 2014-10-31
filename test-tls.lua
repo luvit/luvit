@@ -88,6 +88,7 @@ local function makeChannel(watermark)
         fn(err)
       end
     else
+      print("onRead", onRead, "onDrain", onDrain, "length", length)
       if onRead and length > 0 then
         local fn = onRead
         onRead = nil
@@ -125,7 +126,7 @@ local function makeChannel(watermark)
 
   function channel.take(callback)
     local next, wait = prep(callback)
-    if onDrain then error("Only one read at a time please") end
+    if onRead then error("Only one read at a time please") end
     if type(callback) ~= "function" then
       error("callback must be a function")
     end
@@ -232,7 +233,7 @@ local function secureChannel(channel)
     p("onCipherText", {err=err,data=data})
     if err then return output.fail(err) end
     bin:write(data)
-    channel:take(onCipherText)
+    channel.take(onCipherText)
     process()
   end
 
@@ -262,7 +263,7 @@ local function secureChannel(channel)
 
   -- Kick off the process
   process()
-  channel:take(onCipherText)
+  channel.take(onCipherText)
 
   return {
     put = input.put,
