@@ -88,7 +88,6 @@ local function makeChannel(watermark)
         fn(err)
       end
     else
-      print("onRead", onRead, "onDrain", onDrain, "length", length)
       if onRead and length > 0 then
         local fn = onRead
         onRead = nil
@@ -159,7 +158,6 @@ local function streamToChannel(stream)
   local onRead, onDrain, onInput, onWrite
 
   function onRead(_, err, chunk)
-    p("onTcpRead", {err=err,chunk=chunk})
     if err then return output.fail(err) end
     if output.put(chunk) or paused then return end
     paused = true
@@ -222,15 +220,15 @@ local function secureChannel(channel)
   local process, onPlainText, onCipherText
 
   function onPlainText(err, data)
-    p("onPlainText", {err=err,data=data})
+    p{plainText=data}
     if err then return output.fail(err) end
-    bout:write(data)
+    ssl:write(data)
     input.take(onPlainText)
     process()
   end
 
   function onCipherText(err, data)
-    p("onCipherText", {err=err,data=data})
+    p{cipherText=data}
     if err then return output.fail(err) end
     bin:write(data)
     channel.take(onCipherText)
@@ -248,15 +246,19 @@ local function secureChannel(channel)
         initialized = true
         input.take(onPlainText)
       end
+    else
+      if bin:pending() > 0 then
+        local data = ssl:read()
+        if data then
+          p{writePlain=data}
+          output.put(data)
+        end
+      end
     end
-    if bin:pending() > 0 then
-      local data = bin:read()
-      p("writing plain", data)
-      output.put(data)
-    end
+
     if bout:pending() > 0 then
       local data = bout:read()
-      p("writing cipher", data)
+      p{writeCipher=data}
       channel.put(data)
     end
   end
@@ -283,10 +285,14 @@ tcpConnect("luvit.io", "https", function (err, stream, address)
   print("Establishing secure socket")
   local channel = secureChannel(streamToChannel(stream))
   p {channel=channel}
-  channel.put("GET / HTTP/1.0\r\n\r\n")
+  channel.put("GET / HTTP/1.1\r\n" ..
+              "User-Agent: luvit\r\n" ..
+              "Host: luvit.io\r\n" ..
+              "Accept: *.*\r\n\r\n")
+
   channel.take(function (err, data)
     assert(not err, err)
-    print("data!", data)
+    p{onRead=data}
   end)
 end)
 
