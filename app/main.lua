@@ -130,6 +130,9 @@ end
 -- Start the event loop
 uv.run()
 
+require('hooks'):emit('process.exit')
+uv.run()
+
 -- When the loop exits, close all uv handles.
 uv.walk(uv.close)
 uv.run()
