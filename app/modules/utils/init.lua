@@ -260,6 +260,15 @@ else
   uv.pipe_open(stderr, 2)
 end
 
+local function bind(fn, ...)
+  local args = {...}
+  if #args == 0 then return fn end
+  return function ()
+    return fn(unpack(args))
+  end
+end
+
+exports.bind = bind
 exports.loadColors = loadColors
 exports.theme = theme
 exports.print = print
