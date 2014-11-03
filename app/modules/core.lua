@@ -16,8 +16,6 @@ limitations under the License.
 
 --]]
 
-local table = require('table')
-
 --[[
 This module is for various classes and utilities that don't need their own
 module.
