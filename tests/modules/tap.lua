@@ -1,8 +1,5 @@
 local uv = require('uv')
 local utils = require('utils')
-local stdin = utils.stdin
-local stdout = utils.stdout
-local stderr = utils.stderr
 local colorize = utils.colorize
 
 -- Capture output from global print and prefix with two spaces
@@ -32,6 +29,10 @@ local function run()
   for i = 1, #tests do
     local test = tests[i]
     local cwd = uv.cwd()
+    local preexisting = {}
+    uv.walk(function (handle)
+      preexisting[handle] = true
+    end)
     print("\n# Starting Test: " .. colorize("highlight", test.name))
     local pass, err = xpcall(function ()
       local expected = 0
@@ -56,7 +57,7 @@ local function run()
       collectgarbage()
       local unclosed = 0
       uv.walk(function (handle)
-        if handle == stdout or handle == stderr or handle == stdin then return end
+        if preexisting[handle] then return end
         unclosed = unclosed + 1
         print("UNCLOSED", handle)
       end)
@@ -72,7 +73,7 @@ local function run()
     -- Flush out any more opened handles
     uv.run()
     uv.walk(function (handle)
-      if handle == stdout or handle == stderr or handle == stdin then return end
+      if preexisting[handle] then return end
       uv.close(handle)
     end)
     uv.run()
