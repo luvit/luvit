@@ -153,10 +153,9 @@ the beginning its parameter list.
 local Emitter = Object:extend()
 core.Emitter = Emitter
 
--- By default, and error events that are not listened for should throw errors
+-- By default, any error events that are not listened for should throw errors
 function Emitter:missingHandlerType(name, ...)
   if name == "error" then
-    local args = {...}
     --error(tostring(args[1]))
     -- we define catchall error handler
     if self ~= process then
@@ -230,8 +229,8 @@ function Emitter:emit(name, ...)
     self:missingHandlerType(name, ...)
     return
   end
-  for i, callback in ipairs(handlers_for_type) do
-    callback(...)
+  for i = 1, #handlers_for_type do
+    handlers_for_type[i](...)
   end
   for i = #handlers_for_type, 1, -1 do
     if not handlers_for_type[i] then
