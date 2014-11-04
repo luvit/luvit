@@ -36,10 +36,12 @@ local function adapt(c, fn, ...)
   end
   local err, data, waiting
   args[nargs + 1] = function (err, ...)
+    p{err=err,args={...},waiting=waiting}
     if waiting then
       if err then
         coroutine.resume(c, nil, err)
       else
+        p("resume", {c=c,args={...}})
         coroutine.resume(c, ...)
       end
     else
@@ -131,22 +133,118 @@ function fs.readSync(fd, size, offset)
   end
   return uv.fs_read(fd, size, offset)
 end
--- function fs.unlink(callback)
--- end
--- function fs.write(callback)
--- end
--- function fs.mkdir(callback)
--- end
--- function fs.mkdtemp(callback)
--- end
--- function fs.rmdir(callback)
--- end
--- function fs.scandir(callback)
--- end
--- function fs.scandirNext(callback)
--- end
--- function fs.stat(callback)
--- end
+function fs.unlink(path, callback)
+  return adapt(callback, uv.fs_unlink, path)
+end
+function fs.unlinkSync(path)
+  return uv.fs_unlink(path)
+end
+function fs.write(fd, data, offset, callback)
+  local ot = type(offset)
+  if (ot == 'function' or ot == 'thread') and
+     (callback == nil) then
+    callback, offset = offset, nil
+  end
+  if offset == nil then
+    -- TODO: allow nil in luv for append position
+    offset = 0
+  end
+  return adapt(callback, uv.fs_write, fd, data, offset)
+end
+function fs.writeSync(fd, data, offset)
+  if offset == nil then
+    -- TODO: allow nil in luv for append position
+    offset = 0
+  end
+  return uv.fs_write(fd, data, offset)
+end
+function fs.mkdir(path, mode, callback)
+  local mt = type(mode)
+  if (mt == 'function' or mt == 'thread') and
+     (callback == nil) then
+    callback, mode = mode, nil
+  end
+  if mode == nil then
+    mode = 511 -- 0777
+  end
+  return adapt(callback, uv.fs_mkdir, path, mode)
+end
+function fs.mkdirSync(path, mode)
+  if mode == nil then
+    mode = 511
+  end
+  return uv.fs_mkdir(path, mode)
+end
+function fs.mkdtemp(template, callback)
+  return adapt(callback, uv.fs_mkdtemp, template)
+end
+function fs.mkdtempSync(template)
+  return uv.fs_mkdtemp(template)
+end
+function fs.rmdir(path, callback)
+  return adapt(callback, uv.fs_rmdir, path)
+end
+function fs.rmdirSync(path)
+  return uv.fs_rmdir(path)
+end
+local function readdir(path, callback)
+  uv.fs_scandir(path, function (err, req)
+    if err then return callback(err) end
+    local files = {}
+    local i = 1
+    while true do
+      local ent = uv.fs_scandir_next(req)
+      if not ent then break end
+      files[i] = ent.name
+      i = i + 1
+    end
+    callback(nil, files)
+  end)
+end
+function fs.readdir(path, callback)
+  return adapt(callback, readdir, path)
+end
+function fs.readdirSync(path)
+  local req = uv.fs_scandir(path)
+  local files = {}
+  local i = 1
+  while true do
+    local ent = uv.fs_scandir_next(req)
+    if not ent then break end
+    files[i] = ent.name
+    i = i + 1
+  end
+  return files
+end
+local function scandir(path, callback)
+  uv.fs_scandir(path, function (err, req)
+    if err then return callback(err) end
+    callback(nil, function ()
+      local ent = uv.fs_scandir_next(req)
+      if ent then
+        return ent.name, ent.type
+      end
+    end)
+  end)
+end
+function fs.scandir(path, callback)
+  return adapt(callback, scandir, path)
+end
+function fs.scandirSync(path)
+  local req = uv.fs_scandir(path)
+  return function ()
+    local ent = uv.fs_scandir_next(req)
+    if ent then
+      return ent.name, ent.type
+    end
+  end
+end
+function fs.stat(path, callback)
+  return adapt(callback, uv.fs_stat, path)
+end
+function fs.statSync(path)
+  return uv.fs_stat(path)
+end
 function fs.fstat(fd, callback)
   return adapt(callback, uv.fs_fstat, fd)
 end

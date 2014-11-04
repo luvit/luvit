@@ -63,4 +63,72 @@ require('tap')(function (test)
     end)()
   end)
 
+  test("file not found", function (expect)
+    fs.stat("bad-path", expect(function (err, stat)
+      p{err=err,stat=stat}
+      assert(not stat)
+      assert(string.match(err, "^ENOENT:"))
+    end))
+  end)
+
+  test("optional args", function (expect)
+    fs.open("bad-path", "r", tonumber("644", 8), expect(function (err)
+      assert(string.match(err, "^ENOENT:"))
+    end))
+    fs.open("bad-path", "r", expect(function (err)
+      assert(string.match(err, "^ENOENT:"))
+    end))
+    fs.open("bad-path", expect(function (err)
+      assert(string.match(err, "^ENOENT:"))
+    end))
+    local _, err
+    _, err = fs.openSync("bad-path", "r", tonumber("644", 8))
+    assert(string.match(err, "^ENOENT:"))
+    _, err = fs.openSync("bad-path", "r")
+    assert(string.match(err, "^ENOENT:"))
+    _, err = fs.openSync("bad-path")
+    assert(string.match(err, "^ENOENT:"))
+  end)
+
+  test("readdir", function (expect)
+    fs.readdir(module.dir, expect(function (err, files)
+      assert(not err, err)
+      p(files)
+      assert(type(files) == 'table')
+      assert(type(files[1] == 'string'))
+    end))
+  end)
+
+  test("readdir sync", function ()
+    local files = assert(fs.readdirSync(module.dir))
+    p(files)
+    assert(type(files) == 'table')
+    assert(type(files[1] == 'string'))
+  end)
+
+  test("scandir callback", function (expect)
+    fs.scandir(module.dir, expect(function (err, it)
+      assert(not err, err)
+      for k, v in it do
+        p{name=k,type=v}
+      end
+    end))
+  end)
+
+  test("scandir coroutine", function (expect)
+    local done = expect(function () end)
+    coroutine.wrap(function ()
+      local thread = coroutine.running()
+      for k,v in fs.scandir(module.dir, thread) do
+        p{name=k,type=v}
+      end
+      done()
+    end)()
+  end)
+
+  test("scandir sync", function ()
+    for k,v in fs.scandirSync(module.dir) do
+      p{name=k,type=v}
+    end
+  end)
 end)
