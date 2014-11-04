@@ -36,4 +36,31 @@ require('tap')(function (test)
     end))
   end)
 
+  test("readfile sync", function ()
+    local fd = assert(fs.openSync(module.path))
+    p{fd=fd}
+    local stat = assert(fs.fstatSync(fd))
+    p(stat)
+    local chunk = assert(fs.readSync(fd, stat.size))
+    assert(stat.size == #chunk)
+    p{chunk=#chunk}
+    fs.closeSync(fd)
+  end)
+
+  test("readfile coroutine", function (expect)
+    local finish = expect(function () end)
+    coroutine.wrap(function ()
+      local thread = coroutine.running()
+      p{thread=thread}
+      local fd = assert(fs.open(module.path, "r", thread))
+      p{fd=fd}
+      local stat = assert(fs.fstat(fd, thread))
+      p(stat)
+      local chunk = assert(fs.read(fd, stat.size, thread))
+      p{chunk=#chunk}
+      assert(fs.close(fd, thread))
+      finish()
+    end)()
+  end)
+
 end)

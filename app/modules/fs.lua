@@ -47,6 +47,7 @@ local function adapt(c, fn, ...)
       c = nil
     end
   end
+  fn(unpack(args))
   if c then
     waiting = true
     return coroutine.yield(c)
