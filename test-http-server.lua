@@ -6,25 +6,32 @@ local httpCodec = require('http-codec').server
 -- Output is response objects
 local function app(write)
   return function (req)
-    local body = "Hello Client\n"
-    local res = {
-      code = 200,
-      headers = {
-        {"Server", "Luvit"},
-        {"Content-Length", #body},
-        {"Content-Type", "text/plain"},
-      }
-    }
-    p {
-      req = req,
-      res = res
-    }
-    -- Send the headers
-    write(res)
-    -- Send the body
-    write(body)
-    -- End the stream
-    write()
+    -- print(req.method, req.path)
+    if req.method == 'GET' and req.path == '/' then
+      local body = "Hello Client\n"
+      -- Send the headers
+      write({
+        code = 200,
+        headers = {
+          {"Server", "Luvit"},
+          {"Content-Length", #body},
+          {"Content-Type", "text/plain"},
+        }
+      })
+      -- Send the body
+      write(body)
+      -- Close the connection
+      write()
+    else
+      write({
+        code = 404,
+        headers = {
+          {"Server", "Luvit"},
+          {"Content-Length", 0}
+        }
+      })
+      write()
+    end
   end
 end
 
@@ -35,8 +42,19 @@ uv.listen(server, 128, function (_, err)
   assert(not err, err)
   local client = uv.new_tcp()
   uv.accept(server, client)
-  uv.read_start(client, httpCodec(app)(function (chunk)
-    uv.write(client, chunk)
-  end))
+  local process = httpCodec(app)(function (chunk)
+    if chunk then
+      uv.write(client, chunk)
+    else
+      uv.close(client)
+    end
+  end)
+  uv.read_start(client, function (_, _, chunk)
+    if not chunk then
+      uv.close(client)
+    else
+      return process(chunk)
+    end
+  end)
 end)
 print("HTTP server listening at http://127.0.0.1:8080/")
