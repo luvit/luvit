@@ -131,4 +131,60 @@ require('tap')(function (test)
       p{name=k,type=v}
     end
   end)
+
+  test('access', function (expect)
+    local left = 3
+    local result = {}
+    local done = expect(function ()
+      p(result)
+      assert(type(result.read) == "boolean")
+      assert(type(result.write) == "boolean")
+      assert(type(result.execute) == "boolean")
+    end)
+    fs.access(module.path, "r", expect(function (err, ok)
+      assert(not err, err)
+      result.read = ok
+      left = left - 1
+      if left == 0 then done() end
+    end))
+    fs.access(module.path, "w", expect(function (err, ok)
+      assert(not err, err)
+      result.write = ok
+      left = left - 1
+      if left == 0 then done() end
+    end))
+    fs.access(module.path, "x", expect(function (err, ok)
+      assert(not err, err)
+      result.execute = ok
+      left = left - 1
+      if left == 0 then done() end
+    end))
+  end)
+
+  test('access coroutine', function ()
+    coroutine.wrap(function ()
+      local thread = coroutine.running()
+      local result = {
+        read = fs.access(module.path, "r", thread),
+        write = fs.access(module.path, "w", thread),
+        execute = fs.access(module.path, "x", thread),
+      }
+      p(result)
+      assert(type(result.read) == "boolean")
+      assert(type(result.write) == "boolean")
+      assert(type(result.execute) == "boolean")
+    end)()
+  end)
+
+  test('access sync', function ()
+    local result = {
+      read = fs.accessSync(module.path, "r"),
+      write = fs.accessSync(module.path, "w"),
+      execute = fs.accessSync(module.path, "x"),
+    }
+    p(result)
+    assert(type(result.read) == "boolean")
+    assert(type(result.write) == "boolean")
+    assert(type(result.execute) == "boolean")
+  end)
 end)

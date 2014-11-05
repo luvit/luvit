@@ -36,12 +36,10 @@ local function adapt(c, fn, ...)
   end
   local err, data, waiting
   args[nargs + 1] = function (err, ...)
-    p{err=err,args={...},waiting=waiting}
     if waiting then
       if err then
         coroutine.resume(c, nil, err)
       else
-        p("resume", {c=c,args={...}})
         coroutine.resume(c, ...)
       end
     else
@@ -251,35 +249,126 @@ end
 function fs.fstatSync(fd)
   return uv.fs_fstat(fd)
 end
--- function fs.lstat(callback)
--- end
--- function fs.rename(callback)
--- end
--- function fs.fsync(callback)
--- end
--- function fs.fdatasync(callback)
--- end
--- function fs.ftruncate(callback)
--- end
--- function fs.sendfile(callback)
--- end
--- function fs.access(callback)
--- end
--- function fs.chmod(callback)
--- end
--- function fs.fchmod(callback)
--- end
--- function fs.utime(callback)
--- end
--- function fs.futime(callback)
--- end
--- function fs.link(callback)
--- end
--- function fs.symlink(callback)
--- end
--- function fs.readlink(callback)
--- end
--- function fs.chown(callback)
--- end
--- function fs.fchown(callback)
--- end
+function fs.lstat(path, callback)
+  return adapt(callback, uv.fs_lstat, path)
+end
+function fs.lstatSync(path)
+  return uv.fs_lstat(path)
+end
+function fs.rename(path, newPath, callback)
+  return adapt(callback, uv.fs_rename, path, newPath)
+end
+function fs.renameSync(path, newPath)
+  return uv.fs_rename(path, newPath)
+end
+function fs.fsync(fd, callback)
+  return adapt(callback, uv.fs_fsync, fd)
+end
+function fs.fsyncSync(fd)
+  return uv.fs_fsync(fd)
+end
+function fs.fdatasync(fd, callback)
+  return adapt(callback, uv.fs_fdatasync, fd)
+end
+function fs.fdatasyncSync(fd)
+  return uv.fs_fdatasync(fd)
+end
+function fs.ftruncate(fd, offset, callback)
+  local ot = type(offset)
+  if (ot == 'function' or ot == 'thread') and
+     (callback == nil) then
+    callback, offset = offset, nil
+  end
+  if offset == nil then
+    offset = 0
+  end
+  return adapt(callback, uv.fs_ftruncate, fd, offset)
+end
+function fs.ftruncateSync(fd, offset)
+  if offset == nil then
+    offset = 0
+  end
+  return uv.fs_ftruncate(fd, offset)
+end
+function fs.sendfile(outFd, inFd, offset, length, callback)
+  return adapt(callback, uv.fs_sendfile, outFd, inFd, offset, length)
+end
+function fs.sendfileSync(outFd, inFd, offset, length)
+  return uv.fs_sendfile(outFd, inFd, offset, length)
+end
+function fs.access(path, flags, callback)
+  local ft = type(flags)
+  if (ft == 'function' or ft == 'thread') and
+     (callback == nil) then
+    callback, flags = flags, nil
+  end
+  if flags == nil then
+    flags = 0
+  end
+  return adapt(callback, uv.fs_access, path, flags)
+end
+function fs.accessSync(path, flags)
+  if flags == nil then
+    flags = 0
+  end
+  return uv.fs_access(path, flags)
+end
+function fs.chmod(path, mode, callback)
+  return adapt(callback, uv.fs_chmod, path, mode)
+end
+function fs.chmodSync(path, mode)
+  return uv.fs_chmod(path, mode)
+end
+function fs.fchmod(fd, mode, callback)
+  return adapt(callback, uv.fs_fchmod, fd, mode)
+end
+function fs.fchmodSync(fd, mode)
+  return uv.fs_fchmod(fd, mode)
+end
+function fs.utime(path, atime, mtime, callback)
+  return adapt(callback, uv.fs_utime, path, atime, mtime)
+end
+function fs.utimeSync(path, atime, mtime)
+  return uv.fs_utime(path, atime, mtime)
+end
+function fs.futime(fd, atime, mtime, callback)
+  return adapt(callback, uv.fs_futime, fd, atime, mtime)
+end
+function fs.futimeSync(fd, atime, mtime)
+  return uv.fs_futime(fd, atime, mtime)
+end
+function fs.link(path, newPath, callback)
+  return adapt(callback, uv.fs_link, path, newPath)
+end
+function fs.linkSync(path, newPath)
+  return uv.fs_link(path, newPath)
+end
+function fs.symlink(path, newPath, options, callback)
+  local ot = type(options)
+  if (ot == 'function' or ot == 'thread') and
+     (callback == nil) then
+    callback, options = options, nil
+  end
+  return adapt(callback, uv.fs_symlink, path, newPath, options)
+end
+function fs.symlinkSync(path, newPath, options)
+  return uv.fs_symlink(path, newPath, options)
+end
+function fs.readlink(path, callback)
+  return adapt(callback, uv.fs_readlink, path)
+end
+function fs.readlinkSync(path)
+  return uv.fs_readlink(path)
+end
+function fs.chown(path, uid, gid, callback)
+  return adapt(callback, uv.fs_chown, path, uid, gid)
+end
+function fs.chownSync(path, uid, gid)
+  return uv.fs_chown(path, uid, gid)
+end
+function fs.fchown(fd, uid, gid, callback)
+  return adapt(callback, uv.fs_fchown, fd, uid, gid)
+end
+function fs.fchownSync(fd, uid, gid)
+  return uv.fs_fchown(fd, uid, gid)
+end
