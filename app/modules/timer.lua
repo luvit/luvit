@@ -16,7 +16,56 @@ limitations under the License.
 
 --]]
 local uv = require('uv')
+local Object = require('core').Object
 local bind = require('utils').bind
+
+-------------------------------------------------------------------------------
+
+local Timer = Object:extend()
+
+function Timer:initialize()
+  self._handle= uv.new_timer()
+  self._active = false
+end
+
+function Timer:_update()
+  self._active = uv.is_active(self._handle)
+end
+
+-- Timer:start(timeout, interval, callback)
+function Timer:start(timeout, interval, callback)
+  uv.timer_start(self._handle, timeout, interval, callback)
+  self:_update()
+end
+
+-- Timer:stop()
+function Timer:stop()
+  uv.timer_stop(self._handle)
+  self:_update()
+end
+
+-- Timer:again()
+function Timer:again()
+  uv.timer_again(self._handle)
+  self:_update()
+end
+
+-- Timer:close()
+function Timer:close()
+  uv.close(self._handle)
+  self:_update()
+end
+
+-- Timer:setRepeat(interval)
+Timer.setRepeat = uv.timer_set_repeat
+
+-- Timer:getRepeat()
+Timer.getRepeat = uv.timer_get_repeat
+
+-- Timer.now
+Timer.now = uv.hrtime
+
+------------------------------------------------------------------------------
 
 function exports.setTimeout(delay, callback, ...)
   local timer = uv.new_timer()
@@ -70,5 +119,138 @@ function exports.setImmediate(callback, ...)
   end
 
   immediateQueue[#immediateQueue + 1] = bind(callback, ...)
+end
 
+------------------------------------------------------------------------------
+
+local TIMEOUT_MAX = 2147483647
+
+local lists = {}
+
+local function init(list)
+  list._idleNext = list
+  list._idlePrev = list
+end
+
+local function peek(list)
+  if list._idlePrev == list then
+    return nil
+  end
+  return list._idlePrev
+end
+
+local function remove(item)
+  if item._idleNext then
+    item._idleNext._idlePrev = item._idlePrev
+  end
+
+  if item._idlePrev then
+    item._idlePrev._idleNext = item._idleNext
+  end
+
+  item._idleNext = nil
+  item._idlePrev = nil
+end
+
+local function shift(list)
+  local elem = list._idlePrev
+  remove(elem)
+  return elem
+end
+
+local function append(list, item)
+  remove(item)
+  item._idleNext = list._idleNext
+  list._idleNext._idlePrev = item
+  item._idlePrev = list
+  list._idleNext = item
+end
+
+local function isEmpty(list)
+  return list._idleNext == list
+end
+
+local expiration
+expiration = function(timer, msecs)
+  return function()
+    local now = Timer.now()
+    while peek(timer) do
+      local elem = peek(timer)
+      local diff = now - elem._idleStart;
+      if ((diff + 1) < msecs) == true then
+        timer:start(msecs - diff, 0, expiration(timer, msecs))
+        return
+      else
+        remove(elem)
+        if elem.emit then
+          elem:emit('timeout')
+        end
+      end
+    end
+
+    -- Remove the timer if it wasn't already
+    -- removed by unenroll
+    local list = lists[msecs]
+    if list and isEmpty(list) then
+      list:stop()
+      list:close()
+      lists[msecs] = nil
+    end
+  end
+end
+
+
+local function _insert(item, msecs)
+  item._idleStart = Timer.now()
+  item._idleTimeout = msecs
+
+  if msecs < 0 then return end
+
+  local list
+
+  if lists[msecs] then
+    list = lists[msecs]
+  else
+    list = Timer:new()
+    init(list)
+    list:start(msecs, 0, expiration(list, msecs))
+    lists[msecs] = list
+  end
+
+  append(list, item)
+end
+
+exports.unenroll = function(item)
+  remove(item)
+  local list = lists[item._idleTimeout]
+  if list and isEmpty(list) then
+    -- empty list
+    list:stop()
+    list:close()
+    lists[item._idleTimeout] = nil
+  end
+  item._idleTimeout = -1
+end
+
+-- does not start the timer, just initializes the item
+exports.enroll = function(item, msecs)
+  if item._idleNext then
+    unenroll(item)
+  end
+  item._idleTimeout = msecs
+  init(item)
+end
+
+-- call this whenever the item is active (not idle)
+exports.active = function(item)
+  local msecs = item._idleTimeout
+  if msecs and msecs >= 0 then
+    local list = lists[msecs]
+    if not list or isEmpty(list) then
+      _insert(item, msecs)
+    else
+      item._idleStart = Timer.now()
+      append(lists[msecs], item)
+    end
+  end
 end
