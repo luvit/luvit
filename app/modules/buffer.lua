@@ -16,10 +16,9 @@ limitations under the License.
 
 --]]
 
-local table = require('table')
 local Object = require('core').Object
-local bit = require('bit')
 local ffi = require('ffi')
+
 ffi.cdef([[
   void *malloc (size_t __size);
   void free (void *__ptr);
