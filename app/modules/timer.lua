@@ -16,7 +16,6 @@ limitations under the License.
 
 --]]
 local uv = require('uv')
-local os = require('os')
 local Object = require('core').Object
 local bind = require('utils').bind
 
