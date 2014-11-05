@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 local core = require("core")
-Object = core.Object
-Emitter = core.Emitter
-instanceof = core.instanceof
+local Object = core.Object
+local Emitter = core.Emitter
+local instanceof = core.instanceof
 
 require('tap')(function (test)
   test("test instanceof", function()

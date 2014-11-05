@@ -18,7 +18,6 @@ limitations under the License.
 
 local net = require('net')
 local uv = require('uv')
-local timer = require('timer')
 
 local function createTestServer(port, host, listenCallback)
   local server = net.createServer(function(client)
@@ -34,94 +33,93 @@ local function createTestServer(port, host, listenCallback)
 end
 
 require('tap')(function (test)
-  test("simple server", function()
+  test("simple server", function(expect)
     local port = 10081
     local host = '127.0.0.1'
     local server
-    server = createTestServer(port, host, function()
+    server = createTestServer(port, host, expect(function()
       local client
-      client = net.createConnection(port, host, function()
-        client:on('data', function(data)
+      client = net.createConnection(port, host, expect(function()
+        client:on('data', expect(function(data)
           assert(#data == 5)
           assert(data == 'hello')
           client:destroy()
           server:close()
-        end)
+        end))
         client:write('hello')
-      end)
-    end)
+      end))
+    end))
   end)
 
-  test("keepalive server", function()
+  test("keepalive server", function(expect)
     local port = 10082
     local host = '127.0.0.1'
     local server
-    server = createTestServer(port, host, function()
+    server = createTestServer(port, host, expect(function()
       local client
-      client = net.createConnection(port, host, function(err)
+      client = net.createConnection(port, host, expect(function(err)
         if err then
           assert(err)
         end
         client:keepalive(true, 10)
         assert(type(client:getsockname()) == 'table')
         assert(client:isConnected() == true)
-        client:on('data', function(data)
+        client:on('data', expect(function(data)
           client:keepalive(true, 10)
           assert(#data == 5)
           assert(data == 'hello')
           client:destroy()
           server:close()
-          if on_done then on_done() end
-        end)
+        end))
         client:write('hello')
-      end)
+      end))
       assert(client:isConnected() == false)
-    end)
+    end))
   end)
 
-  test("nodelay server", function()
+  test("nodelay server", function(expect)
     local port = 10083
     local host = '127.0.0.1'
     local server
-    server = createTestServer(port, host, function()
+    server = createTestServer(port, host, expect(function()
       local client
-      client = net.createConnection(port, host, function(err)
+      client = net.createConnection(port, host, expect(function(err)
         if err then
           assert(err)
         end
         client:nodelay(true)
         assert(type(client:getsockname()) == 'table')
         assert(client:isConnected() == true)
-        client:on('data', function(data)
+        client:on('data', expect(function(data)
           assert(#data == 5)
           assert(data == 'hello')
           client:destroy()
           server:close()
-          if on_done then on_done() end
-        end)
+        end))
         client:write('hello')
-      end)
-    end)
+      end))
+    end))
   end)
 
-  test("timeout client", function()
+  test("timeout client", function(expect)
     local port = 10083
     local host = '127.0.0.1'
     local timeout = 500
     local start = uv.hrtime()
-    local server = net.createServer(function(client) end)
-    server:listen(port, host, function()
+    local server = net.createServer(expect(function() end))
+    server:listen(port, host, expect(function()
       local client
-      client = net.createConnection(port, host, function(err)
+      client = net.createConnection(port, host, expect(function(err)
+        assert(not err, err)
         client:write('hello')
-      end)
-      client:setTimeout(timeout, function()
+      end))
+      client:setTimeout(timeout, expect(function()
         local e = uv.hrtime()
         local elapsed = ((e - start) / 1e9) * 1000
         assert(elapsed > timeout)
         client:destroy()
         server:close()
-      end)
-    end)
+      end))
+    end))
   end)
 end)
