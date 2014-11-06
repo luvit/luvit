@@ -219,13 +219,18 @@ function Socket:destroy(exception, callback)
   self.writable = false
 
   if self._handle then
-     uv.close(self._handle, function()
-       if (exception) then
-         self:emit('error', exception)
-       end
-       self:emit('close')
-     end)
     self:setConnected(false)
+
+    if uv.is_closing(self._handle) then
+      return callback(exception)
+    end
+
+    uv.close(self._handle, function()
+      if (exception) then
+        self:emit('error', exception)
+      end
+      self:emit('close')
+    end)
   end
 end
 
