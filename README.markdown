@@ -4,6 +4,9 @@
 
 # LUVI INTEGRATION IN PROGRESS
 
+[![Build Status](https://travis-ci.org/luvit/luvit.svg?branch=luvi-up)](https://travis-ci.org/luvit/luvit)
+[![Build status](https://ci.appveyor.com/api/projects/status/abs5x9yxw8wm8ld7/branch/luvi-up?svg=true)](https://ci.appveyor.com/project/creationix/luvit/branch/luvi-up)
+
 This branch replaces luvit's backend with [luvi][].  This means that most luvit
 development is now done in pure lua and doesn't require a build step to test.
 
