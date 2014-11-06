@@ -60,7 +60,7 @@ function Socket:write(data, callback)
   end
 
   if self._connecting == true then
-    self._connectQueueSize = self._connectQueueSize + #data 
+    self._connectQueueSize = self._connectQueueSize + #data
     if self._connectQueue then
       table.insert(self._connectQueue, {data, callback})
     else
@@ -75,7 +75,7 @@ end
 function Socket:_write(data, callback)
   timer.active(self)
   self._pendingWriteRequests = self._pendingWriteRequests + 1
-  uv.write(self._handle, data, function(handle, err)
+  uv.write(self._handle, data, function(err)
     if err then
       return self:emit('error', err);
     end
@@ -96,7 +96,7 @@ function Socket:shutdown(callback)
     return
   end
 
-  uv.shutdown(self._handle, function(handle, err)
+  uv.shutdown(self._handle, function(err)
     callback(err)
   end)
 end
@@ -115,7 +115,7 @@ end
 
 function Socket:resume()
   self:setConnected(true)
-  uv.read_start(self._handle, function(handle, err, data)
+  uv.read_start(self._handle, function(err, data)
     if err then
       return self:emit('error', err)
     end
@@ -178,7 +178,7 @@ function Socket:connect(...)
       return callback(err)
     end
     timer.active(self)
-    uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(handle, err)
+    uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
       if err then
         return callback(err)
       end
