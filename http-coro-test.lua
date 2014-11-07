@@ -4,14 +4,15 @@ local uv = require('uv')
 local function app(read, write)
   for req in read do
     p(req)
-    write {
+    print("Writing response headers")
+    write({
       code = 200,
       headers = {
         { "Content-Type", "text/plain" },
         { "Content-Length", #req.url },
         { "Server", "Luvit" },
       }
-    }
+    })
     print("Writing body")
     write(req.url)
   end
@@ -21,7 +22,7 @@ local function chain(...)
   local args = {...}
   local nargs = select("#", ...)
   return function (read, write)
-    threads = {} -- coroutine thread for each item
+    local threads = {} -- coroutine thread for each item
     local waiting = {} -- flag when waiting to pull from upstream
     local boxes = {}   -- storage when waiting to write to downstream
     for i = 1, nargs do
@@ -29,7 +30,10 @@ local function chain(...)
       waiting[i] = false
       local r, w
       if i == 1 then
-        r = read
+        function r(...)
+          print(i .. " calls external read")
+          return read(...)
+        end
       else
         function r()
           local j = i - 1
@@ -38,7 +42,7 @@ local function chain(...)
             local data = boxes[j]
             boxes[j] = nil
             assert(coroutine.resume(threads[j]))
-            return unpack(boxes)
+            return unpack(data)
           else
             print(i .. " wants to read from " .. j)
             waiting[i] = true
@@ -47,7 +51,10 @@ local function chain(...)
         end
       end
       if i == nargs then
-        w = write
+        function w(...)
+          print(i .. " calls external write")
+          return write(...)
+        end
       else
         function w(...)
           local j = i + 1
@@ -62,7 +69,6 @@ local function chain(...)
           end
         end
       end
-      print("rw", i, r, w)
       assert(coroutine.resume(threads[i], r, w))
     end
   end
