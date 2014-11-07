@@ -105,7 +105,6 @@ require('tap')(function (test)
     local port = 10083
     local host = '127.0.0.1'
     local timeout = 500
-    local start = uv.hrtime()
     local server = net.createServer(expect(function() end))
     server:listen(port, host, expect(function()
       local client
@@ -114,9 +113,6 @@ require('tap')(function (test)
         client:write('hello')
       end))
       client:setTimeout(timeout, expect(function()
-        local e = uv.hrtime()
-        local elapsed = ((e - start) / 1e9) * 1000
-        assert(elapsed > timeout)
         client:destroy()
         server:close()
       end))
