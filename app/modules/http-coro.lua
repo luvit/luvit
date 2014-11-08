@@ -18,7 +18,6 @@ local function parser(read, write, isClient)
     local headers = {}
     local contentLength
     local chunkedEncoding
-    local keepAlive
     while true do
       local s = string.find(head, '\r\n', offset, true)
 
@@ -39,7 +38,7 @@ local function parser(read, write, isClient)
           item.method, item.path, item.version = string.match(head, "(%u+) ([^ ]+) HTTP/(%d%.%d)\r\n", offset)
           item.version = tonumber(item.version)
         end
-        keepAlive = item.version >= 1.1
+        item.keepAlive = item.version >= 1.1
         offset = s + 2
 
       -- Parse all other non-empty lines as header key/value pairs
@@ -51,7 +50,7 @@ local function parser(read, write, isClient)
         elseif lowerKey == "transfer-encoding" then
           chunkedEncoding = string.lower(value) == "chunked"
         elseif lowerKey == "connection" then
-          keepAlive = string.lower(value) == "keep-alive"
+          item.keepAlive = string.lower(value) == "keep-alive"
         end
         headers[#headers + 1] = {key, value}
         offset = s + 2
@@ -76,7 +75,7 @@ local function parser(read, write, isClient)
           return readHead(chunk)
         elseif contentLength then
           return countedBody(chunk, contentLength)
-        elseif keepAlive then
+        elseif item.keepAlive then
           return readHead(chunk)
         else
           return rawBody(chunk)

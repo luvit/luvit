@@ -32,14 +32,6 @@ local uv = require('uv')
 
 local function app(read, write)
   for req in read do
-    local keepAlive = req.version >= 1.1
-    for i = 1, #req.headers do
-      local pair = req.headers[i]
-      local key = string.lower(pair[1])
-      if key == "connection" then
-        keepAlive = string.lower(pair[2]) == "keep-alive"
-      end
-    end
     -- print("Writing response headers")
     local body = req.path .. "\n"
     local headers = {
@@ -47,7 +39,7 @@ local function app(read, write)
       { "Content-Type", "text/plain" },
       { "Content-Length", #body },
     }
-    if keepAlive then
+    if req.keepAlive then
       headers[#headers + 1] = { "Connection", "Keep-Alive" }
     end
 
@@ -56,9 +48,9 @@ local function app(read, write)
       headers = headers
     }
     -- print("Writing body")
-    write("out", body)
+    write(body)
 
-    if not keepAlive then
+    if not req.keepAlive then
       break
     end
   end
@@ -113,13 +105,13 @@ end
 
 local server = uv.new_tcp()
 uv.tcp_bind(server, "127.0.0.1", 8080)
-uv.listen(server, 128, function (err)
+uv.listen(server, 1024, function (err)
   assert(not err, err)
   local client = uv.new_tcp()
   local paused = true
   local queue = {}
   local waiting
-  uv.accept(server, client)
+  assert(uv.accept(server, client))
 
   local onRead
 
