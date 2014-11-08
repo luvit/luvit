@@ -77,6 +77,7 @@ function server.encoder(read, write)
       write(table.concat(head))
     end
   end
+  write()
 end
 
 

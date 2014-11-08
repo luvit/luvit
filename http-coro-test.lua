@@ -9,12 +9,12 @@ local function app(read, write)
       code = 200,
       headers = {
         { "Content-Type", "text/plain" },
-        { "Content-Length", #req.url },
+        { "Content-Length", #req.path },
         { "Server", "Luvit" },
       }
     })
     print("Writing body")
-    write(req.url)
+    write(req.path)
   end
 end
 
