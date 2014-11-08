@@ -1,21 +1,68 @@
 local codec = require('http-coro').server
+
+-- local function test(inputs, outputs)
+--   local i = 0
+--   return function ()
+--     i = i + 1
+--     return inputs[i]
+--   end, function (value)
+--     outputs[#outputs + 1] = value
+--   end
+-- end
+
+-- local inputs = {
+--   "GET / HTTP/1.0\r\n",
+--   "User-Agent: Manual-Test\r\n",
+--   "Connection: Keep-Alive\r\n",
+--   "Content-Length: 0\r\n",
+--   "\r\nGET /favicon.ico HTTP/1.1\r\n",
+--   "User-Agent: Manual-Test\r\n",
+--   "Connection: Keep-Alive\r\n",
+--   "\r\n",
+--   "DELETE /bad-file HTTP/1.1\r\n\r\n",
+--   "PUT /myfile HTTP/1.0\r\n",
+--   "\r\nThis is the whole file",
+--   " with lots of data.",
+-- }
+-- local outputs = {}
+-- codec.decoder(test(inputs, outputs))
+-- p(outputs)
+
 local uv = require('uv')
 
 local function app(read, write)
   for req in read do
-    p(req)
-    print("Writing response headers")
-    write({
+    local keepAlive = req.version >= 1.1
+    for i = 1, #req.headers do
+      local pair = req.headers[i]
+      local key = string.lower(pair[1])
+      if key == "connection" then
+        keepAlive = string.lower(pair[2]) == "keep-alive"
+      end
+    end
+    -- print("Writing response headers")
+    local body = req.path .. "\n"
+    local headers = {
+      { "Server", "Luvit" },
+      { "Content-Type", "text/plain" },
+      { "Content-Length", #body },
+    }
+    if keepAlive then
+      headers[#headers + 1] = { "Connection", "Keep-Alive" }
+    end
+
+    write {
       code = 200,
-      headers = {
-        { "Content-Type", "text/plain" },
-        { "Content-Length", #req.path },
-        { "Server", "Luvit" },
-      }
-    })
-    print("Writing body")
-    write(req.path)
+      headers = headers
+    }
+    -- print("Writing body")
+    write("out", body)
+
+    if not keepAlive then
+      break
+    end
   end
+  write()
 end
 
 local function chain(...)
@@ -30,40 +77,30 @@ local function chain(...)
       waiting[i] = false
       local r, w
       if i == 1 then
-        function r(...)
-          print(i .. " calls external read")
-          return read(...)
-        end
+        r = read
       else
         function r()
           local j = i - 1
           if boxes[j] then
-            print(i .. " reads from boxed " .. j)
             local data = boxes[j]
             boxes[j] = nil
             assert(coroutine.resume(threads[j]))
             return unpack(data)
           else
-            print(i .. " wants to read from " .. j)
             waiting[i] = true
             return coroutine.yield()
           end
         end
       end
       if i == nargs then
-        function w(...)
-          print(i .. " calls external write")
-          return write(...)
-        end
+        w = write
       else
         function w(...)
           local j = i + 1
           if waiting[j] then
-            print(i .. " writes to waiting " .. j)
             waiting[j] = false
             assert(coroutine.resume(threads[j], ...))
           else
-            print(i .. " wants to write to " .. j)
             boxes[i] = {...}
             coroutine.yield()
           end
@@ -88,11 +125,9 @@ uv.listen(server, 128, function (err)
 
   local function read()
     if #queue > 0 then
-      print("data read from tcp queue")
       return unpack(table.remove(queue, 1))
     end
     if paused then
-      print("Read requested, resuming tcp read")
       paused = false
       uv.read_start(client, onRead)
     end
@@ -103,27 +138,28 @@ uv.listen(server, 128, function (err)
   function onRead(err, chunk)
     local data = err and {nil, err} or {chunk}
     if waiting then
-      print("Data arrived, feeding to paused reader")
       local thread = waiting
       waiting = nil
       return coroutine.resume(thread, unpack(data))
     end
-    print("Data arrived, putting in queuereader")
     queue[#queue + 1] = data
     if not paused then
-      print("Pausing tcp input")
       paused = true
       uv.read_stop(client)
     end
   end
 
   local function write(chunk)
-    -- TODO: add backpressure by pausing and resuming coroutine
-    -- when write buffer is full.
-    print("Writing to tcp stream")
-    uv.write(client, chunk)
+    if chunk then
+      -- TODO: add backpressure by pausing and resuming coroutine
+      -- when write buffer is full.
+      uv.write(client, chunk)
+    else
+      uv.close(client)
+    end
   end
 
   chain(codec.decoder, app, codec.encoder)(read, write)
 
 end)
+print("Test HTTP server at http://127.0.0.1:8080/")
