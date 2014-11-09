@@ -23,7 +23,7 @@ local client = {}
 exports.server = server
 exports.client = client
 
-local function parser(read, write, isClient)
+local function decoder(read, write, isClient)
 
   local readHead, rawBody, chunkedBody, countedBody
 
@@ -48,11 +48,11 @@ local function parser(read, write, isClient)
       elseif not item then
         item = { headers = headers }
         if isClient then
-          item.version, item.code, item.reason = string.match(head, "HTTP/(%d%.%d) (%d+) (%u+)\r\n", offset)
+          item.version, item.code, item.reason = string.match(head, "^HTTP/(%d%.%d) (%d+) (%u+)\r\n", offset)
           item.version = tonumber(item.version)
           item.code = tonumber(item.code)
         else
-          item.method, item.path, item.version = string.match(head, "(%u+) ([^ ]+) HTTP/(%d%.%d)\r\n", offset)
+          item.method, item.path, item.version = string.match(head, "^(%u+) ([^ ]+) HTTP/(%d%.%d)\r\n", offset)
           item.version = tonumber(item.version)
         end
         item.keepAlive = item.version >= 1.1
@@ -60,7 +60,7 @@ local function parser(read, write, isClient)
 
       -- Parse all other non-empty lines as header key/value pairs
       elseif s > offset then
-        local key, value = string.match(head, "([^:]+): *([^\r]+)\r\n", offset)
+        local key, value = string.match(head, "^([^:]+): *([^\r]+)\r\n", offset)
         local lowerKey = string.lower(key)
         if lowerKey == "content-length" then
           contentLength = tonumber(value)
@@ -127,53 +127,107 @@ local function parser(read, write, isClient)
   end
 
   function chunkedBody(chunk)
-    error("TODO: Implement chunkedEncoding parsing")
+    local match, term
+    while true do
+      match, term = string.match(chunk, "^(%x+)(..)")
+      if match then break end
+      local item = read()
+      assert(type(item) == "string")
+      chunk = chunk .. item
+    end
+    assert(term == "\r\n")
+    local length = tonumber(match, 16)
+    chunk = string.sub(chunk, #match + 3)
+    while #chunk < length + 2 do
+      local item = read()
+      assert(type(item) == "string")
+      chunk = chunk .. item
+    end
+    assert(string.sub(chunk, length + 1, length + 2) == "\r\n")
+    if length > 0 then
+      write(string.sub(chunk, 1, length))
+    end
+    chunk = string.sub(chunk, length + 3)
+    if #chunk == 0 then
+      chunk = read()
+    end
+    if length == 0 then
+      if chunk == nil then
+        return write()
+      else
+        return readHead(chunk)
+      end
+    end
+    return chunkedBody(chunk)
   end
 
   return readHead(read())
 
 end
 
-function server.decoder(read, write)
-  return parser(read, write, false)
-end
+local function encoder(read, write, isClient)
 
-function client.decoder(read, write)
-  return parser(read, write, true)
-end
+  local chunkedEncoding
 
-function server.encoder(read, write)
-  for item in read do
-    if type(item) ~= 'table' then
-      write(item)
+  local function writeHead(item)
+    local head
+    local version = item.version or 1.1
+    if isClient then
+      head = { item.method .. ' ' .. item.path .. ' HTTP/' .. version .. '\r\n' }
     else
-      local head = { 'HTTP/1.1 ' .. item.code .. ' ' .. STATUS_CODES[item.code] .. '\r\n' }
+      local reason = item.reason or STATUS_CODES[item.code]
+      head = { 'HTTP/1.1 ' .. item.code .. ' ' .. reason .. '\r\n' }
+    end
+    if item.headers then
       for i = 1, #item.headers do
-        local pair = item.headers[i]
-        head[#head + 1] = pair[1] .. ': ' .. tostring(pair[2]) .. '\r\n'
+        local key, value = unpack(item.headers[i])
+        local lowerKey = string.lower(key)
+        if lowerKey == "transfer-encoding" then
+          chunkedEncoding = string.lower(value) == "chunked"
+        end
+        head[#head + 1] = key .. ': ' .. tostring(value) .. '\r\n'
       end
-      head[#head + 1] = '\r\n'
-      write(table.concat(head))
+    end
+    head[#head + 1] = '\r\n'
+    write(table.concat(head))
+  end
+
+  for item in read do
+    local t = type(item)
+    if t == "string" then
+      if chunkedEncoding then
+        write(string.format("%x", #item) .. "\r\n" .. item .. "\r\n")
+      else
+        write(item)
+      end
+    else
+      if chunkedEncoding then
+        write("0\r\n\r\n")
+        chunkedEncoding = nil
+      end
+      if t == "table" then
+        writeHead(item)
+      end
     end
   end
   write()
+
 end
 
+function server.decoder(read, write)
+  return decoder(read, write, false)
+end
+
+function client.decoder(read, write)
+  return decoder(read, write, true)
+end
+
+function server.encoder(read, write)
+  return encoder(read, write, false)
+end
 
 function client.encoder(read, write)
-  for item in read do
-    if type(item) ~= 'table' then
-      write(item)
-    else
-      local head = { item.method .. ' ' .. item.path .. ' HTTP/1.1\r\n' }
-      for i = 1, #item.headers do
-        local pair = item.headers[i]
-        head[#head + 1] = pair[1] .. ': ' .. tostring(pair[2]) .. '\r\n'
-      end
-      head[#head + 1] = '\r\n'
-      write(table.concat(head))
-    end
-  end
+  return encoder(read, write, true)
 end
 
 STATUS_CODES = {
