@@ -12,8 +12,8 @@ local stdout, stdin, stderr, width
 local quote, quote2, dquote, dquote2, obracket, cbracket, obrace, cbrace, comma, equals, controls
 
 local themes = {
-  [16] = require('./theme-16.lua'),
-  [256] = require('./theme-256.lua'),
+  [16] = require('./themes/16.lua'),
+  [256] = require('./themes/256.lua'),
 }
 
 local special = {

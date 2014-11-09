@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 local uv = require('uv')
-local httpServer = require('http-codec').server
+local httpServer = require('codecs/http').server
 local codec = require('codec')
 local chain = codec.chain
 local wrapStream = codec.wrapStream
