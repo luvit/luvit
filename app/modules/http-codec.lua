@@ -37,7 +37,6 @@ local function decoder(read, write, isClient)
     local chunkedEncoding
     while true do
       local s = string.find(head, '\r\n', offset, true)
-
       -- If there is no \r\n found, read more data
       if not s then
         chunk = read()
@@ -48,7 +47,7 @@ local function decoder(read, write, isClient)
       elseif not item then
         item = { headers = headers }
         if isClient then
-          item.version, item.code, item.reason = string.match(head, "^HTTP/(%d%.%d) (%d+) (%u+)\r\n", offset)
+          item.version, item.code, item.reason = string.match(head, "^HTTP/(%d%.%d) (%d+) ([^\r]+)\r\n", offset)
           item.version = tonumber(item.version)
           item.code = tonumber(item.code)
         else

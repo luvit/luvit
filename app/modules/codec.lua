@@ -15,8 +15,55 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+local uv = require('uv')
 
-return function (...)
+-- Given a raw uv_stream_t userdara, return coro-friendly read/write functions.
+function exports.wrapStream(socket)
+  local paused = true
+  local queue = {}
+  local waiting
+
+  local onRead
+
+  local function read()
+    if #queue > 0 then
+      return unpack(table.remove(queue, 1))
+    end
+    if paused then
+      paused = false
+      uv.read_start(socket, onRead)
+    end
+    waiting = coroutine.running()
+    return coroutine.yield()
+  end
+
+  function onRead(err, chunk)
+    local data = err and {nil, err} or {chunk}
+    if waiting then
+      local thread = waiting
+      waiting = nil
+      return coroutine.resume(thread, unpack(data))
+    end
+    queue[#queue + 1] = data
+    if not paused then
+      paused = true
+      uv.read_stop(socket)
+    end
+  end
+
+  local function write(chunk)
+    if chunk then
+      -- TODO: add backpressure by pausing and resuming coroutine
+      -- when write buffer is full.
+      uv.write(socket, chunk)
+    else
+      uv.shutdown(socket)
+    end
+  end
+
+  return read, write
+end
+function exports.chain(...)
   local args = {...}
   local nargs = select("#", ...)
   return function (read, write)

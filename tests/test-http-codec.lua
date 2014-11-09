@@ -198,6 +198,12 @@ require('tap')(function (test)
       { method = "GET", path = "/favicon.ico", headers = {
         {"Accept", "*/*"}
       }},
+      { method = "GET", path = "/orgs/luvit", headers = {
+        {"User-Agent", "Luvit Unit Tests"},
+        {"Host", "api.github.com"},
+        {"Accept", "*/*"},
+        {"Authorization", "token 6d2fc6ae08215d69d693f5ca76ea87c7780a4275"},
+      }}
     })
     p(output)
   end)
