@@ -372,3 +372,10 @@ end
 function fs.fchownSync(fd, uid, gid)
   return uv.fs_fchown(fd, uid, gid)
 end
+function fs.readFileSync(path)
+  local fd = fs.openSync(path, "r", "0666")
+  local stat = fs.statSync(path)
+  local chunk = fs.readSync(fd, stat.size)
+  fs.close(fd)
+  return chunk
+end
