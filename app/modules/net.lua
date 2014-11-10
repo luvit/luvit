@@ -95,10 +95,12 @@ function Socket:shutdown(callback)
   if self.destroyed == true then
     return
   end
+  
+  if uv.is_closing(self._handle) then
+    return callback()
+  end
 
-  uv.shutdown(self._handle, function(err)
-    callback(err)
-  end)
+  uv.shutdown(self._handle, callback)
 end
 
 function Socket:nodelay(enable)
@@ -166,6 +168,8 @@ function Socket:connect(...)
     end
   end
 
+  callback = callback or function() end
+
   if not options.host then
     options.host = '0.0.0.0'
   end
@@ -208,10 +212,10 @@ function Socket:connect(...)
 end
 
 function Socket:destroy(exception, callback)
-  if self.destroyed == true then
-    return
+  callback = callback or function() end
+  if self.destroyed == true or self._handle == nil then
+    return callback()
   end
-
   self.destroyed = true
 
   timer.unenroll(self)
@@ -225,12 +229,11 @@ function Socket:destroy(exception, callback)
       return callback(exception)
     end
 
-    uv.close(self._handle, function()
-      if (exception) then
-        self:emit('error', exception)
-      end
-      self:emit('close')
-    end)
+    uv.close(self._handle)
+    self._handle = nil
+    if (exception) then
+      self:emit('error', exception)
+    end
   end
 end
 
