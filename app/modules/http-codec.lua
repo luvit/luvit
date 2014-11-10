@@ -175,7 +175,7 @@ local function encoder(read, write, isClient)
       head = { item.method .. ' ' .. item.path .. ' HTTP/' .. version .. '\r\n' }
     else
       local reason = item.reason or STATUS_CODES[item.code]
-      head = { 'HTTP/1.1 ' .. item.code .. ' ' .. reason .. '\r\n' }
+      head = { 'HTTP/' .. version .. ' ' .. item.code .. ' ' .. reason .. '\r\n' }
     end
     if item.headers then
       for i = 1, #item.headers do
