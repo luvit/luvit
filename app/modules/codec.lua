@@ -22,6 +22,8 @@ function exports.wrapStream(socket)
   local paused = true
   local queue = {}
   local waiting
+  local reading = true
+  local writing = true
 
   local onRead
 
@@ -42,22 +44,38 @@ function exports.wrapStream(socket)
     if waiting then
       local thread = waiting
       waiting = nil
-      return coroutine.resume(thread, unpack(data))
+      assert(coroutine.resume(thread, unpack(data)))
+    else
+      queue[#queue + 1] = data
+      if not paused then
+        paused = true
+        uv.read_stop(socket)
+      end
     end
-    queue[#queue + 1] = data
-    if not paused then
-      paused = true
-      uv.read_stop(socket)
+    if not chunk then
+      reading = false
+      -- Close the whole socket if the writing side is also closed already.
+      if not writing and not uv.is_closing(socket) then
+        uv.close(socket)
+      end
     end
   end
 
   local function write(chunk)
-    if chunk then
+    if chunk == nil then
+      -- Shutdown our side of the socket
+      writing = false
+      if not uv.is_closing(socket) then
+        uv.shutdown(socket)
+        -- Close if we're done reading too
+        if not reading then
+          uv.close(socket)
+        end
+      end
+    else
       -- TODO: add backpressure by pausing and resuming coroutine
       -- when write buffer is full.
       uv.write(socket, chunk)
-    else
-      uv.shutdown(socket)
     end
   end
 

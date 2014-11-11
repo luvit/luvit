@@ -115,6 +115,11 @@ local function app(read, write)
     -- To something with req to process this new request
     print(req.method, req.url)
 
+    -- Consume the request body
+    repeat
+      local chunk = read()
+    until not chunk or chunk == ""
+
     local body = req.path .. "\n"
     local head = {
       code = 200,

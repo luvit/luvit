@@ -21,8 +21,16 @@ limitations under the License.
 -- The loop enables keepalive on the same socket.
 return function (read, write)
   for req in read do
+
+    -- Consume the request body
+    local bodySize = 0
+    repeat
+      local chunk = read()
+      bodySize = bodySize + #chunk
+    until not chunk or chunk == ""
+
     -- print("Writing response headers")
-    local body = req.path .. "\n"
+    local body = req.method .. " " .. req.path .. " " .. bodySize .. "\n"
     local res = {
       code = 200,
       { "Server", "Luvit" },

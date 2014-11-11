@@ -73,24 +73,24 @@ local function decoder(read, write, isClient)
       -- When a double "\r\n\r\n" if found, we're done with the head.
       else
         write(item)
-        local length = #head
-        if length > offset + 1 then
+        if item.keepAlive and not (chunkedEncoding or (contentLength and contentLength > 0)) then
+          write("")
+        end
+
+        if #head > offset + 1 then
           chunk = string.sub(head, offset + 2)
         else
           chunk = read()
-          -- If the connection is closed here, close our end.
-          if chunk == nil then
-            return write()
-          end
         end
 
         if chunkedEncoding then
           return chunkedBody(chunk)
-        elseif contentLength == 0 then
-          return readHead(chunk)
         elseif contentLength then
           return countedBody(chunk, contentLength)
         elseif item.keepAlive then
+          if chunk == nil then
+            return write()
+          end
           return readHead(chunk)
         else
           return rawBody(chunk)
@@ -102,26 +102,40 @@ local function decoder(read, write, isClient)
   function rawBody(chunk)
     while chunk do
       assert(type(chunk) == "string")
-      write(chunk)
+      if #chunk > 0 then
+        write(chunk)
+      end
       chunk = read()
     end
-    write(chunk);
+    write("")
+    write();
   end
 
   function countedBody(chunk, length)
-    while true do
+    while length > 0 do
       assert(type(chunk) == "string")
       length = length - #chunk
       if length < 0 then
+        -- If the start of the next head is in the same chunk, split it.
         write(string.sub(chunk, 1, length - 1))
+        write("")
         return readHead(string.sub(chunk, length))
       elseif length == 0 then
+        -- If it was a clean end, write it...
         write(chunk)
-        return readHead(read())
+        write("")
+        -- And start the next read
+        chunk = read()
+        if chunk ~= nil then
+          return readHead(chunk)
+        end
       else
+        -- If it's just part of the body, write it and continue
         write(chunk)
+        chunk = read()
       end
     end
+    write()
   end
 
   function chunkedBody(chunk)
@@ -142,9 +156,7 @@ local function decoder(read, write, isClient)
       chunk = chunk .. item
     end
     assert(string.sub(chunk, length + 1, length + 2) == "\r\n")
-    if length > 0 then
-      write(string.sub(chunk, 1, length))
-    end
+    write(string.sub(chunk, 1, length))
     chunk = string.sub(chunk, length + 3)
     if #chunk == 0 then
       chunk = read()
@@ -193,7 +205,8 @@ local function encoder(read, write, isClient)
     if t == "string" then
       if chunkedEncoding then
         write(string.format("%x", #item) .. "\r\n" .. item .. "\r\n")
-      else
+        if #item == 0 then chunkedEncoding = nil end
+      elseif #item > 0 then
         write(item)
       end
     else
@@ -203,8 +216,13 @@ local function encoder(read, write, isClient)
       end
       if t == "table" then
         writeHead(item)
+      else
       end
     end
+  end
+  if chunkedEncoding then
+    write("0\r\n\r\n")
+    chunkedEncoding = nil
   end
   write()
 
