@@ -372,6 +372,25 @@ end
 function fs.fchownSync(fd, uid, gid)
   return uv.fs_fchown(fd, uid, gid)
 end
+local function readFile(path, callback)
+  local fd, onStat, onRead
+  fs.open(path, "r", 0600, function (err, result)
+    if err then return callback(err) end
+    fd = result
+    fs.fstat(fd, onStat)
+  end)
+  function onStat(err, stat)
+    if err then return onRead(err) end
+    fs.read(fd, stat.size, 0, onRead)
+  end
+  function onRead(err, chunk)
+    fs.close(fd)
+    return callback(err, chunk)
+  end
+end
+function fs.readFile(path, callback)
+  return adapt(callback, readFile, path)
+end
 function fs.readFileSync(path)
   local fd = assert(fs.openSync(path, "r", 0600))
   local stat, err, chunk
