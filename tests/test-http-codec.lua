@@ -44,10 +44,9 @@ require('tap')(function (test)
     assert(req.method == "GET")
     assert(req.path == "/path")
     assert(req.version == 1.1)
-    local headers = req.headers
-    assert(#headers == 1)
-    assert(headers[1][1] == "User-Agent")
-    assert(headers[1][2] == "Luvit-Test")
+    assert(#req == 1)
+    assert(req[1][1] == "User-Agent")
+    assert(req[1][2] == "Luvit-Test")
   end)
 
   test("http client parser", function ()
@@ -61,10 +60,9 @@ require('tap')(function (test)
     assert(res.code == 200)
     assert(res.reason == "OK")
     assert(res.version == 1.0)
-    local headers = res.headers
-    assert(#headers == 1)
-    assert(headers[1][1] == "User-Agent")
-    assert(headers[1][2] == "Luvit-Test")
+    assert(#res == 1)
+    assert(res[1][1] == "User-Agent")
+    assert(res[1][2] == "Luvit-Test")
   end)
 
   test("http 1.0 Keep-Alive", function ()
@@ -158,9 +156,9 @@ require('tap')(function (test)
 
   test("server encoder - Keepalive", function ()
     local output = testCodec(codec.server.encoder, {
-      { code = 200, headers = {
+      { code = 200,
         {"Content-Length", 12}
-      }},
+      },
       "Hello World\n",
       { code = 304 },
     })
@@ -173,9 +171,9 @@ require('tap')(function (test)
 
   test("server encoder - Chunked Encoding", function ()
     local output = testCodec(codec.server.encoder, {
-      { code = 200, headers = {
+      { code = 200,
         {"Transfer-Encoding", "chunked"}
-      }},
+      },
       "Hello World\n",
       "Another Chunk",
       false,
@@ -192,18 +190,18 @@ require('tap')(function (test)
 
   test("client encoder", function ()
     local output = testCodec(codec.client.encoder, {
-      { method = "GET", path = "/my-resource", headers = {
+      { method = "GET", path = "/my-resource",
         {"Accept", "*/*"}
-      }},
-      { method = "GET", path = "/favicon.ico", headers = {
+      },
+      { method = "GET", path = "/favicon.ico",
         {"Accept", "*/*"}
-      }},
-      { method = "GET", path = "/orgs/luvit", headers = {
+      },
+      { method = "GET", path = "/orgs/luvit",
         {"User-Agent", "Luvit Unit Tests"},
         {"Host", "api.github.com"},
         {"Accept", "*/*"},
         {"Authorization", "token 6d2fc6ae08215d69d693f5ca76ea87c7780a4275"},
-      }}
+      }
     })
     p(output)
   end)

@@ -23,19 +23,17 @@ return function (read, write)
   for req in read do
     -- print("Writing response headers")
     local body = req.path .. "\n"
-    local headers = {
+    local res = {
+      code = 200,
       { "Server", "Luvit" },
       { "Content-Type", "text/plain" },
       { "Content-Length", #body },
     }
     if req.keepAlive then
-      headers[#headers + 1] = { "Connection", "Keep-Alive" }
+      res[#res + 1] = { "Connection", "Keep-Alive" }
     end
 
-    write {
-      code = 200,
-      headers = headers
-    }
+    write(res)
     -- print("Writing body")
     write(body)
 

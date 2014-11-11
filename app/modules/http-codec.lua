@@ -32,7 +32,6 @@ local function decoder(read, write, isClient)
     local head = chunk
     local item
     local offset = 1
-    local headers = {}
     local contentLength
     local chunkedEncoding
     while true do
@@ -45,7 +44,7 @@ local function decoder(read, write, isClient)
 
       -- If this is the first line, parse it special
       elseif not item then
-        item = { headers = headers }
+        item = {}
         if isClient then
           item.version, item.code, item.reason = string.match(head, "^HTTP/(%d%.%d) (%d+) ([^\r]+)\r\n", offset)
           item.version = tonumber(item.version)
@@ -68,7 +67,7 @@ local function decoder(read, write, isClient)
         elseif lowerKey == "connection" then
           item.keepAlive = string.lower(value) == "keep-alive"
         end
-        headers[#headers + 1] = {key, value}
+        item[#item + 1] = {key, value}
         offset = s + 2
 
       -- When a double "\r\n\r\n" if found, we're done with the head.
@@ -177,15 +176,13 @@ local function encoder(read, write, isClient)
       local reason = item.reason or STATUS_CODES[item.code]
       head = { 'HTTP/' .. version .. ' ' .. item.code .. ' ' .. reason .. '\r\n' }
     end
-    if item.headers then
-      for i = 1, #item.headers do
-        local key, value = unpack(item.headers[i])
-        local lowerKey = string.lower(key)
-        if lowerKey == "transfer-encoding" then
-          chunkedEncoding = string.lower(value) == "chunked"
-        end
-        head[#head + 1] = key .. ': ' .. tostring(value) .. '\r\n'
+    for i = 1, #item do
+      local key, value = unpack(item[i])
+      local lowerKey = string.lower(key)
+      if lowerKey == "transfer-encoding" then
+        chunkedEncoding = string.lower(value) == "chunked"
       end
+      head[#head + 1] = key .. ': ' .. tostring(value) .. '\r\n'
     end
     head[#head + 1] = '\r\n'
     write(table.concat(head))

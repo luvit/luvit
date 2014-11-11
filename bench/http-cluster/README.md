@@ -116,20 +116,18 @@ local function app(read, write)
     print(req.method, req.url)
 
     local body = req.path .. "\n"
-    local headers = {
+    local head = {
+      code = 200,
       { "Server", "Luvit" },
       { "Content-Type", "text/plain" },
       { "Content-Length", #body },
     }
     if req.keepAlive then
-      headers[#headers + 1] = { "Connection", "Keep-Alive" }
+      head[#head + 1] = { "Connection", "Keep-Alive" }
     end
 
     -- Write the response headers and body
-    write {
-      code = 200,
-      headers = headers
-    }
+    write(head)
     write(body)
 
     -- If the request didn't support keepalive, we should break the loop
