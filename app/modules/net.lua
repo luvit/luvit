@@ -181,6 +181,9 @@ function Socket:connect(...)
     if err then
       return callback(err)
     end
+    if not self._handle then
+      return
+    end
     timer.active(self)
     uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
       if err then
