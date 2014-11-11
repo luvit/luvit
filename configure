@@ -185,9 +185,9 @@ def render_openssl_symlinks(src, dest):
 if sys.platform == "win32":
     render_openssl_symlinks('deps/openssl/openssl/include/openssl',
         'deps/openssl/openssl-configs/realized/openssl')
-    code = os.system("python tools\gyp_luvit -f msvs -G msvs_version=auto")
+    code = os.system("python tools\gyp_luvit.py -f msvs -G msvs_version=auto")
 else:
-    code = os.system("tools/gyp_luvit")
+    code = os.system("tools/gyp_luvit.py")
 
 if code == 0:
     print ""
