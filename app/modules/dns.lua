@@ -24,7 +24,7 @@ local timer = require('timer')
 local Error = require('core').Error
 local bit = require('bit')
 
-local rand = math.random
+local crypto = require('lcrypto')
 local char = string.char
 local byte = string.byte
 local find = string.find
@@ -32,11 +32,11 @@ local gsub = string.gsub
 local sub = string.sub
 local format = string.format
 local band = bit.band
+local bor = bit.bor
 local rshift = bit.rshift
 local lshift = bit.lshift
 local insert = table.insert
 local concat = table.concat
-local randomseed = math.randomseed
 local setmetatable = setmetatable
 local type = type
 
@@ -72,7 +72,8 @@ local resolver_errstrs = {
 
 ]]--
 local function _gen_id(self)
-  return rand(0, 65535)   -- two bytes
+  local bytes = crypto.randomBytes(2)
+  return bor(lshift(bytes:byte(1), 8), band(bytes:byte(2), 0xff))
 end
 
 --[[
