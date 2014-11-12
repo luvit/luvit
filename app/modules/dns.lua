@@ -541,10 +541,12 @@ local function parse_response(buf, id)
 end
 
 local function _query(name, dnsclass, qtype, callback)
-  local tries = 1
-  local max_tries = 5
+  local tries, max_tries, server, tcp_iter, udp_iter, get_server_iter
 
-  local function get_server_iter()
+  tries = 1
+  max_tries = 5
+
+  get_server_iter = function()
     local i = 1
     return function()
       i = ((i + 1) % #SERVERS) + 1
@@ -552,68 +554,82 @@ local function _query(name, dnsclass, qtype, callback)
     end
   end
 
-  local server = get_server_iter()
+  server = get_server_iter()
 
-  local tcp_iter
   tcp_iter = function()
+    local srv, id, req, len, len_hi, len_lo, sock
+    local onTimeout, onConnect, onData
+
     tries = tries + 1
     if tries > max_tries then
       return callback(Error:new('Maximum attempts reached'))
     end
 
-    local srv = server()
-    local id = _gen_id()
-    local req = _build_request(name, id, false, { qtype = qtype })
+    srv = server()
+    id = _gen_id()
+    req = _build_request(name, id, false, { qtype = qtype })
     req = table.concat(req, "")
-    local len = #req
-    local len_hi = char(rshift(len, 8))
-    local len_lo = char(band(len, 0xff))
-    local sock = net.Socket:new()
-    sock:setTimeout(TIMEOUT, function()
+    len = #req
+    len_hi = char(rshift(len, 8))
+    len_lo = char(band(len, 0xff))
+
+    onTimeout = function()
       sock:destroy()
       timer.setImmediate(tcp_iter)
-    end)
-    sock:connect(srv.port, srv.host, function(err)
+    end
+
+    onConnect = function(err)
       if err then
         sock:destroy()
         return timer.setImmediate(tcp_iter)
       end
       sock:write(table.concat({len_hi, len_lo, req}))
-    end)
-    sock:on('data', function(msg)
-      local len_hi = byte(msg, 1)
-      local len_lo = byte(msg, 2)
-      local len = lshift(len_hi, 8) + len_lo
+    end
+
+    onData = function(msg)
+      local len_hi, len_lo, len, answers, err
+
+      len_hi = byte(msg, 1)
+      len_lo = byte(msg, 2)
+      len = lshift(len_hi, 8) + len_lo
 
       assert(#msg - 2 == len)
 
       sock:destroy()
 
-      local answers, err = parse_response(msg:sub(3), id)
+      answers, err = parse_response(msg:sub(3), id)
       if not answers then
         timer.setImmediate(tcp_iter)
       else
         callback(nil, answers)
       end
-    end)
+    end
+
+    sock = net.Socket:new()
+    sock:setTimeout(TIMEOUT, onTimeout)
+    sock:connect(srv.port, srv.host, onConnect)
+    sock:on('data', onData)
   end
 
-  local udp_iter
   udp_iter = function()
+    local srv, id, req, sock, onTimeout, onMessage
+
     tries = tries + 1
     if tries > max_tries then
       return callback(Error:new('Maximum attempts reached'))
     end
-    local srv = server()
-    local id = _gen_id()
-    local req = _build_request(name, id, false, { qtype = qtype })
-    local sock = dgram.createSocket()
-    sock:send(table.concat(req), srv.host, srv.port)
-    sock:setTimeout(TIMEOUT, function()
+
+    srv = server()
+    id = _gen_id()
+    req = _build_request(name, id, false, { qtype = qtype })
+    sock = dgram.createSocket()
+
+    onTimeout = function()
       sock:close()
       timer.setImmediate(udp_iter)
-    end)
-    sock:on('message', function(msg)
+    end
+
+    onMessage = function(msg)
       sock:close()
       answers, err = parse_response(msg, id)
       if answers then
@@ -625,7 +641,11 @@ local function _query(name, dnsclass, qtype, callback)
           timer.setImmediate(udp_iter)
         end
       end
-    end)
+    end
+    
+    sock:send(table.concat(req), srv.host, srv.port)
+    sock:setTimeout(TIMEOUT, onTimeout)
+    sock:on('message', onMessage)
   end
 
   if server().tcp then
