@@ -18,9 +18,11 @@ limitations under the License.
 
 local uv = require('uv')
 local Emitter = require('core').Emitter
+local timer = require('timer')
 
 local function start_listening(self)
   uv.udp_recv_start(self._handle, function(err, msg, rinfo, flags)
+    timer.active(self)
     if err then
       self:emit('error', err)
     else
@@ -38,7 +40,20 @@ function Socket:initialize(type, callback)
   start_listening(self)
 end
 
+function Socket:setTimeout(msecs, callback)
+  if msecs > 0 then
+    timer.enroll(self, msecs)
+    timer.active(self)
+    if callback then
+      self:once('timeout', callback)
+    end
+  elseif msecs == 0 then
+    timer.unenroll(self)
+  end
+end
+
 function Socket:send(data, host, port, callback)
+  timer.active(self)
   uv.udp_send(self._handle, data, host, port, callback)
 end
 
@@ -51,6 +66,10 @@ function Socket:bind(host, port, options, callback)
 end
 
 function Socket:close(callback)
+  timer.unenroll(self)
+  if not self._handle then
+    return
+  end
   uv.close(self._handle, callback)
   self._handle = nil
 end

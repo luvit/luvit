@@ -40,14 +40,15 @@ local concat = table.concat
 local setmetatable = setmetatable
 local type = type
 
-local SERVERS = {
+local DEFAULT_SERVERS = {
   {
     ['host'] = '8.8.8.8',
     ['port'] = 53
   },
 }
-
-local DEFAULT_TIMEOUT = 5000   -- 5 seconds
+local SERVERS = DEFAULT_SERVERS
+local DEFAULT_TIMEOUT = 2000   -- 2 seconds
+local TIMEOUT = DEFAULT_TIMEOUT
 
 local TYPE_A      = 1
 local TYPE_NS     = 2
@@ -538,6 +539,7 @@ local function _query(name, dnsclass, qtype, callback)
 
   local function get_server_iter()
     local i = 1
+    p(SERVERS)
     return function()
       i = ((i + 1) % #SERVERS) + 1
       return SERVERS[i]
@@ -545,6 +547,7 @@ local function _query(name, dnsclass, qtype, callback)
   end
 
   local server = get_server_iter()
+  p(server())
 
   local udp_iter
   udp_iter = function()
@@ -558,6 +561,10 @@ local function _query(name, dnsclass, qtype, callback)
     local req = _build_request(name, id, false, { qtype = qtype })
     local sock = dgram.createSocket()
     sock:send(req, srv.host, srv.port)
+    sock:setTimeout(TIMEOUT, function()
+      sock:close()
+      timer.setImmediate(udp_iter)
+    end)
     sock:on('message', function(msg)
       sock:close()
       answers, err = parse_response(msg, id)
@@ -602,4 +609,16 @@ end
 
 exports.setServers = function(servers)
   SERVERS = servers
+end
+
+exports.setTimeout = function(timeout)
+  TIMEOUT = timeout
+end
+
+exports.setDefaultTimeout = function()
+  TIMEOUT = DEFAULT_TIMEOUT
+end
+
+exports.setDefaultServers = function()
+  SERVERS = DEFAULT_SERVERS
 end
