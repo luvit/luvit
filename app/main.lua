@@ -19,6 +19,8 @@ limitations under the License.
 local luvi = require('luvi')
 local bundle = luvi.bundle
 
+require('math').randomseed(require('os').clock())
+
 -- Manually register the require replacement system to bootstrap things
 bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
