@@ -564,7 +564,7 @@ local function _query(name, dnsclass, qtype, callback)
       if answers then
         callback(nil, answers)
       else
-        timer.setImmediate(udp_iter())
+        timer.setImmediate(udp_iter)
       end
     end)
   end
