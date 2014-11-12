@@ -117,13 +117,12 @@ if combo then error("Missing flag value") end
 
 if startRepl == nil and not script then startRepl = true end
 
-local function init()
+-- Seed Lua's RNG
+do
   local math = require('math')
   local os = require('os')
   math.randomseed(os.clock())
 end
-
-init()
 
 if script then
   require(luvi.path.join(uv.cwd(), script))
