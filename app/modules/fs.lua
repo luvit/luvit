@@ -16,48 +16,8 @@ limitations under the License.
 
 --]]
 local uv = require('uv')
+local adapt = require('utils').adapt
 local fs = exports
-
-local function noop(err)
-  if err then print("Unhandled callback error", err) end
-end
-
-local function adapt(c, fn, ...)
-  local nargs = select('#', ...)
-  local args = {...}
-  -- No continuation defaults to noop callback
-  if not c then c = noop end
-  local t = type(c)
-  if t == 'function' then
-    args[nargs + 1] = c
-    return fn(unpack(args))
-  elseif t ~= 'thread' then
-    error("Illegal continuation type " .. t)
-  end
-  local err, data, waiting
-  args[nargs + 1] = function (err, ...)
-    if waiting then
-      if err then
-        coroutine.resume(c, nil, err)
-      else
-        coroutine.resume(c, ...)
-      end
-    else
-      error, data = err, {...}
-      c = nil
-    end
-  end
-  fn(unpack(args))
-  if c then
-    waiting = true
-    return coroutine.yield(c)
-  elseif err then
-    return nil, err
-  else
-    return unpack(data)
-  end
-end
-
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
