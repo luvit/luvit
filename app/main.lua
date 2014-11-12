@@ -19,8 +19,6 @@ limitations under the License.
 local luvi = require('luvi')
 local bundle = luvi.bundle
 
-require('math').randomseed(require('os').clock())
-
 -- Manually register the require replacement system to bootstrap things
 bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
@@ -118,6 +116,14 @@ end
 if combo then error("Missing flag value") end
 
 if startRepl == nil and not script then startRepl = true end
+
+local function init()
+  local math = require('math')
+  local os = require('os')
+  math.randomseed(os.clock())
+end
+
+init()
 
 if script then
   require(luvi.path.join(uv.cwd(), script))
