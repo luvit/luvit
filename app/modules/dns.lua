@@ -20,10 +20,11 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 local dgram = require('dgram')
+local net = require('net')
 local timer = require('timer')
 local Error = require('core').Error
-local bit = require('bit')
 
+local bit = require('bit')
 local crypto = require('lcrypto')
 local char = string.char
 local byte = string.byte
@@ -43,7 +44,8 @@ local type = type
 local DEFAULT_SERVERS = {
   {
     ['host'] = '8.8.8.8',
-    ['port'] = 53
+    ['port'] = 53,
+    ['tcp'] = false
   },
 }
 local SERVERS = DEFAULT_SERVERS
@@ -177,10 +179,10 @@ local function _build_request(qname, id, no_recurse, opts)
 
   local name = gsub(qname, "([^.]+)%.?", _encode_name) .. '\0'
 
-  return table.concat({
+  return {
     ident_hi, ident_lo, flags, nqs, nan, nns, nar,
     name, typ, class
-  })
+  }
 end
 
 local function parse_response(buf, id)
@@ -199,7 +201,6 @@ local function parse_response(buf, id)
 
   if ans_id ~= id then
     -- identifier mismatch and throw it away
-    log(DEBUG, "id mismatch in the DNS reply: ", ans_id, " ~= ", id)
     return nil, "id mismatch"
   end
 
@@ -539,7 +540,6 @@ local function _query(name, dnsclass, qtype, callback)
 
   local function get_server_iter()
     local i = 1
-    p(SERVERS)
     return function()
       i = ((i + 1) % #SERVERS) + 1
       return SERVERS[i]
@@ -547,10 +547,9 @@ local function _query(name, dnsclass, qtype, callback)
   end
 
   local server = get_server_iter()
-  p(server())
 
-  local udp_iter
-  udp_iter = function()
+  local tcp_iter
+  tcp_iter = function()
     tries = tries + 1
     if tries > max_tries then
       return callback(Error:new('Maximum attempts reached'))
@@ -559,8 +558,51 @@ local function _query(name, dnsclass, qtype, callback)
     local srv = server()
     local id = _gen_id()
     local req = _build_request(name, id, false, { qtype = qtype })
+    req = table.concat(req, "")
+    local len = #req
+    local len_hi = char(rshift(len, 8))
+    local len_lo = char(band(len, 0xff))
+    local sock = net.Socket:new()
+    sock:setTimeout(TIMEOUT, function()
+      sock:destroy()
+      timer.setImmediate(tcp_iter)
+    end)
+    sock:connect(srv.port, srv.host, function(err)
+      if err then
+        sock:destroy()
+        return timer.setImmediate(tcp_iter)
+      end
+      sock:write(table.concat({len_hi, len_lo, req}))
+    end)
+    sock:on('data', function(msg)
+      local len_hi = byte(msg, 1)
+      local len_lo = byte(msg, 2)
+      local len = lshift(len_hi, 8) + len_lo
+
+      assert(#msg - 2 == len)
+
+      sock:destroy()
+
+      local answers, err = parse_response(msg:sub(3), id)
+      if not answers then
+        timer.setImmediate(tcp_iter)
+      else
+        callback(nil, answers)
+      end
+    end)
+  end
+
+  local udp_iter
+  udp_iter = function()
+    tries = tries + 1
+    if tries > max_tries then
+      return callback(Error:new('Maximum attempts reached'))
+    end
+    local srv = server()
+    local id = _gen_id()
+    local req = _build_request(name, id, false, { qtype = qtype })
     local sock = dgram.createSocket()
-    sock:send(req, srv.host, srv.port)
+    sock:send(table.concat(req), srv.host, srv.port)
     sock:setTimeout(TIMEOUT, function()
       sock:close()
       timer.setImmediate(udp_iter)
@@ -571,12 +613,20 @@ local function _query(name, dnsclass, qtype, callback)
       if answers then
         callback(nil, answers)
       else
-        timer.setImmediate(udp_iter)
+        if err == 'truncated' then
+          timer.setImmediate(tcp_iter)
+        else
+          timer.setImmediate(udp_iter)
+        end
       end
     end)
   end
 
-  udp_iter()
+  if server().tcp then
+    tcp_iter()
+  else
+    udp_iter()
+  end
 end
 
 exports.resolve4 = function(name, callback)
