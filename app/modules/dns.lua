@@ -48,6 +48,11 @@ local DEFAULT_SERVERS = {
     ['port'] = 53,
     ['tcp'] = false
   },
+  {
+    ['host'] = '8.8.4.4',
+    ['port'] = 53,
+    ['tcp'] = false
+  },
 }
 local SERVERS = DEFAULT_SERVERS
 local DEFAULT_TIMEOUT = 2000   -- 2 seconds
