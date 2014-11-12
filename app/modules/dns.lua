@@ -573,12 +573,12 @@ local function _query(name, dnsclass, qtype, callback)
     len_hi = char(rshift(len, 8))
     len_lo = char(band(len, 0xff))
 
-    onTimeout = function()
+    function onTimeout()
       sock:destroy()
       timer.setImmediate(tcp_iter)
     end
 
-    onConnect = function(err)
+    function onConnect(err)
       if err then
         sock:destroy()
         return timer.setImmediate(tcp_iter)
@@ -586,7 +586,7 @@ local function _query(name, dnsclass, qtype, callback)
       sock:write(table.concat({len_hi, len_lo, req}))
     end
 
-    onData = function(msg)
+    function onData(msg)
       local len_hi, len_lo, len, answers, err
 
       len_hi = byte(msg, 1)
@@ -624,12 +624,12 @@ local function _query(name, dnsclass, qtype, callback)
     req = _build_request(name, id, false, { qtype = qtype })
     sock = dgram.createSocket()
 
-    onTimeout = function()
+    function onTimeout()
       sock:close()
       timer.setImmediate(udp_iter)
     end
 
-    onMessage = function(msg)
+    function onMessage(msg)
       sock:close()
       answers, err = parse_response(msg, id)
       if answers then
