@@ -17,6 +17,7 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
+local jit = require('jit')
 local path = require('luvi').path
 
 require('tap')(function (test)
@@ -90,6 +91,9 @@ require('tap')(function (test)
     end))
   end)
   test("load resolver", function ()
+    if jit.os == 'Windows' then
+      return
+    end
     local servers = dns.loadResolver({ file = path.join(module.dir, 'fixtures', 'resolve.conf.a')})
     assert(#servers > 0)
     assert(servers[1].host == '192.168.0.1')
