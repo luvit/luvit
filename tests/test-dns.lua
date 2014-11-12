@@ -17,6 +17,7 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
+local path = require('luvi').path
 
 require('tap')(function (test)
   test("resolve4", function (expect)
@@ -87,5 +88,12 @@ require('tap')(function (test)
     dns.resolveTxt('google._domainkey.luvit.io', expect(function(err, answers)
       assert(not err)
     end))
+  end)
+  test("load resolver", function ()
+    local servers = dns.loadResolver({ file = path.join(module.dir, 'fixtures', 'resolve.conf.a')})
+    assert(#servers > 0)
+    assert(servers[1].host == '192.168.0.1')
+    assert(servers[2].host == '::1')
+    dns.setDefaultServers()
   end)
 end)

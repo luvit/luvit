@@ -20,6 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 local dgram = require('dgram')
+local fs = require('fs')
 local net = require('net')
 local timer = require('timer')
 local Error = require('core').Error
@@ -671,4 +672,49 @@ end
 
 exports.setDefaultServers = function()
   SERVERS = DEFAULT_SERVERS
+end
+
+exports.loadResolver = function(options)
+  local servers = {}
+
+  options = options or {
+    file = '/etc/resolv.conf'
+  }
+
+  local err, data = pcall(fs.readFileSync, options.file)
+  if err == false then
+    return
+  end
+
+  local posa = 1
+
+  local function parse(line)
+    if not line:match('^#') then
+      local ip = line:match('nameserver%s(.*)')
+      if ip then
+        local server = {}
+        server.host = ip
+        server.port = 53
+        table.insert(servers, server)
+      end
+    end
+  end
+
+  while 1 do
+    local pos, chars = data:match('()([\r\n].?)', posa)
+    if pos then
+      if chars == '\r\n' then pos = pos + 1 end
+      local line = data:sub(posa, pos - 1)
+      parse(line)
+      posa = pos + 1
+    else
+      local line = data:sub(posa)
+      parse(line)
+      break      
+    end
+  end
+
+  SERVERS = servers
+
+  return servers
 end
