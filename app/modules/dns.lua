@@ -572,9 +572,10 @@ local function _query(name, dnsclass, qtype, callback)
     len = #req
     len_hi = char(rshift(len, 8))
     len_lo = char(band(len, 0xff))
+    sock = net.Socket:new()
 
     function onError(err)
-      sock:close()
+      sock:destroy()
       timer.setImmediate(tcp_iter)
     end
 
@@ -610,7 +611,6 @@ local function _query(name, dnsclass, qtype, callback)
       end
     end
 
-    sock = net.Socket:new()
     sock:setTimeout(TIMEOUT, onTimeout)
     sock:connect(srv.port, srv.host, onConnect)
     sock:on('data', onData)
