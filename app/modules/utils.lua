@@ -288,9 +288,9 @@ local function adapt(c, fn, ...)
   args[nargs + 1] = function (err, ...)
     if waiting then
       if err then
-        coroutine.resume(c, nil, err)
+        assert(coroutine.resume(c, nil, err))
       else
-        coroutine.resume(c, ...)
+        assert(coroutine.resume(c, ...))
       end
     else
       error, data = err, {...}

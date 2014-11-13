@@ -1,6 +1,6 @@
 # HTTP-Cluster
 
-This is a high-performance HTTP server using the `uv` library directly.  It uses `http-codec` to implement the http encoding and decoding on the tcp stream.
+This is a high-performance HTTP server using the `uv` library directly.  It uses `codecs/http` to implement the http encoding and decoding on the tcp stream.
 
 ## Usage
 
@@ -101,7 +101,7 @@ local read, write = wrapStream(client)
 ```
 
 The HTTP protocol is implemented as a pure-lua library in luvit known as
-`http-codec`.  This is platform agnostic code that can actually be used in any
+`codecs/http`.  This is platform agnostic code that can actually be used in any
 lua project.  Basically it's implemented as two stream processors.  The first
 lives between the raw TCP packets and the user's app.  It decodes the packets
 and writes request objects and body chunk values.  The user app reads from
