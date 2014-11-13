@@ -558,7 +558,7 @@ local function _query(name, dnsclass, qtype, callback)
 
   tcp_iter = function()
     local srv, id, req, len, len_hi, len_lo, sock
-    local onTimeout, onConnect, onData
+    local onTimeout, onConnect, onData, onError
 
     tries = tries + 1
     if tries > max_tries then
@@ -572,6 +572,11 @@ local function _query(name, dnsclass, qtype, callback)
     len = #req
     len_hi = char(rshift(len, 8))
     len_lo = char(band(len, 0xff))
+
+    function onError(err)
+      sock:close()
+      timer.setImmediate(tcp_iter)
+    end
 
     function onTimeout()
       sock:destroy()
@@ -609,10 +614,11 @@ local function _query(name, dnsclass, qtype, callback)
     sock:setTimeout(TIMEOUT, onTimeout)
     sock:connect(srv.port, srv.host, onConnect)
     sock:on('data', onData)
+    sock:on('error', onError)
   end
 
   udp_iter = function()
-    local srv, id, req, sock, onTimeout, onMessage
+    local srv, id, req, sock, onTimeout, onMessage, onError
 
     tries = tries + 1
     if tries > max_tries then
@@ -623,6 +629,11 @@ local function _query(name, dnsclass, qtype, callback)
     id = _gen_id()
     req = _build_request(name, id, false, { qtype = qtype })
     sock = dgram.createSocket()
+
+    function onError(err)
+      sock:close()
+      timer.setImmediate(udp_iter)
+    end
 
     function onTimeout()
       sock:close()
@@ -646,6 +657,7 @@ local function _query(name, dnsclass, qtype, callback)
     sock:send(table.concat(req), srv.host, srv.port)
     sock:setTimeout(TIMEOUT, onTimeout)
     sock:on('message', onMessage)
+    sock:on('error', onError)
   end
 
   if server().tcp then
