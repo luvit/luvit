@@ -54,20 +54,20 @@ return function (options)
 
   local tls = {}
 
+  local function sslRead()
+    return ssl:read()
+  end
+
   function tls.decoder(read, write)
     outerRead = read
     handshake()
     for cipher in read do
       bin:write(cipher)
-      if bin:pending() > 0 then
-        local data = ssl:read()
-        if data then
-          write(data)
-        end
+      for data in sslRead do
+        write(data)
       end
     end
     write()
-    -- TODO: cleanup ssl state
   end
 
   function tls.encoder(read, write)
@@ -75,12 +75,13 @@ return function (options)
     handshake()
     for plain in read do
       ssl:write(plain)
-      if bout:pending() > 0 then
-        write(bout:read())
+      while bout:pending() > 0 do
+        local data = bout:read()
+        write(data)
       end
     end
+    ssl:shutdown()
     write()
-    -- TODO: cleanup ssl state
   end
 
   return tls

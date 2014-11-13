@@ -68,7 +68,7 @@ function exports.wrapStream(socket)
       if not uv.is_closing(socket) then
         uv.shutdown(socket)
         -- Close if we're done reading too
-        if not reading then
+        if not reading and not uv.is_closing(socket) then
           uv.close(socket)
         end
       end

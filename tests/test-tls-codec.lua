@@ -58,12 +58,14 @@ require('tap')(function (test)
           }
           p(req)
           write(req)
+          local res = read()
+          p(res)
           for item in read do
             if item == "" then
               -- Close the connection when the response body is done.
               write()
             else
-              p(item)
+              p("HTML BYTES", #item)
             end
           end
         end), http.client.encoder, tls.encoder)(read, write)
