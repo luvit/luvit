@@ -26,7 +26,9 @@ local function start_listening(self)
     if err then
       self:emit('error', err)
     else
-      self:emit('message', msg, rinfo, flags)
+      if msg then
+        self:emit('message', msg, rinfo, flags)
+      end
     end
   end)
 end
