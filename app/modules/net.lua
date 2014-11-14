@@ -178,6 +178,7 @@ function Socket:connect(...)
   self._connecting = true
 
   uv.getaddrinfo(options.host, options.port, { socktype = "STREAM" }, function(err, res)
+    timer.active(self)
     if err then
       return callback(err)
     end
@@ -186,6 +187,7 @@ function Socket:connect(...)
     end
     timer.active(self)
     uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
+      timer.active(self)
       if err then
         return callback(err)
       end
@@ -202,9 +204,10 @@ function Socket:connect(...)
       if self._paused then
         self._paused = false
         self:pause()
+      else
+        self:resume()
       end
 
-      self:resume()
       if callback then
         callback()
       end

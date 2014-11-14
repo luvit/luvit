@@ -63,7 +63,7 @@ Timer.setRepeat = uv.timer_set_repeat
 Timer.getRepeat = uv.timer_get_repeat
 
 -- Timer.now
-Timer.now = uv.hrtime
+Timer.now = uv.now
 
 ------------------------------------------------------------------------------
 
