@@ -145,4 +145,4 @@ uv.run()
 uv.walk(uv.close)
 uv.run()
 
-os.exit(process.exitCode)
+return process.exitCode
