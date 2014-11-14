@@ -30,6 +30,7 @@ local utils = require('utils')
 _G.print = utils.print
 -- Register global 'p' for easy pretty printing
 _G.p = utils.prettyPrint
+_G.process = require('process').globalProcess()
 
 local startRepl = nil
 local combo = nil
@@ -143,3 +144,5 @@ uv.run()
 -- When the loop exits, close all uv handles.
 uv.walk(uv.close)
 uv.run()
+
+return process.exitCode
