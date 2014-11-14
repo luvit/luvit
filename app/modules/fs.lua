@@ -97,7 +97,7 @@ end
 function fs.unlinkSync(path)
   return uv.fs_unlink(path)
 end
-function fs.write(fd, data, offset, callback)
+function fs.write(fd, offset, data, callback)
   local ot = type(offset)
   if (ot == 'function' or ot == 'thread') and
      (callback == nil) then
@@ -364,4 +364,23 @@ function fs.readFileSync(path)
   else
     return chunk
   end
+end
+local function writeFile(path, data, callback)
+  local fd, onStat, onWrite
+  fs.open(path, "w", 0600, function (err, result)
+    if err then return callback(err) end
+    fd = result
+    fs.fstat(fd, onStat)
+  end)
+  function onStat(err, stat)
+    if err then return onRead(err) end
+    fs.write(fd, 0, #data, onWrite)
+  end
+  function onWrite(err)
+    fs.close(fd)
+    return callback(err)
+  end
+end
+function fs.writeFile(path, data, callback)
+  adapt(callback, writeFile, path, data)
 end
