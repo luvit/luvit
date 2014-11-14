@@ -374,7 +374,7 @@ local function writeFile(path, data, callback)
   end)
   function onStat(err, stat)
     if err then return onWrite(err) end
-    fs.write(fd, 0, #data, onWrite)
+    fs.write(fd, 0, data, onWrite)
   end
   function onWrite(err)
     fs.close(fd)
