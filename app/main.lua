@@ -24,13 +24,11 @@ bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
 _G.require = require('luvit-require')()("bundle:modules/main.lua")
 
+local luvit = require('luvit')
+luvit.init()
+
 local uv = require('uv')
 local utils = require('utils')
--- Make print go through libuv for windows colors
-_G.print = utils.print
--- Register global 'p' for easy pretty printing
-_G.p = utils.prettyPrint
-_G.process = require('process').globalProcess()
 
 local startRepl = nil
 local combo = nil
@@ -134,15 +132,5 @@ if startRepl then
   local greeting = "Welcome to the " .. c("err") .. "L" .. c("quotes") .. "uv" .. c("table") .. "it" .. c() .. " repl!"
   require('repl')(utils.stdin, utils.stdout, greeting, ...).start()
 end
-
--- Start the event loop
-uv.run()
-
-require('hooks'):emit('process.exit')
-uv.run()
-
--- When the loop exits, close all uv handles.
-uv.walk(uv.close)
-uv.run()
 
 return process.exitCode
