@@ -133,4 +133,6 @@ if startRepl then
   require('repl')(utils.stdin, utils.stdout, greeting, ...).start()
 end
 
+luvit.run()
+
 return process.exitCode
