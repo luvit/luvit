@@ -12,8 +12,8 @@ local stdout, stdin, stderr, width
 local quote, quote2, dquote, dquote2, obracket, cbracket, obrace, cbrace, comma, equals, controls
 
 local themes = {
-  [16] = require('./theme-16.lua'),
-  [256] = require('./theme-256.lua'),
+  [16] = require('./themes/16.lua'),
+  [256] = require('./themes/256.lua'),
 }
 
 local special = {
@@ -268,6 +268,46 @@ local function bind(fn, ...)
   end
 end
 
+local function noop(err)
+  if err then print("Unhandled callback error", err) end
+end
+
+local function adapt(c, fn, ...)
+  local nargs = select('#', ...)
+  local args = {...}
+  -- No continuation defaults to noop callback
+  if not c then c = noop end
+  local t = type(c)
+  if t == 'function' then
+    args[nargs + 1] = c
+    return fn(unpack(args))
+  elseif t ~= 'thread' then
+    error("Illegal continuation type " .. t)
+  end
+  local err, data, waiting
+  args[nargs + 1] = function (err, ...)
+    if waiting then
+      if err then
+        assert(coroutine.resume(c, nil, err))
+      else
+        assert(coroutine.resume(c, ...))
+      end
+    else
+      error, data = err, {...}
+      c = nil
+    end
+  end
+  fn(unpack(args))
+  if c then
+    waiting = true
+    return coroutine.yield(c)
+  elseif err then
+    return nil, err
+  else
+    return unpack(data)
+  end
+end
+
 exports.bind = bind
 exports.loadColors = loadColors
 exports.theme = theme
@@ -280,3 +320,5 @@ exports.colorize = colorize
 exports.stdin = stdin
 exports.stdout = stdout
 exports.stderr = stderr
+exports.noop = noop
+exports.adapt = adapt

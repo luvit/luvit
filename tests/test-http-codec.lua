@@ -16,60 +16,14 @@ limitations under the License.
 
 --]]
 
-local codec = require('http-codec')
+local codec = require('codecs/http')
 local uv = require('uv')
 local chain = require('codec').chain
 local wrapStream = require('codec').wrapStream
-
-local function deepEqual(expected, actual, path)
-  if expected == actual then
-    return true
-  end
-  local prefix = path and (path .. ": ") or ""
-  local expectedType = type(expected)
-  local actualType = type(actual)
-  if expectedType ~= actualType then
-    return false, prefix .. "Expected type " .. expectedType .. " but found " .. actualType
-  end
-  if expectedType ~= "table" then
-    return false, prefix .. "Expected " .. tostring(expected) .. " but found " .. tostring(actual)
-  end
-  local expectedLength = #expected
-  local actualLength = #actual
-  for key in pairs(expected) do
-    if actual[key] == nil then
-      return false, prefix .. "Missing table key " .. key
-    end
-    local newPath = path and (path .. '.' .. key) or key
-    local same, message = deepEqual(expected[key], actual[key], newPath)
-    if not same then
-      return same, message
-    end
-  end
-  if expectedLength ~= actualLength then
-    return false, prefix .. "Expected table length " .. expectedLength .. " but found " .. actualLength
-  end
-  for key in pairs(actual) do
-    if expected[key] == nil then
-      return false, prefix .. "Unexpected table key " .. key
-    end
-  end
-  return true
-end
+local deepEqual = require('deep-equal')
+local testCodec = require('test-codec')
 
 require('tap')(function (test)
-
-  local function testCodec(processor, inputs)
-    local outputs = {}
-    local i = 0
-    processor(function ()
-      i = i + 1
-      return inputs[i]
-    end, function (value)
-      outputs[#outputs + 1] = value
-    end)
-    return outputs
-  end
 
   test("http server parser", function ()
     local output = testCodec(codec.server.decoder, {
@@ -344,13 +298,26 @@ require('tap')(function (test)
           }
           p(req)
           write(req)
+          local res = read()
+          -- luvit.io should redirect to https version
+          assert(res.code == 301)
+          p(res)
+          local contentLength
+          for i = 1, #res do
+            if string.lower(res[i][1]) == "content-length" then
+              contentLength = tonumber(res[i][2])
+              break
+            end
+          end
           for item in read do
             if item == "" then
               write()
             else
+              contentLength = contentLength - #item
               p(item)
             end
           end
+          assert(contentLength == 0)
         end), codec.client.encoder)(read, write)
       end))
     end))
