@@ -654,6 +654,7 @@ local function _query(name, dnsclass, qtype, callback)
       end
     end
     
+    sock:recvStart()
     sock:send(table.concat(req), srv.host, srv.port)
     sock:setTimeout(TIMEOUT, onTimeout)
     sock:on('message', onMessage)

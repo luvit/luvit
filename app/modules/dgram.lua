@@ -33,13 +33,24 @@ local function start_listening(self)
   end)
 end
 
+local function stop_listening(self)
+  return uv.udp_recv_stop(self._handle)
+end
+
 local Socket = Emitter:extend()
 function Socket:initialize(type, callback)
   self._handle = uv.new_udp()
   if callback then
     self:on('message', callback)
   end
+end
+
+function Socket:recvStart()
   start_listening(self)
+end
+
+function Socket:recvStop()
+  stop_listening(self)
 end
 
 function Socket:setTimeout(msecs, callback)
@@ -59,12 +70,13 @@ function Socket:send(data, host, port, callback)
   uv.udp_send(self._handle, data, host, port, callback)
 end
 
-function Socket:bind(host, port, options, callback)
+function Socket:bind(host, port, options)
   if type(options) == 'function' then
     callback = options
     options = nil
   end
-  uv.udp_bind(self._handle, host, port, options, callback)
+  uv.udp_bind(self._handle, host, port, options)
+  self:recvStart()
 end
 
 function Socket:close(callback)
@@ -72,6 +84,7 @@ function Socket:close(callback)
   if not self._handle then
     return
   end
+  self:recvStop()
   uv.close(self._handle, callback)
   self._handle = nil
 end
