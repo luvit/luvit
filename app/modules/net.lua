@@ -294,7 +294,9 @@ function Server:listen(port, ... --[[ ip, callback --]] )
     self.connectionCallback(client)
   end)
 
-  timer.setTimeout(0, callback)
+  if callback then
+    timer.setTimeout(0, callback)
+  end
 
   return self
 end
@@ -361,8 +363,8 @@ end
 
 net.create = net.createConnection
 
-net.createServer = function(connectionCallback)
-  return Server:new(connectionCallback)
+net.createServer = function(...)
+  return Server:new(...)
 end
 
 return net
