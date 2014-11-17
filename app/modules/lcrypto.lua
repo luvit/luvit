@@ -40,7 +40,7 @@ local function randomBytesInsecure(size, callback)
   return str
 end
 
-if openssl then
+if type(openssl) == 'table' then
   exports.randomBytes = randomBytesOpenSSL
 else
   exports.randomBytes = randomBytesInsecure
