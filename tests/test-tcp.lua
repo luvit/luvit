@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2012 The Luvit Authors. All Rights Reserved.
+Copyright 2014 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ limitations under the License.
 
 local net = require('net')
 
+local HOST = '127.0.0.1'
 local PORT = 10082
 
 require('tap')(function(test)
@@ -64,9 +65,9 @@ require('tap')(function(test)
     end
 
     server = net.createServer(onServerConnection)
-    server:listen(PORT, "127.0.0.1")
+    server:listen(PORT, HOST)
 
     client = net.Socket:new()
-    client:connect(PORT, "127.0.0.1", onConnect)
+    client:connect(PORT, HOST, onConnect)
   end)
 end)
