@@ -45,13 +45,9 @@ function Socket:initialize(type, callback)
   end
 end
 
-function Socket:recvStart()
-  start_listening(self)
-end
+Socket.recvStart = start_listening
 
-function Socket:recvStop()
-  stop_listening(self)
-end
+Socket.recvStop = stop_listening
 
 function Socket:setTimeout(msecs, callback)
   if msecs > 0 then
