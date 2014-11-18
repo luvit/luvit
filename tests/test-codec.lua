@@ -18,27 +18,40 @@ limitations under the License.
 
 local Emitter = require('core').Emitter
 local codec = require('codec')
+local deepEqual = require('deep-equal')
+local setImmediate = require('timer').setImmediate
 
 require('tap')(function(test)
   test('test emitter encoder', function(expect)
     local e, read, write, encoder, onData, onEnd, onDrain
-    local helloWorld = 'hello world'
+    local emittedEvents = {}
+    local readEvents = {}
+
+    local check = expect(function ()
+      assert(deepEqual({'e1', 'e2'}, readEvents))
+    end)
 
     function encoder(read, write)
-      p{'encoder'}
-      write(helloWorld)
-      assert(read() == 'testing')
-      e:pause()
-      e:write('testing')
-      e:resume()
-      read()
-      write()
+      coroutine.wrap(function ()
+        for item in read do
+          p{"read", item=item}
+          readEvents[#readEvents + 1] = item
+        end
+        p{"read end"}
+        check()
+      end)()
+      coroutine.wrap(function ()
+        write('w1')
+        e:pause()
+        write('w2')
+        write()
+      end)()
     end
 
     function onData(data)
-      p{'on data'}
+      p{'on data',data=data}
       assert(#data)
-      assert(data == helloWorld)
+      emittedEvents[#emittedEvents + 1] = data
     end
 
     function onDrain()
@@ -47,6 +60,7 @@ require('tap')(function(test)
 
     function onEnd()
       p{'on end'}
+      assert(deepEqual({'w1','w2'}, emittedEvents))
     end
 
     e = Emitter:new()
@@ -57,6 +71,13 @@ require('tap')(function(test)
     read, write = codec.wrapEmitter(e)
     codec.chain(encoder)(read, write)
 
-    e:write('testing')
+    e:write('e1')
+    setImmediate(function ()
+      e:resume()
+      setImmediate(function ()
+        e:write('e2')
+        e:shutdown()
+      end)
+    end)
   end)
 end)

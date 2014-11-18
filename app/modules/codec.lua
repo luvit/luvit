@@ -42,7 +42,7 @@ function exports.wrapEmitter(emitter)
     function write(data)
       if paused then
         waiting = coroutine.running()
-        return coroutine.yield()
+        coroutine.yield()
       end
       if data then
         emitter:emit("data", data)
