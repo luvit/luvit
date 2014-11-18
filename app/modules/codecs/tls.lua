@@ -19,28 +19,27 @@ limitations under the License.
 local openssl = require('openssl')
 local bit = require('bit')
 
+--[[
+callbacks
+   onsecureConnect -- When handshake completes successfully
+--]]
+
 return function (options)
+  local ctx, bin, bout, ssl, outerWrite, outerRead, waiting, handshake, sslRead
 
-  local ctx = openssl.ssl.ctx_new("TLSv1_2")
-  ctx:set_verify({"none"})
-  -- TODO: Make options configurable in secureChannel call
-  ctx:options(bit.bor(
-    openssl.ssl.no_sslv2,
-    openssl.ssl.no_sslv3,
-    openssl.ssl.no_compression))
-  local bin, bout = openssl.bio.mem(8192), openssl.bio.mem(8192)
-  local ssl = ctx:ssl(bin, bout, false)
-
-  local outerWrite, outerRead, waiting
+  local tls = {}
 
   -- Both sides will call handshake as they are hooked up
   -- But the first to call handshake will simply wait
   -- And the second will perform the handshake and then
   -- resume the other.
-  local function handshake()
+  function handshake()
     if outerWrite and outerRead then
       while true do
-        if ssl:handshake() then break end
+        if ssl:handshake() then
+          if tls.onsecureConnect then tls.onsecureConnect() end
+          return
+        end
         outerWrite(bout:read())
         bin:write(outerRead())
       end
@@ -52,10 +51,22 @@ return function (options)
     end
   end
 
-  local tls = {}
-
-  local function sslRead()
+  function sslRead()
     return ssl:read()
+  end
+
+  function tls.createContext(options)
+    ctx = openssl.ssl.ctx_new("TLSv1_2")
+    ctx:set_verify({"none"})
+    ctx:options(bit.bor(
+                  openssl.ssl.no_sslv2,
+                  openssl.ssl.no_sslv3,
+                  openssl.ssl.no_compression))
+    bin, bout = openssl.bio.mem(8192), openssl.bio.mem(8192)
+    ssl = ctx:ssl(bin, bout, false)
+
+    tls.ctx = ctx
+    tls.ssl = ssl
   end
 
   function tls.decoder(read, write)
@@ -84,6 +95,7 @@ return function (options)
     write()
   end
 
-  return tls
+  tls.createContext(options)
 
+  return tls
 end

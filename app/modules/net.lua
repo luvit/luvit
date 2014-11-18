@@ -313,7 +313,6 @@ exports.createConnection = function(port, ... --[[ host, cb --]])
   local host
   local options
   local callback
-  local s
 
   -- future proof
   if type(port) == 'table' then
