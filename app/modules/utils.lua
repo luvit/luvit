@@ -1,5 +1,5 @@
 local uv = require('uv')
-local env = require('luvi').env
+local env = require('env')
 local JSON = require('json')
 
 local prettyPrint, dump, strip, color, colorize, loadColors
