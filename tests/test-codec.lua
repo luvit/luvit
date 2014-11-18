@@ -21,22 +21,42 @@ local codec = require('codec')
 
 require('tap')(function(test)
   test('test emitter encoder', function(expect)
-    local e, read, write, encoder, onData
+    local e, read, write, encoder, onData, onEnd, onDrain
     local helloWorld = 'hello world'
 
     function encoder(read, write)
+      p{'encoder'}
       write(helloWorld)
+      assert(read() == 'testing')
+      e:pause()
+      e:write('testing')
+      e:resume()
+      read()
+      write()
     end
 
     function onData(data)
+      p{'on data'}
       assert(#data)
       assert(data == helloWorld)
     end
 
+    function onDrain()
+      p{'on drain'}
+    end
+
+    function onEnd()
+      p{'on end'}
+    end
+
     e = Emitter:new()
     e:on('data', expect(onData))
+    e:on('end', expect(onEnd))
+    e:on('drain', expect(onDrain))
 
     read, write = codec.wrapEmitter(e)
     codec.chain(encoder)(read, write)
+
+    e:write('testing')
   end)
 end)

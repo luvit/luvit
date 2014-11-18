@@ -26,11 +26,11 @@ function exports.wrapEmitter(emitter)
     local paused = false
     local waiting
 
-    function emitter.pause()
+    function emitter:pause()
       paused = true
     end
 
-    function emitter.resume()
+    function emitter:resume()
       if not paused then return end
       paused = false
       if not waiting then return end
@@ -42,7 +42,7 @@ function exports.wrapEmitter(emitter)
     function write(data)
       if paused then
         waiting = coroutine.running()
-        coroutine.yield()
+        return coroutine.yield()
       end
       if data then
         emitter:emit("data", data)
@@ -57,7 +57,7 @@ function exports.wrapEmitter(emitter)
     local waiting
     local ended = false
 
-    function emitter.write(data)
+    function emitter:write(data)
       if waiting then
         local thread = waiting
         waiting = nil
@@ -68,7 +68,7 @@ function exports.wrapEmitter(emitter)
       return false
     end
 
-    function emitter.shutdown()
+    function emitter:shutdown()
       ended = true
       if waiting then
         local thread = waiting
@@ -76,19 +76,19 @@ function exports.wrapEmitter(emitter)
         assert(coroutine.resume(thread))
       end
     end
-  end
 
-  function read()
-    if ended then return end
-    if #queue > 0 then
-      local data = table.remove(queue)
-      if #queue == 0 then
-        emitter:emit("drain")
+    function read()
+      if ended then return end
+      if #queue > 0 then
+        local data = table.remove(queue)
+        if #queue == 0 then
+          emitter:emit("drain")
+        end
+        return data
       end
-      return data
+      waiting = coroutine.running()
+      return coroutine.yield()
     end
-    waiting = coroutine.running()
-    return coroutine.yield()
   end
 
   return read, write
