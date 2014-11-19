@@ -27,13 +27,6 @@ local codec = require('codec')
 local chain = codec.chain
 local wrapStream = codec.wrapStream
 
-local DEFAULT_CIPHERS = {
-  -- TLS 1.2
-  'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' ..
-  -- TLS 1.0
-  'RC4:HIGH:!MD5:!aNULL';
-}
-
 local extend = function(...)
   local args = {...}
   local obj = args[1]
@@ -43,6 +36,15 @@ local extend = function(...)
     end
   end
   return obj
+end
+
+local once = function(callback)
+  local called = false
+  return function(...)
+    if called then return end
+    called = true
+    callback(...)
+  end
 end
 
 exports.connect = function(options, callback)
@@ -63,7 +65,7 @@ exports.connect = function(options, callback)
 
   cleartext = Emitter:new()
   tls = tlsCodec(options)
-  tls.onsecureConnect = callback
+  tls.onsecureConnect = once(callback)
 
   function onConnect()
     local read1, write1 = codec.wrapStream(sock._handle)
