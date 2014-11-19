@@ -38,7 +38,7 @@ return function (options)
       while true do
         if ssl:handshake() then
           if tls.onsecureConnect then tls.onsecureConnect() end
-          return
+          break
         end
         outerWrite(bout:read())
         bin:write(outerRead())
