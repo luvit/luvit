@@ -41,7 +41,8 @@ return function (options)
           break
         end
         outerWrite(bout:read())
-        bin:write(outerRead())
+        local data = outerRead()
+        if data then bin:write(data) end
       end
       assert(coroutine.resume(waiting))
       waiting = nil
@@ -56,7 +57,7 @@ return function (options)
   end
 
   function tls.createContext(options)
-    ctx = openssl.ssl.ctx_new("TLSv1_2")
+    ctx = openssl.ssl.ctx_new("TLSv1_client")
     ctx:set_verify({"none"})
     ctx:options(bit.bor(
                   openssl.ssl.no_sslv2,
