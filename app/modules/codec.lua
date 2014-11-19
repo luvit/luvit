@@ -17,6 +17,84 @@ limitations under the License.
 --]]
 local uv = require('uv')
 
+function exports.wrapEmitter(emitter)
+  local read, write
+  local queue = {}
+
+  -- Pipe data from chain to emitter
+  do
+    local paused = false
+    local waiting
+
+    function emitter:pause()
+      paused = true
+    end
+
+    function emitter:resume()
+      if not paused then return end
+      paused = false
+      if not waiting then return end
+      local thread = waiting
+      waiting = nil
+      assert(coroutine.resume(thread))
+    end
+
+    function write(data)
+      if paused then
+        waiting = coroutine.running()
+        coroutine.yield()
+      end
+      if data then
+        emitter:emit("data", data)
+      else
+        emitter:emit("end")
+      end
+    end
+  end
+
+  -- Pipe data from emitter to chain
+  do
+    local waiting
+    local ended = false
+
+    function emitter:write(data)
+      if waiting then
+        local thread = waiting
+        waiting = nil
+        assert(coroutine.resume(thread, data))
+        return true
+      end
+      queue[#queue + 1] = data
+      return false
+    end
+
+    function emitter:shutdown()
+      ended = true
+      if waiting then
+        local thread = waiting
+        waiting = nil
+        assert(coroutine.resume(thread))
+      end
+    end
+
+    function read()
+      if ended then return end
+      if #queue > 0 then
+        local data = table.remove(queue)
+        if #queue == 0 then
+          emitter:emit("drain")
+        end
+        return data
+      end
+      waiting = coroutine.running()
+      return coroutine.yield()
+    end
+  end
+
+  return read, write
+end
+
+
 -- Given a raw uv_stream_t userdara, return coro-friendly read/write functions.
 function exports.wrapStream(socket)
   local paused = true
