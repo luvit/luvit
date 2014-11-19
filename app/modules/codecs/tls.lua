@@ -24,14 +24,9 @@ local table = require('table')
 
 local _root_ca = require('_root_ca')
 
-local DEFAULT_CIPHERS = table.concat({
-  -- TLS 1.2
-  'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' ..
-  -- TLS 1.0
-  'RC4:HIGH:!MD5:!aNULL';
-})
+local DEFAULT_CIPHERS = 'AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH'
 
-local DEFAULT_ROOT_STORE = nil
+local DEFAULT_CERT_STORE
 
 local function getSecureOptions(protocol, options)
   return bit.bor(openssl.ssl.no_sslv2,
@@ -40,7 +35,9 @@ local function getSecureOptions(protocol, options)
 end
 
 local Credential = Object:extend()
-function Credential:initialize(secureProtocol, defaultCiphers, flags, context)
+function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnauthorized, context)
+  self.rejectUnauthorized = rejectUnauthorized
+
   if context then
     self.context = context
   else
@@ -53,13 +50,25 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, context)
 end
 
 function Credential:addRootCerts()
-  if DEFAULT_ROOT_STORE == nil then
-    DEFAULT_ROOT_STORE = openssl.x509.store:new()
+  if not DEFAULT_CERT_STORE then
+    DEFAULT_CERT_STORE = openssl.x509.store:new()
     for _, v in pairs(_root_ca.roots) do
-      DEFAULT_ROOT_STORE:add(assert(openssl.x509.read(v)))
+      DEFAULT_CERT_STORE:add(assert(openssl.x509.read(v)))
     end
   end
-  self.context:cert_store(DEFAULT_ROOT_STORE)
+  self.context:cert_store(DEFAULT_CERT_STORE)
+end
+
+function Credential:addCACert(certs)
+  local store = openssl.x509.store:new()
+  if type(certs) == 'table' then
+    for _, v in pairs(certs) do
+      store:add(openssl.x509.read(v))
+    end
+  else
+    store:add(openssl.x509.read(certs))
+  end
+  self.context:cert_store(store)
 end
 
 local function createCredentials(options, context)
@@ -67,8 +76,11 @@ local function createCredentials(options, context)
 
   options = options or {}
 
-  c = Credential:new(options.secureProtocol, options.ciphers,
-                     options.secureOptions, context)
+  c = Credential:new(options.secureProtocol,
+                     options.ciphers,
+                     options.secureOptions,
+                     options.rejectUnauthorized,
+                     context)
   if context then
     return c
   end
@@ -87,14 +99,7 @@ local function createCredentials(options, context)
   --end
 
   if options.ca then
-  --  dbg('Setting CA')
-  --  if type(options.ca) == 'table' then
-  --    for _, v in pairs(options.ca) do
-  --      c.context:addCACert(v)
-  --    end
-  --  else
-  --    c.context:addCACert(options.ca)
-  --  end
+    c:addCACert(options.ca)
   else
     c:addRootCerts()
   end
@@ -127,7 +132,6 @@ callbacks
 
 return function (options)
   local ctx, bin, bout, ssl, outerWrite, outerRead, waiting, handshake, sslRead
-
   local tls = {}
 
   -- Both sides will call handshake as they are hooked up
@@ -138,7 +142,7 @@ return function (options)
     if outerWrite and outerRead then
       while true do
         if ssl:handshake() then
-          if tls.onsecureConnect then tls.onsecureConnect() end
+          tls.verify()
           break
         end
         outerWrite(bout:read())
@@ -155,6 +159,18 @@ return function (options)
 
   function sslRead()
     return ssl:read()
+  end
+
+  function tls.verify()
+    if ctx.rejectUnauthorized then
+      local ok, err = ssl:getpeerverification()
+      if ok and tls.onsecureConnect then return tls.onsecureConnect() end
+      if tls.onerror then
+        tls.onerror(err)
+      end
+    else
+      if tls.onsecureConnect then tls.onsecureConnect() end
+    end
   end
 
   function tls.createContext(options)

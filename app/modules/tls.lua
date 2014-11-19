@@ -47,6 +47,18 @@ local once = function(callback)
   end
 end
 
+local CleartextStream = Emitter:extend()
+function CleartextStream:initialize()
+end
+
+function CleartextStream:setStream(socket)
+  self._socket = socket
+end
+
+function CleartextStream:destroy()
+  self._socket:destroy()
+end
+
 exports.connect = function(options, callback)
   local defaults, hostname, context, sock, cleartext, tlsChain, tls
   local port, onConnect
@@ -54,7 +66,7 @@ exports.connect = function(options, callback)
   -- Setup options
   defaults = {
     ciphers = DEFAULT_CIPHERS,
-    rejectUnauthorized = false,
+    rejectUnauthorized = true,
     -- TODO checkServerIdentity
   }
 
@@ -63,9 +75,13 @@ exports.connect = function(options, callback)
      (options.socket and options.socket._host)
   port = options.port
 
-  cleartext = Emitter:new()
+  cleartext = CleartextStream:new()
+
   tls = tlsCodec(options)
   tls.onsecureConnect = once(callback)
+  tls.onerror = function(err)
+    cleartext:emit('error', err)
+  end
 
   function onConnect()
     local read1, write1 = codec.wrapStream(sock._handle)
@@ -75,7 +91,7 @@ exports.connect = function(options, callback)
   end
 
   sock = net.create(port, hostname, onConnect)
-  cleartext._socket = sock
+  cleartext:setStream(sock)
   cleartext._tls = tls
   
   return cleartext
