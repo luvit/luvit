@@ -48,15 +48,13 @@ local once = function(callback)
 end
 
 local CleartextStream = Emitter:extend()
-function CleartextStream:initialize()
-end
 
 function CleartextStream:setStream(socket)
   self._socket = socket
 end
 
 function CleartextStream:destroy()
-  self._socket:destroy()
+  if self._socket then self._socket:destroy() end
 end
 
 exports.connect = function(options, callback)
@@ -71,12 +69,11 @@ exports.connect = function(options, callback)
   }
 
   options = extend(defaults, options or {})
+  port = options.port
   hostname = options.servername or options.host or
      (options.socket and options.socket._host)
-  port = options.port
 
   cleartext = CleartextStream:new()
-
   tls = tlsCodec(options)
   tls.onsecureConnect = once(callback)
   tls.onerror = function(err)
@@ -84,12 +81,14 @@ exports.connect = function(options, callback)
   end
 
   function onConnect()
+    p('after connect')
     local read1, write1 = codec.wrapStream(sock._handle)
     local read2, write2 = codec.wrapEmitter(cleartext)
     chain(tls.decoder)(read1, write2)
     chain(tls.encoder)(read2, write1)
   end
 
+  p('start connect')
   sock = net.create(port, hostname, onConnect)
   cleartext:setStream(sock)
   cleartext._tls = tls

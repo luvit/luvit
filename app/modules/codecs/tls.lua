@@ -23,107 +23,9 @@ local openssl = require('openssl')
 local table = require('table')
 
 local _root_ca = require('_root_ca')
+local _common_tls = require('codecs/_common_tls')
 
-local DEFAULT_CIPHERS = 'AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH'
-
-local DEFAULT_CERT_STORE
-
-local function getSecureOptions(protocol, options)
-  return bit.bor(openssl.ssl.no_sslv2,
-                 openssl.ssl.no_sslv3,
-                 openssl.ssl.no_compression)
-end
-
-local Credential = Object:extend()
-function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnauthorized, context)
-  self.rejectUnauthorized = rejectUnauthorized
-
-  if context then
-    self.context = context
-  else
-    self.context = openssl.ssl.ctx_new(
-      secureProtocol or 'SSLv23',
-      defaultCiphers or DEFAULT_CIPHERS
-    )
-    self.context:options(getSecureOptions(secureProtocol, flags))
-  end
-end
-
-function Credential:addRootCerts()
-  if not DEFAULT_CERT_STORE then
-    DEFAULT_CERT_STORE = openssl.x509.store:new()
-    for _, v in pairs(_root_ca.roots) do
-      DEFAULT_CERT_STORE:add(assert(openssl.x509.read(v)))
-    end
-  end
-  self.context:cert_store(DEFAULT_CERT_STORE)
-end
-
-function Credential:addCACert(certs)
-  local store = openssl.x509.store:new()
-  if type(certs) == 'table' then
-    for _, v in pairs(certs) do
-      store:add(openssl.x509.read(v))
-    end
-  else
-    store:add(openssl.x509.read(certs))
-  end
-  self.context:cert_store(store)
-end
-
-local function createCredentials(options, context)
-  local c
-
-  options = options or {}
-
-  c = Credential:new(options.secureProtocol,
-                     options.ciphers,
-                     options.secureOptions,
-                     options.rejectUnauthorized,
-                     context)
-  if context then
-    return c
-  end
-
-  --if options.key then
-  --  if options.passphrase then
-  --    c.context:setKey(options.key, options.passphrase)
-  --  else
-  --    c.context:setKey(options.key)
-  --  end
-  --end
-
-  --if options.cert then
-  --  dbg('Setting Certificate')
-  --  c.context:setCert(options.cert)
-  --end
-
-  if options.ca then
-    c:addCACert(options.ca)
-  else
-    c:addRootCerts()
-  end
-
-  --if options.crl then
-  --  dbg('Setting CRL')
-  --  if type(options.crl) == 'table' then
-  --    for _, v in pairs(options.crl) do
-  --      c.context:addCRL(v)
-  --    end
-  --  else
-  --    c.context:addCRL(options.crl)
-  --  end
-  --end
-
-  --if options.sessionIdContext then
-  --  dbg('Setting SessionIdContext')
-  --  c.context:setSessionIdContext(options.sessionIdContext)
-  --end
-  --]]
-  c.context:set_verify({"none"})
-
-  return c
-end
+local DEFAULT_CERT_STORE = nil
 
 --[[
 callbacks
@@ -163,21 +65,31 @@ return function (options)
 
   function tls.verify()
     if ctx.rejectUnauthorized then
-      local ok, err = ssl:getpeerverification()
-      if ok and tls.onsecureConnect then return tls.onsecureConnect() end
-      if tls.onerror then
-        tls.onerror(err)
-      end
+      p('verify_result ', ssl:get('verify_result'))
+      local status, err = ssl:get('verify_result')
+      p(status, err)
+      if status == 0 and tls.onsecureConnect then return tls.onsecureConnect() end
+      if tls.onerror then tls.onerror(err) end
     else
       if tls.onsecureConnect then tls.onsecureConnect() end
     end
   end
 
   function tls.createContext(options)
-    ctx = createCredentials(options)
+    ctx = _common_tls.createCredentials(options)
+    bin, bout = ctx:createBIO()
+    ssl = ctx:createSSLContext(bin, bout, false)
 
-    bin, bout = openssl.bio.mem(8192), openssl.bio.mem(8192)
-    ssl = ctx.context:ssl(bin, bout, false)
+    if options.host then
+      ssl:set('hostname', options.host)
+    end
+
+    -- CA
+    --if options.ca then
+    ctx:addCACert(options.ca)
+    --else
+    --  c:addRootCerts()
+    --end
 
     tls.ctx = ctx.context
     tls.ssl = ssl
