@@ -332,19 +332,20 @@ end
 function fs.fchownSync(fd, uid, gid)
   return uv.fs_fchown(fd, uid, gid)
 end
+local function noop() end
 local function readFile(path, callback)
   local fd, onStat, onRead
-  fs.open(path, "r", 0600, function (err, result)
+  uv.fs_open(path, "r", 438 --[[ 0666 ]], function (err, result)
     if err then return callback(err) end
     fd = result
-    fs.fstat(fd, onStat)
+    uv.fs_fstat(fd, onStat)
   end)
   function onStat(err, stat)
     if err then return onRead(err) end
-    fs.read(fd, stat.size, 0, onRead)
+    uv.fs_read(fd, stat.size, 0, onRead)
   end
   function onRead(err, chunk)
-    fs.close(fd)
+    uv.fs_close(fd, noop)
     return callback(err, chunk)
   end
 end
@@ -352,35 +353,36 @@ function fs.readFile(path, callback)
   return adapt(callback, readFile, path)
 end
 function fs.readFileSync(path)
-  local fd = assert(fs.openSync(path, "r", 0600))
-  local stat, err, chunk
-  stat, err = fs.fstatSync(fd)
+  local fd, stat, chunk, err
+  fd, err = uv.fs_open(path, "r", 438 --[[ 0666 ]])
+  if err then return false, err end
+  stat, err = uv.fs_fstat(fd)
   if stat then
-    chunk, err = fs.readSync(fd, stat.size)
+    chunk, err = uv.fs_read(fd, stat.size, 0)
   end
-  fs.close(fd)
-  if err then
-    error(err)
-  else
-    return chunk
-  end
+  uv.fs_close(fd, noop)
+  return chunk, err
 end
 local function writeFile(path, data, callback)
-  local fd, onStat, onWrite
-  fs.open(path, "w", 0600, function (err, result)
+  local fd, onWrite
+  uv.fs_open(path, "w", 438 --[[ 0666 ]], function (err, result)
     if err then return callback(err) end
     fd = result
-    fs.fstat(fd, onStat)
+    uv.fs_write(fd, 0, data, onWrite)
   end)
-  function onStat(err, stat)
-    if err then return onWrite(err) end
-    fs.write(fd, 0, data, onWrite)
-  end
   function onWrite(err)
-    fs.close(fd)
+    uv.fs_close(fd, noop)
     return callback(err)
   end
 end
 function fs.writeFile(path, data, callback)
   adapt(callback, writeFile, path, data)
+end
+function fs.writeFileSync(path, data)
+  local _, fd, err
+  fd, err = (uv.fs_open(path, "w", 438 --[[ 0666 ]]))
+  if err then return false, err end
+  _, err = fs.write(fd, 0, data)
+  uv.fs_close(fd, noop)
+  return not err, err
 end
