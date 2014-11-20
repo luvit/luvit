@@ -76,8 +76,7 @@ function fs.read(fd, size, offset, callback)
     size = 4096
   end
   if offset == nil then
-    -- TODO: allow nil in luv for append position
-    offset = 0
+    offset = -1
   end
   return adapt(callback, uv.fs_read, fd, size, offset)
 end
@@ -86,8 +85,7 @@ function fs.readSync(fd, size, offset)
     size = 4096
   end
   if offset == nil then
-    -- TODO: allow nil in luv for append position
-    offset = 0
+    offset = -1
   end
   return uv.fs_read(fd, size, offset)
 end
@@ -104,15 +102,13 @@ function fs.write(fd, offset, data, callback)
     callback, offset = offset, nil
   end
   if offset == nil then
-    -- TODO: allow nil in luv for append position
-    offset = 0
+    offset = -1 -- -1 means append
   end
   return adapt(callback, uv.fs_write, fd, data, offset)
 end
 function fs.writeSync(fd, data, offset)
   if offset == nil then
-    -- TODO: allow nil in luv for append position
-    offset = 0
+    offset = -1 -- -1 means append
   end
   return uv.fs_write(fd, data, offset)
 end
