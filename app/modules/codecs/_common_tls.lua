@@ -35,12 +35,16 @@ end
 local CertificateStoreCtx = Object:extend()
 function CertificateStoreCtx:initialize(ctx)
   self.ctx = ctx
-  self.cert_store = self.ctx:cert_store()
-  p(self)
+  self.cert_store = openssl.x509.store:new()
 end
 
 function CertificateStoreCtx:add(cert)
+  p('adding', cert:subject())
   return self.cert_store:add(cert)
+end
+
+function CertificateStoreCtx:load(filename)
+  return self.cert_store:load(filename)
 end
 
 exports.CertificateStoreCtx = CertificateStoreCtx
@@ -54,7 +58,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
   if context then
     self.context = context
   else
-    self.context = openssl.ssl.ctx_new(secureProtocol or 'SSLv23',
+    self.context = openssl.ssl.ctx_new(secureProtocol or 'TLSv1',
       defaultCiphers or DEFAULT_CIPHERS)
     self.context:options(getSecureOptions(secureProtocol, flags))
   end
@@ -64,6 +68,7 @@ function Credential:addRootCerts()
   local store = self.context:cert_store()
   for _, cert in pairs(_root_ca.roots) do
     cert = assert(openssl.x509.read(cert))
+    p(cert)
     p(cert:subject())
     assert(store(cert))
   end
@@ -71,18 +76,23 @@ function Credential:addRootCerts()
 end
 
 function Credential:addCACert(certs)
-  local store = CertificateStoreCtx:new(self.context)
-  --store:load('test.pem')
+  local new_store = false, cert
+  if not self.store then
+    self.store = CertificateStoreCtx:new(self.context)
+    new_store = true
+  end
+  self.store:load('test.pem')
   if type(certs) == 'table' then
     for _, cert in pairs(certs) do
       cert = openssl.x509.read(cert)
-      p(cert:subject())
-      store:add(cert)
+      self.store:add(cert)
     end
   else
-    local cert = openssl.x509.read(certs)
-    p(cert:subject())
-    store:add(cert)
+    cert = openssl.x509.read(certs)
+    self.store:add(cert)
+  end
+  if new_store then
+    self.context:cert_store(self.store.cert_store)
   end
 end
 
@@ -91,8 +101,7 @@ function Credential:createBIO()
 end
 
 function Credential:createSSLContext(bin, bout, server)
-  self.ssl = self.context:ssl(bin, bout, server)
-  return self.ssl
+  return self.context:ssl(bin, bout, server)
 end
 
 exports.Credential = Credential
@@ -108,6 +117,10 @@ exports.createCredentials = function(options, context)
   if context then
     return ctx
   end
-  ctx.context:set_verify({"none"})
+
+  ctx.context:set_verify({"none"}, function()
+    return 1
+  end)
+
   return ctx
 end

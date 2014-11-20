@@ -22,7 +22,7 @@ local bit = require('bit')
 local openssl = require('openssl')
 local table = require('table')
 
-local _root_ca = require('_root_ca')
+local _root_ca = require('codecs/_root_ca')
 local _common_tls = require('codecs/_common_tls')
 
 local DEFAULT_CERT_STORE = nil
@@ -43,7 +43,9 @@ return function (options)
   function handshake()
     if outerWrite and outerRead then
       while true do
-        if ssl:handshake() then
+        local hs = ssl:handshake()
+        p(hs)
+        if hs then
           tls.verify()
           break
         end
@@ -65,10 +67,20 @@ return function (options)
 
   function tls.verify()
     if ctx.rejectUnauthorized then
-      p('verify_result ', ssl:get('verify_result'))
-      local status, err = ssl:get('verify_result')
-      p(status, err)
-      if status == 0 and tls.onsecureConnect then return tls.onsecureConnect() end
+      p('verify_result')
+      local peer = ssl:peer()
+      local verify = false
+      local err
+
+      p('peer', peer)
+      if peer then
+        p(peer:subject())
+        verify, err = ssl:getpeerverification()
+        p('verify', verify)
+      end
+      p(type(verify))
+
+      if verify and tls.onsecureConnect then return tls.onsecureConnect() end
       if tls.onerror then tls.onerror(err) end
     else
       if tls.onsecureConnect then tls.onsecureConnect() end
@@ -77,19 +89,17 @@ return function (options)
 
   function tls.createContext(options)
     ctx = _common_tls.createCredentials(options)
-    bin, bout = ctx:createBIO()
-    ssl = ctx:createSSLContext(bin, bout, false)
-
-    if options.host then
-      ssl:set('hostname', options.host)
-    end
 
     -- CA
-    --if options.ca then
-    ctx:addCACert(options.ca)
-    --else
-    --  c:addRootCerts()
-    --end
+    if options.ca then
+      for _, v in pairs(options.ca) do
+        print(v)
+      end
+      ctx:addCACert(options.ca)
+    end
+
+    bin, bout = ctx:createBIO()
+    ssl = ctx:createSSLContext(bin, bout, false)
 
     tls.ctx = ctx.context
     tls.ssl = ssl
