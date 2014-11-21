@@ -5,6 +5,7 @@ os:
   - osx
 
 script:
+  - make
   - make test
 
 notifications:
