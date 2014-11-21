@@ -3,15 +3,12 @@ configuration: Release
 matrix:
     fast_finish: true
 
-install:
-    - cinst 7zip.commandline
-
 build_script:
     - git submodule update --init
-    - make.bat
+    - Make.bat
 
 test_script:
-    - luvit.exe tests\run.lua
+    - Make.bat test
 
 artifacts:
     - path: luvit.exe
