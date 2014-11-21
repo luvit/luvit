@@ -5,7 +5,7 @@ IF NOT "x%1" == "x" GOTO :%1
 :luvit
 ECHO "Building luvit"
 SET LUVI_APP=app
-SET LUVI_TARGET=luvit
+SET LUVI_TARGET=luvit.exe
 luvi-binaries\Windows\luvi.exe
 SET "LUVI_APP="
 SET "LUVI_TARGET="
