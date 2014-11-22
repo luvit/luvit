@@ -16,6 +16,8 @@ limitations under the License.
 
 --]]
 
+local uv = require('uv')
+
 --[[
 This module is for various classes and utilities that don't need their own
 module.
@@ -374,6 +376,37 @@ end
 function Error:initialize(message)
   self.message = message
 end
+
+--------------------------------------------------------------------------------
+
+local Stream = Emitter:extend()
+function Stream:initialize(handle)
+  self.handle = handle
+end
+
+function Stream:readStart()
+  uv.read_start(self.handle, function(err, chunk)
+    if err then return self:emit('error', err) end
+    if chunk then
+      self:emit('data', chunk)
+    else
+      self:emit('end')
+    end
+  end)
+end
+
+function Stream:write(data, callback)
+  uv.write(self.handle, data, callback)
+end
+
+function Stream:readStop()
+  uv.read_stop(self.handle)
+end
+
+function Stream:close()
+  uv.close(self.handle)
+end
+core.Stream = Stream
 
 --------------------------------------------------------------------------------
 

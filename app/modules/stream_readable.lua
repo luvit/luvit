@@ -843,6 +843,7 @@ function Readable:wrap(stream)
   local paused = false
 
   stream:on('end', function() 
+    self:emit('end')
     self:push(nil)
   end)
 
