@@ -59,7 +59,9 @@ end
 
 exports.connect = function(options, callback)
   local defaults, hostname, context, sock, cleartext, tlsChain, tls
-  local port, onConnect
+  local port, onConnect, onError
+
+  callback = callback or function() end
 
   -- Setup options
   defaults = {
@@ -87,10 +89,13 @@ exports.connect = function(options, callback)
     chain(tls.encoder)(read2, write1)
   end
 
-  sock = net.create(port, hostname, onConnect)
-  sock:on('error', function(err)
+  function onError(err)
     cleartext:emit('error', err)
-  end)
+  end
+
+  sock = net.create(port, hostname, onConnect)
+  sock:on('error', onError)
+
   cleartext:setStream(sock)
   cleartext._tls = tls
   
