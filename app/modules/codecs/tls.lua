@@ -88,6 +88,8 @@ return function (options)
   end
 
   function tls.createContext(options)
+    options = options or {}
+
     ctx = _common_tls.createCredentials(options)
 
     -- CA
