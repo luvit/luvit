@@ -81,15 +81,16 @@ exports.connect = function(options, callback)
   end
 
   function onConnect()
-    p('after connect')
     local read1, write1 = codec.wrapStream(sock._handle)
     local read2, write2 = codec.wrapEmitter(cleartext)
     chain(tls.decoder)(read1, write2)
     chain(tls.encoder)(read2, write1)
   end
 
-  p('start connect')
   sock = net.create(port, hostname, onConnect)
+  sock:on('error', function(err)
+    cleartext:emit('error', err)
+  end)
   cleartext:setStream(sock)
   cleartext._tls = tls
   
