@@ -166,13 +166,7 @@ function Emitter:missingHandlerType(name, ...)
       if handlers and handlers["error"] then
         -- delegate to process error handler
         process:emit("error", ..., self)
-      else
-        debug("UNHANDLED ERROR", ...)
-        error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
       end
-    else
-      debug("UNHANDLED ERROR", ...)
-      error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
     end
   end
 end
