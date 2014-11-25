@@ -12,3 +12,10 @@ test: luvit
 
 clean:
 	rm -f luvit
+
+install: luvit
+	install luvit /usr/local/bin
+
+uninstall:
+	rm -f /usr/local/bin/luvit
+
