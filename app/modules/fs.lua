@@ -364,7 +364,7 @@ local function writeFile(path, data, callback)
   uv.fs_open(path, "w", 438 --[[ 0666 ]], function (err, result)
     if err then return callback(err) end
     fd = result
-    uv.fs_write(fd, 0, data, onWrite)
+    uv.fs_write(fd, data, 0, onWrite)
   end)
   function onWrite(err)
     uv.fs_close(fd, noop)
@@ -378,7 +378,7 @@ function fs.writeFileSync(path, data)
   local _, fd, err
   fd, err = (uv.fs_open(path, "w", 438 --[[ 0666 ]]))
   if err then return false, err end
-  _, err = fs.write(fd, 0, data)
+  _, err = uv.fs_write(fd, data, 0)
   uv.fs_close(fd, noop)
   return not err, err
 end
