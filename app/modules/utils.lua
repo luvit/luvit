@@ -72,6 +72,15 @@ function loadColors(index)
   controls[92] = colorize('escape', '\\\\', 'string')
   controls[34] = colorize('escape', '\\"', 'string')
   controls[39] = colorize('escape', "\\'", 'string')
+  for i = 128, 255 do
+    local c
+    if i < 100 then
+      c = "0" .. tostring(i)
+    else
+      c = tostring(i)
+    end
+    controls[i] = colorize('escape', '\\' .. c, 'string')
+  end
 
 end
 
@@ -147,9 +156,9 @@ function dump(value)
     local typ = type(value)
     if typ == 'string' then
       if string.match(value, "'") and not string.match(value, '"') then
-        write(dquote .. string.gsub(value, '[%c\\]', stringEscape) .. dquote2)
+        write(dquote .. string.gsub(value, '[%c\\\128-\255]', stringEscape) .. dquote2)
       else
-        write(quote .. string.gsub(value, "[%c\\']", stringEscape) .. quote2)
+        write(quote .. string.gsub(value, "[%c\\'\128-\255]", stringEscape) .. quote2)
       end
     elseif value == JSON.null then
       write(colorize("nil", "null"))
