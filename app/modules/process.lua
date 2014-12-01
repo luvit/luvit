@@ -19,7 +19,7 @@ limitations under the License.
 local timer = require('timer')
 
 local function nextTick(...)
-  timer.setTimeout(0, ...)
+  timer.setImmediate(...)
 end
 
 local function globalProcess()
