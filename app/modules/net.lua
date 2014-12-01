@@ -23,12 +23,37 @@ local table = require('table')
 local core = require('core')
 local Emitter = core.Emitter
 local iStream = core.iStream
-
-local net = {}
+local Duplex = require('stream_duplex').Duplex
 
 --[[ Socket ]]--
 
-local Socket = iStream:extend()
+local Socket = Duplex:extend()
+
+function Socket:initialize(handle)
+  Duplex.initialize(self)
+  self._handle = handle or uv.new_tcp()
+  self._connecting = false
+  self._reading = false
+  self._destroyed = false
+
+  self:on('finish', utils.bind(self._onSocketFinish, self))
+  self:on('_socketEnd', utils.bind(self._onSocketEnd, self))
+end
+
+function Socket:_onSocketFinish()
+  if self._connecting then
+    return self:once('connect', utils.bind(self._onSocketFinish, self))
+  end
+  if not self.readable then
+    return self:destroy()
+  end
+end
+
+function Socket:_onSocketEnd()
+  self:once('end', function()
+    self:destroy()
+  end)
+end
 
 function Socket:bind(ip, port)
   uv.tcp_bind(self._handle, ip, tonumber(port))
@@ -46,49 +71,45 @@ function Socket:setTimeout(msecs, callback)
   if msecs > 0 then
     timer.enroll(self, msecs)
     timer.active(self)
-    if callback then
-      self:once('timeout', callback)
-    end
+    if callback then self:once('timeout', callback) end
   elseif msecs == 0 then
     timer.unenroll(self)
   end
 end
 
-function Socket:write(data, callback)
-  if self.destroyed then
-    return
-  end
-
-  if self._connecting == true then
-    self._connectQueueSize = self._connectQueueSize + #data
-    if self._connectQueue then
-      table.insert(self._connectQueue, {data, callback})
-    else
-      self._connectQueue = { {data, callback} }
-    end
-    return false
-  end
-
-  return self:_write(data, callback)
-end
-
-function Socket:_write(data, callback)
+function Socket:_write(data, encoding, callback)
   timer.active(self)
-  self._pendingWriteRequests = self._pendingWriteRequests + 1
   uv.write(self._handle, data, function(err)
-    if err then
-      return self:emit('error', err);
-    end
     timer.active(self)
-    self._pendingWriteRequests = self._pendingWriteRequests - 1
-    if self._pendingWriteRequests == 0 then
-      self:emit('drain');
-    end
-    if callback then
-      callback()
+    if err then
+      return self:destroy(err)
     end
   end)
-  return uv.tcp_write_queue_size(self._handle) == 0
+  callback()
+end
+
+function Socket:_read(n)
+  local onRead
+  timer.active(self)
+
+  function onRead(err, data)
+    timer.active(self)
+    if err then
+      return self:destroy(err)
+    elseif data then
+      self:push(data)
+    else
+      self:push(nil)
+      self:emit('_socketEnd')
+    end
+  end
+
+  if self.connecting then
+    self:once('connect', utils.bind(self._read, self, n))
+  elseif not self._reading then
+    self._reading = true
+    uv.read_start(self._handle, onRead)
+  end
 end
 
 function Socket:shutdown(callback)
@@ -113,29 +134,6 @@ end
 
 function Socket:pause()
   uv.read_stop(self._handle)
-end
-
-function Socket:resume()
-  self:setConnected(true)
-  uv.read_start(self._handle, function(err, data)
-    if err then
-      return self:emit('error', err)
-    end
-    timer.active(self)
-    if data == nil then
-      return self:destroy()
-    end
-    self:emit('data', data)
-  end)
-end
-
-function Socket:isConnected()
-  return self._connected
-end
-
-function Socket:setConnected(status)
-  self._connected = status
-  return status
 end
 
 function Socket:done()
@@ -191,26 +189,9 @@ function Socket:connect(...)
       if err then
         return callback(err)
       end
-
       self._connecting = false
-
-      if self._connectQueue then
-        for i=1, #self._connectQueue do
-          self:_write(self._connectQueue[i][1], self._connectQueue[i][2])
-        end
-        self._connectQueue = nil
-      end
-
-      if self._paused then
-        self._paused = false
-        self:pause()
-      else
-        self:resume()
-      end
-
-      if callback then
-        callback()
-      end
+      self:emit('connect')
+      if callback then callback() end
     end)
   end)
 
@@ -222,96 +203,44 @@ function Socket:destroy(exception, callback)
   if self.destroyed == true or self._handle == nil then
     return callback()
   end
-  self.destroyed = true
 
   timer.unenroll(self)
+  self.destroyed = true
   self.readable = false
   self.writable = false
+    
+  if uv.is_closing(self._handle) then
+    return callback(exception)
+  end
 
-  if self._handle then
-    self:setConnected(false)
+  uv.close(self._handle)
+  self._handle = nil
 
-    if uv.is_closing(self._handle) then
-      return callback(exception)
-    end
-
-    uv.close(self._handle)
-    self._handle = nil
-    if (exception) then
+  if (exception) then
+    process.nextTick(function()
       self:emit('error', exception)
-    end
+    end)
   end
 end
 
 function Socket:listen(queueSize)
+  local onListen
   queueSize = queueSize or 128
-  uv.listen(self._handle, queueSize, function()
+  function onListen()
     local client = uv.new_tcp()
     uv.accept(self._handle, client)
-    client = Socket:new(client)
-    client:resume()
-    self:emit('connection', client)
-  end)
+    self:emit('connection', Socket:new(client))
+  end
+  uv.listen(self._handle, queueSize, onListen)
 end
 
 function Socket:getsockname()
   return uv.tcp_getsockname(self._handle)
 end
 
-function Socket:initialize(handle)
-  self._onTimeout = utils.bind(Socket._onTimeoutReal, self)
-  self._handle = handle or uv.new_tcp()
-  self._pendingWriteRequests = 0
-  self._connected = false
-  self._connecting = false
-  self._connectQueueSize = 0
-  self.readable = true
-  self.writable = true
-  self.destroyed = false
-end
-
 --[[ Server ]]--
 
-local Server = Emitter:extend()
-function Server:listen(port, ... --[[ ip, callback --]] )
-  local args = {...}
-  local ip
-  local callback
-
-  -- Future proof
-  if type(args[1]) == 'function' then
-    callback = args[1]
-  else
-    ip = args[1]
-    callback = args[2]
-  end
-
-  ip = ip or '0.0.0.0'
-
-  self._handle:bind(ip, port)
-  self._handle:listen()
-  self._handle:on('connection', function(client)
-    self.connectionCallback(client)
-  end)
-
-  if callback then
-    timer.setTimeout(0, callback)
-  end
-
-  return self
-end
-
-function Server:address()
-  if self._handle then
-    return self._handle:getsockname()
-  end
-  return nil
-end
-
-function Server:close(callback)
-  self._handle:destroy(nil, callback)
-end
-
+local Server = Socket:extend()
 function Server:initialize(...)
   local args = {...}
   local options
@@ -333,13 +262,53 @@ function Server:initialize(...)
   end
 end
 
+function Server:listen(port, ... --[[ ip, callback --]] )
+  local args = {...}
+  local ip, callback, onConnection
+
+  -- Future proof
+  if type(args[1]) == 'function' then
+    callback = args[1]
+  else
+    ip = args[1]
+    callback = args[2]
+  end
+
+  ip = ip or '0.0.0.0'
+
+  function onConnection(client)
+    self.connectionCallback(client)
+  end
+
+  self._handle:bind(ip, port)
+  self._handle:listen()
+  self._handle:on('connection', onConnection)
+
+  if callback then
+    process.nextTick(callback)
+  end
+
+  return self
+end
+
+function Server:address()
+  if self._handle then
+    return self._handle:getsockname()
+  end
+  return nil
+end
+
+function Server:close(callback)
+  self._handle:destroy(nil, callback)
+end
+
 -- Exports
 
-net.Server = Server
+exports.Server = Server
 
-net.Socket = Socket
+exports.Socket = Socket
 
-net.createConnection = function(port, ... --[[ host, cb --]])
+exports.createConnection = function(port, ... --[[ host, cb --]])
   local args = {...}
   local host
   local options
@@ -358,13 +327,12 @@ net.createConnection = function(port, ... --[[ host, cb --]])
   end
 
   s = Socket:new()
-  return s:connect(port, host, callback)
+  s:connect(port, host, callback)
+  return s
 end
 
-net.create = net.createConnection
+exports.create = exports.createConnection
 
-net.createServer = function(...)
+exports.createServer = function(...)
   return Server:new(...)
 end
-
-return net

@@ -16,16 +16,32 @@ limitations under the License.
 
 --]]
 
-local timer = require('timer')
+--[[
+// a passthrough stream.
+// basically just the most minimal sort of Transform stream.
+// Every written chunk gets output as-is.
+--]]
 
-local function nextTick(...)
-  timer.setImmediate(...)
+local Transform = require('./stream_transform').Transform
+local core = require('core')
+
+local PassThrough = Transform:extend()
+
+function PassThrough:initialize(options)
+  --[[
+  if (!(this instanceof PassThrough))
+    return new PassThrough(options)
+  --]]
+
+  Transform.initialize(self, options)
 end
 
-local function globalProcess()
-  local process = {}
-  process.exitCode = 0
-  process.nextTick = nextTick
-  return process
+function PassThrough:_transform(chunk, encoding, cb)
+  cb(nil, chunk)
 end
-exports.globalProcess = globalProcess
+
+local exports = {}
+
+exports.PassThrough = PassThrough
+
+return exports

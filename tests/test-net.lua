@@ -16,16 +16,13 @@ limitations under the License.
 
 --]]
 
+local timer = require('timer')
 local net = require('net')
 local uv = require('uv')
 
 local function createTestServer(port, host, listenCallback)
   local server = net.createServer(function(client)
-   client:on("data", function(chunk)
-     client:write(chunk, function(err)
-       assert(err == nil)
-     end)
-   end)
+    client:pipe(client)
   end)
   server:listen(port, host, listenCallback)
   server:on("error", function(err) assert(err) end)
@@ -63,7 +60,6 @@ require('tap')(function (test)
         end
         client:keepalive(true, 10)
         assert(type(client:getsockname()) == 'table')
-        assert(client:isConnected() == true)
         client:on('data', expect(function(data)
           client:keepalive(true, 10)
           assert(#data == 5)
@@ -73,7 +69,6 @@ require('tap')(function (test)
         end))
         client:write('hello')
       end))
-      assert(client:isConnected() == false)
     end))
   end)
 
@@ -83,13 +78,9 @@ require('tap')(function (test)
     local server
     server = createTestServer(port, host, expect(function()
       local client
-      client = net.createConnection(port, host, expect(function(err)
-        if err then
-          assert(err)
-        end
+      client = net.createConnection(port, host, expect(function()
         client:nodelay(true)
         assert(type(client:getsockname()) == 'table')
-        assert(client:isConnected() == true)
         client:on('data', expect(function(data)
           assert(#data == 5)
           assert(data == 'hello')
@@ -105,17 +96,32 @@ require('tap')(function (test)
     local port = 10083
     local host = '127.0.0.1'
     local timeout = 500
-    local server = net.createServer(expect(function() end))
-    server:listen(port, host, expect(function()
-      local client
-      client = net.createConnection(port, host, expect(function(err)
-        assert(not err, err)
+    local onClient, onListen, server
+
+    function onClient(client)
+      client:pipe(client)
+      client:on('error', function() end)
+    end
+
+    server = net.createServer(expect(onClient))
+
+    function onListen()
+      local client, onConnect, onTimeout
+
+      function onConnect()
+        client:on('error', function() end)
         client:write('hello')
-      end))
-      client:setTimeout(timeout, expect(function()
+      end
+
+      function onTimeout()
         client:destroy()
         server:close()
-      end))
-    end))
+      end
+
+      client = net.createConnection(port, host, expect(onConnect))
+      client:setTimeout(timeout, expect(onTimeout))
+    end
+
+    server:listen(port, host, expect(onListen))
   end)
 end)

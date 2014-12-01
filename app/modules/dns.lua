@@ -589,6 +589,8 @@ local function _query(name, dnsclass, qtype, callback)
         sock:destroy()
         return timer.setImmediate(tcp_iter)
       end
+      sock:on('data', onData)
+      sock:on('error', onError)
       sock:write(table.concat({len_hi, len_lo, req}))
     end
 
@@ -613,8 +615,6 @@ local function _query(name, dnsclass, qtype, callback)
 
     sock:setTimeout(TIMEOUT, onTimeout)
     sock:connect(srv.port, srv.host, onConnect)
-    sock:on('data', onData)
-    sock:on('error', onError)
   end
 
   udp_iter = function()
