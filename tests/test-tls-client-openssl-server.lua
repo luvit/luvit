@@ -25,41 +25,66 @@ local path = require('luvi').path
 require('tap')(function(test)
   test('tls client econnreset', function(expect)
     local port, args, child, interval, timerCallback, key, cert
-    local onInterval, onStartClient, onKill, client
+    local onInterval, onStartClient, client, data
+    local count, maxCount
 
     if los.type() == 'win32' then return end
 
-    port = 32311
+    count = 0
+    maxCount = 5
+    data = ''
+    port = 32312
     key = path.join(module.dir, 'fixtures', 'keys', 'agent1-key.pem')
     cert = path.join(module.dir, 'fixtures', 'keys', 'agent1-cert.pem')
     args = { 's_server', '-accept', port, '-key', key, '-cert', cert }
 
     child = childprocess.spawn('openssl', args)
-    child.stderr:on('data', p)
-    child.stdout:on('data', p)
+    child.stdout:on('data', function(data)
+      p(data)
+      if data:find('ECDH parameters') then timer.setTimeout(100, begin) end
+    end)
+
+    function begin()
+      p('begin')
+      interval = timer.setInterval(200, onInterval)
+      timer.setTimeout(100, startClient)
+    end
 
     function onInterval()
-      pcall(child.stdin.write, child.stdin, "Hello world")
+      p('onInterval')
+      child.stdin:write('hello world\n')
+      count = count + 1
+      if count == maxCount then
+        timer.clearInterval(interval)
+      end
     end
-    interval = timer.setInterval(100, onInterval)
 
-    function onStartClient()
-      local options = {
+    function startClient()
+      local onData, options, count
+
+      p('onStartClient')
+
+      options = {
         port = port,
         host = '127.0.0.1',
         rejectUnauthorized = false,
       }
-      client = tls.connect(options)
-      client:on('data', p)
-    end
-    timer.setTimeout(200, onStartClient)
 
-    function onKill()
-      timer.clearInterval(interval)
-      child:kill()
-      client:destroy()
+      count = 0
+
+      function onData(_data)
+        p('client data ' .. _data)
+        data = data .. _data
+        count = count + 1
+        if count == 5 then
+          client:destroy()
+          child:kill()
+        end
+      end
+
+      client = tls.connect(options)
+      client:on('data', onData)
     end
-    timer.setTimeout(1000, onKill)
   end)
 end)
 

@@ -25,15 +25,11 @@ require('tap')(function(test)
       host = '127.0.0.1'
     }, conn, onConnect, onError
 
-    function onConnect()
-      assert(false)
-    end
-
     function onError(err)
       p(err)
     end
 
-    conn = tls.connect(options, {}, onConnect)
+    conn = tls.connect(options)
     conn:on('error', expect(onError))
   end)
 end)

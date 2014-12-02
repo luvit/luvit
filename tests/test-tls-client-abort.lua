@@ -23,13 +23,9 @@ require('tap')(function(test)
     local options = {
       port = 32333,
       host = '127.0.0.1'
-    }, conn, onConnect
+    }, conn
 
-    function onConnect()
-      assert(false)
-    end
-
-    conn = tls.connect(options, {}, onConnect)
+    conn = tls.connect(options)
     conn:destroy()
   end)
 end)

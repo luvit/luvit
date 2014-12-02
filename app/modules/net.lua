@@ -28,10 +28,25 @@ local Duplex = require('stream_duplex').Duplex
 --[[ Socket ]]--
 
 local Socket = Duplex:extend()
-
-function Socket:initialize(handle)
+function Socket:initialize(options)
   Duplex.initialize(self)
-  self._handle = handle or uv.new_tcp()
+  if type(options) == 'number' then
+    options  = { fd = options }
+  elseif options == nil then
+    options = {}
+  end
+
+  if options.handle then
+    self._handle = options.handle
+  elseif options.fd then
+    local typ = tty.uv.guess_handle(options.fd);
+    if typ == 'TCP' then
+      self._handle = uv.new_tcp()
+    elseif typ == 'PIPE' then
+      self._handle = uv.new_pipe()
+    end
+  end
+
   self._connecting = false
   self._reading = false
   self._destroyed = false
@@ -82,7 +97,9 @@ function Socket:_write(data, encoding, callback)
   uv.write(self._handle, data, function(err)
     timer.active(self)
     if err then
-      return self:destroy(err)
+      callback(err)
+      self:destroy(err)
+      return
     end
   end)
   callback()
@@ -136,16 +153,6 @@ function Socket:pause()
   uv.read_stop(self._handle)
 end
 
-function Socket:done()
-  self.writable = false
-
-  self:shutdown(function()
-    self:destroy(function()
-      self:emit('close')
-    end)
-  end)
-end
-
 function Socket:connect(...)
   local args = {...}
   local options = {}
@@ -172,13 +179,18 @@ function Socket:connect(...)
     options.host = '0.0.0.0'
   end
 
+  if not self._handle then
+    self._handle = uv.new_tcp()
+  end
+
   timer.active(self)
   self._connecting = true
 
   uv.getaddrinfo(options.host, options.port, { socktype = "STREAM" }, function(err, res)
     timer.active(self)
     if err then
-      return callback(err)
+      self:destroy(err)
+      return
     end
     if not self._handle then
       return
@@ -187,7 +199,8 @@ function Socket:connect(...)
     uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
       timer.active(self)
       if err then
-        return callback(err)
+        self:destroy(err)
+        return
       end
       self._connecting = false
       self:emit('connect')
@@ -229,7 +242,7 @@ function Socket:listen(queueSize)
   function onListen()
     local client = uv.new_tcp()
     uv.accept(self._handle, client)
-    self:emit('connection', Socket:new(client))
+    self:emit('connection', Socket:new({ handle = client }))
   end
   uv.listen(self._handle, queueSize, onListen)
 end
@@ -256,15 +269,15 @@ function Server:initialize(...)
   if options.handle then
     self._handle = options.handle
   end
-
-  if not self._handle then
-    self._handle = Socket:new()
-  end
 end
 
 function Server:listen(port, ... --[[ ip, callback --]] )
   local args = {...}
   local ip, callback, onConnection
+
+  if not self._handle then
+    self._handle = Socket:new({ handle = uv.new_tcp() })
+  end
 
   -- Future proof
   if type(args[1]) == 'function' then
@@ -285,7 +298,7 @@ function Server:listen(port, ... --[[ ip, callback --]] )
   self._handle:on('connection', onConnection)
 
   if callback then
-    process.nextTick(callback)
+    timer.setImmediate(callback)
   end
 
   return self
@@ -313,6 +326,7 @@ exports.createConnection = function(port, ... --[[ host, cb --]])
   local host
   local options
   local callback
+  local sock
 
   -- future proof
   if type(port) == 'table' then
@@ -325,9 +339,9 @@ exports.createConnection = function(port, ... --[[ host, cb --]])
     callback = args[2]
   end
 
-  s = Socket:new()
-  s:connect(port, host, callback)
-  return s
+  sock = Socket:new()
+  sock:connect(port, host, callback)
+  return sock
 end
 
 exports.create = exports.createConnection

@@ -21,6 +21,7 @@ if not loaded then return end
 
 local Emitter = require('core').Emitter
 local net = require('net')
+local utils = require('utils')
 local tlsCodec = require('codecs/tls')
 
 local codec = require('codec')
