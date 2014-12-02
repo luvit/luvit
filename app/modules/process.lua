@@ -17,13 +17,14 @@ limitations under the License.
 --]]
 
 local timer = require('timer')
+local Emitter = require('core').Emitter
 
 local function nextTick(...)
   timer.setImmediate(...)
 end
 
 local function globalProcess()
-  local process = {}
+  local process = Emitter:new()
   process.exitCode = 0
   process.nextTick = nextTick
   return process
