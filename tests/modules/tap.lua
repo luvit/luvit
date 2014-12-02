@@ -92,6 +92,7 @@ local function run()
     uv.run()
     uv.walk(function (handle)
       if preexisting[handle] then return end
+      if uv.is_closing(handle) then return end
       uv.close(handle)
     end)
     uv.run()

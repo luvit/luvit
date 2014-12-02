@@ -16,17 +16,21 @@ limitations under the License.
 
 --]]
 
-local timer = require('timer')
-local Emitter = require('core').Emitter
+local tls = require('tls')
 
-local function nextTick(...)
-  timer.setImmediate(...)
-end
+require('tap')(function(test)
+  test('tls client abort', function(expect)
+    local options = {
+      port = 32333,
+      host = '127.0.0.1'
+    }, conn, onConnect, onError
 
-local function globalProcess()
-  local process = Emitter:new()
-  process.exitCode = 0
-  process.nextTick = nextTick
-  return process
-end
-exports.globalProcess = globalProcess
+    function onError(err)
+      p(err)
+    end
+
+    conn = tls.connect(options)
+    conn:on('error', expect(onError))
+  end)
+end)
+

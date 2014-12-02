@@ -16,33 +16,42 @@ limitations under the License.
 
 --]]
 
-local openssl = require('openssl')
+local Object = require('core').Object
+
 local bit = require('bit')
+local openssl = require('openssl')
+local table = require('table')
+
+local _root_ca = require('codecs/_root_ca')
+local _common_tls = require('codecs/_common_tls')
+
+local DEFAULT_CERT_STORE = nil
+
+--[[
+callbacks
+   onsecureConnect -- When handshake completes successfully
+]]--
 
 return function (options)
-
-  local ctx = openssl.ssl.ctx_new("TLSv1_2")
-  ctx:set_verify({"none"})
-  -- TODO: Make options configurable in secureChannel call
-  ctx:options(bit.bor(
-    openssl.ssl.no_sslv2,
-    openssl.ssl.no_sslv3,
-    openssl.ssl.no_compression))
-  local bin, bout = openssl.bio.mem(8192), openssl.bio.mem(8192)
-  local ssl = ctx:ssl(bin, bout, false)
-
-  local outerWrite, outerRead, waiting
+  local ctx, bin, bout, ssl, outerWrite, outerRead, waiting, handshake, sslRead
+  local tls = {}
 
   -- Both sides will call handshake as they are hooked up
   -- But the first to call handshake will simply wait
   -- And the second will perform the handshake and then
   -- resume the other.
-  local function handshake()
+  function handshake()
     if outerWrite and outerRead then
       while true do
-        if ssl:handshake() then break end
+        local hs = ssl:handshake()
+        p(hs)
+        if hs then
+          tls.verify()
+          break
+        end
         outerWrite(bout:read())
-        bin:write(outerRead())
+        local data = outerRead()
+        if data then bin:write(data) end
       end
       assert(coroutine.resume(waiting))
       waiting = nil
@@ -52,10 +61,50 @@ return function (options)
     end
   end
 
-  local tls = {}
-
-  local function sslRead()
+  function sslRead()
     return ssl:read()
+  end
+
+  function tls.verify()
+    if ctx.rejectUnauthorized then
+      p('verify_result')
+      local peer = ssl:peer()
+      local verify = false
+      local err
+
+      p('peer', peer)
+      if peer then
+        p(peer:subject())
+        verify, err = ssl:getpeerverification()
+        p('verify', verify)
+      end
+      p(type(verify))
+
+      if verify and tls.onsecureConnect then return tls.onsecureConnect() end
+      if tls.onerror then tls.onerror(err) end
+    else
+      if tls.onsecureConnect then tls.onsecureConnect() end
+    end
+  end
+
+  function tls.createContext(options)
+    options = options or {}
+
+    ctx = _common_tls.createCredentials(options)
+
+    -- CA
+    if options.ca then
+      for _, v in pairs(options.ca) do
+        print(v)
+      end
+      ctx:addCACert(options.ca)
+    end
+
+    bin, bout = ctx:createBIO()
+    ssl = ctx:createSSLContext(bin, bout, false)
+
+    tls.ctx = ctx.context
+    tls.ssl = ssl
   end
 
   function tls.decoder(read, write)
@@ -84,6 +133,7 @@ return function (options)
     write()
   end
 
-  return tls
+  tls.createContext(options)
 
+  return tls
 end

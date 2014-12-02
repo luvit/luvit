@@ -16,6 +16,7 @@ limitations under the License.
 
 --]]
 
+local net = require('net')
 local core = require('core')
 local timer = require('timer')
 local uv = require('uv')
@@ -25,7 +26,7 @@ local Writable = require('stream_writable').Writable
 local function spawn(command, args, options)
   local envPairs = {}, env, em, onCallback
   local stdout, stdin, stderr, stdio
-  local onImmediate
+  local onImmediate, kill, cleanup
 
   args = args or {}
   options = options or {}
@@ -37,19 +38,31 @@ local function spawn(command, args, options)
     end
   end
 
-  stdout = core.Stream:new(uv.new_pipe(false))
-  stdin = core.Stream:new(uv.new_pipe(false))
-  stderr = core.Stream:new(uv.new_pipe(false))
+  stdout = net.Socket:new({ handle = uv.new_pipe(false) })
+  stderr = net.Socket:new({ handle = uv.new_pipe(false) })
+  stdin = net.Socket:new({ handle = uv.new_pipe(false) })
+  stdio = { stdin._handle, stdout._handle, stderr._handle}
 
-  stdio = { stdin.handle, stdout.handle, stderr.handle}
+  function kill(self, signal)
+    uv.process_kill(em.handle, signal or 'SIGTERM')
+    cleanup()
+  end
+
+  function cleanup()
+    if em.handle then uv.close(em.handle) ; em.handle = nil end
+    em.stdout:on('end', function()
+      em.stdout:destroy()
+    end)
+    em.stdout:resume() -- drain stdout
+    stderr:destroy()
+    stdin:destroy()
+  end
 
   em = core.Emitter:new()
-  em.stdin = Writable:new():wrap(stdin)
-  em.stdout = Readable:new():wrap(stdout)
-  em.stderr = Readable:new():wrap(stderr)
-  em.stdout:once('end', function()
-    stdout:close()
-  end)
+  em.kill = kill
+  em.stdin = stdin
+  em.stdout = stdout
+  em.stderr = stderr
   em.handle, em.pid = uv.spawn(command, {
     stdio = stdio,
     args = args,
@@ -63,20 +76,9 @@ local function spawn(command, args, options)
        em.exitCode = code
     end
 
-    function onImmediate()
-      em.stdout:resume() -- drain stdout
-      stderr:close()
-      stdin:close()
-      em:emit('exit', code, signal)
-    end
-
-    uv.close(em.handle)
-    timer.setImmediate(onImmediate)
+    cleanup()
+    em:emit('exit', code, signal)
   end)
-
-  for _, v in pairs({stdin, stdout, stderr}) do
-    v:readStart()
-  end
 
   return em
 end

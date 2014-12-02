@@ -166,13 +166,7 @@ function Emitter:missingHandlerType(name, ...)
       if handlers and handlers["error"] then
         -- delegate to process error handler
         process:emit("error", ..., self)
-      else
-        debug("UNHANDLED ERROR", ...)
-        error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
       end
-    else
-      debug("UNHANDLED ERROR", ...)
-      error("UNHANDLED ERROR. Define process:on('error', handler) to catch such errors")
     end
   end
 end
@@ -309,61 +303,6 @@ end
 
 --------------------------------------------------------------------------------
 
---[[
-This is an abstract interface that works like `uv.Stream` but doesn't actually
-contain a uv struct (it's pure lua)
-]]
-local iStream = Emitter:extend()
-core.iStream = iStream
-
-function iStream:pipe(target)
-  self:on('data', function (chunk)
-    if target:write(chunk) == false and self.pause then
-      self:pause()
-    end
-  end)
-
-  target:on('drain', function()
-    if self.resume then
-      self:resume()
-    end
-  end)
-
-  local didOnEnd = false
-  local function onend()
-    if (didOnEnd) then
-      return
-    end
-
-    didOnEnd = true
-
-    if target._closeStream then
-      target:_closeStream()
-    end
-
-    if target.done then
-      target:done()
-    end
-  end
-
-  local function onclose()
-    if (didOnEnd) then
-      return
-    end
-
-    didOnEnd = true
-
-    if target.destroy then
-      target:destroy()
-    end
-  end
-
-  self:on('close', onclose)
-  self:on('end', onend)
-end
-
---------------------------------------------------------------------------------
-
 -- This is for code that wants structured error messages.
 local Error = Object:extend()
 core.Error = Error
@@ -376,37 +315,6 @@ end
 function Error:initialize(message)
   self.message = message
 end
-
---------------------------------------------------------------------------------
-
-local Stream = Emitter:extend()
-function Stream:initialize(handle)
-  self.handle = handle
-end
-
-function Stream:readStart()
-  uv.read_start(self.handle, function(err, chunk)
-    if err then return self:emit('error', err) end
-    if chunk then
-      self:emit('data', chunk)
-    else
-      self:emit('end')
-    end
-  end)
-end
-
-function Stream:write(data, callback)
-  uv.write(self.handle, data, callback)
-end
-
-function Stream:readStop()
-  uv.read_stop(self.handle)
-end
-
-function Stream:close()
-  uv.close(self.handle)
-end
-core.Stream = Stream
 
 --------------------------------------------------------------------------------
 
