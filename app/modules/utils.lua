@@ -238,14 +238,14 @@ function strip(str)
   return string.gsub(str, '\027%[[^m]*m', '')
 end
 
-if uv.guess_handle(0) == 'TTY' then
+if uv.guess_handle(0) == 'tty' then
   stdin = assert(uv.new_tty(0, true))
 else
   stdin = uv.new_pipe(false)
   uv.pipe_open(stdin, 0)
 end
 
-if uv.guess_handle(1) == 'TTY' then
+if uv.guess_handle(1) == 'tty' then
   stdout = assert(uv.new_tty(1, false))
   width = uv.tty_get_winsize(stdout)
   -- auto-detect when 16 color mode should be used
@@ -262,7 +262,7 @@ else
 end
 loadColors()
 
-if uv.guess_handle(2) == 'TTY' then
+if uv.guess_handle(2) == 'tty' then
   stderr = assert(uv.new_tty(2, false))
 else
   stderr = uv.new_pipe(false)

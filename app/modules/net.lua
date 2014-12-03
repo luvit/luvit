@@ -133,7 +133,7 @@ function Socket:shutdown(callback)
   if self.destroyed == true then
     return
   end
-  
+
   if uv.is_closing(self._handle) then
     return callback()
   end
@@ -186,7 +186,7 @@ function Socket:connect(...)
   timer.active(self)
   self._connecting = true
 
-  uv.getaddrinfo(options.host, options.port, { socktype = "STREAM" }, function(err, res)
+  uv.getaddrinfo(options.host, options.port, { socktype = "stream" }, function(err, res)
     timer.active(self)
     if err then
       self:destroy(err)

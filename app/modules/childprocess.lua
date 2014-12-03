@@ -44,7 +44,7 @@ local function spawn(command, args, options)
   stdio = { stdin._handle, stdout._handle, stderr._handle}
 
   function kill(self, signal)
-    uv.process_kill(em.handle, signal or 'SIGTERM')
+    uv.process_kill(em.handle, signal or 'sigterm')
     cleanup()
   end
 

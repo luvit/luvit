@@ -41,7 +41,7 @@ uv.read_start(pipe, function (err)
   assert(not err, err)
   if uv.pipe_pending_count(pipe) > 0 then
     local pending_type = uv.pipe_pending_type(pipe)
-    assert(pending_type == "TCP")
+    assert(pending_type == "tcp")
     assert(uv.accept(pipe, server))
     assert(uv.listen(server, 256, onconnection))
     uv.close(pipe)
