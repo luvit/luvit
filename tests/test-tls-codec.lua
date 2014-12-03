@@ -35,8 +35,8 @@ require('tap')(function (test)
 
   test("Real HTTPS request", function (expect)
     uv.getaddrinfo("luvit.io", "https", {
-      socktype = "STREAM",
-      family = "INET",
+      socktype = "stream",
+      family = "inet",
     }, expect(function (err, res)
       assert(not err, err)
       local client = uv.new_tcp()
