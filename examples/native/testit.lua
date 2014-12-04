@@ -1,5 +1,5 @@
 -- Load our native module
-local vector = require('./vector')
+local vector = require('./vector.so')
 
 p(vector)
 

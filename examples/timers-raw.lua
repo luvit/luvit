@@ -1,7 +1,7 @@
-local Timer = require('uv').Timer
+local uv = require('uv')
 
-local timer = Timer:new()
-local timer2 = Timer:new()
+local timer = uv.new_timer()
+local timer2 = uv.new_timer()
 
 timer:start(2000, 0, function (...)
   p("on_timeout", ...)
@@ -13,9 +13,9 @@ end)
 
 timer2:start(333, 333, function (...)
   p("on_interval", ...)
-  local period = timer2:getRepeat()
+  local period = timer2:get_repeat()
   p("period", period)
-  timer2:setRepeat(period / 1.2 + 1);
+  timer2:set_repeat(period / 1.2 + 1);
 end)
 
 p(timer, timer2)

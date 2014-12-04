@@ -2,10 +2,9 @@ local Bit = require('bit')
 local FS = require('fs')
 local Emitter = require('core').Emitter
 local Buffer = require('buffer').Buffer
-local timer = require('timer')
 
 -- http://www.mjmwired.net/kernel/Documentation/input/joystick-api.txt
-function parse(buffer)
+local function parse(buffer)
   local event = {
     time   = buffer:readUInt32LE(1),
     number = buffer:readUInt8(8),
@@ -30,13 +29,13 @@ end
 
 
 function Joystick:onOpen(fd)
-  debug("fd", fd)
+  print("fd", fd)
   self.fd = fd
   self:startRead()
 end
 
 function Joystick:startRead()
-  FS.read(self.fd, nil, 8, self.onRead)
+  FS.read(self.fd, 8, nil, self.onRead)
 end
 
 function Joystick:onRead(chunk)
@@ -59,7 +58,7 @@ local js = Joystick:new(0)
 js:on('button', p);
 js:on('axis', p);
 js:on('error', function (err)
-  debug("Error", err)
+  print("Error", err)
 end)
 
 
