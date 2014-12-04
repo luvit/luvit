@@ -51,7 +51,7 @@ local function requireSystem(options)
       format = string.sub(format, 2)
     else
       path = modulePath
-      format = string.match(modulePath, "%.([^.]+)$", -10) or "lua"
+      format = string.match(modulePath, "%.([^/\\%.]+)$", -10) or "lua"
     end
 
     -- Extract prefix from callerPath
