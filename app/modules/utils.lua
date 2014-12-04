@@ -269,11 +269,29 @@ else
   uv.pipe_open(stderr, 2)
 end
 
-local function bind(fn, ...)
-  local args = {...}
-  if #args == 0 then return fn end
-  return function ()
-    return fn(unpack(args))
+local function bind(fn, self, ...)
+  local bindArgsLength = select("#", ...)
+
+  -- Simple binding, just inserts self (or one arg or any kind)
+  if bindArgsLength == 0 then
+    return function (...)
+      return fn(self, ...)
+    end
+  end
+
+  -- More complex binding inserts arbitrary number of args into call.
+  local bindArgs = {...}
+  return function (...)
+    local argsLength = select("#", ...)
+    local args = {...}
+    local arguments = {}
+    for i = 1, bindArgsLength do
+      arguments[i] = bindArgs[i]
+    end
+    for i = 1, argsLength do
+      arguments[i + bindArgsLength] = args[i]
+    end
+    return fn(self, unpack(arguments, 1, bindArgsLength + argsLength))
   end
 end
 
