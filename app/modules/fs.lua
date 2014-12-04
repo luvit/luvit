@@ -17,7 +17,9 @@ limitations under the License.
 --]]
 local uv = require('uv')
 local adapt = require('utils').adapt
+local bind = require('utils').bind
 local fs = exports
+local Writable = require('stream_writable').Writable
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
@@ -381,4 +383,60 @@ function fs.writeFileSync(path, data)
   _, err = uv.fs_write(fd, data, 0)
   uv.fs_close(fd, noop)
   return not err, err
+end
+
+fs.WriteStream = Writable:extend()
+function fs.WriteStream:initialize(path, options)
+  Writable.initialize(self)
+
+  self.options = options or {}
+  self.path = path
+  self.fd = nil
+  self.pos = nil
+  self.bytesWritten = 0
+
+  if self.options.fd then self.fd = self.options.fd end
+  if self.options.flags then self.flags = self.options.flags else self.flags = 'w' end
+  if self.options.mode then self.mode = self.options.mode else self.mode = 438 end
+  if self.options.start then self.start = self.options.start end
+
+  self.pos = self.start
+
+  if not self.fd then self:open() end
+
+  self:on('finish', bind(self.close, self))
+end
+function fs.WriteStream:open()
+  fs.open(self.path, "a", nil, function(err, fd)
+    if err then
+      self:destroy()
+      self:emit('error', err)
+      if callback then return callback(err) end
+    end
+    self.fd = fd
+    self:emit('open', fd)
+    if callback then callback() end
+  end)
+end
+function fs.WriteStream:_write(data, encoding, callback)
+  if not self.fd then
+    return self:once('open', bind(self._write, self, data, encoding, callback))
+  end
+  fs.write(self.fd, nil, data, function(err, bytes)
+    if err then
+      self:destroy()
+      return callback(err)
+    end
+    self.bytesWritten = self.bytesWritten + bytes
+    callback()
+  end)
+end
+function fs.WriteStream:close()
+  self:destroy()
+end
+function fs.WriteStream:destroy()
+  if self.fd then
+    fs.close(self.fd)
+    self.fd = nil
+  end
 end
