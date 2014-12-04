@@ -2,8 +2,13 @@ local uv = require('uv')
 local luvi = require('luvi')
 local bundle = luvi.bundle
 local pathJoin = luvi.path.join
+local env = require('env')
+local os = require('ffi').os
 
 local realRequire = require
+
+local tmpBase = os == "Windows" and (env.get("TMP") or uv.cwd()) or
+                                    (env.get("TMPDIR") or '/tmp')
 
 -- Requires are relative
 local function requireSystem(options)
@@ -46,7 +51,7 @@ local function requireSystem(options)
       format = string.sub(format, 2)
     else
       path = modulePath
-      format = 'lua'
+      format = string.match(modulePath, "%.([^.]+)$", -10) or "lua"
     end
 
     -- Extract prefix from callerPath
@@ -166,11 +171,11 @@ local function requireSystem(options)
     return module
   end
 
-  function formatters.raw (data, module)
+  function formatters.raw(data, module)
     module.exports = data
   end
 
-  function formatters.lua (data, module)
+  function formatters.lua(data, module)
     local fn = assert(loadstring(data, module.path))
     setfenv(fn, setmetatable({
       [requireName] = generator(module.path),
@@ -181,6 +186,20 @@ local function requireSystem(options)
 
     -- Allow returning the exports as well
     if ret then module.exports = ret end
+  end
+
+  formatters[os == "Windows" and "dll" or "so"] = function (data, module)
+    local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
+    local filename = string.match(module.path, "[^/\\]+$")
+    local path = pathJoin(dir, filename)
+    local name = "luaopen_" .. string.match(filename, "^[^.]+");
+    local fd = uv.fs_open(path, "w", tonumber("600", 8))
+    uv.fs_write(fd, data, 0)
+    uv.fs_close(fd)
+    local fn = assert(package.loadlib(path, name))
+    module.exports = fn()
+    uv.fs_unlink(path)
+    uv.fs_rmdir(dir)
   end
 
   function readers.fs(path)
