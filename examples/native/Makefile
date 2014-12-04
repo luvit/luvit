@@ -1,13 +1,13 @@
-CFLAGS=$(shell luvit --cflags)
-LIBS=$(shell luvit --libs)
+CFLAGS=-fPIC -I/home/tim/Code/luvi/deps/luv/luajit/src
+LIBS=-shared
 
-all: vector.luvit
+all: vector.so
 
 %.o: %.c %.h
 	$(CC) -c $< -o $@ ${CFLAGS}
 
-vector.luvit: vector.o
-	$(CC) -o vector.luvit vector.o ${LIBS}
+vector.so: vector.o
+	$(CC) -o $@ $< ${LIBS}
 
 clean:
-	rm -f vector.o vector.luvit
+	rm -f vector.o vector.luvit vector.so
