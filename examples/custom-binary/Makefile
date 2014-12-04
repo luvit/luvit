@@ -1,11 +1,8 @@
-all: combined
+combined: ../../luvit  $(shell find extras -type f)
+	LUVI_TARGET=combined LUVI_APP=extras: luvit
 
-extras.zip:
-	cd extras && zip -9 -r ../extras.zip . && cd ..
-
-combined: ../../out/Debug/luvit extras.zip
-	cat $^ > $@ && chmod +x $@
+../../luvit:
+	$(MAKE) -C ../..
 
 clean:
-	rm -f combined extras.zip
-
+	rm -f combined
