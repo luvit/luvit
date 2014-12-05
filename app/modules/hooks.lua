@@ -15,6 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local Manager = require('core').Emitter:extend()
 
-return Manager:new()
+-- Hooks are intended to be a global event emitter for internal
+-- Luvit events. For example, process.exit and signals can feed
+-- through this emitter.
+
+return require('core').Emitter:new()
