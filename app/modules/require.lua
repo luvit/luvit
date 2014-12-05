@@ -189,17 +189,24 @@ local function requireSystem(options)
   end
 
   formatters[os == "Windows" and "dll" or "so"] = function (data, module)
-    local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
     local filename = string.match(module.path, "[^/\\]+$")
-    local path = pathJoin(dir, filename)
     local name = "luaopen_" .. string.match(filename, "^[^.]+");
-    local fd = uv.fs_open(path, "w", tonumber("600", 8))
-    uv.fs_write(fd, data, 0)
-    uv.fs_close(fd)
-    local fn = assert(package.loadlib(path, name))
+    local fn
+    if uv.fs_access(module.path, "r") then
+      -- If it's a real file, load it directly
+      fn = assert(package.loadlib(module.path, name))
+    else
+      -- Otherwise, copy to a temporary folder and read from there
+      local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
+      local path = pathJoin(dir, filename)
+      local fd = uv.fs_open(path, "w", tonumber("600", 8))
+      uv.fs_write(fd, data, 0)
+      uv.fs_close(fd)
+      fn = assert(package.loadlib(path, name))
+      uv.fs_unlink(path)
+      uv.fs_rmdir(dir)
+    end
     module.exports = fn()
-    uv.fs_unlink(path)
-    uv.fs_rmdir(dir)
   end
 
   function readers.fs(path)

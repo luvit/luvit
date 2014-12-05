@@ -18,8 +18,15 @@ limitations under the License.
 
 local uv = require('uv')
 local utils = require('utils')
+local pathJoin = require('luvi').path.join
 
 return function (stdin, stdout, greeting)
+
+  local global = setmetatable({
+    require = require('luvit-require')()(pathJoin(uv.cwd(), "repl"))
+  }, {
+    __index = _G
+  })
 
   if greeting then print(greeting) end
 
@@ -50,6 +57,8 @@ return function (stdin, stdout, greeting)
     if not f then
       f, err = loadstring(chunk, 'REPL') -- try again without return
     end
+
+    setfenv(f, global)
 
     if f then
       buffer = ''

@@ -22,7 +22,7 @@ local bundle = luvi.bundle
 -- Manually register the require replacement system to bootstrap things
 bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
-_G.require = require('luvit-require')()("bundle:modules/main.lua")
+local require = require('luvit-require')()("bundle:modules/main.lua")
 
 local luvit = require('luvit')
 luvit.init()
@@ -135,4 +135,4 @@ end
 
 luvit.run()
 
-return process.exitCode
+return _G.process.exitCode
