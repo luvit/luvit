@@ -7,7 +7,7 @@ end)
 print("Starting 1000ms timer")
 timer.setTimeout(1000, function ()
   p("on_timeout!")
-  timer.clearTimer(interval)
+  timer.clearInterval(interval)
 end)
 
 

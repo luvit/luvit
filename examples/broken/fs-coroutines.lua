@@ -1,4 +1,4 @@
-local fiber = require 'fiber'
+mlocal fiber = require 'fiber'
 
 local function logic(wrap)
   -- Wrap some functions for sync-style calling
