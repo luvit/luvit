@@ -17,6 +17,8 @@ limitations under the License.
 --]]
 
 local timer = require('timer')
+local utils = require('utils')
+local hooks = require('hooks')
 local Emitter = require('core').Emitter
 
 local function nextTick(...)
@@ -27,6 +29,7 @@ local function globalProcess()
   local process = Emitter:new()
   process.exitCode = 0
   process.nextTick = nextTick
+  hooks:on('process.exit', utils.bind(process.emit, process, 'exit'))
   return process
 end
 exports.globalProcess = globalProcess
