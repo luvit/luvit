@@ -18,6 +18,7 @@ limitations under the License.
 
 local Object = require('core').Object
 local bit = require('bit')
+local openssl = require('openssl')
 
 exports.DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
                           'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
@@ -112,8 +113,7 @@ exports.createCredentials = function(options, context)
   local ctx
   options = options or {}
   ctx = Credential:new(options.secureProtocol, options.ciphers,
-                       options.secureOptions, options.rejectUnauthorized,
-                       context)
+    options.secureOptions, options.rejectUnauthorized, context)
   if context then
     return ctx
   end
