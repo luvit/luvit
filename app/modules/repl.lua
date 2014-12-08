@@ -58,9 +58,9 @@ return function (stdin, stdout, greeting)
       f, err = loadstring(chunk, 'REPL') -- try again without return
     end
 
-    setfenv(f, global)
 
     if f then
+      setfenv(f, global)
       buffer = ''
       local success, results = gatherResults(xpcall(f, debug.traceback))
 
