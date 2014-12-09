@@ -20,9 +20,7 @@ local uv = require('uv')
 local timer = require('timer')
 local utils = require('utils')
 local table = require('table')
-local core = require('core')
-local Emitter = core.Emitter
-local iStream = core.iStream
+local Emitter = require('core').Emitter
 local Duplex = require('stream_duplex').Duplex
 
 --[[ Socket ]]--
@@ -93,6 +91,7 @@ function Socket:setTimeout(msecs, callback)
 end
 
 function Socket:_write(data, encoding, callback)
+  if not self._handle then return end
   timer.active(self)
   uv.write(self._handle, data, function(err)
     timer.active(self)
@@ -157,6 +156,7 @@ function Socket:connect(...)
   local args = {...}
   local options = {}
   local callback
+  p('Socket:connect')
 
   if type(args[1]) == 'table' then
     -- connect(options, [cb])
@@ -179,10 +179,6 @@ function Socket:connect(...)
     options.host = '0.0.0.0'
   end
 
-  if not self._handle then
-    self._handle = uv.new_tcp()
-  end
-
   timer.active(self)
   self._connecting = true
 
@@ -192,10 +188,12 @@ function Socket:connect(...)
       self:destroy(err)
       return
     end
+
     if not self._handle then
-      return
+      self._handle = uv.new_tcp()
     end
-    timer.active(self)
+
+    p(res)
     uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
       timer.active(self)
       if err then
@@ -227,7 +225,6 @@ function Socket:destroy(exception, callback)
   end
 
   uv.close(self._handle)
-  self._handle = nil
 
   if (exception) then
     process.nextTick(function()
@@ -253,27 +250,28 @@ end
 
 --[[ Server ]]--
 
-local Server = Socket:extend()
-function Server:initialize(...)
-  local args = {...}
-  local options
-
-  if #args == 1 then
+local Server = Emitter:extend()
+function Server:init(options, connectionListener)
+  if type(options) == 'function' then
+    connectionListener = options
     options = {}
-    self.connectionCallback = args[1]
-  elseif #args == 2 then
-    options = args[1]
-    self.connectionCallback = args[2]
   end
+
+  self._connectionListener = connectionListener
+  self:on('connection', self._connectionListener)
 
   if options.handle then
     self._handle = options.handle
   end
 end
 
+function Server:destroy(err, callback)
+  self._handle:destroy(err, callback)
+end
+
 function Server:listen(port, ... --[[ ip, callback --]] )
   local args = {...}
-  local ip, callback, onConnection
+  local ip, callback
 
   if not self._handle then
     self._handle = Socket:new({ handle = uv.new_tcp() })
@@ -289,13 +287,11 @@ function Server:listen(port, ... --[[ ip, callback --]] )
 
   ip = ip or '0.0.0.0'
 
-  function onConnection(client)
-    self.connectionCallback(client)
-  end
-
   self._handle:bind(ip, port)
   self._handle:listen()
-  self._handle:on('connection', onConnection)
+  self._handle:on('connection', function(client)
+    self:emit('connection', client)
+  end)
 
   if callback then
     timer.setImmediate(callback)
@@ -308,11 +304,11 @@ function Server:address()
   if self._handle then
     return self._handle:getsockname()
   end
-  return nil
+  return
 end
 
 function Server:close(callback)
-  self._handle:destroy(nil, callback)
+  self:destroy(nil, callback)
 end
 
 -- Exports
@@ -346,6 +342,8 @@ end
 
 exports.create = exports.createConnection
 
-exports.createServer = function(...)
-  return Server:new(...)
+exports.createServer = function(options, connectionListener)
+  local server = Server:new()
+  server:init(options, connectionListener)
+  return server
 end

@@ -19,14 +19,10 @@ limitations under the License.
 local loaded, openssl = pcall(require, 'openssl')
 if not loaded then return end
 
-local Emitter = require('core').Emitter
+local _common_tls = require('_common_tls')
 local net = require('net')
 local utils = require('utils')
-local tlsCodec = require('codecs/tls')
-
-local codec = require('codec')
-local chain = codec.chain
-local wrapStream = codec.wrapStream
+local uv = require('uv')
 
 local extend = function(...)
   local args = {...}
@@ -39,66 +35,48 @@ local extend = function(...)
   return obj
 end
 
-local once = function(callback)
-  local called = false
-  return function(...)
-    if called then return end
-    called = true
-    callback(...)
-  end
+local Server = net.Server:extend()
+function Server:init(options, connectionListener)
+  options = options or {}
+  options.server = true
+
+  local sharedCreds = _common_tls.createCredentials(options)
+  net.Server.init(self, options, function(raw_socket)
+    local socket
+    socket = _common_tls.TLSSocket:new(raw_socket, {
+      secureContext = sharedCreds,
+      isServer = true,
+      requestCert = options.requestCert,
+      rejectUnauthorized = options.rejectUnauthorized,
+    })
+    socket:on('secureConnection', function()
+      connectionListener(socket)
+    end)
+  end)
 end
 
-local CleartextStream = Emitter:extend()
-
-function CleartextStream:setStream(socket)
-  self._socket = socket
-end
-
-function CleartextStream:destroy()
-  if self._socket then self._socket:destroy() end
-end
+local DEFAULT_OPTIONS = {
+  ciphers = DEFAULT_CIPHERS,
+  rejectUnauthorized = true,
+  -- TODO checkServerIdentity
+}
 
 exports.connect = function(options, callback)
-  local defaults, hostname, context, sock, cleartext, tlsChain, tls
+  local hostname, context, sock, cleartext, tlsChain, tls
   local port, onConnect, onError
 
   callback = callback or function() end
-
-  -- Setup options
-  defaults = {
-    ciphers = DEFAULT_CIPHERS,
-    rejectUnauthorized = true,
-    -- TODO checkServerIdentity
-  }
-
-  options = extend(defaults, options or {})
+  options = extend({}, DEFAULT_OPTIONS, options or {})
   port = options.port
-  hostname = options.servername or options.host or
-     (options.socket and options.socket._host)
+  hostname = options.servername or options.host
 
-  cleartext = CleartextStream:new()
-  tls = tlsCodec(options)
-  tls.onsecureConnect = once(callback)
-  tls.onerror = function(err)
-    cleartext:emit('error', err)
-  end
+  sock = _common_tls.TLSSocket:new(sock, options)
+  sock:connect(port, hostname, callback)
+  return sock
+end
 
-  function onConnect()
-    local read1, write1 = codec.wrapStream(sock._handle)
-    local read2, write2 = codec.wrapEmitter(cleartext)
-    chain(tls.decoder)(read1, write2)
-    chain(tls.encoder)(read2, write1)
-  end
-
-  function onError(err)
-    cleartext:emit('error', err)
-  end
-
-  sock = net.create(port, hostname, onConnect)
-  sock:on('error', onError)
-
-  cleartext:setStream(sock)
-  cleartext._tls = tls
-  
-  return cleartext
+exports.createServer = function(options, secureCallback)
+  local server = Server:new()
+  server:init(options, secureCallback)
+  return server
 end
