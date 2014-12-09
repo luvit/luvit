@@ -150,9 +150,23 @@ function TLSSocket:getPeerCertificate()
 end
 
 function TLSSocket:_verifyClient()
-  local peer, verify, err
-  p(self.ssl:getpeerverification())
-  peer = self.ssl:peer()
+  local verifyError
+
+  verifyError = self.ssl:get('verify_result')
+  if verifyError == 0 then
+    self.authorized = true
+    self:emit('secureConnection', self)
+  else
+    self.authorized = false
+    self.authorizationError = tostring(verifyError)
+    if self.rejectUnauthorized then
+      local err = Error:new(verifyError)
+      self:emit('error', err)
+      self:destroy(Error:new(err))
+    else
+      self:emit('secureConnection', self)
+    end
+  end
 end
 
 function TLSSocket:_verifyServer()
