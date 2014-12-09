@@ -117,20 +117,17 @@ function TLSSocket:initialize(socket, options)
     self:_init()
   end
 
-  self._connecting = false
   self._connected = false
   self.encrypted = true
   self.readable = true
   self.writable = true
 
   if self.server then
+    self._connecting = false
     self:once('secure', utils.bind(self._verifyServer, self))
   else
+    self._connecting = true
     self:once('secure', utils.bind(self._verifyClient, self))
-  end
-
-  if self._handle == nil then
-    return
   end
 
   self:read(0)
@@ -139,7 +136,7 @@ end
 function TLSSocket:_init()
   self.ctx = self.options.secureContext or
              self.options.credentials or
-             exports.createCredentials()
+             exports.createCredentials(self.options)
   self.inp = openssl.bio.mem(8192)
   self.out = openssl.bio.mem(8192)
   self.ssl = self.ctx.context:ssl(self.inp, self.out, self.server)
@@ -264,7 +261,6 @@ function TLSSocket:_read(n)
       if ret == false then return end
 
       self.connected = true
-      self._connecting = true
 
       if not uv.is_active(self._handle) then return end
       uv.read_stop(self._handle)
