@@ -69,13 +69,14 @@ require('tap')(function(test)
       end
 
       function onExit()
+        p(response)
         assert(response:find(reply) ~= -1)
         server:close()
       end
 
       child = childprocess.spawn('openssl', args)
-      child:on('exit', expect(onExit))
-      child.stdout:on('data', expect(onStdout))
+      child:on('exit', onExit)
+      child.stdout:on('data', onStdout)
     end
     
     server = tls.createServer(options, expect(onConnection))
