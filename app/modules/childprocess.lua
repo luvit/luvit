@@ -49,7 +49,6 @@ local function spawn(command, args, options)
   end
 
   function cleanup()
-    if em.handle then uv.close(em.handle) ; em.handle = nil end
     em.stdout:on('end', function()
       em.stdout:destroy()
     end)
@@ -76,8 +75,12 @@ local function spawn(command, args, options)
        em.exitCode = code
     end
 
+    if em.handle then
+      uv.close(em.handle, function() em:emit('exit', code, signal) end)
+      em.handle = nil
+    end
+
     cleanup()
-    em:emit('exit', code, signal)
   end)
 
   return em
