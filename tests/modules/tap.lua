@@ -89,13 +89,14 @@ local function run()
     end, debug.traceback)
 
     -- Flush out any more opened handles
-    uv.run()
+    uv.stop()
     uv.walk(function (handle)
-      if preexisting[handle] then return end
-      if uv.is_closing(handle) then return end
+      if preexisting[handle] or uv.is_closing(handle) then return end
       uv.close(handle)
     end)
+    -- Wait for the close calls to finish
     uv.run()
+    -- Reset the cwd if the script changed it.
     uv.chdir(cwd)
 
     if pass then
