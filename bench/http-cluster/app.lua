@@ -17,37 +17,19 @@ limitations under the License.
 --]]
 
 -- This file represents the high-level logic of the clustered app.
--- It reads request objects and writes response objects.
--- The loop enables keepalive on the same socket.
-return function (read, write)
-  for req in read do
-
-    -- Consume the request body
-    local bodySize = 0
-    repeat
-      local chunk = read()
-      bodySize = bodySize + #chunk
-    until not chunk or chunk == ""
-
-    -- print("Writing response headers")
-    local body = req.method .. " " .. req.path .. " " .. bodySize .. "\n"
-    local res = {
-      code = 200,
-      { "Server", "Luvit" },
-      { "Content-Type", "text/plain" },
-      { "Content-Length", #body },
-    }
-    if req.keepAlive then
-      res[#res + 1] = { "Connection", "Keep-Alive" }
-    end
-
-    write(res)
-    -- print("Writing body")
-    write(body)
-
-    if not req.keepAlive then
-      break
-    end
+return function (req)
+  -- p(req)
+  -- print("Writing response headers")
+  local body = string.format("%s %s\n", req.method, req.path)
+  local res = {
+    code = 200,
+    { "Server", "Luvit" },
+    { "Content-Type", "text/plain" },
+    { "Content-Length", #body },
+  }
+  if req.keepAlive then
+    res[#res + 1] = { "Connection", "Keep-Alive" }
   end
-  write()
+
+  return res, body
 end
