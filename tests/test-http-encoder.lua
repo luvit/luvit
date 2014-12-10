@@ -24,7 +24,7 @@ local function testEncoder(encoder, inputs)
   local encode = encoder()
   for i = 1, #inputs + 1 do
     local chunk = encode(inputs[i])
-    if chunk then
+    if chunk and #chunk > 0 then
       outputs[#outputs + 1] = chunk
     end
   end
