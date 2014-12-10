@@ -105,7 +105,7 @@ return function ()
       mode = encodeHead
       return encodeHead(item)
     end
-    if #item > 0 then return item end
+    return item
   end
 
   function encodeChunked(item)

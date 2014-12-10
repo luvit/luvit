@@ -93,7 +93,7 @@ return function ()
   -- This is used for inserting a single empty string into the output string for known empty bodies
   function decodeEmpty(chunk)
     mode = decodeHead
-    return "", chunk
+    return "", chunk or ""
   end
 
   function decodeRaw(chunk)

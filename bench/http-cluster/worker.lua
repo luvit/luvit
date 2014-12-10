@@ -17,21 +17,56 @@ limitations under the License.
 --]]
 
 local uv = require('uv')
-local httpServer = require('codecs/http').server
-local codec = require('codec')
-local chain = codec.chain
-local wrapStream = codec.wrapStream
+local encoder = require('http-encoder')
+local decoder = require('http-decoder')
 
 local app = require('./app')
 
 local server = uv.new_tcp()
 
+local function httpDecoder(emit)
+  local decode = decoder()
+  local input
+  return function (err, chunk)
+    if err then return emit(err) end
+    input = (input and chunk) and (input .. chunk) or chunk
+    repeat
+      local event, extra = decode(input)
+      if event then
+        input = extra
+        emit(nil, event)
+      end
+    until not event
+  end
+end
+
+local function process(socket, app)
+  local req, res, body
+  local encode = encoder()
+  socket:read_start(httpDecoder(function (err, event)
+    if err then return end
+    assert(not err, err)
+    local typ = type(event)
+    if typ == "table" then
+      req = event
+      res, body = app(req)
+      socket:write(encode(res) .. encode(body))
+      if not req.keepAlive then
+        socket:close()
+      end
+    elseif typ == "string" and req.onbody then
+      req.onbody(event)
+    elseif not event then
+      socket:close()
+    end
+  end))
+end
+
 local function onconnection(err)
-  assert(not err, err)
+  if err then return end
   local client = uv.new_tcp()
-  assert(uv.accept(server, client))
-  local read, write = wrapStream(client)
-  chain(httpServer.decoder, app, httpServer.encoder)(read, write)
+  server:accept(client)
+  process(client, app)
 end
 
 -- Get listening socket from master process

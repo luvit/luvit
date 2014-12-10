@@ -20,7 +20,7 @@ local uv = require('uv')
 local pathJoin = require('luvi').path.join
 
 local server = uv.new_tcp()
-uv.tcp_bind(server, "127.0.0.1", 8080)
+uv.tcp_bind(server, "0.0.0.0", 8080)
 
 local workerPath = pathJoin(module.dir, "worker.lua")
 for i = 1, #uv.cpu_info() do

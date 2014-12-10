@@ -19,8 +19,6 @@ limitations under the License.
 local decoder = require('http-decoder')
 local encoder = require('http-encoder')
 local uv = require('uv')
-local deepEqual = require('deep-equal')
-
 
 require('tap')(function (test)
 
