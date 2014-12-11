@@ -258,9 +258,11 @@ function Editor:onKey(key)
       or char == 2 then   -- Control-B
     self:moveLeft()
   elseif key == '\027[H'  -- Home Key
+      or key == '\027OH'  -- Home for terminator
       or char == 1 then   -- Control-A
     self:moveHome()
   elseif key == '\027[F'  -- End Key
+      or key == '\027OF'  -- End for terminator
       or char == 5 then   -- Control-E
     self:moveEnd()
   elseif char == 21 then  -- Control-U
