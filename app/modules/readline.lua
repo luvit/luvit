@@ -281,9 +281,11 @@ function Editor:onKey(key)
       or key == '\027\027[C' -- Alt Right Arrow (iTerm.app)
       or key == '\027f' then -- Alt Right Arrow (Terminal.app)
     self:jumpRight()
-  elseif key == '\027[5~' then -- Page Up
+  elseif key == '\027\027[A'   -- Alt Up Arrow (iTerm.app)
+      or key == '\027[5~' then -- Page Up
     self:getHistory(-10)
-  elseif key == '\027[6~' then -- Page Down
+  elseif key == '\027\027[B'   -- Alt Down Arrow (iTerm.app)
+      or key == '\027[6~' then -- Page Down
     self:getHistory(10)
   elseif char > 31 then
     self:insert(key)
