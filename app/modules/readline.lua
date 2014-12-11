@@ -19,8 +19,6 @@ limitations under the License.
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
 local utils = require('utils')
-local stdin = utils.stdin
-local stdout = utils.stdout
 local sub = string.sub
 local gmatch = string.gmatch
 local remove = table.remove
@@ -84,7 +82,7 @@ function Editor:refreshLine()
                .. "\x1b[0K"
   -- Move cursor to original position.
                .. "\x1b[0G\x1b[" .. tostring(position + self.promptLength - 1) .. "C"
-  stdout:write(command)
+  self.stdout:write(command)
 end
 function Editor:insert(character)
   local line = self.line
@@ -93,7 +91,7 @@ function Editor:insert(character)
     self.line = line .. character
     self.position = position + 1
     if self.promptLength + #self.line < self.columns then
-      stdout:write(character)
+      self.stdout:write(character)
     else
       self:refreshLine()
     end
@@ -222,7 +220,7 @@ function Editor:jumpRight()
   self:refreshLine()
 end
 function Editor:clearScreen()
-  stdin:write('\x1b[H\x1b[2J')
+  self.stdin:write('\x1b[H\x1b[2J')
   self:refreshLine()
 end
 
@@ -231,7 +229,7 @@ function Editor:onKey(key)
   if     char == 13 then  -- Enter
     return self.line
   elseif char == 3 then   -- Control-C
-    stdout:write("^C\n")
+    self.stdout:write("^C\n")
     if #self.line > 0 then
       self:deleteLine()
     else
@@ -304,7 +302,7 @@ function Editor:readLine(prompt, callback)
 
   self.prompt = prompt
   self.promptLength = #prompt
-  self.columns = stdin:get_winsize()
+  self.columns = self.stdin:get_winsize()
 
   function onKey(err, key)
     local r, out = pcall(function ()
@@ -320,20 +318,20 @@ function Editor:readLine(prompt, callback)
   end
 
   function finish(...)
-    stdin:set_mode(0)
-    stdout:write('\n')
-    stdin:read_stop()
+    self.stdin:set_mode(0)
+    self.stdout:write('\n')
+    self.stdin:read_stop()
     return callback(...)
   end
 
   self.line = ""
   self.position = 1
-  stdout:write(self.prompt)
+  self.stdout:write(self.prompt)
   self.history:add(self.line)
   self.historyIndex = #self.history,
 
-  stdin:set_mode(1)
-  stdin:read_start(onKey)
+  self.stdin:set_mode(1)
+  self.stdin:read_start(onKey)
 
 end
 Editor.__index = Editor
@@ -344,6 +342,8 @@ function Editor.new(options)
     wordPattern = options.wordPattern or "%w+",
     history = history,
     completionCallback = options.completionCallback,
+    stdin = options.stdin or utils.stdin,
+    stdout = options.stdout or utils.stdout,
   }
   return setmetatable(editor, Editor)
 end

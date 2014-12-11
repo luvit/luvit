@@ -128,9 +128,18 @@ if script then
 end
 
 if startRepl then
+  local env = require('env')
+  local pathJoin = require('luvi').path.join
+  local fs = require('fs')
   local c = utils.color
   local greeting = "Welcome to the " .. c("err") .. "L" .. c("quotes") .. "uv" .. c("table") .. "it" .. c() .. " repl!"
-  require('repl')(utils.stdin, utils.stdout, greeting, ...).start()
+  local historyFile = pathJoin(env.get("HOME"), ".luvit_history")
+  local lines = fs.readFileSync(historyFile)
+  local function saveHistory(lines)
+    fs.writeFileSync(historyFile, lines)
+  end
+  require('repl')(utils.stdin, utils.stdout, greeting, ...).start(lines, saveHistory)
+
 end
 
 luvit.run()

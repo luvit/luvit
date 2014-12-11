@@ -19,6 +19,8 @@ limitations under the License.
 local uv = require('uv')
 local utils = require('utils')
 local pathJoin = require('luvi').path.join
+local Editor = require('readline').Editor
+local History = require('readline').History
 
 return function (stdin, stdout, greeting)
 
@@ -78,32 +80,41 @@ return function (stdin, stdout, greeting)
       if err:match "'<eof>'$" then
         -- Lua expects some more input; stow it away for next time
         buffer = chunk .. '\n'
-        return '>>'
+        return '>> '
       else
         print(err)
         buffer = ''
       end
     end
 
-    return '>'
+    return '> '
   end
 
-  local function displayPrompt(prompt)
-    uv.write(stdout, prompt .. ' ')
-  end
 
-  local function start()
-    displayPrompt '>'
 
-    uv.read_start(stdin, function (err, line)
+  local function start(histroyLines, onSaveHistoryLines)
+    local prompt = "> "
+    local history = History.new()
+    if history then
+      history:load(histroyLines)
+    end
+    local editor = Editor.new({
+      stdin = stdin,
+      stdout = stdout,
+      history = history
+    })
+
+    local function onLine(err, line)
       assert(not err, err)
       if line then
-        local prompt = evaluateLine(line)
-        displayPrompt(prompt)
-      else
-        uv.write(stdout, "\n")
+        prompt = evaluateLine(line)
+        editor:readLine(prompt, onLine)
+      elseif onSaveHistoryLines then
+        onSaveHistoryLines(history:dump())
       end
-    end)
+    end
+
+    editor:readLine(prompt, onLine)
   end
 
   return {
