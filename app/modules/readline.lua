@@ -233,7 +233,7 @@ function Editor:onKey(key)
     if #self.line > 0 then
       self:deleteLine()
     else
-      return false
+      return false, "SIGINT in readLine"
     end
   elseif char == 127      -- Backspace
       or char == 8 then   -- Control-H
@@ -243,7 +243,7 @@ function Editor:onKey(key)
       self:delete()
     else
       self.history:updateLastLine()
-      return nil
+      return nil, "EOF in readLine"
     end
   elseif char == 20 then  -- Control-T
     self:swap()
@@ -305,13 +305,13 @@ function Editor:readLine(prompt, callback)
   self.columns = self.stdin:get_winsize()
 
   function onKey(err, key)
-    local r, out = pcall(function ()
+    local r, out, reason = pcall(function ()
       assert(not err, err)
       return self:onKey(key)
     end)
     if r then
       if out == true then return end
-      return finish(nil, out)
+      return finish(nil, out, reason)
     else
       return finish(out)
     end
