@@ -71,6 +71,7 @@ function History.new()
 end
 
 local Editor = {}
+exports.Editor = Editor
 function Editor:refreshLine()
   local line = self.line
   local position = self.position
@@ -230,7 +231,12 @@ function Editor:onKey(key)
   if     char == 13 then  -- Enter
     return self.line
   elseif char == 3 then   -- Control-C
-    return false
+    stdout:write("^C\n")
+    if #self.line > 0 then
+      self:deleteLine()
+    else
+      return false
+    end
   elseif char == 127      -- Backspace
       or char == 8 then   -- Control-H
     self:backspace()
@@ -239,7 +245,7 @@ function Editor:onKey(key)
       self:delete()
     else
       self.history:updateLastLine()
-      return false
+      return nil
     end
   elseif char == 20 then  -- Control-T
     self:swap()
@@ -289,9 +295,8 @@ function Editor:onKey(key)
     self:getHistory(10)
   elseif char > 31 then
     self:insert(key)
-  else
-    p(char, key)
   end
+  return true
 end
 function Editor:readLine(prompt, callback)
 
@@ -307,8 +312,8 @@ function Editor:readLine(prompt, callback)
       return self:onKey(key)
     end)
     if r then
-      if out == nil then return end
-      return finish(nil, out or nil)
+      if out == true then return end
+      return finish(nil, out)
     else
       return finish(out)
     end
@@ -343,15 +348,11 @@ function Editor.new(options)
   return setmetatable(editor, Editor)
 end
 
-local history = History.new()
-history:load("uv = require('uv')\nuv\nuv.cpu_info()")
-local editor = Editor.new({history=history})
-
-local function onLine(err, line)
-  assert(not err, err)
-  p(line)
-  if line then
-    editor:readLine("> ", onLine)
+exports.readLine = function (prompt, options, callback)
+  if type(options) == "function" and callback == nil then
+    callback, options = options, callback
   end
+  local editor = Editor.new(options)
+  editor:readLine(prompt, callback)
+  return editor
 end
-editor:readLine("> ", onLine)
