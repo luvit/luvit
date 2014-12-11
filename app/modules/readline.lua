@@ -318,9 +318,9 @@ function Editor:readLine(prompt, callback)
   end
 
   function finish(...)
+    self.stdin:read_stop()
     self.stdin:set_mode(0)
     self.stdout:write('\n')
-    self.stdin:read_stop()
     return callback(...)
   end
 
