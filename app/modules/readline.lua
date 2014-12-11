@@ -191,27 +191,36 @@ function Editor:moveEnd()
   self.position = #self.line + 1
   self:refreshLine()
 end
-function Editor:jumpLeft()
-  local position = self.position
-  if position == 1 then return end
-  local line = self.line
+local function findLeft(line, position, wordPattern)
+  local pattern = wordPattern .. "$"
+  if position == 1 then return 1 end
   local s
   repeat
     local start = sub(line, 1, position - 1)
-    s = string.find(start, self.wordPattern .. "$")
+    s = string.find(start, pattern)
     if not s then
       position = position - 1
     end
   until s or position == 1
-  self.position = s or position
+  return s or position
+end
+
+function Editor:deleteWord()
+  local position = self.position
+  local line = self.line
+  self.position = findLeft(line, position, self.wordPattern)
+  self.line = sub(line, 1, self.position - 1) .. sub(line, position)
+  self:refreshLine()
+end
+
+function Editor:jumpLeft()
+  self.position = findLeft(self.line, self.position, self.wordPattern)
   self:refreshLine()
 end
 function Editor:jumpRight()
   local _, e = string.find(self.line, self.wordPattern, self.position)
-  if e then
-    self.position = e + 1
-    self:refreshLine()
-  end
+  self.position = e and e + 1 or #self.line + 1
+  self:refreshLine()
 end
 function Editor:clearScreen()
   stdin:write('\x1b[H\x1b[2J')
@@ -260,13 +269,15 @@ function Editor:onKey(key)
     self:deleteEnd()
   elseif char == 12 then  -- Control-L
     self:clearScreen()
+  elseif char == 23 then  -- Control-W
+    self:deleteWord()
   elseif key == '\027[3~' then -- Delete Key
     self:delete()
   elseif key == '\027[1;5D' then -- Control Left Arrow
     self:jumpLeft()
   elseif key == '\027[1;5C' then -- Control Right Arrow
     self:jumpRight()
-  else
+  elseif char > 31 then
     self:insert(key)
   end
 end
@@ -297,6 +308,8 @@ function Editor:getLine(callback)
   self.line = ""
   self.position = 1
   stdout:write(self.prompt)
+  self.history:add(self.line)
+  self.historyIndex = #self.history,
 
   stdin:set_mode(1)
   stdin:read_start(onKey)
@@ -311,7 +324,6 @@ function Editor.new(options)
     wordPattern = options.wordPattern or "%w+",
     columns = (stdin:get_winsize()),
     history = history,
-    historyIndex = #history,
     prompt = prompt,
     promptLength = #prompt,
     completionCallback = options.completionCallback,
