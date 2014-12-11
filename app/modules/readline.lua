@@ -223,11 +223,25 @@ function Editor:clearScreen()
   self.stdout:write('\x1b[H\x1b[2J')
   self:refreshLine()
 end
+function Editor:beep()
+  self.stdout:write('\x07')
+end
+function Editor:complete()
+  local options
+  if self.completionCallback then
+    options = self.completionCallback(sub(self.line, 1, self.position))
+    p(options)
+  end
+  if not options then
+    self:beep()
+end
 
 function Editor:onKey(key)
   local char = string.byte(key, 1)
   if     char == 13 then  -- Enter
     return self.line
+  elseif char == 9 then   -- Tab
+    self:complete()
   elseif char == 3 then   -- Control-C
     self.stdout:write("^C\n")
     if #self.line > 0 then
@@ -293,6 +307,8 @@ function Editor:onKey(key)
     self:getHistory(10)
   elseif char > 31 then
     self:insert(key)
+  else
+    p(char, key)
   end
   return true
 end
