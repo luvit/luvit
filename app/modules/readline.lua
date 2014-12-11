@@ -220,7 +220,7 @@ function Editor:jumpRight()
   self:refreshLine()
 end
 function Editor:clearScreen()
-  self.stdin:write('\x1b[H\x1b[2J')
+  self.stdout:write('\x1b[H\x1b[2J')
   self:refreshLine()
 end
 
@@ -302,7 +302,7 @@ function Editor:readLine(prompt, callback)
 
   self.prompt = prompt
   self.promptLength = #prompt
-  self.columns = self.stdin:get_winsize()
+  self.columns = self.stdout:get_winsize() or 80
 
   function onKey(err, key)
     local r, out, reason = pcall(function ()

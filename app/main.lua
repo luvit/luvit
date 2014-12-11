@@ -133,8 +133,13 @@ if startRepl then
   local fs = require('fs')
   local c = utils.color
   local greeting = "Welcome to the " .. c("err") .. "L" .. c("quotes") .. "uv" .. c("table") .. "it" .. c() .. " repl!"
-  local historyFile = pathJoin(env.get("HOME"), ".luvit_history")
-  local lines = fs.readFileSync(historyFile)
+  local historyFile
+  if require('ffi').os == "Windows" then
+    historyFile = pathJoin(env.get("APPDATA"), "luvit_history")
+  else
+    historyFile = pathJoin(env.get("HOME"), ".luvit_history")
+  end
+  local lines = fs.readFileSync(historyFile) or ""
   local function saveHistory(lines)
     fs.writeFileSync(historyFile, lines)
   end
