@@ -18,7 +18,6 @@ limitations under the License.
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
-local traceback = require('debug').traceback
 local utils = require('utils')
 local stdin = utils.stdin
 local stdout = utils.stdout
@@ -124,12 +123,11 @@ function Editor:getHistory(delta)
   if length > 1 then
     index = index + delta
     if index < 1 then
-      self.historyIndex = 1
-      return
+      index = 1
     elseif index > length then
-      self.historyIndex = length
-      return
+      index = length
     end
+    if index == self.historyIndex then return end
     local line = self.history[index]
     self.line = line
     self.historyIndex = index
@@ -283,19 +281,29 @@ function Editor:onKey(key)
       or key == '\027\027[C' -- Alt Right Arrow (iTerm.app)
       or key == '\027f' then -- Alt Right Arrow (Terminal.app)
     self:jumpRight()
+  elseif key == '\027[5~' then -- Page Up
+    self:getHistory(-10)
+  elseif key == '\027[6~' then -- Page Down
+    self:getHistory(10)
   elseif char > 31 then
     self:insert(key)
+  else
+    p(char, key)
   end
 end
-function Editor:getLine(callback)
+function Editor:readLine(prompt, callback)
 
   local onKey, finish
 
+  self.prompt = prompt
+  self.promptLength = #prompt
+  self.columns = stdin:get_winsize()
+
   function onKey(err, key)
-    local r, out = xpcall(function ()
+    local r, out = pcall(function ()
       assert(not err, err)
       return self:onKey(key)
-    end, traceback)
+    end)
     if r then
       if out == nil then return end
       return finish(nil, out or nil)
@@ -324,14 +332,10 @@ end
 Editor.__index = Editor
 function Editor.new(options)
   options = options or {}
-  local prompt = options.prompt or "> "
   local history = options.history or History.new()
   local editor = {
     wordPattern = options.wordPattern or "%w+",
-    columns = (stdin:get_winsize()),
     history = history,
-    prompt = prompt,
-    promptLength = #prompt,
     completionCallback = options.completionCallback,
   }
   return setmetatable(editor, Editor)
@@ -345,8 +349,7 @@ local function onLine(err, line)
   assert(not err, err)
   p(line)
   if line then
-    editor.history:add(line)
-    editor:getLine(onLine)
+    editor:readLine("> ", onLine)
   end
 end
-editor:getLine(onLine)
+editor:readLine("> ", onLine)
