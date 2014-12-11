@@ -29,6 +29,7 @@ return function (stdin, stdout, greeting)
   }, {
     __index = _G
   })
+  global._G = global
 
   if greeting then print(greeting) end
 
@@ -113,16 +114,21 @@ return function (stdin, stdout, greeting)
       for key, value in pairs(scope) do
         if (prop or (type(value) == "function")) and
            ((not prefix) or (string.match(key, "^" .. prefix))) then
-          matches[#matches + 1] = key
+          matches[key] = true
         end
       end
       scope = getmetatable(scope)
       scope = scope and scope.__index
     end
-    if #matches == 1 then
-      return base .. sep .. matches[1]
-    elseif #matches > 1 then
-      return matches
+    local items = {}
+    for key in pairs(matches) do
+      items[#items + 1] = key
+    end
+    table.sort(items)
+    if #items == 1 then
+      return base .. sep .. items[1]
+    elseif #items > 1 then
+      return items
     end
   end
 
