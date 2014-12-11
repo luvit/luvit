@@ -275,9 +275,13 @@ function Editor:onKey(key)
     self:deleteWord()
   elseif key == '\027[3~' then -- Delete Key
     self:delete()
-  elseif key == '\027[1;5D' then -- Control Left Arrow
+  elseif key == '\027[1;5D'  -- Control Left Arrow
+      or key == '\027\027[D' -- Alt Left Arrow (iTerm.app)
+      or key == '\027b' then -- Alt Left Arrow (Terminal.app)
     self:jumpLeft()
-  elseif key == '\027[1;5C' then -- Control Right Arrow
+  elseif key == '\027[1;5C'  -- Control Right Arrow
+      or key == '\027\027[C' -- Alt Right Arrow (iTerm.app)
+      or key == '\027f' then -- Alt Right Arrow (Terminal.app)
     self:jumpRight()
   elseif char > 31 then
     self:insert(key)
