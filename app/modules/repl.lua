@@ -90,17 +90,52 @@ return function (stdin, stdout, greeting)
     return '> '
   end
 
+  local function completionCallback(line)
+    local base, sep, rest = string.match(line, "^(.*)([.:])(.*)")
+    if not base then
+      rest = line
+    end
+    local prefix = string.match(rest, "^[%a_][%a%d_]*")
+    if prefix and prefix ~= rest then return end
+    local scope
+    if base then
+      local f = loadstring("return " .. base)
+      setfenv(f, global)
+      scope = f()
+    else
+      base = ''
+      sep = ''
+      scope = global
+    end
+    local matches = {}
+    local prop = sep ~= ':'
+    while type(scope) == "table" do
+      for key, value in pairs(scope) do
+        if (prop or (type(value) == "function")) and
+           ((not prefix) or (string.match(key, "^" .. prefix))) then
+          matches[#matches + 1] = key
+        end
+      end
+      scope = getmetatable(scope)
+      scope = scope and scope.__index
+    end
+    if #matches == 1 then
+      return base .. sep .. matches[1]
+    elseif #matches > 1 then
+      return matches
+    end
+  end
 
-
-  local function start(histroyLines, onSaveHistoryLines)
+  local function start(historyLines, onSaveHistoryLines)
     local prompt = "> "
     local history = History.new()
     if history then
-      history:load(histroyLines)
+      history:load(historyLines)
     end
     local editor = Editor.new({
       stdin = stdin,
       stdout = stdout,
+      completionCallback = completionCallback,
       history = history
     })
 
@@ -109,6 +144,7 @@ return function (stdin, stdout, greeting)
       if line then
         prompt = evaluateLine(line)
         editor:readLine(prompt, onLine)
+        -- TODO: break out of >> with control+C
       elseif onSaveHistoryLines then
         onSaveHistoryLines(history:dump())
       end

@@ -227,13 +227,25 @@ function Editor:beep()
   self.stdout:write('\x07')
 end
 function Editor:complete()
-  local options
-  if self.completionCallback then
-    options = self.completionCallback(sub(self.line, 1, self.position))
-    p(options)
+  if not self.completionCallback then
+    return self:beep()
   end
-  if not options then
-    self:beep()
+  local line = self.line
+  local position = self.position
+  local res = self.completionCallback(sub(line, 1, position))
+  if not res then
+    return self:beep()
+  end
+  local typ = type(res)
+  if typ == "string" then
+    self.line = res .. sub(line, position + 1)
+    self.position = #res + 1
+    self.history:updateLastLine(self.line)
+  elseif typ == "table" then
+    print()
+    print(unpack(res))
+  end
+  self:refreshLine()
 end
 
 function Editor:onKey(key)
