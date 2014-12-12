@@ -56,7 +56,7 @@ static BIO* _lua_load_bio(lua_State *L, int index) {
   r = BIO_write(bio, data, len);
 
   if (r <= 0) {
-    BIO_free(bio);
+    BIO_free_all(bio);
     return NULL;
   }
 
@@ -74,11 +74,11 @@ static X509* _lua_load_x509(lua_State *L, int index) {
 
   x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
   if (!x509) {
-    BIO_free(bio);
+    BIO_free_all(bio);
     return NULL;
   }
 
-  BIO_free(bio);
+  BIO_free_all(bio);
   return x509;
 }
 
@@ -152,7 +152,7 @@ str2bio(const char *value, size_t length) {
   r = BIO_write(bio, value, length);
 
   if (r <= 0) {
-    BIO_free(bio);
+    BIO_free_all(bio);
     return NULL;
   }
 
@@ -211,7 +211,7 @@ tls_sc_set_key(lua_State *L) {
 
   SSL_CTX_use_PrivateKey(ctx->ctx, key);
   EVP_PKEY_free(key);
-  BIO_free(bio);
+  BIO_free_all(bio);
 
   return 0;
 }
@@ -351,11 +351,11 @@ tls_sc_set_cert(lua_State *L) {
   rv = SSL_CTX_use_certificate_chain(ctx->ctx, bio);
 
   if (!rv) {
-    BIO_free(bio);
+    BIO_free_all(bio);
     return tls_fatal_error(L);
   }
 
-  BIO_free(bio);
+  BIO_free_all(bio);
 
   return 0;
 }
@@ -389,11 +389,11 @@ tls_sc_add_trusted_cert(lua_State *L) {
   rv = X509_STORE_load_bio(ctx->ca_store, bio);
 
   if (!rv) {
-    BIO_free(bio);
+    BIO_free_all(bio);
     return tls_fatal_error(L);
   }
 
-  BIO_free(bio);
+  BIO_free_all(bio);
 
   return 0;
 }
@@ -466,7 +466,7 @@ tls_sc_add_root_certs(lua_State *L) {
 
       if (!BIO_write(bp, root_certs[i], strlen(root_certs[i]))) {
         printf("error writing cert %s\n", root_certs[i]);
-        BIO_free(bp);
+        BIO_free_all(bp);
         lua_pushboolean(L, 0);
         return 1;
       }
@@ -477,14 +477,14 @@ tls_sc_add_root_certs(lua_State *L) {
         ERR_error_string(ERR_get_error(), buf);
 
         printf("error writing x509 cert %s\n", buf);
-        BIO_free(bp);
+        BIO_free_all(bp);
         lua_pushboolean(L, 0);
         return 1;
       }
 
       X509_STORE_add_cert(root_cert_store, x509);
 
-      BIO_free(bp);
+      BIO_free_all(bp);
       X509_free(x509);
     }
   }
@@ -511,7 +511,7 @@ tls_sc_add_crl(lua_State *L) {
 
   x509 = PEM_read_bio_X509_CRL(bio, NULL, NULL, NULL);
   if (x509 == NULL) {
-    BIO_free(bio);
+    BIO_free_all(bio);
     lua_pushboolean(L, 0);
     return 1;
   }
@@ -520,7 +520,7 @@ tls_sc_add_crl(lua_State *L) {
   X509_STORE_set_flags(ctx->ca_store,
                        X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
 
-  BIO_free(bio);
+  BIO_free_all(bio);
   X509_CRL_free(x509);
 
   lua_pushboolean(L, 1);
