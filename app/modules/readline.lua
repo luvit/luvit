@@ -251,6 +251,14 @@ end
 function Editor:onKey(key)
   local char = string.byte(key, 1)
   if     char == 13 then  -- Enter
+    local history = self.history
+    local line = self.line
+    -- Only record new history if it's non-empty and new
+    if #line > 0 and history[#history - 1] ~= line then
+      history[#history] = line
+    else
+      history[#history] = nil
+    end
     return self.line
   elseif char == 9 then   -- Tab
     self:complete()
