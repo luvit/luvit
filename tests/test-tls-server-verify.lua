@@ -167,7 +167,7 @@ local function theTest(options)
       print('- authed connection: ' .. tostring(c:getPeerCertificate():subject()))
       c:write('\n_authed\n')
     else
-      print('- unauthed connection: ' .. (c.authorizationError or 'undefined'))
+      print('- unauthed connection: ' .. (c.authorizationError and c.authorizationError.error_string or 'undefined'))
       c:write('\n_unauthed\n')
     end
     c:on('data', function(chunk)
