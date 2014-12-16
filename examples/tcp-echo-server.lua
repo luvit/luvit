@@ -17,7 +17,7 @@ server:listen(128, function(err)
     -- If error, print and close connection
     if err then
       print("Client read error: " .. err)
-      client:shutdown(function() client:close() end)
+      client:close()
     end
 
     -- If data is set the client has sent data, if unset the client has disconnected
@@ -25,7 +25,7 @@ server:listen(128, function(err)
       client:write(data)
     else
       print("Client disconnected")
-      client:shutdown(function() client:close() end)
+      client:close()
     end
 
   end)
