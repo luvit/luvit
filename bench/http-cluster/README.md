@@ -1,6 +1,6 @@
 # HTTP-Cluster
 
-This is a high-performance HTTP server using the `uv` library directly.  It uses `codecs/http` to implement the http encoding and decoding on the tcp stream.
+This is a high-performance HTTP server using the `uv` library directly.  It uses `http-encoder` and `http-decoder` to implement the http encoding and decoding on the tcp stream.
 
 ## Usage
 
