@@ -424,8 +424,8 @@ function OutgoingMessage:write(chunk, encoding)
 
   local ret
   if self.chunkedEncoding then
-    local len = #chunk
-    chunk = tostring(tonumber(len, 16)) .. CRLF .. chunk .. CRLF
+    local len = stringFormat("%x", #chunk)
+    chunk = len .. CRLF .. chunk .. CRLF
     ret = self:_send(chunk, encoding)
   else
     ret = self:_send(chunk, encoding)
@@ -474,8 +474,8 @@ function OutgoingMessage:done(data, encoding)
 
   if hot then
     if self.chunkedEncoding then
-      local l = tostring(tonumber(#data, 16))
-      local buf = self._header .. l .. CRLF .. data .. '\r\n0\r\n' .. self._trailer .. CRLF
+      local len = stringFormat("%x", #data)
+      local buf = self._header .. len .. CRLF .. data .. '\r\n0\r\n' .. self._trailer .. CRLF
       ret = self.socket:write(buf)
     else
       ret = self.socket:write(self._header .. data)
@@ -1245,4 +1245,3 @@ function http.createServer(onConnection)
 end
 
 return http
-
