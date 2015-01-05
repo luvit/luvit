@@ -147,19 +147,18 @@ function TLSSocket:getPeerCertificate()
 end
 
 function TLSSocket:_verifyClient()
-  local verifyError
+  local verifyError, verifyResults
 
-  verifyError = self.ssl:get('verify_result')
-  if verifyError == 0 then
+  verifyError, verifyResults = self.ssl:getpeerverification()
+  if verifyError then
     self.authorized = true
     self:emit('secureConnection', self)
   else
     self.authorized = false
-    self.authorizationError = tostring(verifyError)
+    self.authorizationError = verifyResults[1].error_string
     if self.rejectUnauthorized then
-      local err = Error:new(verifyError)
-      self:emit('error', err)
-      self:destroy(Error:new(err))
+      local err = Error:new(self.authorizationError)
+      self:destroy(err)
     else
       self:emit('secureConnection', self)
     end
@@ -209,6 +208,9 @@ end
 
 function TLSSocket:_write(data, encoding, callback)
   local ret, err, i, o
+  if not self.ssl then
+    return
+  end
   ret, err = self.ssl:write(data)
   if ret == nil then
     return
