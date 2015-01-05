@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+exports.name = "creationix/readline"
+exports.version = "1.0.1"
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
-local utils = require('utils')
 local sub = string.sub
 local gmatch = string.gmatch
 local remove = table.remove
@@ -376,12 +377,14 @@ Editor.__index = Editor
 function Editor.new(options)
   options = options or {}
   local history = options.history or History.new()
+  assert(options.stdin, "stdin is required")
+  assert(options.stdout, "stdout is required")
   local editor = {
     wordPattern = options.wordPattern or "%w+",
     history = history,
     completionCallback = options.completionCallback,
-    stdin = options.stdin or utils.stdin,
-    stdout = options.stdout or utils.stdout,
+    stdin = options.stdin,
+    stdout = options.stdout,
   }
   return setmetatable(editor, Editor)
 end

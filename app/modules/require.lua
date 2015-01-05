@@ -1,3 +1,7 @@
+exports = {}
+exports.name = "creationix/require"
+exports.version = "1.0.2"
+
 local uv = require('uv')
 local luvi = require('luvi')
 local bundle = luvi.bundle
@@ -252,4 +256,11 @@ local function requireSystem(options)
 
 end
 
-return requireSystem
+exports.requireSystem = requireSystem
+setmetatable(exports, {
+  __call = function (_, ...)
+    return requireSystem(...)
+  end
+})
+
+return exports
