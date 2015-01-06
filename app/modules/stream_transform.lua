@@ -68,6 +68,8 @@ local Transform = Duplex:extend()
 
 local TransformState = core.Object:extend()
 
+local afterTransform, done
+
 function TransformState:initialize(options, stream)
   self.afterTransform = function(er, data)
     return afterTransform(stream, er, data)

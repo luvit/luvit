@@ -21,6 +21,8 @@ local Writable = require('./stream_writable').Writable
 
 local Duplex = Readable:extend()
 
+local onend
+
 for k,v in pairs(Writable) do
   if not Duplex[k] and k ~= 'meta' then
     Duplex[k] = v

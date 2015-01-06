@@ -17,10 +17,13 @@ limitations under the License.
 --]]
 
 local core = require('core')
-local utils = require('utils')
 local Stream = require('./stream').Stream
 local table = require('table')
 local string = require('string')
+
+local onwrite, writeAfterEnd, validChunk, writeOrBuffer, clearBuffer,
+  decodeChunk, doWrite, onwriteError, onwriteStateUpdate, needFinish,
+  afterWrite, finishMaybe, onwriteDrain, endWritable, prefinish
 
 local WriteReq = core.Object:extend()
 

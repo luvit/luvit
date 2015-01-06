@@ -20,7 +20,7 @@ function string.levenshtein(str1, str2)
   local len1 = string.len(str1)
   local len2 = string.len(str2)
   local matrix = {}
-  local cost = 0
+  local cost
   -- quick cut-offs to save time
   if (len1 == 0) then
     return len2

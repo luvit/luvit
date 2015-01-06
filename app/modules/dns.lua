@@ -29,7 +29,6 @@ local bit = require('bit')
 local crypto = require('lcrypto')
 local char = string.char
 local byte = string.byte
-local find = string.find
 local gsub = string.gsub
 local sub = string.sub
 local format = string.format
@@ -39,8 +38,6 @@ local rshift = bit.rshift
 local lshift = bit.lshift
 local insert = table.insert
 local concat = table.concat
-local setmetatable = setmetatable
-local type = type
 
 local DEFAULT_SERVERS = {
   {
@@ -76,6 +73,8 @@ local resolver_errstrs = {
   "not implemented",  -- 4
   "refused",          -- 5
 }
+
+local DOT_CHAR = 46
 
 --[[
 
@@ -642,7 +641,7 @@ local function _query(servers, name, dnsclass, qtype, callback)
 
     function onMessage(msg)
       sock:close()
-      answers, err = parse_response(msg, id)
+      local answers, err = parse_response(msg, id)
       if answers then
         callback(nil, answers)
       else
@@ -653,7 +652,7 @@ local function _query(servers, name, dnsclass, qtype, callback)
         end
       end
     end
-    
+
     sock:recvStart()
     sock:send(table.concat(req), srv.host, srv.port)
     sock:setTimeout(TIMEOUT, onTimeout)
@@ -750,7 +749,7 @@ exports.loadResolver = function(options)
     else
       local line = data:sub(posa)
       parse(line)
-      break      
+      break
     end
   end
 

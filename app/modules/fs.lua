@@ -406,7 +406,7 @@ function fs.WriteStream:initialize(path, options)
 
   self:on('finish', bind(self.close, self))
 end
-function fs.WriteStream:open()
+function fs.WriteStream:open(callback)
   fs.open(self.path, "a", nil, function(err, fd)
     if err then
       self:destroy()

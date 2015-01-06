@@ -106,6 +106,10 @@ end
 
 
 local Readable = Stream:extend()
+local len, readableAddChunk, chunkInvalid, onEofChunk, emitReadable,
+  maybeReadMore, needMoreData, roundUpToNextPowerOf2, howMuchToRead,
+  endReadable, fromList, emitReadable_, flow, maybeReadMore_, resume,
+  resume_, pipeOnDrain
 
 function len(buf)
   if type(buf) == 'string' then
@@ -509,7 +513,7 @@ end
 function Readable:pipe(dest, pipeOpts)
   local src = self
   local state = self._readableState
-  local doEnd, _endFn, ondrain
+  local _endFn, ondrain
 
   -- local functions
   local onunpipe, onend, cleanup, ondata, onerror, onclose, onfinish, unpipe
@@ -793,7 +797,7 @@ function Readable:resume()
       self:read(0)
     end
     resume(self, state)
-  end 
+  end
   return self
 end
 
@@ -842,7 +846,7 @@ function Readable:wrap(stream)
   local state = self._readableState
   local paused = false
 
-  stream:on('end', function() 
+  stream:on('end', function()
     self:emit('end')
     self:push(nil)
   end)
@@ -874,7 +878,7 @@ function Readable:wrap(stream)
   --]]
   local events = {'error', 'close', 'destroy', 'pause', 'resume'}
   for k,v in pairs(events) do
-    stream:on(v, utils.bind(self.emit, self, ev))
+    stream:on(v, utils.bind(self.emit, self, v))
   end
 
   --[[
