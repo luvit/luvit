@@ -44,7 +44,7 @@ end
 
 function Buffer.meta:__ipairs()
   local index = 0
-  return function (...)
+  return function ()
     if index < self.length then
       index = index + 1
       return index, self[index]
