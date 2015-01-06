@@ -18,15 +18,13 @@ limitations under the License.
 
 local net = require('net')
 local core = require('core')
-local timer = require('timer')
 local uv = require('uv')
-local Readable = require('stream_readable').Readable
-local Writable = require('stream_writable').Writable
 
 local function spawn(command, args, options)
-  local envPairs = {}, env, em, onCallback
+  local envPairs = {}
+  local em
   local stdout, stdin, stderr, stdio
-  local onImmediate, kill, cleanup
+  local kill, cleanup
 
   args = args or {}
   options = options or {}

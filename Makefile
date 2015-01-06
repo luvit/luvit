@@ -19,3 +19,5 @@ install: luvit
 uninstall:
 	rm -f /usr/local/bin/luvit
 
+lint:
+	find app -name "*.lua" | xargs luacheck

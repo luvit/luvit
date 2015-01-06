@@ -67,10 +67,6 @@ function Socket:send(data, host, port, callback)
 end
 
 function Socket:bind(host, port, options)
-  if type(options) == 'function' then
-    callback = options
-    options = nil
-  end
   uv.udp_bind(self._handle, host, port, options)
   self:recvStart()
 end

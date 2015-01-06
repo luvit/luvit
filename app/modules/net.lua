@@ -19,7 +19,6 @@ limitations under the License.
 local uv = require('uv')
 local timer = require('timer')
 local utils = require('utils')
-local table = require('table')
 local Emitter = require('core').Emitter
 local Duplex = require('stream_duplex').Duplex
 
@@ -37,7 +36,7 @@ function Socket:initialize(options)
   if options.handle then
     self._handle = options.handle
   elseif options.fd then
-    local typ = tty.uv.guess_handle(options.fd);
+    local typ = uv.guess_handle(options.fd);
     if typ == 'TCP' then
       self._handle = uv.new_tcp()
     elseif typ == 'PIPE' then
@@ -217,7 +216,7 @@ function Socket:destroy(exception, callback)
   self.destroyed = true
   self.readable = false
   self.writable = false
-    
+
   if uv.is_closing(self._handle) then
     return callback(exception)
   end

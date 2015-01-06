@@ -220,7 +220,7 @@ local function _insert(item, msecs)
   append(list, item)
 end
 
-exports.unenroll = function(item)
+local function unenroll(item)
   remove(item)
   local list = lists[item._idleTimeout]
   if list and isEmpty(list) then
@@ -231,6 +231,7 @@ exports.unenroll = function(item)
   end
   item._idleTimeout = -1
 end
+exports.unenroll = unenroll
 
 -- does not start the timer, just initializes the item
 exports.enroll = function(item, msecs)

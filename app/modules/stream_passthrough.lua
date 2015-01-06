@@ -23,7 +23,6 @@ limitations under the License.
 --]]
 
 local Transform = require('./stream_transform').Transform
-local core = require('core')
 
 local PassThrough = Transform:extend()
 

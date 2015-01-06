@@ -25,11 +25,11 @@ local timer = require('timer')
 local utils = require('utils')
 local uv = require('uv')
 
-local _common_tls = require('_common_tls')
 local _root_ca = require('_root_ca')
 
-exports.DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
-                          'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
+local DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
+                        'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
+exports.DEFAULT_CIPHERS = DEFAULT_CIPHERS
 
 -------------------------------------------------------------------------------
 

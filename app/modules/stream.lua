@@ -27,6 +27,8 @@ local Stream = core.Emitter:extend()
 
 function Stream:pipe(dest, options)
 
+  local ondata, ondrain, onend, onclose, onerror, cleanup
+
   local source = self
 
   function ondata(chunk)

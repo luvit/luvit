@@ -16,13 +16,13 @@ limitations under the License.
 
 --]]
 
-local loaded, openssl = pcall(require, 'openssl')
+local loaded = pcall(require, 'openssl')
 if not loaded then return end
 
 local _common_tls = require('_common_tls')
 local net = require('net')
-local utils = require('utils')
-local uv = require('uv')
+
+local DEFAULT_CIPHERS = _common_tls.DEFAULT_CIPHERS
 
 local extend = function(...)
   local args = {...}
@@ -62,8 +62,7 @@ local DEFAULT_OPTIONS = {
 }
 
 exports.connect = function(options, callback)
-  local hostname, context, sock, cleartext, tlsChain, tls
-  local port, onConnect, onError
+  local hostname, port, sock
 
   callback = callback or function() end
   options = extend({}, DEFAULT_OPTIONS, options or {})

@@ -16,8 +16,6 @@ limitations under the License.
 
 --]]
 
-local uv = require('uv')
-
 --[[
 This module is for various classes and utilities that don't need their own
 module.

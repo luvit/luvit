@@ -42,14 +42,13 @@ function Observable:initialize(options)
 end
 
 function Observable:_transform(chunk, encoding, cb)
-  for k,v in pairs(self.observers) do
+  for _,v in pairs(self.observers) do
     v:push(chunk, encoding)
   end
   cb(nil, chunk)
 end
 
 function Observable:observe()
-  local _self = self
   local obs = Readable:new(self.options)
   obs._read = function() end
   table.insert(self.observers, obs)
