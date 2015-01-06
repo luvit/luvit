@@ -1,3 +1,4 @@
+
 -- Module options:
 local always_try_using_lpeg = false
 local register_global_module_table = false
@@ -52,7 +53,10 @@ local strrep, gsub, strsub, strbyte, strchar, strfind, strlen, strformat =
 local strmatch = string.match
 local concat = table.concat
 
-local json = { version = "dkjson 2.5" }
+local json = { original_version = "dkjson 2.5" }
+
+json.name = "creationix/json"
+json.version = "2.5.0"
 
 if register_global_module_table then
   _G[global_module_name] = json
