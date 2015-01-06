@@ -58,16 +58,16 @@ local SERVERS = DEFAULT_SERVERS
 local DEFAULT_TIMEOUT = 2000   -- 2 seconds
 local TIMEOUT = DEFAULT_TIMEOUT
 
-local TYPE_A      = 1
-local TYPE_NS     = 2
-local TYPE_CNAME  = 5
-local TYPE_PTR    = 12
-local TYPE_MX     = 15
-local TYPE_TXT    = 16
-local TYPE_AAAA   = 28
-local TYPE_SRV    = 33
+exports.TYPE_A      = 1
+exports.TYPE_NS     = 2
+exports.TYPE_CNAME  = 5
+exports.TYPE_PTR    = 12
+exports.TYPE_MX     = 15
+exports.TYPE_TXT    = 16
+exports.TYPE_AAAA   = 28
+exports.TYPE_SRV    = 33
 
-local CLASS_IN    = 1
+exports.CLASS_IN    = 1
 
 local resolver_errstrs = {
   "format error",     -- 1
@@ -338,7 +338,7 @@ local function parse_response(buf, id)
 
     pos = pos + 10
 
-    if typ == TYPE_A then
+    if typ == exports.TYPE_A then
 
       if len ~= 4 then
         return nil, "bad A record value length: " .. len
@@ -352,7 +352,7 @@ local function parse_response(buf, id)
 
       pos = pos + 4
 
-    elseif typ == TYPE_CNAME then
+    elseif typ == exports.TYPE_CNAME then
 
       local cname, p = _decode_name(buf, pos)
       if not cname then
@@ -370,7 +370,7 @@ local function parse_response(buf, id)
 
       ans.cname = cname
 
-    elseif typ == TYPE_AAAA then
+    elseif typ == exports.TYPE_AAAA then
 
       if len ~= 16 then
         return nil, "bad AAAA record value length: " .. len
@@ -397,7 +397,7 @@ local function parse_response(buf, id)
 
       pos = pos + 16
 
-    elseif typ == TYPE_MX then
+    elseif typ == exports.TYPE_MX then
 
       -- print("len = ", len)
 
@@ -424,7 +424,7 @@ local function parse_response(buf, id)
 
       pos = p
 
-    elseif typ == TYPE_SRV then
+    elseif typ == exports.TYPE_SRV then
       if len < 7 then
         return nil, "bad SRV record value length: " .. len
       end
@@ -455,7 +455,7 @@ local function parse_response(buf, id)
 
       pos = p
 
-    elseif typ == TYPE_NS then
+    elseif typ == exports.TYPE_NS then
 
       local name, p = _decode_name(buf, pos)
       if not name then
@@ -473,7 +473,7 @@ local function parse_response(buf, id)
 
       ans.nsdname = name
 
-    elseif typ == TYPE_TXT then
+    elseif typ == exports.TYPE_TXT then
 
       local slen = byte(buf, pos)
       if slen + 1 > len then
@@ -511,7 +511,7 @@ local function parse_response(buf, id)
 
       ans.txt = val
 
-    elseif typ == TYPE_PTR then
+    elseif typ == exports.TYPE_PTR then
 
       local name, p = _decode_name(buf, pos)
       if not name then
@@ -671,31 +671,31 @@ end
 exports.query = _query
 
 exports.resolve4 = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_A, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_A, callback)
 end
 
 exports.resolve6 = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_AAAA, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_AAAA, callback)
 end
 
 exports.resolveSrv = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_SRV, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_SRV, callback)
 end
 
 exports.resolveMx = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_MX, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_MX, callback)
 end
 
 exports.resolveNs = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_NS, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_NS, callback)
 end
 
 exports.resolveCname = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_CNAME, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_CNAME, callback)
 end
 
 exports.resolveTxt = function(name, callback)
-  _query(SERVERS, name, CLASS_IN, TYPE_TXT, callback)
+  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_TXT, callback)
 end
 
 exports.setServers = function(servers)
