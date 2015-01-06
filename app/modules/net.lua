@@ -156,7 +156,6 @@ function Socket:connect(...)
   local args = {...}
   local options = {}
   local callback
-  p('Socket:connect')
 
   if type(args[1]) == 'table' then
     -- connect(options, [cb])
@@ -225,7 +224,7 @@ function Socket:destroy(exception, callback)
 
   uv.close(self._handle)
 
-  if (exception) then
+  if exception then
     process.nextTick(function()
       self:emit('error', exception)
     end)
