@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 
-local encoder = require('http-encoder')
+local encoder = require('http-codec').encoder
 local deepEqual = require('deep-equal')
 
 local function testEncoder(encoder, inputs)
