@@ -540,7 +540,7 @@ local function parse_response(buf, id)
   return answers
 end
 
-local function _query(name, dnsclass, qtype, callback)
+local function _query(servers, name, dnsclass, qtype, callback)
   local tries, max_tries, server, tcp_iter, udp_iter, get_server_iter
 
   tries = 1
@@ -549,8 +549,8 @@ local function _query(name, dnsclass, qtype, callback)
   get_server_iter = function()
     local i = 1
     return function()
-      i = ((i + 1) % #SERVERS) + 1
-      return SERVERS[i]
+      i = ((i + 1) % #servers) + 1
+      return servers[i]
     end
   end
 
@@ -668,32 +668,34 @@ local function _query(name, dnsclass, qtype, callback)
   end
 end
 
+exports.query = _query
+
 exports.resolve4 = function(name, callback)
-  _query(name, CLASS_IN, TYPE_A, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_A, callback)
 end
 
 exports.resolve6 = function(name, callback)
-  _query(name, CLASS_IN, TYPE_AAAA, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_AAAA, callback)
 end
 
 exports.resolveSrv = function(name, callback)
-  _query(name, CLASS_IN, TYPE_SRV, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_SRV, callback)
 end
 
 exports.resolveMx = function(name, callback)
-  _query(name, CLASS_IN, TYPE_MX, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_MX, callback)
 end
 
 exports.resolveNs = function(name, callback)
-  _query(name, CLASS_IN, TYPE_NS, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_NS, callback)
 end
 
 exports.resolveCname = function(name, callback)
-  _query(name, CLASS_IN, TYPE_CNAME, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_CNAME, callback)
 end
 
 exports.resolveTxt = function(name, callback)
-  _query(name, CLASS_IN, TYPE_TXT, callback)
+  _query(SERVERS, name, CLASS_IN, TYPE_TXT, callback)
 end
 
 exports.setServers = function(servers)
