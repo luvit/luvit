@@ -25,7 +25,6 @@ local timer = require('timer')
 local utils = require('utils')
 local uv = require('uv')
 
-local _common_tls = require('_common_tls')
 local _root_ca = require('_root_ca')
 
 exports.DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
@@ -61,7 +60,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
     self.context = context
   else
     self.context = openssl.ssl.ctx_new(secureProtocol or 'TLSv1',
-      defaultCiphers or DEFAULT_CIPHERS)
+      defaultCiphers or exports.DEFAULT_CIPHERS)
     self.context:options(getSecureOptions(secureProtocol, flags))
   end
 end
