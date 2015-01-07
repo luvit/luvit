@@ -90,6 +90,7 @@ function exports.clearInterval(timer)
 end
 
 exports.clearTimeout = exports.clearInterval
+exports.clearTimer = exports.clearTimeout -- Luvit 1.x compatibility
 
 local checker = uv.new_check()
 local idler = uv.new_idle()
