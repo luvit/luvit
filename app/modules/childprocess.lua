@@ -16,9 +16,12 @@ limitations under the License.
 
 --]]
 
-local net = require('net')
 local core = require('core')
+local net = require('net')
+local timer = require('timer')
 local uv = require('uv')
+
+local Error = core.Error
 
 local function spawn(command, args, options)
   local envPairs = {}
@@ -80,6 +83,15 @@ local function spawn(command, args, options)
 
     cleanup()
   end)
+
+  if not em.handle then
+    local emitError
+    function emitError()
+      em:emit('error', Error:new(em.pid))
+    end
+    timer.setImmediate(emitError)
+    cleanup()
+  end
 
   return em
 end
