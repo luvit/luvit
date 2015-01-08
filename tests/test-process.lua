@@ -1,8 +1,6 @@
 local spawn = require('childprocess').spawn
 local los = require('los')
 
-local environmentTestResult = false
-
 require('tap')(function(test)
   test('environment subprocess', function(expect)
     local child, options, onStdout, onExit, onEnd, data
@@ -38,6 +36,17 @@ require('tap')(function(test)
     child.stdout:once('end', expect(onEnd))
     child.stdout:on('data', onStdout)
     child:on('exit', expect(onExit))
+  end)
+
+  test('invalid command', function(expect)
+    local child, onError
+
+    function onError(err)
+      assert(err)
+    end
+
+    child = spawn('skfjsldkfjskdfjdsklfj')
+    child:on('error', expect(onError))
   end)
 end)
 
