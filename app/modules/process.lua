@@ -16,6 +16,8 @@ limitations under the License.
 
 --]]
 
+local uv = require('uv')
+local env = require('env')
 local timer = require('timer')
 local utils = require('utils')
 local hooks = require('hooks')
@@ -25,10 +27,26 @@ local function nextTick(...)
   timer.setImmediate(...)
 end
 
+local function cwd()
+  return uv.cwd()
+end
+
+local lenv = {}
+function lenv.get(key)
+  return lenv[key]
+end
+setmetatable(lenv, {
+  __index = function(table, key)
+    return env.get(key)
+  end
+})
+
 local function globalProcess()
   local process = Emitter:new()
   process.exitCode = 0
   process.nextTick = nextTick
+  process.env = lenv
+  process.cwd = cwd
   hooks:on('process.exit', utils.bind(process.emit, process, 'exit'))
   return process
 end
