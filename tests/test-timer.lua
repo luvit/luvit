@@ -19,7 +19,6 @@ limitations under the License.
 local timer = require('timer')
 
 require('tap')(function (test)
-
   test("simple timeout", function (expect)
     timer.setTimeout(20, expect(function (arg1)
       assert(arg1 == 'test1')
@@ -51,5 +50,12 @@ require('tap')(function (test)
     end), 'test3')
   end)
 
+  test('double close', function ()
+    local t1 = timer.setTimeout(200, function()
+      assert(nil, "Should not get here!")
+    end)
+    timer.clearTimeout(t1)
+    timer.clearTimeout(t1)
+  end)
 end)
 
