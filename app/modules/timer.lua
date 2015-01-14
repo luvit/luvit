@@ -85,6 +85,7 @@ function exports.setInterval(interval, callback, ...)
 end
 
 function exports.clearInterval(timer)
+  if uv.is_closing(timer) then return end
   uv.timer_stop(timer)
   uv.close(timer)
 end
