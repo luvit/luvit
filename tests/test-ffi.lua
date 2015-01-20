@@ -21,12 +21,11 @@ local timer = require('timer')
 local los = require('los')
 
 require('tap')(function(test)
-  test('ffi', function()
-    local is_windows, timeout, success
+  test('ffi', function(expect)
+    local is_windows, timeout, success, onTimeout
 
     is_windows = los.type() == 'win32'
     timeout = 20
-    success = false
 
     if is_windows then
       -- approximated the call signature DWORDs are unsinged ints and BOOLs are ints
@@ -35,11 +34,12 @@ require('tap')(function(test)
       ffi.cdef[[ int poll(struct pollfd *fds, unsigned long nfds, int timeout); ]]
     end
 
-    -- On the next tick the poll will have unblocked the run loop
-    timer.setTimeout(1, function()
-      p(success)
+    function onTimeout()
       assert(success)
-    end)
+    end
+
+    -- On the next tick the poll will have unblocked the run loop
+    timer.setTimeout(1, expect(onTimeout))
 
     if is_windows then
       if ffi.C.SleepEx(timeout, 0) then
