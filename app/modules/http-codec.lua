@@ -17,7 +17,14 @@ limitations under the License.
 --]]
 
 exports.name = "creationix/http-codec"
-exports.version = "0.1.0"
+exports.version = "0.1.2"
+
+local sub = string.sub
+local gsub = string.gsub
+local lower = string.lower
+local find = string.find
+local format = string.format
+local concat = table.concat
 
 local STATUS_CODES = {
   [100] = 'Continue',
@@ -84,6 +91,8 @@ exports.encoder = function ()
     local head, chunkedEncoding
     local version = item.version or 1.1
     if item.method then
+      local path = item.path
+      assert(path and #path > 0, "expected non-empty path")
       head = { item.method .. ' ' .. item.path .. ' HTTP/' .. version .. '\r\n' }
     else
       local reason = item.reason or STATUS_CODES[item.code]
@@ -91,16 +100,17 @@ exports.encoder = function ()
     end
     for i = 1, #item do
       local key, value = unpack(item[i])
-      local lowerKey = string.lower(key)
+      local lowerKey = lower(key)
       if lowerKey == "transfer-encoding" then
-        chunkedEncoding = string.lower(value) == "chunked"
+        chunkedEncoding = lower(value) == "chunked"
       end
+      value = gsub(tostring(value), "[\r\n]+", " ")
       head[#head + 1] = key .. ': ' .. tostring(value) .. '\r\n'
     end
     head[#head + 1] = '\r\n'
 
     mode = chunkedEncoding and encodeChunked or encodeRaw
-    return table.concat(head)
+    return concat(head)
   end
 
   function encodeRaw(item)
@@ -124,7 +134,7 @@ exports.encoder = function ()
     if #item == 0 then
       mode = encodeHead
     end
-    return string.format("%x", #item) .. "\r\n" .. item .. "\r\n"
+    return format("%x", #item) .. "\r\n" .. item .. "\r\n"
   end
 
   mode = encodeHead
@@ -144,7 +154,7 @@ exports.decoder = function ()
   function decodeHead(chunk)
     if not chunk then return end
 
-    local _, length = string.find(chunk, "\r\n\r\n", 1, true)
+    local _, length = find(chunk, "\r\n\r\n", 1, true)
     -- First make sure we have all the head before continuing
     if not length then
       if #chunk < 8 * 1024 then return end
@@ -155,19 +165,21 @@ exports.decoder = function ()
     -- Parse the status/request line
     local head = {}
     local _, offset
-    _, offset, head.version, head.code, head.reason =
-      string.find(chunk, "^HTTP/(%d%.%d) (%d+) ([^\r]+)\r\n")
+    local version
+    _, offset, version, head.code, head.reason =
+      find(chunk, "^HTTP/(%d%.%d) (%d+) ([^\r]+)\r\n")
     if offset then
       head.code = tonumber(head.code)
     else
-      _, offset, head.method, head.path, head.version =
-        string.find(chunk, "^(%u+) ([^ ]+) HTTP/(%d%.%d)\r\n")
+      _, offset, head.method, head.path, version =
+        find(chunk, "^(%u+) ([^ ]+) HTTP/(%d%.%d)\r\n")
       if not offset then
         error("expected HTTP data")
       end
     end
-    head.version = tonumber(head.version)
-    head.keepAlive = head.version > 1.0
+    version = tonumber(version)
+    head.version = version
+    head.keepAlive = version > 1.0
 
     -- We need to inspect some headers to know how to parse the body.
     local contentLength
@@ -176,17 +188,17 @@ exports.decoder = function ()
     -- Parse the header lines
     while true do
       local key, value
-      _, offset, key, value = string.find(chunk, "^([^:]+): *([^\r]+)\r\n", offset + 1)
+      _, offset, key, value = find(chunk, "^([^:]+): *([^\r]+)\r\n", offset + 1)
       if not offset then break end
-      local lowerKey = string.lower(key)
+      local lowerKey = lower(key)
 
       -- Inspect a few headers and remember the values
       if lowerKey == "content-length" then
         contentLength = tonumber(value)
       elseif lowerKey == "transfer-encoding" then
-        chunkedEncoding = string.lower(value) == "chunked"
+        chunkedEncoding = lower(value) == "chunked"
       elseif lowerKey == "connection" then
-        head.keepAlive = string.lower(value) == "keep-alive"
+        head.keepAlive = lower(value) == "keep-alive"
       end
       head[#head + 1] = {key, value}
     end
@@ -202,7 +214,7 @@ exports.decoder = function ()
       mode = decodeRaw
     end
 
-    return head, string.sub(chunk, length + 1)
+    return head, sub(chunk, length + 1)
 
   end
 
@@ -220,7 +232,7 @@ exports.decoder = function ()
 
   function decodeChunked(chunk)
     local match, term
-    match, term = string.match(chunk, "^(%x+)(..)")
+    match, term = match(chunk, "^(%x+)(..)")
     if not match then return end
     assert(term == "\r\n")
     local length = tonumber(match, 16)
@@ -228,9 +240,9 @@ exports.decoder = function ()
     if length == 0 then
       mode = decodeHead
     end
-    chunk = string.sub(chunk, #match + 3)
-    assert(string.sub(chunk, length + 1, length + 2) == "\r\n")
-    return string.sub(chunk, 1, length), string.sub(chunk, length + 3)
+    chunk = sub(chunk, #match + 3)
+    assert(sub(chunk, length + 1, length + 2) == "\r\n")
+    return sub(chunk, 1, length), sub(chunk, length + 3)
   end
 
   function decodeCounted(chunk)
@@ -249,7 +261,7 @@ exports.decoder = function ()
     end
 
     mode = decodeEmpty
-    return string.sub(chunk, 1, bytesLeft), string.sub(chunk, bytesLeft + 1)
+    return sub(chunk, 1, bytesLeft), sub(chunk, bytesLeft + 1)
   end
 
   -- Switch between states by changing which decoder mode points to
