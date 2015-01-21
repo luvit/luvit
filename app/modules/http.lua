@@ -81,8 +81,13 @@ end
 
 function ServerResponse:finish(chunk)
   self:flushHeaders()
+  local last = ""
   if chunk then
-    self:write(chunk)
+    last = last .. self.encode(chunk)
+  end
+  last = last .. (self.encode("") or "")
+  if #last > 0 then
+    self.socket:write(last)
   end
   self.socket:_end()
 end
@@ -92,15 +97,18 @@ function ServerResponse:writeHead(statusCode, headers)
   self.headersSent = true
   headers = headers or {}
   local head = {}
-  local hadDate = false
+
+  local lower = {}
 
   for key, value in pairs(headers) do
-    local lower = key:lower()
-    if lower == "date" then hadDate = true end
+    lower[key:lower()] = value
     head[#head + 1] = {tostring(key), tostring(value)}
   end
-  if not hadDate and self.sendDate then
+  if not lower.date and self.sendDate then
     head[#head + 1] = {"Date", date("!%a, %d %b %Y %H:%M:%S GMT")}
+  end
+  if not lower["content-length"] and not lower["transfer-encoding"] then
+    head[#head + 1] = {"Transfer-Encoding", "chunked"}
   end
   head.code = statusCode
   self.socket:write(self.encode(head))

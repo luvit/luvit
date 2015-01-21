@@ -2,10 +2,7 @@ local http = require("http")
 
 http.createServer(function (req, res)
   local body = "Hello world\n"
-  res:writeHead(200, {
-    ["Content-Type"] = "text/plain",
-    ["Content-Length"] = #body
-  })
+  res:setHeader("Content-Type", "text/plain")
   res:finish(body)
 end):listen(8080)
 
