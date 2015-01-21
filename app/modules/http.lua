@@ -71,7 +71,7 @@ end
 
 function ServerResponse:flushHeaders()
   if self.headersSent then return end
-  error("TODO: flush implicit headers")
+  self:writeHead(self.statusCode, self.headers)
 end
 
 function ServerResponse:write(chunk)
@@ -103,7 +103,6 @@ function ServerResponse:writeHead(statusCode, headers)
     head[#head + 1] = {"Date", date("!%a, %d %b %Y %H:%M:%S GMT")}
   end
   head.code = statusCode
-  p(head)
   self.socket:write(self.encode(head))
 
 end
