@@ -143,6 +143,7 @@ local function app(read, write)
   -- Writing nil closes the connection
   write()
 end
+```
 
 Then we hook up the adapted `uv_tcp_t` socket with the user code that also
 uses the read/write interface and insert the http codec in the middle with the
