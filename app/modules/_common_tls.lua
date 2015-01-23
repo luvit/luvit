@@ -234,12 +234,11 @@ function TLSSocket:_read(n)
       if ret == nil then
          return
       end
-      i, o = self.inp:pending()
-      if i > 0 then
-         local ret, msg = self.ssl:read()
-         if ret then
-           self:push(ret)
-         end
+      i = self.inp:pending()
+      while i > 0 do
+        local ret = self.ssl:read()
+        if ret then self:push(ret) end
+        i = self.inp:pending()
       end
     else
       self:push(nil)
@@ -262,7 +261,7 @@ function TLSSocket:_read(n)
 
       if ret == false then return end
 
-      self.connected = true
+      self._connected = true
 
       if not uv.is_active(self._handle) then return end
       uv.read_stop(self._handle)
