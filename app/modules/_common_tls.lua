@@ -229,8 +229,8 @@ function TLSSocket:_read(n)
     if err then
       return self:destroy(err)
     elseif data then
-      local ret, err, i, o
-      ret, err = self.inp:write(data)
+      local ret, i, _
+      ret, _ = self.inp:write(data)
       if ret == nil then
          return
       end
