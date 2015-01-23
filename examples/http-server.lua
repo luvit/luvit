@@ -4,7 +4,7 @@ local pathJoin = require('luvi').path.join
 local fs = require('fs')
 
 local function onRequest(req, res)
-  print(req.method, req.url)
+  print(req.socket.options and "https" or "http", req.method, req.url)
   local body = "Hello world\n"
   res:setHeader("Content-Type", "text/plain")
   res:setHeader("Content-Length", #body)
