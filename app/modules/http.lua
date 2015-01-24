@@ -1,3 +1,21 @@
+--[[
+
+Copyright 2015 The Luvit Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS-IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+--]]
+
 local net = require('net')
 local codec = require('http-codec')
 local Readable = require('stream_readable').Readable
@@ -115,59 +133,63 @@ function ServerResponse:writeHead(statusCode, headers)
 
 end
 
-function exports.createServer(onRequest)
-  return net.createServer(function (socket)
+function exports.handleConnection(socket, onRequest)
 
-    -- Initialize the two halves of the stateful decoder and encoder for HTTP.
-    local decode = codec.decoder()
+  -- Initialize the two halves of the stateful decoder and encoder for HTTP.
+  local decode = codec.decoder()
 
-    local buffer = ""
-    local req, res
+  local buffer = ""
+  local req, res
 
-    local function flush()
-      req:push()
-      req = nil
-    end
+  local function flush()
+    req:push()
+    req = nil
+  end
 
-    socket:on('data', function (chunk)
-      -- Run the chunk through the decoder by concatenating and looping
-      buffer = buffer .. chunk
-      while true do
-        local event, extra = decode(buffer)
-        -- nil extra means the decoder needs more data, we're done here.
-        if not extra then break end
-        -- Store the leftover data.
-        buffer = extra
-        if type(event) == "table" then
-          -- If there was an old request that never closed, end it.
-          if req then flush() end
-          -- Create a new request object
-          req = IncomingMessage:new(event, socket)
-          -- Create a new response object
-          res = ServerResponse:new(socket)
-          -- Call the user callback to handle the request
-          onRequest(req, res)
-        elseif req and type(event) == "string" then
-          if #event == 0 then
-            -- Empty string in http-decoder means end of body
-            -- End the request stream and remove the req reference.
-            flush()
-          else
-            -- Forward non-empty body chunks to the req stream.
-            if not req:push(event) then
-              -- If it's queue is full, pause the source stream
-              -- This will be resumed by IncomingMessage:_read
-              socket:pause()
-            end
+  socket:on('data', function (chunk)
+    -- Run the chunk through the decoder by concatenating and looping
+    buffer = buffer .. chunk
+    while true do
+      local event, extra = decode(buffer)
+      -- nil extra means the decoder needs more data, we're done here.
+      if not extra then break end
+      -- Store the leftover data.
+      buffer = extra
+      if type(event) == "table" then
+        -- If there was an old request that never closed, end it.
+        if req then flush() end
+        -- Create a new request object
+        req = IncomingMessage:new(event, socket)
+        -- Create a new response object
+        res = ServerResponse:new(socket)
+        -- Call the user callback to handle the request
+        onRequest(req, res)
+      elseif req and type(event) == "string" then
+        if #event == 0 then
+          -- Empty string in http-decoder means end of body
+          -- End the request stream and remove the req reference.
+          flush()
+        else
+          -- Forward non-empty body chunks to the req stream.
+          if not req:push(event) then
+            -- If it's queue is full, pause the source stream
+            -- This will be resumed by IncomingMessage:_read
+            socket:pause()
           end
         end
       end
-    end)
-    socket:on('end', function ()
-      -- Just in case the stream ended and we still had an open request,
-      -- end it.
-      if req then flush() end
-    end)
+    end
+  end)
+  socket:on('end', function ()
+    -- Just in case the stream ended and we still had an open request,
+    -- end it.
+    if req then flush() end
+  end)
+end
+
+function exports.createServer(onRequest)
+  return net.createServer(function (socket)
+    return exports.handleConnection(socket, onRequest)
   end)
 end
 
