@@ -75,7 +75,7 @@ local function requireSystem(options)
     -- Extract prefix from path
     match = string.match(path, "^[^:]+:")
     if match then
-      if string.match(match, "^[A-Z]:$") then
+      if string.match(match, "^[A-Za-z]:$") then
         prefix = "fs"
       else
         path = string.sub(path, #match + 1)
@@ -91,14 +91,13 @@ local function requireSystem(options)
     if not prefix then
       prefix = 'fs'
     end
-
     -- Resolve relative directly
     if string.sub(path, 1, 1) == "." then
       newPath = pathJoin(base, "..", path)
       module, err = loader(prefix, newPath, format)
 
     -- Resolve absolute directly
-    elseif string.sub(path, 1, 1) == "/" or string.sub(path, 1, 1) == "\\" then
+    elseif string.sub(path, 1, 1) == "/" or string.match(path, "^[A-Za-z]:[\\/]") then
       newPath = path
       module, err = loader(prefix, newPath, format)
 
@@ -108,7 +107,7 @@ local function requireSystem(options)
         base = pathJoin(base, "..")
         newPath = pathJoin(base, modulesName, path)
         module, err = loader(prefix, newPath, format)
-      until module or base == "" or base == "/" or string.match(base, "^[A-Z]:\\$")
+      until module or base == "" or base == "/" or string.match(base, "^[A-Za-z]:[\\/]$")
       if not module and prefix ~= "bundle" then
         -- If it's not found outside the bundle, look there too.
         module, err = loader("bundle", pathJoin(modulesName, path), format)
