@@ -61,7 +61,7 @@ local function requireSystem(options)
     -- Extract prefix from callerPath
     match = string.match(callerPath, "^[^:]+:")
     if match then
-      if string.match(match, "^[A-Z]:$") then
+      if string.match(match, "^[A-Za-z]:$") then
         prefix = "fs"
         base = callerPath
       else
