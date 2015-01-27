@@ -26,7 +26,7 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 
-#define LUVIT_OPENSSL_VERSION_NUMBER 0x1000109fL
+#define LUVIT_OPENSSL_VERSION_NUMBER 0x100010cfL
 
 #define TLS_SECURE_CONTEXT_HANDLE "ltls_secure_context"
 
