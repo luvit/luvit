@@ -36,8 +36,26 @@ function lenv.get(key)
   return lenv[key]
 end
 setmetatable(lenv, {
+  __pairs = function(table)
+    local keys = env.keys()
+    local index = 0
+    return function(...)
+      index = index + 1
+      local name = keys[index]
+      if name then
+        return name, table[name]
+      end
+    end
+  end,
   __index = function(table, key)
     return env.get(key)
+  end,
+  __newindex = function(table, key, value)
+    if value then
+      env.set(key, value, 1)
+    else
+      env.unset(key)
+    end
   end
 })
 

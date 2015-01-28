@@ -48,5 +48,29 @@ require('tap')(function(test)
     child = spawn('skfjsldkfjskdfjdsklfj')
     child:on('error', expect(onError))
   end)
+
+  test('process.env pairs', function()
+    local key = "LUVIT_TEST_VARIABLE_1"
+    local value = "TEST1"
+    local iterate, found
+
+    function iterate()
+      for k, v in pairs(process.env) do
+        p(k, v)
+        if k == key and v == value then found = true end
+      end
+    end
+
+    process.env[key] = value
+    found = false
+    iterate()
+    assert(found)
+
+    process.env[key] = nil
+    found = false
+    iterate()
+    assert(process.env[key] == nil)
+    assert(found == false)
+  end)
 end)
 
