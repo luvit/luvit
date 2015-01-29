@@ -20,6 +20,7 @@ local core = require('core')
 local Stream = require('./stream').Stream
 local table = require('table')
 local string = require('string')
+local Error = core.Error
 
 local onwrite, writeAfterEnd, validChunk, writeOrBuffer, clearBuffer,
   decodeChunk, doWrite, onwriteError, onwriteStateUpdate, needFinish,
