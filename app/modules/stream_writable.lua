@@ -20,6 +20,7 @@ local core = require('core')
 local Stream = require('./stream').Stream
 local table = require('table')
 local string = require('string')
+local Error = core.Error
 
 local onwrite, writeAfterEnd, validChunk, writeOrBuffer, clearBuffer,
   decodeChunk, doWrite, onwriteError, onwriteStateUpdate, needFinish,
@@ -188,12 +189,12 @@ end
 // Otherwise people can pipe Writable streams, which is just wrong.
 --]]
 function Writable:pipe()
-  self:emit('error', core.Error:new('Cannot pipe. Not readable.'))
+  self:emit('error', Error:new('Cannot pipe. Not readable.'))
 end
 
 
 function writeAfterEnd(stream, state, cb)
-  local er = core.Error:new('write after end')
+  local er = Error:new('write after end')
   --[[
   // TODO: defer error events consistently everywhere, not just the cb
   --]]
@@ -213,7 +214,7 @@ end
 function validChunk(stream, state, chunk, cb)
   local valid = true
   if chunk ~= nil and type(chunk) ~= 'string' and not state.objectMode then
-    local er = core.Error:new('Invalid non-string/buffer chunk')
+    local er = Error:new('Invalid non-string/buffer chunk')
     stream:emit('error', er)
     process.nextTick(function()
       cb(er)
