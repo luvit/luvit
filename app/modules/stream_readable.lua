@@ -160,7 +160,7 @@ function readableAddChunk(stream, state, chunk, encoding, addToFront)
     end
   elseif state.objectMode or chunk and len(chunk) > 0 then
     if state.ended and not addToFront then
-      local e = core.Error:new('stream.push() after EOF')
+      local e = Error:new('stream.push() after EOF')
       stream:emit('error', e)
     else
       if not addToFront then

@@ -62,6 +62,7 @@ limitations under the License.
 
 local Duplex = require('./stream_duplex').Duplex
 local core = require('core')
+local Error = core.Error
 
 local Transform = Duplex:extend()
 
@@ -88,7 +89,7 @@ function afterTransform(stream, er, data)
   local cb = ts.writecb
 
   if not cb then
-    return stream:emit('error', core.Error:new('no writecb in Transform class'))
+    return stream:emit('error', Error:new('no writecb in Transform class'))
   end
 
   ts.writechunk = nil
