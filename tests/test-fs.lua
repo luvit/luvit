@@ -208,4 +208,19 @@ require('tap')(function (test)
     end))()
   end)
 
+  test("writestream sync", function()
+    local stream, filename, writeStr, data
+
+    writeStr = "hello world"
+    filename = "testfile.txt"
+    fs.unlinkSync(filename)
+
+    stream = fs.WriteStreamSync:new("testfile.txt")
+    stream:write(writeStr)
+    stream:destroy()
+
+    data = fs.readFileSync(filename)
+    fs.unlinkSync(filename)
+    assert(data:find(writeStr) > -1)
+  end)
 end)

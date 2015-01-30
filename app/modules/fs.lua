@@ -412,7 +412,8 @@ function fs.WriteStream:open(callback)
     if err then
       self:destroy()
       self:emit('error', err)
-      if callback then return callback(err) end
+      if callback then callback(err) end
+      return
     end
     self.fd = fd
     self:emit('open', fd)
@@ -440,4 +441,34 @@ function fs.WriteStream:destroy()
     fs.close(self.fd)
     self.fd = nil
   end
+end
+
+fs.WriteStreamSync = fs.WriteStream:extend()
+function fs.WriteStreamSync:initialize(path, options)
+  fs.WriteStream.initialize(self, path, options)
+end
+function fs.WriteStreamSync:open(callback)
+  local err
+  if self.fd then self:destroy() end
+  self.fd, err = fs.openSync(self.path, "a")
+  if err then
+    self:destroy()
+    self:emit('error', err)
+    if callback then callback(err) end
+    return
+  end
+  self:emit('open', self.fd)
+  if callback then callback() end
+end
+function fs.WriteStreamSync:_write(data, encoding, callback)
+  if not self.fd then
+    return self:once('open', bind(self._write, self, data, encoding, callback))
+  end
+  local written, err = fs.writeSync(self.fd, data, -1)
+  if err then
+    self:destroy()
+    return callback(err)
+  end
+  self.bytesWritten = self.bytesWritten + written
+  callback()
 end
