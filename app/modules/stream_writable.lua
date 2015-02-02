@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 local core = require('core')
-local Stream = require('./stream').Stream
+local Stream = require('stream_core').Stream
 local table = require('table')
 local string = require('string')
 local Error = core.Error
@@ -567,11 +567,6 @@ function endWritable(stream, state, cb)
   state.ended = true
 end
 
-
-local exports = {}
-
 exports.WriteReq = WriteReq
 exports.WritableState = WritableState
 exports.Writable = Writable
-
-return exports

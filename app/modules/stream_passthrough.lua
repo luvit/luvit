@@ -28,7 +28,7 @@ local PassThrough = Transform:extend()
 
 function PassThrough:initialize(options)
   --[[
-  if (!(this instanceof PassThrough))
+ if (!(this instanceof PassThrough))
     return new PassThrough(options)
   --]]
 
@@ -39,8 +39,4 @@ function PassThrough:_transform(chunk, encoding, cb)
   cb(nil, chunk)
 end
 
-local exports = {}
-
 exports.PassThrough = PassThrough
-
-return exports
