@@ -18,7 +18,7 @@ limitations under the License.
 
 local core = require('core')
 local utils = require('utils')
-local Stream = require('./stream').Stream
+local Stream = require('./stream_core').Stream
 local table = require('table')
 local string = require('string')
 local Error = core.Error
@@ -996,11 +996,5 @@ function endReadable(stream)
   end
 end
 
-
-
-local exports = {}
-
 exports.Readable = Readable
 exports.ReadableState = ReadableState
-
-return exports
