@@ -62,6 +62,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
   else
     self.context = openssl.ssl.ctx_new(secureProtocol or 'TLSv1',
       defaultCiphers or DEFAULT_CIPHERS)
+    self.context:mode('release_buffers')
     self.context:options(getSecureOptions(secureProtocol, flags))
   end
 end
