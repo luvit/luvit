@@ -19,7 +19,7 @@ local uv = require('uv')
 local adapt = require('utils').adapt
 local bind = require('utils').bind
 local fs = exports
-local Writable = require('stream_writable').Writable
+local Writable = require('stream').Writable
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)

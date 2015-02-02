@@ -20,7 +20,7 @@ local uv = require('uv')
 local timer = require('timer')
 local utils = require('utils')
 local Emitter = require('core').Emitter
-local Duplex = require('stream_duplex').Duplex
+local Duplex = require('stream').Duplex
 
 --[[ Socket ]]--
 

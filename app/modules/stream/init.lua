@@ -16,10 +16,10 @@ limitations under the License.
 
 --]]
 
-exports.Stream = require('stream_core').Stream
-exports.Writable = require('stream_writable').Writable
-exports.Transform = require('stream_transform').Transform
-exports.Readable = require('stream_readable').Readable
-exports.PassThrough = require('stream_passthrough').PassThrough
-exports.Observable = require('stream_observable').Observable
-exports.Duplex = require('stream_duplex').Duplex
+exports.Stream = require('./stream_core').Stream
+exports.Writable = require('./stream_writable').Writable
+exports.Transform = require('./stream_transform').Transform
+exports.Readable = require('./stream_readable').Readable
+exports.PassThrough = require('./stream_passthrough').PassThrough
+exports.Observable = require('./stream_observable').Observable
+exports.Duplex = require('./stream_duplex').Duplex
