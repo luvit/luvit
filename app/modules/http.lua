@@ -18,8 +18,8 @@ limitations under the License.
 
 local net = require('net')
 local codec = require('http-codec')
-local Readable = require('stream_readable').Readable
-local Writable = require('stream_writable').Writable
+local Readable = require('stream').Readable
+local Writable = require('stream').Writable
 local date = require('os').date
 
 local IncomingMessage = Readable:extend()

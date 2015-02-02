@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 local core = require('core')
-local Stream = require('stream_core').Stream
+local Stream = require('./stream_core').Stream
 local table = require('table')
 local string = require('string')
 local Error = core.Error
