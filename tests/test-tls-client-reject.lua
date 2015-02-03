@@ -29,7 +29,7 @@ require('tap')(function(test)
     local options, key, cert, port, server
     local onClient
          
-    port = 32321
+    port = 32333
     options = {}
     options.port = port
     options.key = fs.readFileSync(path.join(module.dir, 'fixtures', 'keys', 'agent1-key.pem'))
