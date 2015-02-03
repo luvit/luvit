@@ -43,8 +43,8 @@ SOFTWARE.
 --]==]
 
 -- global dependencies:
-local pairs, type, tostring, tonumber, getmetatable, setmetatable, rawset =
-      pairs, type, tostring, tonumber, getmetatable, setmetatable, rawset
+local pairs, type, tostring, tonumber, getmetatable, setmetatable =
+      pairs, type, tostring, tonumber, getmetatable, setmetatable
 local error, require, pcall, select = error, require, pcall, select
 local floor, huge = math.floor, math.huge
 local strrep, gsub, strsub, strbyte, strchar, strfind, strlen, strformat =
@@ -323,9 +323,10 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder, s
         for i = 1, n do
           local k = order[i]
           local v = value[k]
+          local _
           if v then
             used[k] = true
-            buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
+            buflen, _ = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
             prev = true -- add a seperator before the next element
           end
         end
@@ -508,7 +509,6 @@ end
 local scanvalue -- forward declaration
 
 local function scantable (what, closechar, str, startpos, nullval, objectmeta, arraymeta)
-  local len = strlen (str)
   local tbl, n = {}, 0
   local pos = startpos + 1
   if what == 'object' then

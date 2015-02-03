@@ -378,7 +378,7 @@ function fs.writeFile(path, data, callback)
 end
 function fs.writeFileSync(path, data)
   local _, fd, err
-  fd, err = (uv.fs_open(path, "w", 438 --[[ 0666 ]]))
+  fd, err = uv.fs_open(path, "w", 438 --[[ 0666 ]])
   if err then return false, err end
   _, err = uv.fs_write(fd, data, 0)
   uv.fs_close(fd, noop)

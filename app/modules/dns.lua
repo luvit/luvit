@@ -261,10 +261,11 @@ local function parse_response(buf, id)
 
   -- question section layout: qname qtype(2) qclass(2)
 
-  local type_hi = byte(buf, pos)
-  local type_lo = byte(buf, pos + 1)
-  local ans_type = lshift(type_hi, 8) + type_lo
+  local type_hi, type_lo
 
+  -- local type_hi = byte(buf, pos)
+  -- local type_lo = byte(buf, pos + 1)
+  -- local ans_type = lshift(type_hi, 8) + type_lo
   -- print("ans qtype: ", ans_type)
 
   local class_hi = byte(buf, pos + 2)
@@ -377,10 +378,9 @@ local function parse_response(buf, id)
 
       local addr_bytes = { byte(buf, pos, pos + 15) }
       local flds = {}
-      local comp_begin, comp_end
-      for i = 1, 16, 2 do
-        local a = addr_bytes[i]
-        local b = addr_bytes[i + 1]
+      for idx = 1, 16, 2 do
+        local a = addr_bytes[idx]
+        local b = addr_bytes[idx + 1]
         if a == 0 then
           insert(flds, format("%x", b))
 
@@ -440,24 +440,23 @@ local function parse_response(buf, id)
       local port_lo = byte(buf, pos + 5)
       ans.port = lshift(port_hi, 8) + port_lo
 
-      local name, p = _decode_name(buf, pos + 6)
-      if not name then
+      local recname, p = _decode_name(buf, pos + 6)
+      if not recname then
         return nil, pos
       end
 
       if p - pos ~= len then
-        return nil, format("bad srv record length: %d ~= %d",
-        p - pos, len)
+        return nil, format("bad srv record length: %d ~= %d", p - pos, len)
       end
 
-      ans.target = name
+      ans.target = recname
 
       pos = p
 
     elseif typ == exports.TYPE_NS then
 
-      local name, p = _decode_name(buf, pos)
-      if not name then
+      local recname, p = _decode_name(buf, pos)
+      if not recname then
         return nil, pos
       end
 
@@ -468,9 +467,9 @@ local function parse_response(buf, id)
 
       pos = p
 
-      -- print("name: ", name)
+      -- print("name: ", recname)
 
-      ans.nsdname = name
+      ans.nsdname = recname
 
     elseif typ == exports.TYPE_TXT then
 
@@ -495,15 +494,15 @@ local function parse_response(buf, id)
         val = {val}
         local idx = 2
         repeat
-          local slen = byte(buf, pos)
-          if pos + slen + 1 > last then
+          local recslen = byte(buf, pos)
+          if pos + recslen + 1 > last then
             -- truncate the over-run TXT record data
-            slen = last - pos - 1
+            recslen = last - pos - 1
           end
 
-          val[idx] = sub(buf, pos + 1, pos + slen)
+          val[idx] = sub(buf, pos + 1, pos + recslen)
           idx = idx + 1
-          pos = pos + slen + 1
+          pos = pos + recslen + 1
 
         until pos >= last
       end
@@ -512,8 +511,8 @@ local function parse_response(buf, id)
 
     elseif typ == exports.TYPE_PTR then
 
-      local name, p = _decode_name(buf, pos)
-      if not name then
+      local recname, p = _decode_name(buf, pos)
+      if not recname then
         return nil, pos
       end
 
@@ -524,9 +523,9 @@ local function parse_response(buf, id)
 
       pos = p
 
-      -- print("name: ", name)
+      -- print("name: ", recname)
 
-      ans.ptrdname = name
+      ans.ptrdname = recname
 
     else
       -- for unknown types, just forward the raw value
@@ -594,7 +593,7 @@ local function _query(servers, name, dnsclass, qtype, callback)
     end
 
     function onData(msg)
-      local len_hi, len_lo, len, answers, err
+      local len_hi, len_lo, len, answers
 
       len_hi = byte(msg, 1)
       len_lo = byte(msg, 2)
@@ -604,7 +603,7 @@ local function _query(servers, name, dnsclass, qtype, callback)
 
       sock:destroy()
 
-      answers, err = parse_response(msg:sub(3), id)
+      answers = parse_response(msg:sub(3), id)
       if not answers then
         timer.setImmediate(tcp_iter)
       else

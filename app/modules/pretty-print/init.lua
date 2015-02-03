@@ -21,7 +21,7 @@ exports.version = "0.1.0"
 local uv = require('uv')
 local env = require('env')
 
-local prettyPrint, dump, strip, color, colorize, loadColors
+local prettyPrint, print, dump, strip, color, colorize, loadColors
 local theme = {}
 local useColors = false
 local defaultTheme
