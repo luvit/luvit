@@ -54,9 +54,8 @@ function Path:_splitPath(filename)
   if trailing_slashes then
     filename = filename:sub(1, -trailing_slashes:len()-1)
   end
-  local basename = filename:match("[^" .. self.sep .. "]+$")
+  local basename = filename:match("[^" .. self.sep .. "]+$") or ""
   local dir = basename and filename:sub(1, -basename:len()-1) or filename
-  local basename = basename or ""
   return root, dir, basename
 end
 
@@ -277,7 +276,7 @@ function Path:dirname(filepath)
 end
 
 function Path:basename(filepath, expected_ext)
-  local root, dir, base = self:_splitPath(filepath)
+  local _, _, base = self:_splitPath(filepath)
   if expected_ext then
      local ext_pos = base:find(expected_ext:gsub('%.', '%.') .. '$')
      if ext_pos then base = base:sub(1, ext_pos - 1) end

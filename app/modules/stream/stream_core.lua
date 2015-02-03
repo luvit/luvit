@@ -49,15 +49,6 @@ function Stream:pipe(dest, options)
 
   dest:on('drain', ondrain)
 
-  --[[
-  // If the 'end' option is not supplied, dest.end() will be called when
-  // source gets the 'end' or 'close' events.  Only dest.end() once.
-  --]]
-  if not dest._isStdio and (not options or options._end ~= false) then
-    source:on('end', onend)
-    source:on('close', onclose)
-  end
-
   local didOnEnd = false
   function onend()
     if didOnEnd then return end
@@ -74,6 +65,15 @@ function Stream:pipe(dest, options)
     if type(dest.destroy) == 'function' then
       dest:destroy()
     end
+  end
+
+  --[[
+  // If the 'end' option is not supplied, dest.end() will be called when
+  // source gets the 'end' or 'close' events.  Only dest.end() once.
+  --]]
+  if not dest._isStdio and (not options or options._end ~= false) then
+    source:on('end', onend)
+    source:on('close', onclose)
   end
 
   --[[

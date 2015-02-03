@@ -125,8 +125,6 @@ end
 
 ------------------------------------------------------------------------------
 
-local TIMEOUT_MAX = 2147483647
-
 local lists = {}
 
 local function init(list)
@@ -152,12 +150,6 @@ local function remove(item)
 
   item._idleNext = nil
   item._idlePrev = nil
-end
-
-local function shift(list)
-  local elem = list._idlePrev
-  remove(elem)
-  return elem
 end
 
 local function append(list, item)

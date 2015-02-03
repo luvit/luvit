@@ -208,15 +208,15 @@ function TLSSocket:connect(...)
 end
 
 function TLSSocket:_write(data, encoding, callback)
-  local ret, err, i, o
+  local ret, i, err
   if not self.ssl then
     return
   end
   ret, err = self.ssl:write(data)
   if ret == nil then
-    return
+    return self:destroy(err)
   end
-  i, o = self.out:pending()
+  i = self.out:pending()
   if i > 0 then
     net.Socket._write(self, self.out:read(), encoding, callback)
   end
@@ -237,7 +237,7 @@ function TLSSocket:_read(n)
       end
       i = self.inp:pending()
       while i > 0 do
-        local ret = self.ssl:read()
+        ret = self.ssl:read()
         if ret then self:push(ret) end
         i = self.inp:pending()
       end
@@ -251,8 +251,9 @@ function TLSSocket:_read(n)
     if not self._connected then
       local ret, err = self.ssl:handshake()
       if ret == nil then
+        return self:destroy(err)
       else
-        local i, o = self.out:pending()
+        local i = self.out:pending()
         if i > 0 then
           net.Socket._write(self, self.out:read(), nil, function()
             handshake()

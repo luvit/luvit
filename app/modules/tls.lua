@@ -69,7 +69,7 @@ exports.connect = function(options, callback)
   port = options.port
   hostname = options.servername or options.host
 
-  sock = _common_tls.TLSSocket:new(sock, options)
+  sock = _common_tls.TLSSocket:new(nil, options)
   sock:connect(port, hostname, callback)
   return sock
 end

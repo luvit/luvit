@@ -898,11 +898,6 @@ end
 
 
 --[[
-// exposed for testing purposes only.
---]]
-Readable._fromList = fromList
-
---[[
 // Pluck off n bytes from an array of buffers.
 // Length is the combined lengths of all the buffers in the list.
 --]]
@@ -969,6 +964,11 @@ function fromList(n, state)
   end
   return ret
 end
+
+--[[
+// exposed for testing purposes only.
+--]]
+Readable._fromList = fromList
 
 function endReadable(stream)
   local state = stream._readableState

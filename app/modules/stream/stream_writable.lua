@@ -453,7 +453,7 @@ function clearBuffer(stream, state)
     while c <= table.getn(state.buffer) do
       local entry = state.buffer[c]
       local chunk = entry.chunk
-      -- var encoding = entry.encoding
+      local encoding = entry.encoding
       local cb = entry.callback
       local len
       if state.objectMode then
