@@ -39,9 +39,9 @@ require('tap')(function(test)
     args = { 's_server', '-accept', port, '-key', key, '-cert', cert }
 
     child = childprocess.spawn('openssl', args)
-    child.stdout:on('data', function(data)
+    child.stdout:once('data', function(data)
       p(data)
-      if data:find('ECDH parameters') then timer.setTimeout(100, begin) end
+      timer.setTimeout(100, begin)
     end)
 
     function begin()
