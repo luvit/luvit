@@ -20,14 +20,53 @@ local core = require('core')
 local net = require('net')
 local timer = require('timer')
 local uv = require('uv')
+local utils = require('utils')
 
 local Error = core.Error
 
+local Process = core.Emitter:extend()
+function Process:initialize(stdin, stdout, stderr)
+  self.stdout = stdout
+  self.stdin = stdin
+  self.stderr = stderr
+end
+
+function Process:setHandle(handle)
+  self.handle = handle
+end
+
+function Process:setPid(pid)
+  self.pid = pid
+end
+
+function Process:kill(signal)
+  if self.handle then uv.process_kill(self.handle, signal or 'sigterm') end
+  self:destroy()
+end
+
+function Process:close(code, signal)
+  if self.handle then uv.close(self.handle, utils.bind(self.emit, self, 'exit', code, signal)) end
+  self:destroy()
+end
+
+function Process:destroy(err)
+  self:_cleanup()
+  if err then
+    timer.setImmediate(utils.bind(self.emit, self, 'error', err))
+  end
+end
+
+function Process:_cleanup()
+  self.stdout:on('end', function() self.stdout:destroy() end)
+  self.stdout:resume()
+  self.stderr:destroy()
+  self.stdin:destroy()
+end
+
 local function spawn(command, args, options)
   local envPairs = {}
-  local em
+  local em, onExit, handle, pid
   local stdout, stdin, stderr, stdio
-  local kill, cleanup
 
   args = args or {}
   options = options or {}
@@ -44,53 +83,29 @@ local function spawn(command, args, options)
   stdin = net.Socket:new({ handle = uv.new_pipe(false) })
   stdio = { stdin._handle, stdout._handle, stderr._handle}
 
-  function kill(self, signal)
-    uv.process_kill(em.handle, signal or 'sigterm')
-    cleanup()
-  end
-
-  function cleanup()
-    em.stdout:on('end', function()
-      em.stdout:destroy()
-    end)
-    em.stdout:resume() -- drain stdout
-    stderr:destroy()
-    stdin:destroy()
-  end
-
-  em = core.Emitter:new()
-  em.kill = kill
-  em.stdin = stdin
-  em.stdout = stdout
-  em.stderr = stderr
-  em.handle, em.pid = uv.spawn(command, {
-    stdio = stdio,
-    args = args,
-    env = envPairs,
-    detached = options.detached,
-  }, function(code, signal)
-
+  function onExit(code, signal)
     if signal then
        em.signal = signal
     else
        em.exitCode = code
     end
+    em:close(code, signal)
+  end
 
-    if em.handle then
-      uv.close(em.handle, function() em:emit('exit', code, signal) end)
-      em.handle = nil
-    end
+  handle, pid = uv.spawn(command, {
+    stdio = stdio,
+    args = args,
+    env = envPairs,
+    detached = options.detached,
+  }, onExit)
 
-    cleanup()
-  end)
+  em = Process:new(stdin, stdout, stderr)
+  em:setHandle(handle)
+  em:setPid(pid)
 
-  if not em.handle then
-    local emitError
-    function emitError()
-      em:emit('error', Error:new(em.pid))
-    end
-    timer.setImmediate(emitError)
-    cleanup()
+  if em.handle == nil then
+    local err = pid
+    em:destroy(Error:new(err))
   end
 
   return em
