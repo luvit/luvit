@@ -12,7 +12,7 @@ development is now done in pure lua and doesn't require a build step to test.
 
 First build and/or install luvi and put it somewhere in your path.  This should
 work on Windows, OSX, or Linux.  Windows binaries can usually be found at
-<https://ci.appveyor.com/project/creationix/luvi/build/artifacts>.
+<https://ci.appveyor.com/project/racker-buildbot/luvit/build/artifacts>.
 
 Then grab the `luvi-up` branch of luvit.
 
