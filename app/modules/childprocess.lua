@@ -40,15 +40,20 @@ function Process:setPid(pid)
 end
 
 function Process:kill(signal)
-  if not self.handle then return end
-  uv.process_kill(self.handle, signal or 'sigterm')
-  self:_cleanup()
+  if self.handle then uv.process_kill(self.handle, signal or 'sigterm') end
+  self:destroy()
 end
 
 function Process:close(code, signal)
-  if not self.handle then return end
-  uv.close(self.handle, utils.bind(self.emit, self, 'exit', code, signal))
+  if self.handle then uv.close(self.handle, utils.bind(self.emit, self, 'exit', code, signal)) end
+  self:destroy()
+end
+
+function Process:destroy(err)
   self:_cleanup()
+  if err then
+    timer.setImmediate(utils.bind(self.emit, self, 'error', err))
+  end
 end
 
 function Process:_cleanup()
@@ -99,8 +104,8 @@ local function spawn(command, args, options)
   em:setPid(pid)
 
   if em.handle == nil then
-    timer.setImmediate(utils.bind(em.emit, em, 'error', Error:new(em.pid)))
-    em:_cleanup()
+    local err = pid
+    em:destroy(Error:new(err))
   end
 
   return em
