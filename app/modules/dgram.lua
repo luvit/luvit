@@ -20,6 +20,9 @@ local uv = require('uv')
 local Emitter = require('core').Emitter
 local timer = require('timer')
 
+exports.name = "luvit/dgram"
+exports.version = "0.1.0"
+
 local function start_listening(self)
   uv.udp_recv_start(self._handle, function(err, msg, rinfo, flags)
     timer.active(self)

@@ -21,6 +21,9 @@ local bind = require('utils').bind
 local fs = exports
 local Writable = require('stream').Writable
 
+exports.name = "luvit/fs"
+exports.version = "0.1.0"
+
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
 end

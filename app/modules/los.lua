@@ -16,6 +16,9 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/los"
+exports.version = "0.1.0"
+
 local jit = require('jit')
 
 local map = {

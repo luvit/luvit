@@ -17,6 +17,9 @@ limitations under the License.
 --]]
 local uv = require('uv')
 
+exports.name = "luvit/codec"
+exports.version = "0.1.0"
+
 function exports.wrapEmitter(emitter)
   local read, write
   local queue = {}

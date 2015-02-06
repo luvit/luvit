@@ -16,16 +16,20 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/repl"
+exports.version = "0.1.0"
+
 local uv = require('uv')
 local utils = require('utils')
 local pathJoin = require('luvi').path.join
 local Editor = require('readline').Editor
 local History = require('readline').History
 
-return function (stdin, stdout, greeting)
+setmetatable(exports, {
+  __call = function (_, stdin, stdout, greeting)
 
   local global = setmetatable({
-    require = require('luvit-require')()(pathJoin(uv.cwd(), "repl"))
+    require = require('require')()(pathJoin(uv.cwd(), "repl"))
   }, {
     __index = _G
   })
@@ -163,4 +167,4 @@ return function (stdin, stdout, greeting)
     start = start,
     evaluateLine = evaluateLine,
   }
-end
+end})

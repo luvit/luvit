@@ -16,6 +16,9 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/childprocess"
+exports.version = "0.1.0"
+
 local core = require('core')
 local net = require('net')
 local timer = require('timer')

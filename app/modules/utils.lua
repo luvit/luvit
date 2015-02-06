@@ -16,7 +16,13 @@ limitations under the License.
 
 --]]
 
-local exports = require('pretty-print')
+exports.name = "luvit/utils"
+exports.version = "0.1.0"
+
+local pp = require('pretty-print')
+for name, value in pairs(pp) do
+  exports[name] = value
+end
 
 local function bind(fn, self, ...)
   local bindArgsLength = select("#", ...)
@@ -87,4 +93,3 @@ end
 exports.bind = bind
 exports.noop = noop
 exports.adapt = adapt
-return exports

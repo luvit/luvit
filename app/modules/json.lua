@@ -1,3 +1,5 @@
+exports.name = "luvit/json"
+exports.version = "0.1.0"
 
 -- Module options:
 local always_try_using_lpeg = false
@@ -53,10 +55,8 @@ local strrep, gsub, strsub, strbyte, strchar, strfind, strlen, strformat =
 local strmatch = string.match
 local concat = table.concat
 
-local json = { original_version = "dkjson 2.5" }
-
-json.name = "creationix/json"
-json.version = "2.5.0"
+local json = exports
+json.original_version = "dkjson 2.5"
 
 if register_global_module_table then
   _G[global_module_name] = json
@@ -717,4 +717,3 @@ end
 json.parse = json.decode
 json.stringify = json.encode
 
-return json

@@ -1,6 +1,6 @@
 exports = {}
-exports.name = "creationix/require"
-exports.version = "1.0.2"
+exports.name = "luvit/require"
+exports.version = "0.1.0"
 
 local uv = require('uv')
 local luvi = require('luvi')

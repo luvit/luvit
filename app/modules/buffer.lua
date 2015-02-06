@@ -16,15 +16,19 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/buffer"
+exports.version = "0.1.0"
+
 local Object = require('core').Object
 local ffi = require('ffi')
+
 
 ffi.cdef([[
   void *malloc (size_t __size);
   void free (void *__ptr);
 ]])
 
-local buffer = {}
+local buffer = exports
 
 local Buffer = Object:extend()
 buffer.Buffer = Buffer

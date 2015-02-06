@@ -19,7 +19,7 @@ limitations under the License.
 
 require('tap')(function (test)
 
-  local requireSystem = require('luvit-require')
+  local requireSystem = require('require')
   local pathJoin = require('luvi').path.join
   local p = require('utils').prettyPrint
   local base = pathJoin(module.dir, "fixtures/fake.lua")

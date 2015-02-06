@@ -19,11 +19,11 @@ limitations under the License.
 local Object = require('core').Object
 local os = require('os_binding')
 local table = require('table')
-local path_base = require('path_base')
+local path_base = require('path/base')
 
 local function setup_meta(ospath)
   local path = {}
-  path._internal = ospath 
+  path._internal = ospath
   setmetatable(path, {__index = function(table, key)
       if type(path._internal[key]) == 'function' then
         return function(...)

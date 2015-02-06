@@ -16,11 +16,15 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/tls"
+exports.version = "0.1.0"
+
 local loaded = pcall(require, 'openssl')
 if not loaded then return end
 
-local _common_tls = require('_common_tls')
+local _common_tls = require('./common')
 local net = require('net')
+
 
 local DEFAULT_CIPHERS = _common_tls.DEFAULT_CIPHERS
 

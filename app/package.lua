@@ -1,0 +1,33 @@
+return {
+  name = "luvit",
+  version = "2.0.0",
+  dependencies = {
+    "luvit/buffer@0.1.0",
+    "luvit/childprocess@0.1.0",
+    "luvit/codec@0.1.0",
+    "luvit/core@0.1.0",
+    "luvit/dgram@0.1.0",
+    "luvit/dns@0.1.0",
+    "luvit/fs@0.1.0",
+    "luvit/helpful@0.1.0",
+    "luvit/hooks@0.1.0",
+    "luvit/http@0.1.0",
+    "luvit/http-codec@0.1.0",
+    "luvit/https@0.1.0",
+    "luvit/json@0.1.0",
+    "luvit/los@0.1.0",
+    "luvit/net@0.1.0",
+    "luvit/path@0.1.0",
+    "luvit/pretty-print@0.1.0",
+    "luvit/process@0.1.0",
+    "luvit/readline@0.1.0",
+    "luvit/repl@0.1.0",
+    "luvit/require@0.1.0",
+    "luvit/stream@0.1.0",
+    "luvit/timer@0.1.0",
+    "luvit/tls@0.1.0",
+    "luvit/utils@0.1.0",
+  },
+}
+
+
