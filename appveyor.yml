@@ -4,7 +4,7 @@ matrix:
     fast_finish: true
 
 build_script:
-    - git submodule update --init
+    - Make.bat lit
     - Make.bat
 
 test_script:
