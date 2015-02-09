@@ -55,6 +55,11 @@ function string.levenshtein(str1, str2)
   return matrix[len1][len2]
 end
 
+function string.luvitGlobalExtend()
+  getmetatable("").__add = function(s1, s2) return s1 .. s2 end
+  getmetatable("").__mod = function(self, values) return self:format(unpack(values)) end
+end
+
 local colorize = require('utils').colorize
 
 return function (prefix, mod)
