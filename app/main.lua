@@ -24,6 +24,12 @@ bundle.register("luvit-require", "modules/require.lua");
 -- Upgrade require system in-place
 local require = require('luvit-require')()("bundle:modules/main.lua")
 
+-- Tweak Lua string metatable to add string format operator
+-- ("%d + %d = %d"):format(1, 2, 3) => "%d + %d = %d" % { 1, 2, 3 }
+getmetatable("").__mod = function(self, values)
+	return self:format(unpack(values))
+end
+
 local luvit = require('luvit')
 luvit.init()
 
