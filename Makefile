@@ -1,11 +1,7 @@
 APP_FILES=$(shell find app -type f)
-LUVI_BIN=luvi-binaries/$(shell uname -s)_$(shell uname -m)/luvi
 
-luvit: $(LUVI_BIN) $(APP_FILES)
-	LUVI_APP=app LUVI_TARGET=luvit $(LUVI_BIN)
-
-$(LUVI_BIN):
-	git submodule update --init
+luvit: $(APP_FILES)
+	lit make app
 
 test: luvit
 	./luvit tests/run.lua
