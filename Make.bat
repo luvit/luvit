@@ -3,6 +3,7 @@
 IF NOT "x%1" == "x" GOTO :%1
 
 :luvit
+IF NOT EXIST lit.exe CALL Make.bat lit
 ECHO "Building luvit"
 lit.exe make app
 GOTO :end
