@@ -1,5 +1,5 @@
 return {
-  name = "luvit",
+  name = "luvit/luvit",
   version = "2.0.0",
   dependencies = {
     "luvit/buffer@0.1.0",
