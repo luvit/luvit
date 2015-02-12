@@ -1,23 +1,22 @@
 APP_FILES=$(shell find app -type f)
+LIT_FILES=$(shell find lit/app -type f)
 
-luvit: lit $(APP_FILES)
-	./lit make app
+luvit: lit/lit $(LIT_FILES) $(APP_FILES)
+	lit/lit make app
 
-luvi-binaries:
-	git clone --depth 1 https://github.com/luvit/luvi-binaries.git
+lit:
+	git submodule init
+	git submodule update --depth 1
 
-lit-app:
-	git clone --depth 1 https://github.com/luvit/lit.git lit-app
 
-lit: luvi-binaries lit-app
-	LUVI_APP=lit-app/app LUVI_TARGET=$@ luvi-binaries/$(shell uname -s)_$(shell uname -m)/luvi
-
+lit/lit: lit $(LIT_FILES)
+	make -C lit
 
 test: luvit
 	./luvit tests/run.lua
 
 clean:
-	rm -rf luvit lit lit-app luvi-binaries
+	rm -rf luvit lit
 
 install: luvit
 	install luvit /usr/local/bin
