@@ -16,6 +16,9 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/http"
+exports.version = "0.1.0"
+
 local net = require('net')
 local codec = require('http-codec')
 local Readable = require('stream').Readable

@@ -16,8 +16,8 @@ limitations under the License.
 
 --]]
 
-exports.name = "creationix/http-codec"
-exports.version = "0.1.4"
+exports.name = "luvit/http-codec"
+exports.version = "0.1.0"
 
 local sub = string.sub
 local gsub = string.gsub

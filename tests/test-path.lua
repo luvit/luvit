@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 local path = require('path')
-local path_base = require('path_base')
+local path_base = require('path/base')
 local los = require('los')
 local deep_equal = require('./utils').deep_equal
 
@@ -427,7 +427,7 @@ require('tap')(function(test)
       local drive_relative_path = current_drive..relative_path
       local resolved_path = path.join(process.cwd(), relative_path)
       assert(path_base.nt:resolve(drive_relative_path) == resolved_path)
-      -- when the drive-specific cwd env variable does not contain a path, 
+      -- when the drive-specific cwd env variable does not contain a path,
       -- drive-relative paths are resolved as relative to the drive root
       process.env["="..current_drive] = "not a cwd path"
       assert(path_base.nt:resolve(drive_relative_path) == current_drive..path.sep..relative_path)

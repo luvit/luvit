@@ -20,11 +20,11 @@ local luvi = require('luvi')
 local bundle = luvi.bundle
 
 -- Manually register the require replacement system to bootstrap things
-bundle.register("luvit-require", "modules/require.lua");
+bundle.register("require", "modules/require.lua");
 -- Upgrade require system in-place
-local require = require('luvit-require')()("bundle:modules/main.lua")
+local require = require('require')()("bundle:main.lua")
 
-local luvit = require('luvit')
+local luvit = require('./init')
 luvit.init()
 
 local uv = require('uv')

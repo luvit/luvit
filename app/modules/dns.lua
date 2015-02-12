@@ -19,6 +19,9 @@ limitations under the License.
 -- Derived from Yichun Zhang (agentzh)
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
+exports.name = "luvit/dns"
+exports.version = "0.1.0"
+
 local dgram = require('dgram')
 local fs = require('fs')
 local net = require('net')
@@ -26,7 +29,7 @@ local timer = require('timer')
 local Error = require('core').Error
 
 local bit = require('bit')
-local crypto = require('lcrypto')
+local crypto = require('tls/lcrypto')
 local char = string.char
 local byte = string.byte
 local gsub = string.gsub

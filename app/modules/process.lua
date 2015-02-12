@@ -16,6 +16,9 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/process"
+exports.version = "0.1.0"
+
 local uv = require('uv')
 local env = require('env')
 local timer = require('timer')

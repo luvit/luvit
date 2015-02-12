@@ -15,6 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+exports.name = "luvit/timer"
+exports.version = "0.1.0"
+
 local uv = require('uv')
 local Object = require('core').Object
 local bind = require('utils').bind
