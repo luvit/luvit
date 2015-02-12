@@ -16,7 +16,7 @@ test: luvit
 	./luvit tests/run.lua
 
 clean:
-	rm -rf luvit lit
+	rm -rf luvit
 
 install: luvit
 	install luvit /usr/local/bin
