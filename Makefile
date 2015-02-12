@@ -4,12 +4,12 @@ LIT_FILES=$(shell find lit/app -type f)
 luvit: lit/lit $(LIT_FILES) $(APP_FILES)
 	lit/lit make app
 
-lit:
+lit/Makefile:
 	git submodule init
 	git submodule update --depth 1
 
 
-lit/lit: lit $(LIT_FILES)
+lit/lit: lit/Makefile $(LIT_FILES)
 	make -C lit
 
 test: luvit
