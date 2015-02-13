@@ -6,7 +6,7 @@ luvit: lit/lit $(LIT_FILES) $(APP_FILES)
 
 lit/Makefile:
 	git submodule init
-	git submodule update --depth 1
+	git submodule update --depth 20
 
 
 lit/lit: lit/Makefile $(LIT_FILES)
