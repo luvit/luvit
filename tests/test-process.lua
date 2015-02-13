@@ -2,6 +2,30 @@ local spawn = require('childprocess').spawn
 local los = require('los')
 
 require('tap')(function(test)
+
+  test('process getpid', function()
+    p('process pid', process.pid)
+    assert(process.pid)
+  end)
+
+  test('process argv', function()
+    p('process argv', process.argv)
+    assert(process.argv)
+  end)
+
+  test('signal usr1,usr2,hup', function(expect)
+    local onHUP, onUSR1, onUSR2
+    function onHUP() process:removeListener('sighup', onHUP) end
+    function onUSR1() process:removeListener('sigusr1', onUSR1) end
+    function onUSR2() process:removeListener('sigusr2', onUSR2) end
+    process:on('sighup', expect(onHUP))
+    process:on('sigusr1', expect(onUSR1))
+    process:on('sigusr2', expect(onUSR2))
+    process.kill(process.pid, 'sighup')
+    process.kill(process.pid, 'sigusr1')
+    process.kill(process.pid, 'sigusr2')
+  end)
+
   test('environment subprocess', function(expect)
     local child, options, onStdout, onExit, onEnd, data
 

@@ -21,7 +21,9 @@ GOTO :end
 
 :test
 CALL Make.bat luvit
+SET LUVI_APP=app
 luvit.exe tests\run.lua
+SET "LUVI_APP="
 GOTO :end
 
 :clean
