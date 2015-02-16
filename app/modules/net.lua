@@ -74,10 +74,6 @@ function Socket:bind(ip, port)
   uv.tcp_bind(self._handle, ip, tonumber(port))
 end
 
-function Socket:_onTimeoutReal()
-  self:emit('timeout')
-end
-
 function Socket:address()
   return uv.tcp_getpeername(self._handle)
 end
