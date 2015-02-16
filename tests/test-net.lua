@@ -95,33 +95,28 @@ require('tap')(function (test)
   test("timeout client", function(expect)
     local port = 10083
     local host = '127.0.0.1'
-    local timeout = 500
+    local timeout = 1
     local onClient, onListen, server
-
-    function onClient(client)
-      client:pipe(client)
-      client:on('error', function() end)
-    end
-
-    server = net.createServer(expect(onClient))
 
     function onListen()
       local client, onConnect, onTimeout
 
-      function onConnect()
-        client:on('error', function() end)
-        client:write('hello')
-      end
+      function onConnect() end
 
       function onTimeout()
         client:destroy()
         server:close()
       end
 
-      client = net.createConnection(port, host, expect(onConnect))
+      client = net.createConnection(port, host, onConnect)
       client:setTimeout(timeout, expect(onTimeout))
     end
 
+    function onClient(client)
+      client:pipe(client)
+    end
+
+    server = net.createServer(onClient)
     server:listen(port, host, expect(onListen))
   end)
 end)
