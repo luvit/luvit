@@ -7,9 +7,7 @@ luvit: lit/lit $(LIT_FILES) $(APP_FILES)
 	LUVI_APP=app LUVI_TARGET=luvit $(BIN_ROOT)/luvi
 
 lit/Makefile:
-	git submodule init
-	git submodule update --depth 20
-
+	git submodule update --init --recursive
 
 lit/lit: lit/Makefile $(LIT_FILES)
 	make -C lit
