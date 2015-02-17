@@ -111,7 +111,7 @@ function fs.write(fd, offset, data, callback)
   end
   return adapt(callback, uv.fs_write, fd, data, offset)
 end
-function fs.writeSync(fd, data, offset)
+function fs.writeSync(fd, offset, data)
   if offset == nil then
     offset = -1 -- -1 means append
   end
@@ -467,7 +467,7 @@ function fs.WriteStreamSync:_write(data, encoding, callback)
   if not self.fd then
     return self:once('open', bind(self._write, self, data, encoding, callback))
   end
-  local written, err = fs.writeSync(self.fd, data, -1)
+  local written, err = fs.writeSync(self.fd, -1, data)
   if err then
     self:destroy()
     return callback(err)
