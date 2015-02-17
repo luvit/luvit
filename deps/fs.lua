@@ -500,7 +500,7 @@ local read_options = {
   flags = "r",
   mode = "0644",
   chunk_size = CHUNK_SIZE,
-  offset = nil,
+  offset = 0,
   fd = nil,
   reading = nil,
   length = nil -- nil means read to EOF
@@ -520,12 +520,10 @@ function fs.ReadStream:initialize(path, options)
   self.mode = options.mode
   self.path = path
   self.offset = options.offset
-  if self.offset then
-    self.last = options.length and self.offset + options.length
+  if options.length then
+    self.last = self.offset + options.length
   end
-  if not self.fd then
-    self:open()
-  end
+  if not self.fd then self:open() end
   self:on('finish', bind(self.close, self))
 end
 function fs.ReadStream:open(callback)
@@ -547,27 +545,21 @@ function fs.ReadStream:_read(n)
     return self:once('open', bind(self._read, self, n))
   end
 
-  local options = self.options
-  local chunk_size = options.chunk_size
-  local to_read = chunk_size
+  local to_read = n
   if self.last ~= nil then
     -- indicating length was set in option; need to check boundary
-    if self.offset then
-      if chunk_size + self.offset > self.last then
-        to_read = self.last - self.offset
-      end
+    if to_read + self.offset > self.last then
+      to_read = self.last - self.offset
     end
   end
 
   fs.read(self.fd, to_read, self.offset, function(err, bytes)
-    if err then
-      return self:destroy(err)
-    end
+    if err then return self:destroy(err) end
     if #bytes > 0 then
-      if self.offset then self.offset = self.offset + #bytes end
+      self.offset = self.offset + #bytes
       self:push(bytes)
     else
-      self:push(nil)
+      self:push()
     end
   end)
 end
