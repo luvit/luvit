@@ -24,6 +24,7 @@ local bind = require('utils').bind
 local join = require('path').join
 local fs = exports
 local Writable = require('stream').Writable
+local Readable = require('stream').Readable
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
@@ -491,4 +492,95 @@ function fs.WriteStreamSync:_write(data, encoding, callback)
   end
   self.bytesWritten = self.bytesWritten + written
   callback()
+end
+
+local CHUNK_SIZE = 65536
+
+local read_options = {
+  flags = "r",
+  mode = "0644",
+  chunk_size = CHUNK_SIZE,
+  offset = nil,
+  fd = nil,
+  reading = nil,
+  length = nil -- nil means read to EOF
+}
+local read_meta = {__index=read_options}
+
+fs.ReadStream = Readable:extend()
+function fs.ReadStream:initialize(path, options)
+  Readable.initialize(self)
+  if not options then
+    options = read_options
+  else
+    setmetatable(options, read_meta)
+  end
+  self.options = options
+  self.fd = options.fd
+  self.mode = options.mode
+  self.path = path
+  self.offset = options.offset
+  if self.offset then
+    self.last = options.length and self.offset + options.length
+  end
+  if not self.fd then
+    self:open()
+  end
+  self:on('finish', bind(self.close, self))
+end
+function fs.ReadStream:open(callback)
+  if self.fd then self:destroy() end
+  fs.open(self.path, self.flags, self.mode, function(err, fd)
+    if err then
+      self:destroy()
+      self:emit('error', err)
+      if callback then callback(err) end
+      return
+    end
+    self.fd = fd
+    self:emit('open', fd)
+    if callback then callback() end
+  end)
+end
+function fs.ReadStream:_read(n)
+  if not self.fd then
+    return self:once('open', bind(self._read, self, n))
+  end
+
+  local options = self.options
+  local chunk_size = options.chunk_size
+  local to_read = chunk_size
+  if self.last ~= nil then
+    -- indicating length was set in option; need to check boundary
+    if self.offset then
+      if chunk_size + self.offset > self.last then
+        to_read = self.last - self.offset
+      end
+    end
+  end
+
+  fs.read(self.fd, to_read, self.offset, function(err, bytes)
+    if err then
+      return self:destroy(err)
+    end
+    if #bytes > 0 then
+      if self.offset then self.offset = self.offset + #bytes end
+      self:push(bytes)
+    else
+      self:push(nil)
+    end
+  end)
+end
+function fs.ReadStream:close()
+  self:destroy()
+end
+function fs.ReadStream:destroy(err)
+  if err then self:emit('error', err) end
+  if self.fd then
+    fs.close(self.fd)
+    self.fd = nil
+  end
+end
+function fs.createReadStream(path, options)
+  return fs.ReadStream:new(path, options)
 end
