@@ -18,6 +18,7 @@ limitations under the License.
 local uv = require('uv')
 local adapt = require('utils').adapt
 local bind = require('utils').bind
+local join = require('path').join
 local fs = exports
 local Writable = require('stream').Writable
 
@@ -125,14 +126,30 @@ function fs.mkdir(path, mode, callback)
   end
   if mode == nil then
     mode = 511 -- 0777
+  elseif type(mode) == 'string' then
+    mode = tonumber(mode, 8)
   end
   return adapt(callback, uv.fs_mkdir, path, mode)
 end
 function fs.mkdirSync(path, mode)
   if mode == nil then
     mode = 511
+  elseif type(mode) == 'string' then
+    mode = tonumber(mode, 8)
   end
   return uv.fs_mkdir(path, mode)
+end
+function fs.mkdirp(path, mode, callback)
+  local success, err = fs.mkdirSync(path, mode)
+  if success or string.match(err, "^EEXIST") then
+    return true
+  end
+  if string.match(err, "^ENOENT:") then
+    success, err = fs.mkdirp(join(path, ".."), mode)
+    if not success then return nil, err end
+    return fs.mkdirSync(path, mode)
+  end
+  return nil, err
 end
 function fs.mkdtemp(template, callback)
   return adapt(callback, uv.fs_mkdtemp, template)
