@@ -20,6 +20,7 @@ return {
     "luvit/path@0.1.0",
     "luvit/pretty-print@0.1.0",
     "luvit/process@0.1.0",
+    "luvit/querystring@0.1.0",
     "luvit/readline@0.1.0",
     "luvit/repl@0.1.0",
     "luvit/require@0.1.0",
@@ -27,6 +28,7 @@ return {
     "luvit/timer@0.1.0",
     "luvit/tls@0.1.0",
     "luvit/utils@0.1.0",
+    "luvit/url@0.1.0",
   },
 }
 
