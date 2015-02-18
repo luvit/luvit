@@ -20,6 +20,7 @@ exports.name = "luvit/http"
 exports.version = "0.1.0"
 
 local net = require('net')
+local url = require('url')
 local codec = require('http-codec')
 local Readable = require('stream').Readable
 local Writable = require('stream').Writable
@@ -37,8 +38,15 @@ function IncomingMessage:initialize(head, socket)
     headers[name:lower()] = value
   end
   self.headers = headers
-  self.method = head.method
-  self.url = head.path
+  if head.method then
+    -- server specific
+    self.method = head.method
+    self.url = head.path
+  else
+    -- client specific
+    self.statusCode = head.code
+    self.statusMessage = head.reason
+  end
   self.socket = socket
 end
 
@@ -194,5 +202,163 @@ function exports.createServer(onRequest)
   return net.createServer(function (socket)
     return exports.handleConnection(socket, onRequest)
   end)
+end
+
+local ClientRequest = Writable:extend()
+exports.ClientRequest = ClientRequest
+
+function ClientRequest:initialize(options, callback)
+  Writable.initialize(self)
+  self:cork()
+  local headers = options.headers or { }
+  local host_found
+  for i, header in ipairs(headers) do
+    local key = unpack(header)
+    local hfound = key:lower() == 'host'
+    if hfound then
+      host_found = hfound
+    end
+    table.insert(self, header)
+  end
+
+  if not host_found then
+    table.insert(self, 1, { 'host', options.host })
+  end
+
+  self.host = options.host
+  self.method = (options.method or 'GET'):upper()
+  self.path = options.path or '/'
+  self.port = options.port or 80
+  self.self_sent = false
+
+  self.encode = codec.encoder()
+  self.decode = codec.decoder()
+
+  local buffer = ''
+  local res
+
+  local function flush()
+    res:push()
+    res = nil
+  end
+
+  local socket
+  local emit_connect
+  if options.createConnection then
+    socket = options.createConnection(self.port, self.host)
+    emit_connect = 'secureConnection'
+  else
+    socket = net.createConnection(self.port, self.host)
+    emit_connect = 'connect'
+  end
+  self.socket = socket
+  socket:on(emit_connect, function()
+    self.connected = true
+    self:once('socket', socket)
+
+    socket:on('data', function(chunk)
+      -- Run the chunk through the decoder by concatenating and looping
+      buffer = buffer .. chunk
+      while true do
+        local event, extra = self.decode(buffer)
+        -- nil extra means the decoder needs more data, we're done here.
+        if not extra then break end
+        -- Store the leftover data.
+        buffer = extra
+        if type(event) == "table" then
+          -- If there was an old response that never closed, end it.
+          if res then flush() end
+          -- Create a new response object
+          res = IncomingMessage:new(event, socket)
+          -- Call the user callback to handle the response
+          if callback then
+            callback(res)
+          end
+          self:emit('response', res)
+        elseif res and type(event) == "string" then
+          if #event == 0 then
+            -- Empty string in http-decoder means end of body
+            -- End the res stream and remove the res reference.
+            flush()
+          else
+            -- Forward non-empty body chunks to the res stream.
+            if not res:push(event) then
+              -- If it's queue is full, pause the source stream
+              -- This will be resumed by IncomingMessage:_read
+              socket:pause()
+            end
+          end
+        end
+      end
+    end)
+    socket:on('end', function ()
+      -- Just in case the stream ended and we still had an open response,
+      -- end it.
+      if res then flush() end
+    end)
+
+    if self.ended then
+      self:_done(nil, nil, self.ended)
+    end
+
+  end)
+end
+
+function ClientRequest:flushHeaders()
+  if not self.headers_sent then
+    self.headers_sent = true
+    -- set connection
+    self:_setConnection()
+    Writable.write(self, self.encode(self))
+  end
+end
+
+function ClientRequest:write(data, encoding, cb)
+  self:flushHeaders()
+  Writable.write(self, self.encode(data), encoding, cb)
+end
+
+function ClientRequest:_write(data, encoding, cb)
+  self.socket:write(data, encoding, cb)
+end
+
+function ClientRequest:_done(data, encoding, cb)
+  self:_end(data, encoding, function()
+    self.socket = nil
+    if cb then
+      cb()
+    end
+  end)
+end
+
+function ClientRequest:_setConnection()
+  -- Without http.Agent we close for now
+  table.insert(self, { 'connection', 'close' })
+end
+
+function ClientRequest:done(data, encoding, cb)
+  -- Send the data if connected otherwise just mark it ended
+  self:flushHeaders()
+  self.ended = cb or function() end
+  if self.connected then
+    self:_done(self.encode(data), encoding, cb)
+  end
+end
+
+function exports.request(options, onResponse)
+  if type(options) == 'string' then
+    options = url.parse(options)
+  end
+  return ClientRequest:new(options, onResponse)
+end
+
+function exports.get(options, onResponse)
+  if type(options) == 'string' then
+    options = url.parse(options)
+  end
+  options.method = 'GET'
+  local req = exports.request(options, onResponse)
+  req:done()
+  return req
 end
 

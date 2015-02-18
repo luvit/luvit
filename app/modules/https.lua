@@ -19,6 +19,8 @@ limitations under the License.
 exports.name = "luvit/https"
 exports.version = "0.1.0"
 
+local fmt = require('string').format
+local url = require('url')
 local tls = require('tls')
 local http = require('http')
 
@@ -26,5 +28,56 @@ function exports.createServer(options, onRequest)
   return tls.createServer(options, function (socket)
     return http.handleConnection(socket, onRequest)
   end)
+end
+
+local function createConnection(...)
+  local args = {...}
+  local options = {}
+  local callback
+  if type(args[1]) == 'table' then
+    options = args[1]
+  elseif type(args[2]) == 'table' then
+    options = args[2]
+    options.port = args[1]
+  elseif type(args[3]) == 'table' then
+    options = args[3]
+    options.port = args[2]
+    options.host = args[1]
+  else
+    if type(args[1]) == 'number' then
+      options.port = args[1]
+    end
+    if type(args[2]) == 'string' then
+      options.host = args[2]
+    end
+  end
+
+  if type(args[#args]) == 'function' then
+    callback = args[#args]
+  end
+
+  return tls.connect(options, callback)
+end
+
+function exports.request(options, callback)
+  if type(options) == 'string' then
+    options = url.parse(options)
+  end
+  if options.protocol and options.protocol ~= 'https' then
+    error(fmt('Protocol %s not supported', options.protocol))
+  end
+  options.createConnection = createConnection
+  options.port = options.port or 443
+  return http.request(options, callback)
+end
+
+function exports.get(options, onResponse)
+  if type(options) == 'string' then
+    options = url.parse(options)
+  end
+  options.method = 'GET'
+  local req = exports.request(options, onResponse)
+  req:done()
+  return req
 end
 
