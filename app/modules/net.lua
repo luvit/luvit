@@ -179,23 +179,21 @@ function Socket:connect(...)
   timer.active(self)
   self._connecting = true
 
+  if not self._handle then
+    self._handle = uv.new_tcp()
+  end
+
   uv.getaddrinfo(options.host, options.port, { socktype = "stream" }, function(err, res)
     timer.active(self)
     if err then
-      self:destroy(err)
-      return
+      return self:destroy(err)
     end
-
-    if not self._handle then
-      self._handle = uv.new_tcp()
-    end
-
+    if self.destroyed then return end
     uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
-      timer.active(self)
       if err then
-        self:destroy(err)
-        return
+        return self:destroy(err)
       end
+      timer.active(self)
       self._connecting = false
       self:emit('connect')
       if callback then callback() end

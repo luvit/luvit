@@ -1,3 +1,0 @@
-[submodule "lit"]
-	path = lit
-	url = https://github.com/luvit/lit.git
