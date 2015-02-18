@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2012 The Luvit Authors. All Rights Reserved.
+Copyright 2015 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License")
 you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@ limitations under the License.
 
 --]]
 
-require("helper")
+require('tap')(function(test)
+  local FS = require('fs')
+  local Path = require('path')
 
-local FS = require('fs')
-
-local Path = require('path')
-local fn = Path.join(__dirname, 'fixtures', 'empty.txt')
-
-FS.readFile(fn, function(err, data)
-  assert(data == '')
+  test('fs.readFile empty', function()
+    local fn = Path.join(module.dir, 'fixtures', 'empty.txt')
+    FS.readFile(fn, function(err, data) assert(data == '') end)
+    assert(FS.readFileSync(fn) == '')
+  end)
 end)
 
-assert(FS.readFileSync(fn) == '')
