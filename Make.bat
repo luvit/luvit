@@ -5,14 +5,17 @@ IF NOT "x%1" == "x" GOTO :%1
 :luvit
 IF NOT EXIST lit.exe CALL Make.bat lit
 ECHO "Building luvit"
-lit.exe make app
+SET LUVI_APP=app/
+SET LUVI_TARGET=luvit.exe
+lit\luvi-binaries\Windows\luvi.exe
+SET "LUVI_APP="
+SET "LUVI_TARGET="
 GOTO :end
 
 :lit
 ECHO "Building lit"
-git clone --depth 1 https://github.com/luvit/luvi-binaries.git
-git clone --depth 1 https://github.com/luvit/lit.git lit
-SET LUVI_APP=lit/app
+git clone --recursive --depth 10 https://github.com/luvit/lit.git lit
+SET LUVI_APP=lit/
 SET LUVI_TARGET=lit.exe
 luvi-binaries\Windows\luvi.exe
 SET "LUVI_APP="
@@ -33,3 +36,4 @@ IF EXIST lit RMDIR /S /Q lit
 IF EXIST luvi-binaries RMDIR /S /Q luvi-binaries
 
 :end
+
