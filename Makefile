@@ -1,23 +1,17 @@
 APP_FILES=$(shell find app -type f)
-LIT_FILES=$(shell find lit/app -type f)
 BIN_ROOT=lit/luvi-binaries/$(shell uname -s)_$(shell uname -m)
 
-luvit: lit/lit $(LIT_FILES) $(APP_FILES)
-	#lit/lit make app
-	LUVI_APP=app LUVI_TARGET=luvit $(BIN_ROOT)/luvi
-
-lit/Makefile:
-	git submodule update --init --recursive
-
-lit/lit: lit/Makefile $(LIT_FILES)
-	make -C lit
+luvit: lit $(APP_FILES)
+	./lit make app
 
 test: luvit
-	LUVI_APP=app ./luvit tests/run.lua
 	./luvit tests/run.lua
 
 clean:
-	rm -rf luvit
+	rm -rf luvit lit
+
+lit:
+	curl -L https://github.com/luvit/lit/raw/0.9.1/web-install.sh | sh
 
 install: luvit
 	install luvit /usr/local/bin

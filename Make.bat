@@ -17,13 +17,13 @@ ECHO "Building lit"
 git clone --recursive --depth 10 https://github.com/luvit/lit.git lit
 SET LUVI_APP=lit/
 SET LUVI_TARGET=lit.exe
-luvi-binaries\Windows\luvi.exe
+lit\luvi-binaries\Windows\luvi.exe
 SET "LUVI_APP="
 SET "LUVI_TARGET="
 GOTO :end
 
 :test
-CALL Make.bat luvit
+IF NOT EXIST luvit.exe CALL Make.bat luvit
 SET LUVI_APP=app
 luvit.exe tests\run.lua
 SET "LUVI_APP="
@@ -36,4 +36,3 @@ IF EXIST lit RMDIR /S /Q lit
 IF EXIST luvi-binaries RMDIR /S /Q luvi-binaries
 
 :end
-
