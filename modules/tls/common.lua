@@ -68,7 +68,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
 end
 
 function Credential:addRootCerts()
-  self.context:cert_store(exports.DEFAULT_CA_STORE)
+  self.context:cert_store(loadRootCAStore())
 end
 
 function Credential:setCA(certs)
@@ -329,15 +329,15 @@ exports.createCredentials = function(options, context)
   if options.server then
     if options.requestCert then
       if options.rejectUnauthorized then
-        ctx.context:set_verify(VERIFY_PEER_FAIL, returnOne)
+        ctx.context:verify_mode(VERIFY_PEER_FAIL, returnOne)
       else
-        ctx.context:set_verify(VERIFY_PEER, returnOne)
+        ctx.context:verify_mode(VERIFY_PEER, returnOne)
       end
     else
-      ctx.context:set_verify(VERIFY_NONE, returnOne)
+      ctx.context:verify_mode(VERIFY_NONE, returnOne)
     end
   else
-    ctx.context:set_verify(VERIFY_NONE, returnOne)
+    ctx.context:verify_mode(VERIFY_NONE, returnOne)
   end
 
   return ctx
