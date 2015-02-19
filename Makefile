@@ -8,7 +8,7 @@ test: luvit
 	./luvit tests/run.lua
 
 clean:
-	rm -rf luvit lit luvi
+	rm -rf luvit lit lit-* luvi
 
 lit:
 	curl -L https://github.com/luvit/lit/raw/0.9.3/web-install.sh | sh
