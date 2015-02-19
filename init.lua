@@ -18,15 +18,16 @@ limitations under the License.
 local utils = require('utils')
 local uv = require('uv')
 
-local function init()
+
+return function (main, ...)
   -- Make print go through libuv for windows colors
   _G.print = utils.print
   -- Register global 'p' for easy pretty printing
   _G.p = utils.prettyPrint
   _G.process = require('process').globalProcess()
-end
 
-local function run()
+  -- Call the main app
+  main(...)
 
   -- Start the event loop
   uv.run()
@@ -36,7 +37,6 @@ local function run()
   -- When the loop exits, close all uv handles.
   uv.walk(uv.close)
   uv.run()
-end
 
-exports.init = init
-exports.run = run
+  return _G.process.exitCode
+end
