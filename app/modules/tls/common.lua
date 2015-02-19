@@ -329,15 +329,15 @@ exports.createCredentials = function(options, context)
   if options.server then
     if options.requestCert then
       if options.rejectUnauthorized then
-        ctx.context:set_verify(VERIFY_PEER_FAIL, returnOne)
+        ctx.context:verify_mode(VERIFY_PEER_FAIL, returnOne)
       else
-        ctx.context:set_verify(VERIFY_PEER, returnOne)
+        ctx.context:verify_mode(VERIFY_PEER, returnOne)
       end
     else
-      ctx.context:set_verify(VERIFY_NONE, returnOne)
+      ctx.context:verify_mode(VERIFY_NONE, returnOne)
     end
   else
-    ctx.context:set_verify(VERIFY_NONE, returnOne)
+    ctx.context:verify_mode(VERIFY_NONE, returnOne)
   end
 
   return ctx
