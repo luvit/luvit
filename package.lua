@@ -1,6 +1,6 @@
 return {
   name = "luvit/luvit",
-  version = "2.0.0",
+  version = "1.9.0",
   dependencies = {
     "luvit/buffer@0.1.0",
     "luvit/childprocess@0.1.0",
