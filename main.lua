@@ -22,7 +22,7 @@ luvi.bundle.register('require', "modules/require.lua")
 local require = require('require')()("bundle:main.lua")
 
 -- Create a luvit powered main that does the luvit CLI interface
-require('./init')(function (...)
+return require('./init')(function (...)
 
   local uv = require('uv')
   local utils = require('utils')
