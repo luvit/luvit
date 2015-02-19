@@ -30,6 +30,13 @@ return {
     "luvit/utils@0.1.0",
     "luvit/url@0.1.0",
   },
+  files = {
+    "*.lua",
+    "!examples",
+    "!tests",
+    "!bench",
+    "!lit-*",
+  },
 }
 
 
