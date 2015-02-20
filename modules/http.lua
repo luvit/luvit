@@ -251,6 +251,9 @@ function ClientRequest:initialize(options, callback)
     socket = net.createConnection(self.port, self.host)
     emit_connect = 'connect'
   end
+
+  socket:on('error',function(...) self:emit('error',...) end)
+
   self.socket = socket
   socket:on(emit_connect, function()
     self.connected = true
