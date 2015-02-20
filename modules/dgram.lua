@@ -69,7 +69,7 @@ function Socket:send(data, host, port, callback)
   uv.udp_send(self._handle, data, host, port, callback)
 end
 
-function Socket:bind(host, port, options)
+function Socket:bind(port, host, options)
   uv.udp_bind(self._handle, host, port, options)
   self:recvStart()
 end
