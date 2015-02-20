@@ -123,11 +123,16 @@ local function requireSystem(options)
 
   -- Common code for loading a module once it's path has been resolved
   function loader(prefix, path, format)
-    local module, err
+    local module, err, newPath
     if string.find(path, "%."..format.."$") then
       return fixedLoader(prefix, path, format)
     else
-      module, err = fixedLoader(prefix, path .. '.' .. format, format)
+      if format ~= "raw" then
+        newPath = path
+      else
+        newPath = path .. '.' .. format
+      end
+      module, err = fixedLoader(prefix, newPath, format)
       if module then return module, err end
       return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
     end
