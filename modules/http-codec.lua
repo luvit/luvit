@@ -88,7 +88,11 @@ exports.encoder = function ()
   local encodeHead, encodeRaw, encodeChunked
 
   function encodeHead(item)
-    if not item then return end
+    if not item or item == "" then
+      return item
+    elseif not (type(item) == "table") then
+      error("expected a table but got a " .. type(item) .. " when encoding data")
+    end
     local head, chunkedEncoding
     local version = item.version or 1.1
     if item.method then
