@@ -64,7 +64,7 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:send(data, host, port, callback)
+function Socket:send(data, port, host, callback)
   timer.active(self)
   uv.udp_send(self._handle, data, host, port, callback)
 end
