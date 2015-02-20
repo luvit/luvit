@@ -211,17 +211,21 @@ function ClientRequest:initialize(options, callback)
   Writable.initialize(self)
   self:cork()
   local headers = options.headers or { }
-  local host_found
+  local host_found, connection_found
   for i, header in ipairs(headers) do
-    local key = unpack(header)
+    local key, value = unpack(header)
     local hfound = key:lower() == 'host'
     if hfound then
-      host_found = hfound
+      host_found = value
+    end
+    local cfound = key:lower() == 'connection'
+    if cfound then
+      connection_found = value
     end
     table.insert(self, header)
   end
 
-  if not host_found then
+  if not host_found and options.host then
     table.insert(self, 1, { 'host', options.host })
   end
 
@@ -230,6 +234,7 @@ function ClientRequest:initialize(options, callback)
   self.path = options.path or '/'
   self.port = options.port or 80
   self.self_sent = false
+  self.connection = connection_found
 
   self.encode = codec.encoder()
   self.decode = codec.decoder()
@@ -242,20 +247,12 @@ function ClientRequest:initialize(options, callback)
     res = nil
   end
 
-  local socket
-  local emit_connect
-  if options.createConnection then
-    socket = options.createConnection(self.port, self.host)
-    emit_connect = 'secureConnection'
-  else
-    socket = net.createConnection(self.port, self.host)
-    emit_connect = 'connect'
-  end
-
-  socket:on('error',function(...) self:emit('error',...) end)
+  local socket = options.socket or net.createConnection(self.port, self.host)
+  local connect_emitter = options.connect_emitter or 'connect'
 
   self.socket = socket
-  socket:on(emit_connect, function()
+  socket:on('error',function(...) self:emit('error',...) end)
+  socket:on(connect_emitter, function()
     self.connected = true
     self:once('socket', socket)
 
@@ -269,15 +266,20 @@ function ClientRequest:initialize(options, callback)
         -- Store the leftover data.
         buffer = extra
         if type(event) == "table" then
-          -- If there was an old response that never closed, end it.
-          if res then flush() end
-          -- Create a new response object
-          res = IncomingMessage:new(event, socket)
-          -- Call the user callback to handle the response
-          if callback then
-            callback(res)
+          if self.method ~= 'CONNECT' or res == nil then
+            -- If there was an old response that never closed, end it.
+            if res then flush() end
+            -- Create a new response object
+            res = IncomingMessage:new(event, socket)
+            -- Call the user callback to handle the response
+            if callback then
+              callback(res)
+            end
+            self:once('response', res)
           end
-          self:emit('response', res)
+          if self.method == 'CONNECT' then
+            self:emit('connect', res, socket, event)
+          end
         elseif res and type(event) == "string" then
           if #event == 0 then
             -- Empty string in http-decoder means end of body
@@ -335,8 +337,9 @@ function ClientRequest:_done(data, encoding, cb)
 end
 
 function ClientRequest:_setConnection()
-  -- Without http.Agent we close for now
-  table.insert(self, { 'connection', 'close' })
+  if not self.connection then
+    table.insert(self, { 'connection', 'close' })
+  end
 end
 
 function ClientRequest:done(data, encoding, cb)
