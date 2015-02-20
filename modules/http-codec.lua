@@ -88,7 +88,7 @@ exports.encoder = function ()
   local encodeHead, encodeRaw, encodeChunked
 
   function encodeHead(item)
-    if not item then return end
+    if not item or item == "" then return end
     local head, chunkedEncoding
     local version = item.version or 1.1
     if item.method then
