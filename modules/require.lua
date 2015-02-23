@@ -130,11 +130,11 @@ local function requireSystem(options)
     else
       module, err = fixedLoader(prefix, path .. '.' .. format, format)
       if module then return module, err end
+      module, err = fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+      if module then return module, err end
       module, err = fixedLoader(prefix, path .. '.' .. binExt, binExt)
       if module then return module, err end
-      module, loader = fixedLoader(prefix, pathJoin(path, 'init.' .. binExt), binExt)
-      if module then return module, err end
-      return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+      return fixedLoader(prefix, pathJoin(path, 'init.' .. binExt), binExt)
     end
   end
 
