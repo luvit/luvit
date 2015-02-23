@@ -13,6 +13,7 @@ local realRequire = require
 
 local tmpBase = os == "Windows" and (env.get("TMP") or uv.cwd()) or
                                     (env.get("TMPDIR") or '/tmp')
+local binExt = os == "Windows" and "dll" or "so"
 
 -- Requires are relative
 local function requireSystem(options)
@@ -129,6 +130,10 @@ local function requireSystem(options)
     else
       module, err = fixedLoader(prefix, path .. '.' .. format, format)
       if module then return module, err end
+      module, err = fixedLoader(prefix, path .. '.' .. binExt, binExt)
+      if module then return module, err end
+      module, loader = fixedLoader(prefix, pathJoin(path, 'init.' .. binExt), binExt)
+      if module then return module, err end
       return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
     end
   end
@@ -191,7 +196,7 @@ local function requireSystem(options)
     if ret then module.exports = ret end
   end
 
-  formatters[os == "Windows" and "dll" or "so"] = function (data, module)
+  formatters[binExt] = function (data, module)
     local filename = string.match(module.path, "[^/\\]+$")
     local name = "luaopen_" .. string.match(filename, "^[^.]+");
     local fn
