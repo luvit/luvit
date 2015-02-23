@@ -27,6 +27,7 @@ local function requireSystem(options)
 
   -- The name of the folder to look for bundled dependencies
   local modulesName = options.modulesName or "modules"
+  local binModulesName = options.binModulesName or "binary_modules"
 
   -- Map of format string to handler function
   -- Baked in is '#raw' to load a file as a raw string.
@@ -112,6 +113,9 @@ local function requireSystem(options)
       if not module and prefix ~= "bundle" then
         -- If it's not found outside the bundle, look there too.
         module, err = loader("bundle", pathJoin(modulesName, path), format)
+      end
+      if not module then
+        module, err = loader("bundle", pathJoin(binModulesName, path), format)
       end
     end
 
