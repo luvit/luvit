@@ -11,7 +11,7 @@ clean:
 	rm -rf luvit lit lit-* luvi
 
 lit:
-	curl -L https://github.com/luvit/lit/raw/0.9.3/web-install.sh | sh
+	curl -L https://github.com/luvit/lit/raw/0.9.9/get-lit.sh | sh
 
 install: luvit
 	install luvit /usr/local/bin
