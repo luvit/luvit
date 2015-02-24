@@ -351,17 +351,23 @@ function ClientRequest:done(data, encoding, cb)
   end
 end
 
-function exports.request(options, onResponse)
+function exports.parse_url(options)
   if type(options) == 'string' then
     options = url.parse(options)
+    options.path = (options.pathname or '') .. (options.search or '')
+    options.pathname = nil
+    options.search = nil
   end
+  return options
+end
+
+function exports.request(options, onResponse)
+  options = exports.parse_url(options)
   return ClientRequest:new(options, onResponse)
 end
 
 function exports.get(options, onResponse)
-  if type(options) == 'string' then
-    options = url.parse(options)
-  end
+  options = exports.parse_url(options)
   options.method = 'GET'
   local req = exports.request(options, onResponse)
   req:done()

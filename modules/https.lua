@@ -73,9 +73,7 @@ function exports.request(options, callback)
 end
 
 function exports.get(options, onResponse)
-  if type(options) == 'string' then
-    options = url.parse(options)
-  end
+  options = http.parse_url(options)
   options.method = 'GET'
   local req = exports.request(options, onResponse)
   req:done()
