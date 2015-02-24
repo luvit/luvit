@@ -374,9 +374,6 @@ end
 function exports.parse_url(options)
   if type(options) == 'string' then
     options = url.parse(options)
-    options.path = (options.pathname or '') .. (options.search or '')
-    options.pathname = nil
-    options.search = nil
   end
   return options
 end
