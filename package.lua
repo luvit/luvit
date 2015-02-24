@@ -23,7 +23,7 @@ return {
     "luvit/querystring@0.1.1",
     "luvit/readline@0.1.0",
     "luvit/repl@0.1.2",
-    "luvit/require@0.1.0",
+    "luvit/require@0.2.1",
     "luvit/stream@0.1.0",
     "luvit/timer@0.1.0",
     "luvit/tls@0.1.1",

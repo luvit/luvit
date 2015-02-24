@@ -29,7 +29,7 @@ setmetatable(exports, {
   __call = function (_, stdin, stdout, greeting)
 
   local global = setmetatable({
-    require = require('require')()(pathJoin(uv.cwd(), "repl"))
+    require = require('require')(pathJoin(uv.cwd(), "repl"))
   }, {
     __index = _G
   })

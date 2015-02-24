@@ -19,70 +19,56 @@ limitations under the License.
 
 require('tap')(function (test)
 
-  local requireSystem = require('require')
+  local makeRequire = require('require')
   local pathJoin = require('luvi').path.join
   local p = require('utils').prettyPrint
   local base = pathJoin(module.dir, "fixtures/fake.lua")
+  _G.num_loaded = 0
 
   test("relative require with extension", function ()
-    local require = requireSystem({})(base)
-    _G.num_loaded = 0
-    local mod1 = require('./modules/module1/init.lua')
+    local require = makeRequire(base)
+    local mod1 = require('./libs/module1/init.lua')
     assert(_G.num_loaded == 1)
     assert(mod1[1] == "module1")
   end)
 
   test("relative require as package with index", function ()
-    local require = requireSystem({})(base)
-    _G.num_loaded = 0
-    local mod1 = require('./modules/module1')
+    local require = makeRequire(base)
+    local mod1 = require('./libs/module1')
+    p(_G.num_loaded)
     assert(_G.num_loaded == 1)
     assert(mod1[1] == "module1")
   end)
 
   test("relative require with auto-extension", function ()
-    local require = requireSystem({})(base)
-    _G.num_loaded = 0
-    local mod1 = require('./modules/module1/init')
+    local require = makeRequire(base)
+    local mod1 = require('./libs/module1/init')
     assert(_G.num_loaded == 1)
     assert(mod1[1] == "module1")
   end)
 
   test("cached with different paths", function ()
-    local require = requireSystem({})(base)
-    _G.num_loaded = 0
-    local mod1_1 = require('./modules/module1/init.lua')
-    local mod1_2 = require('./modules/module1/init')
-    local mod1_3 = require('./modules/module1')
-    assert(_G.num_loaded == 1)
-    assert(mod1_1 == mod1_2)
-    assert(mod1_2 == mod1_3)
-  end)
-
-  test("cached with different paths", function ()
-    local require = requireSystem({})(base)
-    _G.num_loaded = 0
-    local mod1_1 = require('./modules/module1/init.lua')
-    local mod1_2 = require('./modules/module1/init')
-    local mod1_3 = require('./modules/module1')
+    local require = makeRequire(base)
+    local mod1_1 = require('./libs/module1/init.lua')
+    local mod1_2 = require('./libs/module1/init')
+    local mod1_3 = require('./libs/module1')
     assert(_G.num_loaded == 1)
     assert(mod1_1 == mod1_2)
     assert(mod1_2 == mod1_3)
   end)
 
   test("Lots-o-requires", function ()
-    local require = requireSystem({})(base)
-    _G.num_loaded = 0
+    local require = makeRequire(base)
     local m1 = require("module1")
     local m1_m2 = require("module1/module2")
     local m2_m2 = require("module2/module2")
     local m3 = require("module3")
-    local rm1 = require("./modules/module1")
-    local rm1_m2 = require("./modules/module1/module2")
-    local rm2_m2 = require("./modules/module2/module2")
-    local rm3 = require('./modules/module3')
-    local rm2sm1_m2 = require("./modules/module2/../module1/module2")
-    local rm1sm2_m2 = require("./modules/module1/../module2/module2")
+    local rm1 = require("./libs/module1")
+    local rm1_m2 = require("./libs/module1/module2")
+    local rm2_m2 = require("./libs/module2/module2")
+    local rm3 = require('./libs/module3')
+    local rm2sm1_m2 = require("./libs/module2/../module1/module2")
+    local rm1sm2_m2 = require("./libs/module1/../module2/module2")
     assert(_G.num_loaded == 4)
     assert(m1 == rm1)
     assert(m1_m2 == rm1_m2 and m1_m2 == rm2sm1_m2)
@@ -91,7 +77,7 @@ require('tap')(function (test)
   end)
 
   test("inter-dependencies", function ()
-    local require = requireSystem({})(base)
+    local require = makeRequire(base)
     local callbacks = {}
     _G.onexit = function (fn)
       callbacks[#callbacks + 1] = fn
@@ -121,7 +107,7 @@ require('tap')(function (test)
   end)
 
   test("circular dependencies", function ()
-    local require = requireSystem({})(base)
+    local require = makeRequire(base)
     local parent = require('parent');
     p(parent)
     assert(parent.child.parent == parent)
@@ -130,10 +116,8 @@ require('tap')(function (test)
     assert(child.parent.child == child)
   end)
 
-  test("custom modules folder", function ()
-    local require = requireSystem({
-      modulesName="node_modules",
-    })(base)
+  test("deps folder", function ()
+    local require = makeRequire(base)
     _G.num_loaded = 0
     local N = require('moduleN')
     p(N, _G.num_loaded)
