@@ -25,6 +25,7 @@ local codec = require('http-codec')
 local Readable = require('stream').Readable
 local Writable = require('stream').Writable
 local date = require('os').date
+local luvi = require('luvi')
 
 local IncomingMessage = Readable:extend()
 exports.IncomingMessage = IncomingMessage
@@ -207,11 +208,18 @@ end
 local ClientRequest = Writable:extend()
 exports.ClientRequest = ClientRequest
 
+function exports.ClientRequest.getDefaultUserAgent()
+  if exports.ClientRequest.default_user_agent ~= nil then
+    exports.ClientRequest.default_user_agent = 'luvit/http/' .. exports.version .. ' luvi/' .. luvi.version
+  end
+  return exports.ClientRequest.default_user_agent
+end
+
 function ClientRequest:initialize(options, callback)
   Writable.initialize(self)
   self:cork()
   local headers = options.headers or { }
-  local host_found, connection_found
+  local host_found, connection_found, user_agent
   for i, header in ipairs(headers) do
     local key, value = unpack(header)
     local hfound = key:lower() == 'host'
@@ -222,7 +230,19 @@ function ClientRequest:initialize(options, callback)
     if cfound then
       connection_found = value
     end
+    local uafound = key:lower() == 'user-agent'
+    if uafound then
+      user_agent_found = value
+    end
     table.insert(self, header)
+  end
+
+  if not user_agent then
+    user_agent = self.getDefaultUserAgent()
+  end
+
+  if user_agent ~= '' then
+    table.insert(self, 1, { 'user-agent', user_agent })
   end
 
   if not host_found and options.host then
