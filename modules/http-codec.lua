@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http-codec"
-exports.version = "0.1.0"
+exports.version = "0.1.3"
 
 local sub = string.sub
 local gsub = string.gsub
@@ -159,7 +159,7 @@ exports.decoder = function ()
   function decodeHead(chunk)
     if not chunk then return end
 
-    local _, length = find(chunk, "\r\n\r\n", 1, true)
+    local _, length = find(chunk, "\r?\n\r?\n", 1)
     -- First make sure we have all the head before continuing
     if not length then
       if #chunk < 8 * 1024 then return end
@@ -172,12 +172,12 @@ exports.decoder = function ()
     local _, offset
     local version
     _, offset, version, head.code, head.reason =
-      find(chunk, "^HTTP/(%d%.%d) (%d+) ([^\r]+)\r\n")
+      find(chunk, "^HTTP/(%d%.%d) (%d+) ([^\r\n]+)\r?\n")
     if offset then
       head.code = tonumber(head.code)
     else
       _, offset, head.method, head.path, version =
-        find(chunk, "^(%u+) ([^ ]+) HTTP/(%d%.%d)\r\n")
+        find(chunk, "^(%u+) ([^ ]+) HTTP/(%d%.%d)\r?\n")
       if not offset then
         error("expected HTTP data")
       end
@@ -193,7 +193,7 @@ exports.decoder = function ()
     -- Parse the header lines
     while true do
       local key, value
-      _, offset, key, value = find(chunk, "^([^:]+): *([^\r]+)\r\n", offset + 1)
+      _, offset, key, value = find(chunk, "^([^:]+): *([^\r\n]+)\r?\n", offset + 1)
       if not offset then break end
       local lowerKey = lower(key)
 
