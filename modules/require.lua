@@ -27,7 +27,7 @@ local function requireSystem(options)
 
   -- The name of the folder to look for bundled dependencies
   local modulesName = options.modulesName or "modules"
-  local binModulesName = options.binModulesName or "binary_modules"
+  local binModulesName = options.binModulesName or "lib"
 
   -- Map of format string to handler function
   -- Baked in is '#raw' to load a file as a raw string.
