@@ -13,6 +13,7 @@ local realRequire = require
 
 local tmpBase = os == "Windows" and (env.get("TMP") or uv.cwd()) or
                                     (env.get("TMPDIR") or '/tmp')
+local binExt = os == "Windows" and "dll" or "so"
 
 -- Requires are relative
 local function requireSystem(options)
@@ -26,6 +27,7 @@ local function requireSystem(options)
 
   -- The name of the folder to look for bundled dependencies
   local modulesName = options.modulesName or "modules"
+  local binModulesName = options.binModulesName or "lib"
 
   -- Map of format string to handler function
   -- Baked in is '#raw' to load a file as a raw string.
@@ -112,6 +114,9 @@ local function requireSystem(options)
         -- If it's not found outside the bundle, look there too.
         module, err = loader("bundle", pathJoin(modulesName, path), format)
       end
+      if not module then
+        module, err = loader("bundle", pathJoin(binModulesName, path), format)
+      end
     end
 
     if module then
@@ -129,7 +134,11 @@ local function requireSystem(options)
     else
       module, err = fixedLoader(prefix, path .. '.' .. format, format)
       if module then return module, err end
-      return fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+      module, err = fixedLoader(prefix, pathJoin(path, 'init.' .. format), format)
+      if module then return module, err end
+      module, err = fixedLoader(prefix, path .. '.' .. binExt, binExt)
+      if module then return module, err end
+      return fixedLoader(prefix, pathJoin(path, 'init.' .. binExt), binExt)
     end
   end
 
@@ -191,7 +200,7 @@ local function requireSystem(options)
     if ret then module.exports = ret end
   end
 
-  formatters[os == "Windows" and "dll" or "so"] = function (data, module)
+  formatters[binExt] = function (data, module)
     local filename = string.match(module.path, "[^/\\]+$")
     local name = "luaopen_" .. string.match(filename, "^[^.]+");
     local fn
