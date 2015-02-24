@@ -1,8 +1,9 @@
-combined: ../../luvit  $(shell find extras -type f)
-	LUVI_TARGET=combined LUVI_APP=extras: luvit
+APP_FILES=$(shell find . -type f -name "*.lua")
+custom-binary: $(APP_FILES)
+	lit make .
 
-../../luvit:
-	$(MAKE) -C ../..
+test: custom-binary
+	./custom-binary 1 2 3
 
 clean:
-	rm -f combined
+	rm -f custom-binary
