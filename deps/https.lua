@@ -60,21 +60,18 @@ local function createConnection(...)
 end
 
 function exports.request(options, callback)
-  if type(options) == 'string' then
-    options = url.parse(options)
-  end
+  options = http.parseUrl(options)
   if options.protocol and options.protocol ~= 'https' then
     error(fmt('Protocol %s not supported', options.protocol))
   end
-  options.createConnection = createConnection
   options.port = options.port or 443
+  options.connect_emitter = 'secureConnection'
+  options.socket = options.socket or createConnection(options.port, options.host)
   return http.request(options, callback)
 end
 
 function exports.get(options, onResponse)
-  if type(options) == 'string' then
-    options = url.parse(options)
-  end
+  options = http.parseUrl(options)
   options.method = 'GET'
   local req = exports.request(options, onResponse)
   req:done()

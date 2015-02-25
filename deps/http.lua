@@ -25,6 +25,7 @@ local codec = require('http-codec')
 local Readable = require('stream').Readable
 local Writable = require('stream').Writable
 local date = require('os').date
+local luvi = require('luvi')
 
 local IncomingMessage = Readable:extend()
 exports.IncomingMessage = IncomingMessage
@@ -207,21 +208,44 @@ end
 local ClientRequest = Writable:extend()
 exports.ClientRequest = ClientRequest
 
+function exports.ClientRequest.getDefaultUserAgent()
+  if exports.ClientRequest._defaultUserAgent == nil then
+    exports.ClientRequest._defaultUserAgent = 'luvit/http/' .. exports.version .. ' luvi/' .. luvi.version
+  end
+  return exports.ClientRequest._defaultUserAgent
+end
+
 function ClientRequest:initialize(options, callback)
   Writable.initialize(self)
   self:cork()
   local headers = options.headers or { }
-  local host_found
+  local host_found, connection_found, user_agent
   for i, header in ipairs(headers) do
-    local key = unpack(header)
+    local key, value = unpack(header)
     local hfound = key:lower() == 'host'
     if hfound then
-      host_found = hfound
+      host_found = value
+    end
+    local cfound = key:lower() == 'connection'
+    if cfound then
+      connection_found = value
+    end
+    local uafound = key:lower() == 'user-agent'
+    if uafound then
+      user_agent_found = value
     end
     table.insert(self, header)
   end
 
-  if not host_found then
+  if not user_agent then
+    user_agent = self.getDefaultUserAgent()
+  end
+
+  if user_agent ~= '' then
+    table.insert(self, 1, { 'user-agent', user_agent })
+  end
+
+  if not host_found and options.host then
     table.insert(self, 1, { 'host', options.host })
   end
 
@@ -230,6 +254,7 @@ function ClientRequest:initialize(options, callback)
   self.path = options.path or '/'
   self.port = options.port or 80
   self.self_sent = false
+  self.connection = connection_found
 
   self.encode = codec.encoder()
   self.decode = codec.decoder()
@@ -242,17 +267,12 @@ function ClientRequest:initialize(options, callback)
     res = nil
   end
 
-  local socket
-  local emit_connect
-  if options.createConnection then
-    socket = options.createConnection(self.port, self.host)
-    emit_connect = 'secureConnection'
-  else
-    socket = net.createConnection(self.port, self.host)
-    emit_connect = 'connect'
-  end
+  local socket = options.socket or net.createConnection(self.port, self.host)
+  local connect_emitter = options.connect_emitter or 'connect'
+
   self.socket = socket
-  socket:on(emit_connect, function()
+  socket:on('error',function(...) self:emit('error',...) end)
+  socket:on(connect_emitter, function()
     self.connected = true
     self:once('socket', socket)
 
@@ -266,15 +286,20 @@ function ClientRequest:initialize(options, callback)
         -- Store the leftover data.
         buffer = extra
         if type(event) == "table" then
-          -- If there was an old response that never closed, end it.
-          if res then flush() end
-          -- Create a new response object
-          res = IncomingMessage:new(event, socket)
-          -- Call the user callback to handle the response
-          if callback then
-            callback(res)
+          if self.method ~= 'CONNECT' or res == nil then
+            -- If there was an old response that never closed, end it.
+            if res then flush() end
+            -- Create a new response object
+            res = IncomingMessage:new(event, socket)
+            -- Call the user callback to handle the response
+            if callback then
+              callback(res)
+            end
+            self:once('response', res)
           end
-          self:emit('response', res)
+          if self.method == 'CONNECT' then
+            self:emit('connect', res, socket, event)
+          end
         elseif res and type(event) == "string" then
           if #event == 0 then
             -- Empty string in http-decoder means end of body
@@ -332,8 +357,9 @@ function ClientRequest:_done(data, encoding, cb)
 end
 
 function ClientRequest:_setConnection()
-  -- Without http.Agent we close for now
-  table.insert(self, { 'connection', 'close' })
+  if not self.connection then
+    table.insert(self, { 'connection', 'close' })
+  end
 end
 
 function ClientRequest:done(data, encoding, cb)
@@ -345,17 +371,19 @@ function ClientRequest:done(data, encoding, cb)
   end
 end
 
-function exports.request(options, onResponse)
+function exports.parseUrl(options)
   if type(options) == 'string' then
     options = url.parse(options)
   end
-  return ClientRequest:new(options, onResponse)
+  return options
+end
+
+function exports.request(options, onResponse)
+  return ClientRequest:new(exports.parseUrl(options), onResponse)
 end
 
 function exports.get(options, onResponse)
-  if type(options) == 'string' then
-    options = url.parse(options)
-  end
+  options = exports.parseUrl(options)
   options.method = 'GET'
   local req = exports.request(options, onResponse)
   req:done()

@@ -32,7 +32,7 @@ require('tap')(function(test)
     function onMessageS1(msg, rinfo)
       assert(#msg == 4)
       assert(msg == 'PING')
-      s1:send('PONG', HOST, PORT+1)
+      s1:send('PONG', PORT+1, HOST)
     end
 
     function onMessageS2(msg, rinfo)
@@ -48,11 +48,11 @@ require('tap')(function(test)
     
     s1:on('message', expect(onMessageS1))
     s1:on('error', onError)
-    s1:bind('127.0.0.1', PORT)
+    s1:bind(PORT,'127.0.0.1')
 
     s2:on('message', expect(onMessageS2))
     s2:on('error', onError)
-    s2:bind('127.0.0.1', PORT+1)
-    s2:send('PING', HOST, PORT)
+    s2:bind(PORT+1, '127.0.0.1')
+    s2:send('PING', PORT, HOST)
   end)
 end)
