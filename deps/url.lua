@@ -33,9 +33,27 @@ function exports.parse(url, parseQueryString)
   end
 
   url = url:sub((host and #host or 0) + 1)
-  local pathname = url:match("^[^?]*")
-  local search = url:sub((pathname and #pathname or 0) + 1)
-  local query = search:sub(2)
+  local path
+  local pathname
+  local search
+  local query
+
+  if url ~= ''then
+    path = url
+    local temp
+    temp = url:match("^[^?]*")
+    if temp ~= '' then
+      pathname = temp
+    end
+    temp = url:sub((pathname and #pathname or 0) + 1)
+    if temp ~= '' then
+      search = temp
+    end
+    temp = search:sub(2)
+    if temp ~= '' then
+      query = temp
+    end
+  end
 
   if parseQueryString then
     query = querystring.parse(query)
@@ -47,6 +65,7 @@ function exports.parse(url, parseQueryString)
     host = host,
     hostname = hostname,
     port = port,
+    path = path,
     pathname = pathname,
     search = search,
     query = query

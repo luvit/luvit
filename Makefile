@@ -11,13 +11,15 @@ clean:
 	rm -rf luvit lit lit-* luvi
 
 lit:
-	curl -L https://github.com/luvit/lit/raw/0.9.3/web-install.sh | sh
+	curl -L https://github.com/luvit/lit/raw/0.10.0/get-lit.sh | sh
 
-install: luvit
+install: luvit lit
 	install luvit /usr/local/bin
+	install lit /usr/local/bin
 
 uninstall:
 	rm -f /usr/local/bin/luvit
+	rm -f /usr/local/bin/lit
 
 lint:
-	find app -name "*.lua" | xargs luacheck
+	find modules -name "*.lua" | xargs luacheck
