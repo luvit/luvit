@@ -209,10 +209,10 @@ local ClientRequest = Writable:extend()
 exports.ClientRequest = ClientRequest
 
 function exports.ClientRequest.getDefaultUserAgent()
-  if exports.ClientRequest.default_user_agent ~= nil then
-    exports.ClientRequest.default_user_agent = 'luvit/http/' .. exports.version .. ' luvi/' .. luvi.version
+  if exports.ClientRequest._defaultUserAgent == nil then
+    exports.ClientRequest._defaultUserAgent = 'luvit/http/' .. exports.version .. ' luvi/' .. luvi.version
   end
-  return exports.ClientRequest.default_user_agent
+  return exports.ClientRequest._defaultUserAgent
 end
 
 function ClientRequest:initialize(options, callback)
@@ -371,7 +371,7 @@ function ClientRequest:done(data, encoding, cb)
   end
 end
 
-function exports.parse_url(options)
+function exports.parseUrl(options)
   if type(options) == 'string' then
     options = url.parse(options)
   end
@@ -379,12 +379,11 @@ function exports.parse_url(options)
 end
 
 function exports.request(options, onResponse)
-  options = exports.parse_url(options)
-  return ClientRequest:new(options, onResponse)
+  return ClientRequest:new(exports.parseUrl(options), onResponse)
 end
 
 function exports.get(options, onResponse)
-  options = exports.parse_url(options)
+  options = exports.parseUrl(options)
   options.method = 'GET'
   local req = exports.request(options, onResponse)
   req:done()
