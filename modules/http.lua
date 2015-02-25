@@ -298,7 +298,7 @@ function ClientRequest:initialize(options, callback)
     end)
 
     if self.ended then
-      self:_done(nil, nil, self.ended)
+      self:_done(self.ended.data, self.ended.encoding, self.ended.cb)
     end
 
   end)
@@ -339,7 +339,10 @@ end
 function ClientRequest:done(data, encoding, cb)
   -- Send the data if connected otherwise just mark it ended
   self:flushHeaders()
-  self.ended = cb or function() end
+  self.ended = 
+    {cb = cb or function() end
+    ,data = data
+    ,encoding = encoding}
   if self.connected then
     self:_done(self.encode(data), encoding, cb)
   end
