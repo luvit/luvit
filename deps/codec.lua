@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local uv = require('uv')
-
 exports.name = "luvit/codec"
-exports.version = "0.1.0"
+exports.version = "0.1.1"
+
+local uv = require('uv')
 
 function exports.wrapEmitter(emitter)
   local read, write

@@ -15,15 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+exports.name = "luvit/fs"
+exports.version = "0.1.2"
+
 local uv = require('uv')
 local adapt = require('utils').adapt
 local bind = require('utils').bind
 local join = require('path').join
 local fs = exports
 local Writable = require('stream').Writable
-
-exports.name = "luvit/fs"
-exports.version = "0.1.1"
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
