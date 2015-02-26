@@ -12,7 +12,7 @@ return {
     "luvit/helpful@0.1.1",
     "luvit/hooks@0.1.0",
     "luvit/http@0.1.1",
-    "luvit/http-codec@0.1.0",
+    "luvit/http-codec@0.1.4",
     "luvit/https@0.1.0",
     "luvit/json@0.1.0",
     "luvit/los@0.1.0",
