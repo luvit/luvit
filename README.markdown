@@ -2,6 +2,9 @@
 
 Luvit 2.0 is a work in progress.
 
+[![Linux Build Status](https://travis-ci.org/luvit/luvit.svg?branch=luvi-up)](https://travis-ci.org/luvit/luvit)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/72ccr146fm51k7up/branch/luvi-up?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvit/branch/luvi-up)
+
 The original luvit (started 2011 by [Tim Caswell][]) was a node.js-like programming environment, but using Luajit instead of V8.  This meant a change in scripting language and a huge change in memory overhead.  Speed between node and luvit was on the same order of nagnatude usually with V8 faster sometimes and Luajit faster sometimes.  But memory was far more effecient in luvit.  A small node.js program used about 20 times more memory than a similar luvit program.  Luvit found it's niche in places like in-vm monitoring and scripting on slower devices like Raspberry PIs.  It had nearly identical APIs to node and thus was easy to learn for developers looking for something like node, but less memory hungry.
 
 Luvit 2.0 is a reboot of this idea but way more flexible and configurable.  The new system consists of many parts that can be used with or without the new luvit framework.
@@ -107,9 +110,6 @@ return {
 --------------------------------------------------------------------------------
 
 # LUVI INTEGRATION IN PROGRESS
-
-[![Linux Build Status](https://travis-ci.org/luvit/luvit.svg?branch=luvi-up)](https://travis-ci.org/luvit/luvit)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/72ccr146fm51k7up/branch/luvi-up?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvit/branch/luvi-up)
 
 This branch replaces luvit's backend with [luvi][].  This means that most luvit
 development is now done in pure lua and doesn't require a build step to test.
