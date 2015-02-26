@@ -7,7 +7,7 @@ Luvit 2.0 is a work in progress.
 
 The original luvit (started 2011 by [Tim Caswell][]) was a node.js-like programming environment, but using Luajit instead of V8.  This meant a change in scripting language and a huge change in memory overhead.  Speed between node and luvit was on the same order of nagnatude usually with V8 faster sometimes and Luajit faster sometimes.  But memory was far more effecient in luvit.  A small node.js program used about 20 times more memory than a similar luvit program.  Luvit found it's niche in places like in-vm monitoring and scripting on slower devices like Raspberry PIs.  It had nearly identical APIs to node and thus was easy to learn for developers looking for something like node, but less memory hungry.
 
-Luvit 2.0 is a reboot of this idea but way more flexible and configurable.  The new system consists of many parts that can be used with or without the new luvit framework.
+Luvit 2.0 is a reboot of this idea but far more flexible and configurable.  The new system consists of many parts that can be used with or without the new luvit framework.
 
  - [luv][] - New [libUV][] bindings for [Lua][] and [Luajit][].
  - [luvi][] - Pre-compiled [luajit][] + [luv][] + [openssl][] + [zlib][] with zip asset bundling and self-executing apps.
@@ -15,7 +15,7 @@ Luvit 2.0 is a reboot of this idea but way more flexible and configurable.  The 
 
 These three projects offer layers of abstraction and control.  You can use [luv][] standalone with any lua based runtime.  You can build apps with [luvi][], which includes [luv][], without using [lit][] or Luvit.  The [lit][] tool embeds [luvi][] and adds higher-level commands and workflows.
 
-Luvit 2.0 is one more layer on top of this that implements the [node.js][] [APIs](http://nodejs.org/api/) in lua as a collection of standalone [lit][] libraries.  Luvit can be used in two ways with lit.
+Luvit 2.0 is one more layer on top of this that implements the [node.js][] [APIs](http://nodejs.org/api/) in lua as a collection of standalone [lit libraries][].  Luvit can be used several different ways from lit.
 
 
 ## Luvit 2.0 the Framework
@@ -101,6 +101,7 @@ return {
 [luvi]: https://github.com/luvit/luvi
 [luv]: https://github.com/luvit/luv
 [lit]: https://github.com/luvit/lit
+[lit libraries]: http://lit.luvit.io/packages/luvit
 [lua]: http://www.lua.org/
 [luajit]: http://luajit.org/
 [openssl]: https://www.openssl.org/
