@@ -97,14 +97,14 @@ require('tap')(function (test)
 
   test("http 1.0 Raw body", function ()
     local output = testDecoder(decoder, {
-      "GET / HTTP/1.0\r\n",
+      "POST / HTTP/1.0\r\n",
       "User-Agent: Test\r\n\r\n",
       "DELETE /bad-resource HTTP/1.0\r\n",
       "Connection: Keep-Alive\r\n\r\n",
     })
     p(output)
     assert(deepEqual({
-      { method = "GET", path = "/", version = 1.0, keepAlive = false,
+      { method = "POST", path = "/", version = 1.0, keepAlive = false,
         {"User-Agent", "Test"},
       },
       "DELETE /bad-resource HTTP/1.0\r\n",
@@ -148,14 +148,14 @@ require('tap')(function (test)
 
   test("http 1.1 Raw body", function ()
     local output = testDecoder(decoder, {
-      "GET / HTTP/1.1\r\n",
+      "POST / HTTP/1.1\r\n",
       "Connection: Close\r\n\r\n",
       "User-Agent: Test\r\n\r\n",
       "DELETE /bad-resource HTTP/1.0\r\n",
     })
     p(output)
     assert(deepEqual({
-      { method = "GET", path = "/", version = 1.1, keepAlive = false,
+      { method = "POST", path = "/", version = 1.1, keepAlive = false,
         {"Connection", "Close"},
       },
       "User-Agent: Test\r\n\r\n",
