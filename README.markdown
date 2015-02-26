@@ -22,7 +22,6 @@ You can use luvit as a metapackage that includes the luvit runtime as a library 
 A sample `package.lua` that includes luvit might look like the following:
 
 ```lua
--- my-cool-app/package.lua
 return {
   name = "my-cool-app",
   version = "1.2.3",
@@ -33,10 +32,9 @@ return {
 }
 ```
 
-And the luvit bootstrap in your app will look something like:
+And the luvit bootstrap in your app's `main.lua` will look something like:
 
 ```lua
--- my-cool-app/main.lua
 -- Bootstrap the require system
 local luvi = require('luvi')
 luvi.bundle.register('require', "deps/require.lua")
