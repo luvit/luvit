@@ -1,4 +1,4 @@
-# Luvit 2.0 (node.js in Lit)
+# Luvit 2.0 - Node.JS for the Lua Inventor
 
 Luvit 2.0 is a work in progress.
 
