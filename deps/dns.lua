@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 exports.name = "luvit/dns"
-exports.version = "0.1.0"
+exports.version = "0.1.1"
 
 local dgram = require('dgram')
 local fs = require('fs')

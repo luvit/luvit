@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http-codec"
-exports.version = "0.1.3"
+exports.version = "0.1.4"
 
 local sub = string.sub
 local gsub = string.gsub
@@ -208,7 +208,8 @@ exports.decoder = function ()
       head[#head + 1] = {key, value}
     end
 
-    if head.keepAlive and not (chunkedEncoding or (contentLength and contentLength > 0)) then
+    if head.keepAlive and (not (chunkedEncoding or (contentLength and contentLength > 0)))
+       or (head.method == "GET" or head.method == "HEAD") then
       mode = decodeEmpty
     elseif chunkedEncoding then
       mode = decodeChunked
