@@ -739,9 +739,8 @@ static void luv_dns_getaddrinfo_callback(uv_getaddrinfo_t* res, int status,
   }
   luv_acall(ref->L, 2, 0, "dns_after");
 
-  uv_freeaddrinfo(start);
-
 cleanup:
+  uv_freeaddrinfo(start);
   luv_dns_ref_cleanup(ref);
 }
 
