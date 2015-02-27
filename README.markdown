@@ -60,7 +60,7 @@ You app will have it's own custom main, but will have all the same builtins and 
 
 ## Luvit 2.0 the Platform
 
-Also you can build the `luvit/luvit` metapackage as an app directly to create the `luvit` command-line tool that mimics the `node` tool and lets you run arbitrary lua scripts.
+You can build the `luvit/luvit` metapackage as an app directly to create the `luvit` command-line tool that mimics the `node` tool and lets you run arbitrary lua scripts.
 
 ```sh
 curl -L https://github.com/luvit/luvit/archive/luvi-up.zip > luvit.zip
@@ -73,7 +73,7 @@ This works much like the original luvit platform.
 
 ## Luvit 2.0 the Library
 
-THe individual packages that make up the luvit 2.0 metapackage can be used on their own without buying into the whole ecosystem.  Perhaps you love the pretty-printer and and advanced readline repl but abhor callbacks and want to use coroutines instead.  Just mix and match luvit libraries with other lit libraries in your app or library.  Each component of the luvit metapackage can be used directly and will automatically pull in any inter-dependencies it needs.
+The individual packages that make up the luvit 2.0 metapackage can be used on their own without buying into the whole ecosystem.  Perhaps you love the pretty-printer and and advanced readline repl but abhor callbacks and want to use coroutines instead.  Just mix and match luvit libraries with other lit libraries in your app or library.  Each component of the luvit metapackage can be used directly and will automatically pull in any inter-dependencies it needs.
 
 For example, the `creationix/rye` app uses parts of luvit, but not it's globals and full set of modules.
 
