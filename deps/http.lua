@@ -66,7 +66,7 @@ function ServerResponse:initialize(socket)
   self.statusCode = 200
   self.headersSent = false
   self.headers = {}
-  for _, evt in pairs({'end'}) do
+  for _, evt in pairs({'close', 'finish'}) do
     self.socket:on(evt, utils.bind(self.emit, self, evt))
   end
 end
