@@ -30,6 +30,7 @@ function exports.parse(url, parseQueryString)
   if host then
     hostname = host:match("^([^:/]+)")
     port = host:match(":(%d+)$")
+    host = hostname
   end
 
   url = url:sub((host and #host or 0) + 1)
@@ -38,7 +39,7 @@ function exports.parse(url, parseQueryString)
   local search
   local query
 
-  if url ~= ''then
+  if url ~= '' then
     path = url
     local temp
     temp = url:match("^[^?]*")
@@ -49,9 +50,11 @@ function exports.parse(url, parseQueryString)
     if temp ~= '' then
       search = temp
     end
+    if search then
     temp = search:sub(2)
-    if temp ~= '' then
-      query = temp
+      if temp ~= '' then
+        query = temp
+      end
     end
   end
 
@@ -73,12 +76,12 @@ function exports.parse(url, parseQueryString)
 
 end
 
---p(url.parse("http://creationix.com:8080/foo/bar?this=sdr"))
---p(url.parse("http://creationix.com/foo/bar?this=sdr"))
---p(url.parse("http://creationix.com/foo/bar"))
---p(url.parse("http://creationix.com/"))
---p(url.parse("creationix.com/"))
---p(url.parse("/"))
---p(url.parse("/foobar"))
---p(url.parse("/README.markdown"))
+--p(exports.parse("http://creationix.com:8080/foo/bar?this=sdr"))
+--p(exports.parse("http://creationix.com/foo/bar?this=sdr"))
+--p(exports.parse("http://creationix.com/foo/bar"))
+--p(exports.parse("http://creationix.com/"))
+--p(exports.parse("creationix.com/"))
+--p(exports.parse("/"))
+--p(exports.parse("/foobar"))
+--p(exports.parse("/README.markdown"))
 

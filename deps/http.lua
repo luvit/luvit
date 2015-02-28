@@ -26,6 +26,7 @@ local Readable = require('stream').Readable
 local Writable = require('stream').Writable
 local date = require('os').date
 local luvi = require('luvi')
+local utils = require('utils')
 
 local IncomingMessage = Readable:extend()
 exports.IncomingMessage = IncomingMessage
@@ -65,6 +66,9 @@ function ServerResponse:initialize(socket)
   self.statusCode = 200
   self.headersSent = false
   self.headers = {}
+  for _, evt in pairs({'end'}) do
+    self.socket:on(evt, utils.bind(self.emit, self, evt))
+  end
 end
 
 -- Override this in the instance to not send the date
