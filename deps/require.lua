@@ -185,6 +185,7 @@ local function generator(modulePath)
       else
         -- Otherwise, copy to a temporary folder and read from there
         local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
+        path = pathJoin(dir, path:match("[^/\\]+$"))
         local fd = uv.fs_open(path, "w", 384) -- 0600
         uv.fs_write(fd, data, 0)
         uv.fs_close(fd)
