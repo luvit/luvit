@@ -565,6 +565,7 @@ function endWritable(stream, state, cb)
     end
   end
   state.ended = true
+  stream:emit('end')
 end
 
 exports.WriteReq = WriteReq
