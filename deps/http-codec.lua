@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http-codec"
-exports.version = "0.1.4"
+exports.version = "0.1.5"
 
 local sub = string.sub
 local gsub = string.gsub
@@ -193,7 +193,7 @@ exports.decoder = function ()
     -- Parse the header lines
     while true do
       local key, value
-      _, offset, key, value = find(chunk, "^([^:]+): *([^\r\n]+)\r?\n", offset + 1)
+      _, offset, key, value = find(chunk, "^([^:\r\n]+): *([^\r\n]+)\r?\n", offset + 1)
       if not offset then break end
       local lowerKey = lower(key)
 
