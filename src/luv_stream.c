@@ -64,8 +64,9 @@ void luv_after_connect(uv_connect_t* req, int status) {
   } else {
     luv_emit_event(L, "connect", 0);
   }
+  luv_handle_unref(L, req->handle->data);
+  free(req->data);
   free(req);
-
 }
 
 
