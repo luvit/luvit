@@ -16,14 +16,10 @@ limitations under the License.
 
 --]]
 
--- Bootstrap the require system
-local luvi = require('luvi')
-luvi.bundle.register('require', "deps/require.lua")
-local require = require('require')("bundle:main.lua")
-
 -- Create a luvit powered main that does the luvit CLI interface
 return require('./init')(function (...)
 
+  local luvi = require('luvi')
   local uv = require('uv')
   local utils = require('utils')
 
