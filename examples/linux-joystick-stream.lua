@@ -24,13 +24,9 @@ function JoystickTransform:_transform(chunk, _, callback)
   callback()
 end
 
+--------------------------------------------------------------------------------
 
-local input = fs.createReadStream("/dev/input/js0", { chunkSize = 8 })
-local events = JoystickTransform:new()
-input:pipe(events)
-
-events:on("data", p)
-input:on("error", error)
-events:on("error", error)
-
-coroutine.yield()
+-- Sample usage
+fs.createReadStream("/dev/input/js0", { chunkSize = 8 })
+  :pipe(JoystickTransform:new())
+  :on("data", p)
