@@ -499,8 +499,7 @@ local CHUNK_SIZE = 65536
 local read_options = {
   flags = "r",
   mode = "0644",
-  chunk_size = CHUNK_SIZE,
-  offset = 0,
+  chunkSize = CHUNK_SIZE,
   fd = nil,
   reading = nil,
   length = nil -- nil means read to EOF
@@ -515,14 +514,13 @@ function fs.ReadStream:initialize(path, options)
   else
     setmetatable(options, read_meta)
   end
-  self.options = options
   self.fd = options.fd
   self.mode = options.mode
   self.path = path
   self.offset = options.offset
-  if options.length then
-    self.last = self.offset + options.length
-  end
+  self.chunkSize = options.chunkSize
+  self.length = options.length
+  self.bytesRead = 0
   if not self.fd then self:open() end
   self:on('finish', bind(self.close, self))
 end
@@ -545,18 +543,21 @@ function fs.ReadStream:_read(n)
     return self:once('open', bind(self._read, self, n))
   end
 
-  local to_read = n
-  if self.last ~= nil then
+  local to_read = self.chunkSize or n
+  if self.length then
     -- indicating length was set in option; need to check boundary
-    if to_read + self.offset > self.last then
-      to_read = self.last - self.offset
+    if to_read + self.bytesRead > self.length then
+      to_read = self.length - self.bytesRead
     end
   end
 
   fs.read(self.fd, to_read, self.offset, function(err, bytes)
     if err then return self:destroy(err) end
     if #bytes > 0 then
-      self.offset = self.offset + #bytes
+      self.bytesRead = self.bytesRead + #bytes
+      if self.offset then
+        self.offset = self.offset + #bytes
+      end
       self:push(bytes)
     else
       self:push()
