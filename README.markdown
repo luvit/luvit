@@ -5,24 +5,51 @@ Luvit 2.0 is a work in progress.
 [![Linux Build Status](https://travis-ci.org/luvit/luvit.svg?branch=luvi-up)](https://travis-ci.org/luvit/luvit)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/72ccr146fm51k7up/branch/luvi-up?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvit/branch/luvi-up)
 
-The original luvit (started 2011 by [Tim Caswell][]) was a node.js-like programming environment, but using Luajit instead of V8.  This meant a change in scripting language and a huge change in memory overhead.  Speed between node and luvit was on the same order of magnatude with V8 being faster sometimes and Luajit faster sometimes.  But memory was far more efficient in luvit.  A small node.js program used about 20 times more memory than a similar luvit program.  Luvit found it's niche in places like [cloud monitoring][] and scripting on slower devices like Raspberry PIs.  It had nearly identical APIs to node and thus was easy to learn for developers looking for something like node, but less memory hungry.
+The original luvit (started 2011 by [Tim Caswell][]) was a node.js-like
+programming environment, but using Luajit instead of V8. This meant a
+change in scripting language and a huge change in memory overhead. Speed
+between node and luvit was on the same order of magnatude with V8 being
+faster sometimes and Luajit faster sometimes. But memory was far more
+efficient in luvit. A small node.js program used about 20 times more
+memory than a similar luvit program. Luvit found it's niche in places
+like [cloud monitoring][] and scripting on slower devices like Raspberry
+PIs. It had nearly identical APIs to node and thus was easy to learn for
+developers looking for something like node, but less memory hungry.
 
-Luvit 2.0 is a reboot of this idea but far more flexible and configurable.  The new system consists of many parts that can be used with or without the new luvit framework.
+Luvit 2.0 is a reboot of this idea but far more flexible and
+configurable. The new system consists of many parts that can be used
+with or without the new luvit framework.
 
  - [luv][] - New [libUV][] bindings for [Lua][] and [Luajit][].
  - [luvi][] - Pre-compiled [luajit][] + [luv][] + [openssl][] + [zlib][] with zip asset bundling and self-executing apps.
- - [lit][] - The **L**uvit **I**nvention **T**oolkit is a multi-tool for building apps, running apps, installing, publishing, and serving libraries and apps.  Contains [luvi][] and can embed it in new apps.
+ - [lit][] - The **L**uvit **I**nvention **T**oolkit is a multi-tool
+   for building apps, running apps, installing, publishing, and
+   serving libraries and apps.  Contains [luvi][] and can embed it in
+   new apps.
 
-These three projects offer layers of abstraction and control.  You can use [luv][] standalone with any lua based runtime.  You can build apps with [luvi][], which includes [luv][], without using [lit][] or Luvit.  The [lit][] tool embeds [luvi][] and adds higher-level commands and workflows.
+These three projects offer layers of abstraction and control.  You can
+use [luv][] standalone with any lua based runtime.  You can build apps
+with [luvi][], which includes [luv][], without using [lit][] or Luvit.
+The [lit][] tool embeds [luvi][] and adds higher-level commands and
+workflows.
 
-Luvit 2.0 is one more layer on top of this that implements the [node.js][] [APIs](http://nodejs.org/api/) in lua as a collection of standalone [lit libraries][].  Luvit can be used several different ways from lit.
+Luvit 2.0 is one more layer on top of this that implements the
+[node.js][] [APIs](http://nodejs.org/api/) in lua as a collection of
+standalone [lit libraries][].  Luvit can be used several different
+ways from lit.
 
 
 ## Luvit 2.0 the Framework
 
-You can use luvit as a metapackage that includes the luvit runtime as a library as well as including all the luvit standard library as recursive dependencies to your app.  Simply declare `luvit/luvit` as a dependency to your lit app and use the luvit library in your `main.lua` and your standalone executable will live inside a luvit style environment.
+You can use luvit as a metapackage that includes the luvit runtime as
+a library as well as including all the luvit standard library as
+recursive dependencies to your app.  Simply declare `luvit/luvit` as a
+dependency to your lit app and use the luvit library in your
+`main.lua` and your standalone executable will live inside a luvit
+style environment.
 
-A sample `package.lua` that includes luvit might look like the following:
+A sample `package.lua` that includes luvit might look like the
+following:
 
 ```lua
 return {
@@ -35,7 +62,8 @@ return {
 }
 ```
 
-And the luvit bootstrap in your app's `main.lua` will look something like:
+And the luvit bootstrap in your app's `main.lua` will look something
+like:
 
 ```lua
 -- Bootstrap the require system
@@ -49,18 +77,25 @@ return require('luvit')(function (...)
 end, ...)
 ```
 
-Then when you build your app with `lit make`, luvit and all it's libraries will be included in your app.  Also if you install your app's deps to disk using `lit install`, luvit and all it's deps will be included in the `deps` folder.
+Then when you build your app with `lit make`, luvit and all it's
+libraries will be included in your app.  Also if you install your
+app's deps to disk using `lit install`, luvit and all it's deps will
+be included in the `deps` folder.
 
 ```sh
 ~/my-cool-app $ lit make
 ~/my-cool-app $ ./my-cool-app
 ```
 
-You app will have it's own custom main, but will have all the same builtins and globals as luvit (plus whatever other globals and builtins you added).
+You app will have it's own custom main, but will have all the same
+builtins and globals as luvit (plus whatever other globals and
+builtins you added).
 
 ## Luvit 2.0 the Platform
 
-You can build the `luvit/luvit` metapackage as an app directly to create the `luvit` command-line tool that mimics the `node` tool and lets you run arbitrary lua scripts.
+You can build the `luvit/luvit` metapackage as an app directly to
+create the `luvit` command-line tool that mimics the `node` tool and
+lets you run arbitrary lua scripts.
 
 ```sh
 curl -L https://github.com/luvit/luvit/archive/luvi-up.zip > luvit.zip
@@ -73,9 +108,16 @@ This works much like the original luvit platform.
 
 ## Luvit 2.0 the Library
 
-The individual packages that make up the luvit 2.0 metapackage can be used on their own without buying into the whole ecosystem.  Perhaps you love the pretty-printer and and advanced readline repl but abhor callbacks and want to use coroutines instead.  Just mix and match luvit libraries with other lit libraries in your app or library.  Each component of the luvit metapackage can be used directly and will automatically pull in any inter-dependencies it needs.
+The individual packages that make up the luvit 2.0 metapackage can be
+used on their own without buying into the whole ecosystem.  Perhaps
+you love the pretty-printer and and advanced readline repl but abhor
+callbacks and want to use coroutines instead.  Just mix and match
+luvit libraries with other lit libraries in your app or library.  Each
+component of the luvit metapackage can be used directly and will
+automatically pull in any inter-dependencies it needs.
 
-For example, the `creationix/rye` app uses parts of luvit, but not it's globals and full set of modules.
+For example, the `creationix/rye` app uses parts of luvit, but not
+it's globals and full set of modules.
 
 ```lua
 return {
@@ -113,11 +155,13 @@ return {
 
 # LUVI INTEGRATION IN PROGRESS
 
-This branch replaces luvit's backend with [luvi][].  This means that most luvit
-development is now done in pure lua and doesn't require a build step to test.
+This branch replaces luvit's backend with [luvi][]. This means that most
+luvit development is now done in pure lua and doesn't require a build
+step to test.
 
-First build and/or install luvi and put it somewhere in your path.  This should
-work on Windows, OSX, or Linux.  Windows binaries can usually be found at
+First build and/or install luvi and put it somewhere
+in your path. This should work on Windows, OSX, or
+Linux. Windows binaries can usually be found at
 <https://ci.appveyor.com/project/racker-buildbot/luvit/build/artifacts>.
 
 Then grab the `luvi-up` branch of luvit.
