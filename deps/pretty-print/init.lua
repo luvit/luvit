@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/pretty-print"
-exports.version = "0.1.0"
+exports.version = "0.1.1"
 
 local uv = require('uv')
 local env = require('env')
@@ -193,11 +193,13 @@ function dump(value)
       local total = 0
       for _ in pairs(value) do total = total + 1 end
 
+      local nextIndex = 1
       for k, v in pairs(value) do
         indent()
-        if k == i then
-          -- if the key matches the index, don't show it.
+        if k == nextIndex then
+          -- if the key matches the last numerical index + 1
           -- This is how lists print without keys
+          nextIndex = k + 1
           process(v)
         else
           if type(k) == "string" and string.find(k,"^[%a_][%a%d_]*$") then
