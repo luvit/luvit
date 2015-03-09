@@ -20,7 +20,6 @@ exports.name = "luvit/https"
 exports.version = "0.1.2"
 
 local fmt = require('string').format
-local url = require('url')
 local tls = require('tls')
 local http = require('http')
 

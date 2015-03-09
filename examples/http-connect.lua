@@ -1,6 +1,4 @@
-
 local http = require('http')
-local https = require('https')
 
 local options = {
   host = '10.10.10.10',        -- proxy ip
@@ -22,6 +20,3 @@ proxy:on('connect', function(response, socket, headers)
   socket:emit('alreadyConnected', socket)
 end)
 proxy:done()
-
-
-
