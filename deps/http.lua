@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http"
-exports.version = "0.1.3"
+exports.version = "0.1.4"
 
 local net = require('net')
 local url = require('url')
@@ -369,7 +369,7 @@ end
 function ClientRequest:done(data, encoding, cb)
   -- Send the data if connected otherwise just mark it ended
   self:flushHeaders()
-  self.ended = 
+  self.ended =
     {cb = cb or function() end
     ,data = data
     ,encoding = encoding}

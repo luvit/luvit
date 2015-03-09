@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/stream"
-exports.version = "0.1.0"
+exports.version = "0.1.1"
 
 exports.Stream = require('./stream_core').Stream
 exports.Writable = require('./stream_writable').Writable
