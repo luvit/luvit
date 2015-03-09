@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/process"
-exports.version = "0.1.1"
+exports.version = "0.1.2"
 
 local env = require('env')
 local hooks = require('hooks')

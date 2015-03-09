@@ -1,7 +1,7 @@
 
 if exports then
   exports.name = "luvit/require"
-  exports.version = "0.2.3"
+  exports.version = "0.2.4"
 end
 
 local luvi = require('luvi')

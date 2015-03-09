@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/fs"
-exports.version = "0.1.2"
+exports.version = "0.1.3"
 
 local uv = require('uv')
 local adapt = require('utils').adapt
