@@ -22,4 +22,4 @@ uninstall:
 	rm -f /usr/local/bin/lit
 
 lint:
-	find modules -name "*.lua" | xargs luacheck
+	find deps -name "*.lua" | xargs luacheck

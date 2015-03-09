@@ -236,7 +236,7 @@ function ClientRequest:initialize(options, callback)
     end
     local uafound = key:lower() == 'user-agent'
     if uafound then
-      user_agent_found = value
+      user_agent = value
     end
     table.insert(self, header)
   end

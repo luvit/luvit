@@ -26,6 +26,9 @@ local timer = require('timer')
 local utils = require('utils')
 local uv = require('uv')
 local Emitter = require('core').Emitter
+local Readable = require('stream').Readable
+local Writable = require('stream').Writable
+local pp = require('pretty-print')
 
 local function nextTick(...)
   timer.setImmediate(...)
@@ -94,6 +97,35 @@ local function exit(self, code)
   os.exit(code)
 end
 
+local UvStreamWritable = Writable:extend()
+function UvStreamWritable:initialize(handle)
+  Writable.initialize(self)
+  self.handle = handle
+end
+
+function UvStreamWritable:_write(data, encoding, callback)
+  uv.write(self.handle, data, callback)
+end
+
+local UvStreamReadable = Readable:extend()
+function UvStreamReadable:initialize(handle)
+  Readable.initialize(self)
+  self.handle = handle
+end
+
+function UvStreamReadable:_read(n)
+  local function onRead(err, data)
+    if err then
+      return self:emit('error', err)
+    end
+    self:push(data)
+  end
+  if not uv.is_active(self.handle) then
+    uv.read_start(self.handle, onRead)
+  end
+end
+
+
 local function globalProcess()
   local process = Emitter:new()
   process.argv = args
@@ -106,6 +138,9 @@ local function globalProcess()
   process.on = on
   process.exit = exit
   process.removeListener = removeListener
+  process.stdin = UvStreamReadable:new(pp.stdin)
+  process.stdout = UvStreamWritable:new(pp.stdout)
+  process.stderr = UvStreamWritable:new(pp.stderr)
   hooks:on('process.exit', utils.bind(process.emit, process, 'exit'))
   return process
 end
