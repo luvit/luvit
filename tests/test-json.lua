@@ -72,6 +72,6 @@ require('tap')(function(test)
   test('unicode', function()
     local s = "{\"f\":\"こんにちは 世界\"}"
     local obj = JSON.parse(s)
-    assert(obj.f)
+    assert(obj.f and obj.f == "こんにちは 世界")
   end)
 end)
