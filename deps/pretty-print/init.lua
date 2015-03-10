@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/pretty-print"
-exports.version = "0.1.1"
+exports.version = "1.0.0"
 
 local uv = require('uv')
 local env = require('env')

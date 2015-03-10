@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http-codec"
-exports.version = "0.1.5"
+exports.version = "1.0.0"
 
 local sub = string.sub
 local gsub = string.gsub

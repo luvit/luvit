@@ -1,5 +1,5 @@
 exports.name = "luvit/json"
-exports.version = "0.1.0"
+exports.version = "1.0.0"
 
 -- Module options:
 local always_try_using_lpeg = false
