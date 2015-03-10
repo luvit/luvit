@@ -22,6 +22,7 @@ return require('./init')(function (...)
   local luvi = require('luvi')
   local uv = require('uv')
   local utils = require('utils')
+  local package = require('./package.lua')
 
   local startRepl = nil
   local combo = nil
@@ -46,7 +47,7 @@ return require('./init')(function (...)
   end
 
   local function version()
-    print("TODO: show luvit version")
+    print('luvit version: ' .. package.version)
     startRepl = false
   end
 
