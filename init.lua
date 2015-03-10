@@ -28,15 +28,23 @@ return function (main, ...)
     math.randomseed(os.clock())
   end
 
-  -- Call the main app
-  main(...)
+  local args = {...}
+  local success, err = xpcall(function ()
+    -- Call the main app
+    main(unpack(args))
 
-  -- Start the event loop
-  uv.run()
+    -- Start the event loop
+    uv.run()
+  end, debug.traceback)
 
-  -- Allow actions to run at process exit.
-  require('hooks'):emit('process.exit')
-  uv.run()
+  if success then
+    -- Allow actions to run at process exit.
+    require('hooks'):emit('process.exit')
+    uv.run()
+  else
+    _G.process.exitCode = -1
+    require('pretty-print').stderr:write("Uncaught exception:\n" .. err .. "\n")
+  end
 
   -- When the loop exits, close all unclosed uv handles.
   uv.walk(function (handle)
