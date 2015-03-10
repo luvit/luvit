@@ -26,6 +26,13 @@ return function (main, ...)
   _G.p = utils.prettyPrint
   _G.process = require('process').globalProcess()
 
+  -- Seed Lua's RNG
+  do
+    local math = require('math')
+    local os = require('os')
+    math.randomseed(os.clock())
+  end
+
   -- Call the main app
   main(...)
 
