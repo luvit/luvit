@@ -138,6 +138,27 @@ return {
 }
 ```
 
+## Building from Git
+
+### On Linux/OSX/FreeBSD
+
+```
+make
+make install
+```
+
+### On Windows
+
+```
+make.bat
+```
+
+## Binary Modules
+
+Luvit supports FFI and Lua based binary modules. There is a wiki entry
+explaining how to manage and include a binary module within a bundled
+application. [Publishing Compiled Code][]
+
 [cloud monitoring]: https://github.com/virgo-agent-toolkit
 [Tim Caswell]: https://github.com/creationix
 [libuv]: http://docs.libuv.org/en/v1.x/
@@ -150,50 +171,4 @@ return {
 [openssl]: https://www.openssl.org/
 [zlib]: http://www.zlib.net/
 [node.js]: http://nodejs.org/
-
---------------------------------------------------------------------------------
-
-# LUVI INTEGRATION IN PROGRESS
-
-This branch replaces luvit's backend with [luvi][]. This means that most
-luvit development is now done in pure lua and doesn't require a build
-step to test.
-
-First build and/or install luvi and put it somewhere
-in your path. This should work on Windows, OSX, or
-Linux. Windows binaries can usually be found at
-<https://ci.appveyor.com/project/racker-buildbot/luvit/build/artifacts>.
-
-Then grab the `luvi-up` branch of luvit.
-
-```sh
-git clone git@github.com:luvit/luvit.git --branch luvi-up
-cd luvit
-```
-
-Now configure luvi to run this app in dev mode:
-
-```sh
-export LUVI_APP=`pwd`/app
-```
-
-Or if you're on windows, use `set` to set the `LUVI_APP` environment variable to
-point to the `app` subfolder in luvit's clone.
-
-Now, whenever you run luvi, it will act as if the code in `app` was zipped and
-appended to it's excutable (it's the bundle).
-
-To actually *build* luvit, run the `make` command which is really just running
-luvi with some special flags telling it to bundle the luvit code and create a
-new binary.
-
-```sh
-LUVI_APP=app LUVI_TARGET=luvit luvi
-```
-
-To test your code, use the test target in the makefile or run the
-`tests\run.lua` file with luvit.
-
-```sh
-make test
-```
+[Publishing Compiled Code]: https://github.com/luvit/lit/wiki/Publishing-Compiled-Code
