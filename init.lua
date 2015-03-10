@@ -15,15 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local utils = require('utils')
 local uv = require('uv')
 
-
 return function (main, ...)
-  -- Make print go through libuv for windows colors
-  _G.print = utils.print
-  -- Register global 'p' for easy pretty printing
-  _G.p = utils.prettyPrint
+  -- Inject the global process table
   _G.process = require('process').globalProcess()
 
   -- Seed Lua's RNG
@@ -38,12 +33,17 @@ return function (main, ...)
 
   -- Start the event loop
   uv.run()
+
+  -- Allow actions to run at process exit.
   require('hooks'):emit('process.exit')
   uv.run()
 
-  -- When the loop exits, close all uv handles.
-  uv.walk(uv.close)
+  -- When the loop exits, close all unclosed uv handles.
+  uv.walk(function (handle)
+    if not handle:is_closing() then handle:close() end
+  end)
   uv.run()
 
+  -- Send the exitCode to luvi to return from C's main.
   return _G.process.exitCode
 end
