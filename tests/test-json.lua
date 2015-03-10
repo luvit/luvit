@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2014 The Luvit Authors. All Rights Reserved.
+Copyright 2015 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,19 +26,19 @@ require('tap')(function(test)
   end)
   test('parse invalid json', function()
     for _, x in ipairs({ '', ' ', '{', '[', '{"f":', '{"f":1', '{"f":1', }) do
-      local status, pos, result = pcall(JSON.parse, x)
+      local status, _, result = pcall(JSON.parse, x)
       assert(status)
       assert(result)
     end
     for _, x in ipairs({ '{]', '[}', }) do
-      local status, pos, result = pcall(JSON.parse, x)
+      local status, _, result = pcall(JSON.parse, x)
       assert(status)
       assert(result)
     end
   end)
   test('parse valid json', function()
     for _, x in ipairs({ '[]', '{}', }) do
-      local status, result = pcall(JSON.parse, x)
+      local _, result = pcall(JSON.parse, x)
       assert(type(result) == 'table')
     end
   end)
@@ -65,8 +65,13 @@ require('tap')(function(test)
   end)
   test('strict', function()
     for _, x in ipairs({ '{f:1}', "{'f':1}", }) do
-      local status, _, msg = pcall(JSON.parse, x)
+      local status, _, _ = pcall(JSON.parse, x)
       assert(status)
     end
+  end)
+  test('unicode', function()
+    local s = "{\"f\":\"こんにちは 世界\"}"
+    local obj = JSON.parse(s)
+    assert(obj.f and obj.f == "こんにちは 世界")
   end)
 end)
