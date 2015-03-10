@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/url"
-exports.version = "0.1.1"
+exports.version = "1.0.0"
 
 local querystring = require('querystring')
 

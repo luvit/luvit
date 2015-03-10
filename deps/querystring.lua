@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/querystring"
-exports.version = "0.1.1"
+exports.version = "1.0.0"
 
 local string = require('string')
 local find = string.find

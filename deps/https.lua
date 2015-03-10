@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/https"
-exports.version = "0.1.3"
+exports.version = "1.0.0"
 
 local fmt = require('string').format
 local tls = require('tls')

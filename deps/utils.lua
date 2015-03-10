@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/utils"
-exports.version = "0.1.0"
+exports.version = "1.0.0"
 
 local pp = require('pretty-print')
 for name, value in pairs(pp) do

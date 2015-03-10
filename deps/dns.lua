@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2014 The Luvit Authors. All Rights Reserved.
+Copyright 2014-2015 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 exports.name = "luvit/dns"
-exports.version = "0.1.1"
+exports.version = "1.0.0"
 
 local dgram = require('dgram')
 local fs = require('fs')

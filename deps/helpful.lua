@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/helpful"
-exports.version = "0.1.1"
+exports.version = "1.0.0"
 
 function string.levenshtein(str1, str2)
   local len1 = string.len(str1)
