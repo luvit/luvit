@@ -110,13 +110,6 @@ return require('./init')(function (...)
 
   if startRepl == nil and not script then startRepl = true end
 
-  -- Seed Lua's RNG
-  do
-    local math = require('math')
-    local os = require('os')
-    math.randomseed(os.clock())
-  end
-
   if script then
     require(luvi.path.join(uv.cwd(), script))
   end
