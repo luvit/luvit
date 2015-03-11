@@ -28,11 +28,11 @@ local date = require('os').date
 local luvi = require('luvi')
 local utils = require('utils')
 
-local IncomingMessage = Readable:extend()
+local IncomingMessage = net.Socket:extend()
 exports.IncomingMessage = IncomingMessage
 
 function IncomingMessage:initialize(head, socket)
-  Readable.initialize(self)
+  net.Socket.initialize(self)
   self.httpVersion = tostring(head.version)
   local headers = {}
   for i = 1, #head do
