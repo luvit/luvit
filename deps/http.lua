@@ -277,7 +277,7 @@ function ClientRequest:initialize(options, callback)
   socket:on('error',function(...) self:emit('error',...) end)
   socket:on(connect_emitter, function()
     self.connected = true
-    self:once('socket', socket)
+    self:emit('socket', socket)
 
     socket:on('data', function(chunk)
       -- Run the chunk through the decoder by concatenating and looping
@@ -298,7 +298,7 @@ function ClientRequest:initialize(options, callback)
             if callback then
               callback(res)
             end
-            self:once('response', res)
+            self:emit('response', res)
           end
           if self.method == 'CONNECT' then
             self:emit('connect', res, socket, event)
