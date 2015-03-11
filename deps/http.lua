@@ -17,12 +17,11 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http"
-exports.version = "1.0.0"
+exports.version = "1.0.2"
 
 local net = require('net')
 local url = require('url')
 local codec = require('http-codec')
-local Readable = require('stream').Readable
 local Writable = require('stream').Writable
 local date = require('os').date
 local luvi = require('luvi')

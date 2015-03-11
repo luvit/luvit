@@ -1,6 +1,6 @@
 return {
   name = "luvit/luvit",
-  version = "1.9.9",
+  version = "2.0.0",
   dependencies = {
     "luvit/buffer@1.0.0",
     "luvit/childprocess@1.0.0",
@@ -11,7 +11,7 @@ return {
     "luvit/fs@1.0.0",
     "luvit/helpful@1.0.0",
     "luvit/hooks@1.0.0",
-    "luvit/http@1.0.0",
+    "luvit/http@1.0.2",
     "luvit/http-codec@1.0.0",
     "luvit/https@1.0.0",
     "luvit/json@1.0.0",
@@ -23,7 +23,7 @@ return {
     "luvit/querystring@1.0.0",
     "luvit/readline@1.0.1",
     "luvit/repl@1.0.0",
-    "luvit/require@1.0.0",
+    "luvit/require@1.0.1",
     "luvit/stream@1.0.0",
     "luvit/timer@1.0.0",
     "luvit/tls@1.0.0",

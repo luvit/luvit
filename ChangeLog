@@ -1,3 +1,15 @@
+* 2.0.0 Major Release
+
+This is a rewrite of nearly the entire luvit stack from the ground up.
+
+  * New libuv bindings in the luvit/luv project binding to libuv 1.x
+	* New core runtime in luvit/luvi that integrates all C code and embeds
+	bundled zip assets.
+	* New package manager and general workflow tool in luvit/lit
+	* Luvit 2.0 is now a luvi app published to luvit/luvit in ws://lit.luvit.io
+	* Luvit is also a set of libraries you can include in your own luvi app to
+	get the same userspace as luvit, but with a custom main.
+
 * Changes between 0.8.2 to 0.10.0
 
 	Updates

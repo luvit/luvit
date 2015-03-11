@@ -12,6 +12,7 @@ test_script:
 
 artifacts:
     - path: luvit.exe
+    - path: lit.exe
 
 notifications:
     email: true
