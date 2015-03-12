@@ -266,7 +266,7 @@ function ClientRequest:initialize(options, callback)
   local res
 
   local function flush()
-    res:push()
+    res:_end()
     res = nil
   end
 
