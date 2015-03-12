@@ -38,6 +38,27 @@ Luvit 2.0 is one more layer on top of this that implements the
 standalone [lit libraries][].  Luvit can be used several different
 ways from lit.
 
+## Getting Luvit
+
+First make sure you have `lit` [installed](https://github.com/luvit/lit#installing-lit) and in your path.
+
+Then luvit can be built with the `lit make` command using a remote app url.
+
+The latest published lit release of luvit can be built with:
+
+```sh
+lit make lit://luvit/luvit
+```
+
+If you'd rather test the master branch on github, use:
+
+```sh
+lit make github://luvit/luvit
+```
+
+Both these commands will create a `luvit` executable in the current directory, put it in your path somewhere.
+
+To test your install run `luvit` to enter the repl.  This has readline-like capabilities implemented in lua and has tab completion of expressions for interactive exploring the runtime.
 
 ## Luvit 2.0 the Framework
 
@@ -138,20 +159,25 @@ return {
 }
 ```
 
-## Building from Git
+## Hacking on Luvit Core
 
-### On Linux/OSX/FreeBSD
+First you need to clone and build luvit, this is easy and works cross-platform thanks to `Makefile` and `make.bat`.
 
-```
+```sh
+git clone https://github.com/luvit/luvit.git
+cd luvit
 make
-make install
 ```
 
-### On Windows
+If you want to test luvit without constantly building, set the magic `LUVI_APP` variable that makes **all** luvi binaries use a certain folder for the app bundle.  This is best done with a bash alias so as to not break other luvi based apps like `lit`.
 
+```sh
+alias luvit=LUVI_APP=`pwd`" "luvit
 ```
-make.bat
-```
+
+Also you can use `lit run` in the luvit root folder.
+
+Always make sure to run `make test` before submitting a PR.
 
 ## Binary Modules
 
