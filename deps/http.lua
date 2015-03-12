@@ -237,6 +237,9 @@ function ClientRequest:initialize(options, callback)
     if uafound then
       user_agent = value
     end
+    if key:lower() == 'transfer-encoding' then
+      self.transfer_encoding = value
+    end
     table.insert(self, header)
   end
 
@@ -367,7 +370,11 @@ end
 
 function ClientRequest:done(data, encoding, cb)
   -- Send the data if connected otherwise just mark it ended
-  self:flushHeaders()
+  if self.transfer_encoding and self.transfer_encoding:lower() == 'chunked' then
+    self:write('') -- Send nothing/ends chunked encoded data/flush header
+  else
+    self:flushHeaders() --just flush the headers
+  end
   self.ended =
     {cb = cb or function() end
     ,data = data
