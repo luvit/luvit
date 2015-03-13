@@ -225,21 +225,16 @@ end
 function TLSSocket:_read(n)
   local onHandshake, onData, handshake
 
-  function onData(err, data)
+  function onData(err, cipherText)
     timer.active(self)
     if err then
       return self:destroy(err)
-    elseif data then
-      local ret, i, _
-      ret, _ = self.inp:write(data)
-      if ret == nil then
-         return
-      end
-      i = self.inp:pending()
-      while i > 0 do
-        ret = self.ssl:read()
-        if ret then self:push(ret) end
-        i = self.inp:pending()
+    elseif cipherText then
+      if self.inp:write(cipherText) then
+        repeat
+          local plainText = self.ssl:read()
+          if plainText then self:push(plainText) end
+        until not plainText
       end
     else
       self:push(nil)
