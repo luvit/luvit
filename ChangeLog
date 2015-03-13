@@ -1,3 +1,10 @@
+* Changes between 2.0.0 and 2.0.1
+
+ * Fix issue where a TLS stream would sometimes not emit data [Tim Caswell]
+ * Add missing SSL cert for thawte Premium Server [Ryan Phillips]
+ * Flush HTTP stream with _end() [Ryan Phillips]
+ * Fix "socket" and "response" events in HTTP [Tim Caswell]
+
 * 2.0.0 Major Release
 
 This is a rewrite of nearly the entire luvit stack from the ground up.

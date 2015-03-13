@@ -1,6 +1,6 @@
 APP_FILES=$(shell find . -type f -name '*.lua')
 BIN_ROOT=lit/luvi-binaries/$(shell uname -s)_$(shell uname -m)
-LIT_VERSION=1.0.0
+LIT_VERSION=1.0.1
 
 luvit: lit $(APP_FILES)
 	./lit make
