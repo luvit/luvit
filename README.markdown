@@ -8,7 +8,7 @@ Luvit 2.0 is a work in progress.
 The original luvit (started 2011 by [Tim Caswell][]) was a node.js-like
 programming environment, but using Luajit instead of V8. This meant a
 change in scripting language and a huge change in memory overhead. Speed
-between node and luvit was on the same order of magnatude with V8 being
+between node and luvit was on the same order of magnitude with V8 being
 faster sometimes and Luajit faster sometimes. But memory was far more
 efficient in luvit. A small node.js program used about 20 times more
 memory than a similar luvit program. Luvit found its niche in places
