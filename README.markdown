@@ -11,7 +11,7 @@ change in scripting language and a huge change in memory overhead. Speed
 between node and luvit was on the same order of magnatude with V8 being
 faster sometimes and Luajit faster sometimes. But memory was far more
 efficient in luvit. A small node.js program used about 20 times more
-memory than a similar luvit program. Luvit found it's niche in places
+memory than a similar luvit program. Luvit found its niche in places
 like [cloud monitoring][] and scripting on slower devices like Raspberry
 PIs. It had nearly identical APIs to node and thus was easy to learn for
 developers looking for something like node, but less memory hungry.
