@@ -111,9 +111,18 @@ local UvStreamReadable = Readable:extend()
 function UvStreamReadable:initialize(handle)
   Readable.initialize(self)
   self.handle = handle
+  self:on('pause', utils.bind(self._onPause, self))
+end
+
+function UvStreamReadable:_onPause()
+  uv.read_stop(self.handle)
 end
 
 function UvStreamReadable:_read(n)
+  -- If we are paused then return
+  if self._readableState.flowing == false then
+    return 
+  end
   local function onRead(err, data)
     if err then
       return self:emit('error', err)
@@ -124,7 +133,6 @@ function UvStreamReadable:_read(n)
     uv.read_start(self.handle, onRead)
   end
 end
-
 
 local function globalProcess()
   local process = Emitter:new()
