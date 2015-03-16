@@ -139,6 +139,7 @@ tls_sc_create(lua_State *L) {
   /* TODO: customize Session cache */
   SSL_CTX_set_session_cache_mode(ctx->ctx, SSL_SESS_CACHE_SERVER);
   SSL_CTX_set_options(ctx->ctx, SSL_OP_NO_COMPRESSION);
+  SSL_CTX_set_mode(ctx->ctx, SSL_MODE_RELEASE_BUFFERS);
 
   return 1;
 }
