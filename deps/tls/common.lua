@@ -33,10 +33,11 @@ exports.DEFAULT_CIPHERS = DEFAULT_CIPHERS
 
 -------------------------------------------------------------------------------
 
-local getSecureOptions = function(protocol, options)
+local getSecureOptions = function(protocol, flags)
   return bit.bor(openssl.ssl.no_sslv2,
                  openssl.ssl.no_sslv3,
-                 openssl.ssl.no_compression)
+                 openssl.ssl.no_compression,
+                 flags or 0)
 end
 
 -------------------------------------------------------------------------------
@@ -62,7 +63,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
   else
     self.context = openssl.ssl.ctx_new(secureProtocol or 'TLSv1',
       defaultCiphers or DEFAULT_CIPHERS)
-    self.context:mode('release_buffers')
+    self.context:mode(true, 'release_buffers')
     self.context:options(getSecureOptions(secureProtocol, flags))
   end
 end
