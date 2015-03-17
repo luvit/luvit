@@ -73,6 +73,17 @@ require('tap')(function(test)
     child:on('error', expect(onError))
   end)
 
+  test('invalid command verify exit callback', function(expect)
+    local child, onExit
+
+    function onExit(err)
+      assert(err)
+    end
+
+    child = spawn('skfjsldkfjskdfjdsklfj')
+    child:on('exit', expect(onExit))
+  end)
+
   test('process.env pairs', function()
     local key = "LUVIT_TEST_VARIABLE_1"
     local value = "TEST1"

@@ -47,8 +47,8 @@ function Process:kill(signal)
   self:destroy()
 end
 
-function Process:close(code, signal)
-  if self.handle then uv.close(self.handle, utils.bind(self.emit, self, 'exit', code, signal)) end
+function Process:close()
+  if self.handle then uv.close(self.handle) end
   self:destroy()
 end
 
@@ -92,7 +92,8 @@ local function spawn(command, args, options)
     else
        em.exitCode = code
     end
-    em:close(code, signal)
+    em:emit('exit', code, signal)
+    em:close()
   end
 
   handle, pid = uv.spawn(command, {
@@ -107,8 +108,8 @@ local function spawn(command, args, options)
   em:setPid(pid)
 
   if em.handle == nil then
-    local err = pid
-    em:destroy(Error:new(err))
+    timer.setImmediate(utils.bind(em.emit, em, 'exit', -127))
+    em:destroy(Error:new(pid))
   end
 
   return em
