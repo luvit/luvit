@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/process"
-exports.version = "1.0.0"
+exports.version = "1.0.1"
 
 local env = require('env')
 local hooks = require('hooks')
@@ -121,7 +121,7 @@ end
 function UvStreamReadable:_read(n)
   -- If we are paused then return
   if self._readableState.flowing == false then
-    return 
+    return
   end
   local function onRead(err, data)
     if err then
