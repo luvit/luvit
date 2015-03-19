@@ -9,6 +9,10 @@ This collection of packages and modules implementes a node.js style API for the 
 
 See the main project webpage for more details. <https://luvit.io/>
 
+## Need Help?
+
+Ask questions here through issues, on irc [#luvit@freenode](irc://chat.freenode.net/luvit) or the [mailing list](https://groups.google.com/forum/#!forum/luvit).
+
 ## Binary Modules
 
 Luvit supports FFI and Lua based binary modules. There is a wiki entry
