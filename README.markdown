@@ -9,9 +9,33 @@ This collection of packages and modules implementes a node.js style API for the 
 
 See the main project webpage for more details. <https://luvit.io/>
 
-## Hacking on Luvit
+## Binary Modules
 
-If you want to develop on luvit itself, the following workflows work well:
+Luvit supports FFI and Lua based binary modules. There is a wiki entry
+explaining how to manage and include a binary module within a bundled
+application. [Publishing Compiled Code][]
+
+## Hacking on Luvit Core
+
+First you need to clone and build luvit, this is easy and works cross-platform thanks to `Makefile` and `make.bat`.
+
+```sh
+git clone https://github.com/luvit/luvit.git
+cd luvit
+make
+```
+
+If you want to test luvit without constantly building, set the magic `LUVI_APP` variable that makes **all** luvi binaries use a certain folder for the app bundle.  This is best done with a bash alias so as to not break other luvi based apps like `lit`.
+
+```sh
+alias luvit=LUVI_APP=`pwd`" "luvit
+```
+
+Also you can use `lit run` in the luvit root folder.
+
+Always make sure to run `make test` before submitting a PR.
+
+## Notes to Maintainers
 
  - Use `LUVI_APP=/path/to/luvit luvit` to test changes without rebuilding the binary.
  - To run the test suite, either run `make test` to build a luvit and use that.
@@ -25,3 +49,5 @@ deps && lit install`.  This will install the latest version of all the
 packages from lit.  Check the diff carefully to make sure you're not undoing
 any work.  There might have been unpublished changes locally in luvit that
 aren't in the lit central database yet.
+
+[Publishing Compiled Code]: https://github.com/luvit/lit/wiki/Publishing-Compiled-Code
