@@ -119,10 +119,6 @@ function UvStreamReadable:_onPause()
 end
 
 function UvStreamReadable:_read(n)
-  -- If we are paused then return
-  if self._readableState.flowing == false then
-    return
-  end
   local function onRead(err, data)
     if err then
       return self:emit('error', err)
