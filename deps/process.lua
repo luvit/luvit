@@ -109,7 +109,7 @@ end
 
 local UvStreamReadable = Readable:extend()
 function UvStreamReadable:initialize(handle)
-  Readable.initialize(self)
+  Readable.initialize(self, { highWaterMark = 0 })
   self._readableState.reading = false
   self.reading = false
   self.handle = handle
