@@ -111,6 +111,7 @@ local UvStreamReadable = Readable:extend()
 function UvStreamReadable:initialize(handle)
   Readable.initialize(self)
   self._readableState.reading = false
+  self.reading = false
   self.handle = handle
   self:on('pause', utils.bind(self._onPause, self))
 end
