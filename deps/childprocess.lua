@@ -108,7 +108,7 @@ local function spawn(command, args, options)
   em:setPid(pid)
 
   if em.handle == nil then
-    timer.setImmediate(utils.bind(em.emit, em, 'exit', -127))
+    process.nextTick(utils.bind(em.emit, em, 'exit', -127))
     em:destroy(Error:new(pid))
   end
 
