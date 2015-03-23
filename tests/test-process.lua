@@ -15,6 +15,7 @@ require('tap')(function(test)
 
   test('signal usr1,usr2,hup', function(expect)
     local onHUP, onUSR1, onUSR2
+    if los.type() == 'win32' then return end
     function onHUP() process:removeListener('sighup', onHUP) end
     function onUSR1() process:removeListener('sigusr1', onUSR1) end
     function onUSR2() process:removeListener('sigusr2', onUSR2) end
