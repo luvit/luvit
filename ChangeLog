@@ -1,4 +1,9 @@
 
+* Changes between 2.0.2 and 2.0.3
+
+ * set the highwaterMark to 0 on the stdin stream [Ryan Phillips]
+ * schedule emitter exit for nextTick [Ryan Phillips]
+
 * Changes between 2.0.1 and 2.0.2
 
  * childprocess: Fix exit event. [Ryan Phillips]
