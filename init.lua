@@ -48,7 +48,7 @@ return function (main, ...)
 
   -- When the loop exits, close all unclosed uv handles.
   uv.walk(function (handle)
-    if not handle:is_closing() then handle:close() end
+    if handle and not handle:is_closing() then handle:close() end
   end)
   uv.run()
 
