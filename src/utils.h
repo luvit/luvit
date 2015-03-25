@@ -100,6 +100,7 @@ uv_pipe_t*     luv_create_pipe(lua_State* L);
 uv_poll_t*     luv_create_poll(lua_State* L);
 uv_signal_t*   luv_create_signal(lua_State* L);
 uv_tty_t*      luv_create_tty(lua_State* L);
+uv_prepare_t*  luv_create_prepare(lua_State* L);
 
 /**/
 lua_State* luv_handle_get_lua(luv_handle_t* lhandle);

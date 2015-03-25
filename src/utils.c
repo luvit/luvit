@@ -240,6 +240,9 @@ uv_signal_t* luv_create_signal(lua_State* L) {
 uv_tty_t* luv_create_tty(lua_State* L) {
   return (uv_tty_t*)luv_handle_create(L, sizeof(uv_tty_t), "luv_tty")->handle;
 }
+uv_prepare_t* luv_create_prepare(lua_State* L) {
+  return (uv_prepare_t*)luv_handle_create(L, sizeof(uv_prepare_t), "luv_prepare")->handle;
+}
 
 /* This needs to be called when an async function is started on a lhandle. */
 void luv_handle_ref(lua_State* L, luv_handle_t* lhandle, int index) {

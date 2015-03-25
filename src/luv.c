@@ -26,6 +26,8 @@
 #include "luv_udp.h"
 #include "luv_fs_watcher.h"
 #include "luv_timer.h"
+#include "luv_prepare.h"
+#include "luv_tcp.h"
 #include "luv_process.h"
 #include "luv_signal.h"
 #include "luv_stream.h"
@@ -69,6 +71,11 @@ static const luaL_reg luv_f[] = {
   {"timerSetRepeat", luv_timer_set_repeat},
   {"timerGetRepeat", luv_timer_get_repeat},
   {"timerGetActive", luv_timer_get_active},
+
+  /* Prepare functions */
+  {"newPrepare", luv_new_prepare},
+  {"prepareStart", luv_prepare_start},
+  {"prepareStop", luv_prepare_stop},
 
   /* Process functions */
   {"spawn", luv_spawn},
