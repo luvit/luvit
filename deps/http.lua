@@ -122,7 +122,7 @@ function ServerResponse:finish(chunk)
   if #last > 0 then
     self.socket:write(last)
   end
-  self.socket:_end()
+  self.socket = nil
 end
 
 function ServerResponse:writeHead(statusCode, headers)
