@@ -46,12 +46,12 @@ require('tap')(function(test)
         port = PORT,
         path = "/foo",
         headers = {{"bar", "cats"}}
-        }, function(response)
+        }, expect(function(response)
           p('client:onResponse', response)
           assert(response.statusCode == 200)
           assert(response.httpVersion == '1.1')
           server:close()
-      end)
+      end))
       req:done()
     end)
   end)
