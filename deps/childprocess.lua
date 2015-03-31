@@ -97,6 +97,7 @@ local function spawn(command, args, options)
   end
 
   handle, pid = uv.spawn(command, {
+    cwd = options.cwd or nil,
     stdio = stdio,
     args = args,
     env = envPairs,
