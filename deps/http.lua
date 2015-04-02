@@ -348,7 +348,9 @@ end
 
 function ClientRequest:write(data, encoding, cb)
   self:flushHeaders()
-  Writable.write(self, self.encode(data), encoding, cb)
+  if data ~= nil then
+    Writable.write(self, self.encode(data), encoding, cb)
+  end
 end
 
 function ClientRequest:_write(data, encoding, cb)
@@ -371,18 +373,14 @@ function ClientRequest:_setConnection()
 end
 
 function ClientRequest:done(data, encoding, cb)
-  -- Send the data if connected otherwise just mark it ended
-  if self.transfer_encoding and self.transfer_encoding:lower() == 'chunked' then
-    self:write('') -- Send nothing/ends chunked encoded data/flush header
-  else
-    self:flushHeaders() --just flush the headers
-  end
+  -- Add the data to the Writable, trigger the flush
+  self:write(data, encoding)
   self.ended =
     {cb = cb or function() end
-    ,data = data
+    ,data = ''
     ,encoding = encoding}
   if self.connected then
-    self:_done(self.encode(data), encoding, cb)
+    self:_done(self.encode(''), encoding, cb)
   end
 end
 
