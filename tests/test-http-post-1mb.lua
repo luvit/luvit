@@ -40,6 +40,7 @@ require('tap')(function(test)
         postBuffer = postBuffer .. chunk
       end)
       request:on('end', expect(function()
+        p('server:onEnd')
         assert(postBuffer == data)
         response:write(data)
         response:finish()
