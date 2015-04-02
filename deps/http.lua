@@ -239,9 +239,6 @@ function ClientRequest:initialize(options, callback)
     if uafound then
       user_agent = value
     end
-    if key:lower() == 'transfer-encoding' then
-      self.transfer_encoding = value
-    end
     table.insert(self, header)
   end
 
