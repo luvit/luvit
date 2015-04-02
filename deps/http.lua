@@ -349,7 +349,10 @@ end
 function ClientRequest:write(data, encoding, cb)
   self:flushHeaders()
   if data ~= nil then
-    Writable.write(self, self.encode(data), encoding, cb)
+    local encoded = self.encode(data)
+    if encoded ~= "" then
+      Writable.write(self, encoded, encoding, cb)
+    end
   end
 end
 
