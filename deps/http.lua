@@ -348,11 +348,14 @@ end
 
 function ClientRequest:write(data, encoding, cb)
   self:flushHeaders()
-  if data ~= nil then
-    local encoded = self.encode(data)
-    if encoded ~= "" then
-      Writable.write(self, encoded, encoding, cb)
-    end
+
+  -- Don't write empty chunks, they signify EOS to the http-codec
+  if #data == 0 then return end
+
+  local encoded = self.encode(data)
+  -- Don't write empty strings to the socket, it breaks HTTPS.
+  if #encoded > 0 then
+    Writable.write(self, encoded, encoding, cb)
   end
 end
 
@@ -376,8 +379,11 @@ function ClientRequest:_setConnection()
 end
 
 function ClientRequest:done(data, encoding, cb)
-  -- Add the data to the Writable, trigger the flush
-  self:write(data, encoding)
+  -- Optionally send one more chunk
+  if data then self:write(data, encoding) end
+
+  self:flushHeaders()
+
   self.ended =
     {cb = cb or function() end
     ,data = ''
