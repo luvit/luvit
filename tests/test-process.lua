@@ -66,6 +66,9 @@ require('tap')(function(test)
   test('invalid command', function(expect)
     local child, onError
 
+    -- disable on windows, bug in libuv
+    if los.type() == 'win32' then return end
+
     function onError(err)
       assert(err)
     end
@@ -76,6 +79,9 @@ require('tap')(function(test)
 
   test('invalid command verify exit callback', function(expect)
     local child, onExit
+
+    -- disable on windows, bug in libuv
+    if los.type() == 'win32' then return end
 
     function onExit(err)
       assert(err)
