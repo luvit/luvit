@@ -1,3 +1,10 @@
+* Changes between 2.0.3 and 2.0.4
+
+ * Bump lit to 1.0.3
+ * Add cwd option to spawn [Alfred Tascon]
+ * Fix handle nil error [gsick]
+ * http fixes [Rob Emanuele]
+ * Add libcurl sample [Ryan Phillips]
 
 * Changes between 2.0.2 and 2.0.3
 
