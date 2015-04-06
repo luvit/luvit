@@ -122,7 +122,9 @@ function ServerResponse:finish(chunk)
   if #last > 0 then
     self.socket:write(last)
   end
-  self.socket:_end()
+  self.socket:shutdown(function()
+    self.socket:_end()
+  end)
 end
 
 function ServerResponse:writeHead(statusCode, headers)
@@ -343,7 +345,16 @@ end
 
 function ClientRequest:write(data, encoding, cb)
   self:flushHeaders()
-  Writable.write(self, self.encode(data), encoding, cb)
+  local encoded = self.encode(data)
+
+  -- Don't write empty strings to the socket, it breaks HTTPS.
+  if #encoded > 0 then
+    Writable.write(self, encoded, encoding, cb)
+  else
+    if cb then
+      cb()
+    end
+  end
 end
 
 function ClientRequest:_write(data, encoding, cb)
@@ -366,14 +377,21 @@ function ClientRequest:_setConnection()
 end
 
 function ClientRequest:done(data, encoding, cb)
-  -- Send the data if connected otherwise just mark it ended
+  -- Optionally send one more chunk
+  if data then self:write(data, encoding) end
+
   self:flushHeaders()
-  self.ended =
-    {cb = cb or function() end
-    ,data = data
-    ,encoding = encoding}
+
+  local ended =
+    {
+      cb = cb or function() end,
+      data = '',
+      encoding = encoding
+    }
   if self.connected then
-    self:_done(self.encode(data), encoding, cb)
+    self:_done(ended.data, ended.encoding, ended.cb)
+  else
+    self.ended = ended
   end
 end
 
