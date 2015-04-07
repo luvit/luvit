@@ -1,3 +1,7 @@
+* Changes between 2.0.4 and 2.0.5
+
+ * Fix `connect` alias in net module. [Tim Caswell]
+
 * Changes between 2.0.3 and 2.0.4
 
  * Bump lit to 1.0.3
