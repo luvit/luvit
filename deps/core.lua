@@ -302,6 +302,16 @@ function Emitter:wrap(name)
   end
 end
 
+-- Propagate the event to another emitter.
+function Emitter:propagate(eventName, target)
+  if (target and target.emit) then
+    self:on(eventName, function (...) target:emit(eventName, ...) end)
+    return target
+  end
+
+  return self
+end
+
 --------------------------------------------------------------------------------
 
 -- This is for code that wants structured error messages.
