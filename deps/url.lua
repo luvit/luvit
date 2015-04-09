@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
 exports.name = "luvit/url"
 exports.version = "1.0.0"
 
@@ -25,6 +24,10 @@ function exports.parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
+
+  local chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)') 
+  url = url:sub((chunk and #chunk or 0) + 1)
+  
   local host = url:match("^([^/]+)")
   local hostname, port
   if host then
@@ -71,11 +74,13 @@ function exports.parse(url, parseQueryString)
     path = path,
     pathname = pathname,
     search = search,
-    query = query
+    query = query,
+    auth = auth
   }
 
 end
 
+--p(exports.parse("https://GabrielNicolasAvellaneda:s3cr3t@github.com:443/GabrielNicolasAvellaneda/luvit"))
 --p(exports.parse("http://creationix.com:8080/foo/bar?this=sdr"))
 --p(exports.parse("http://creationix.com/foo/bar?this=sdr"))
 --p(exports.parse("http://creationix.com/foo/bar"))
