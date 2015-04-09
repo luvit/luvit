@@ -305,8 +305,11 @@ end
 -- Propagate the event to another emitter.
 function Emitter:propagate(eventName, target)
   if (target and target.emit) then
-    return self:on(eventName, function (...) target:emit(eventName, ...) end)
+    self:on(eventName, function (...) target:emit(eventName, ...) end)
+    return target
   end
+
+  return self
 end
 
 --------------------------------------------------------------------------------
