@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/net"
-exports.version = "1.0.0"
+exports.version = "1.0.1"
 
 local uv = require('uv')
 local timer = require('timer')
@@ -334,7 +334,7 @@ exports.createConnection = function(port, ... --[[ host, cb --]])
   return sock
 end
 
-exports.create = exports.createConnection
+exports.connect = exports.createConnection
 
 exports.createServer = function(options, connectionListener)
   local server = Server:new()

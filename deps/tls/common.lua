@@ -69,7 +69,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
 end
 
 function Credential:addRootCerts()
-  self.context:cert_store(loadRootCAStore())
+  self.context:cert_store(exports.DEFAULT_CA_STORE)
 end
 
 function Credential:setCA(certs)
