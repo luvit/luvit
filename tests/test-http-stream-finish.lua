@@ -1,7 +1,16 @@
 local http = require("http")
 
 require('tap')(function(test)
-  test('http stream end', function(expect)
+
+  --[[test('http stream end #1', function(expect)
+	http.get('http://www.google.com.br', expect(function(resp)
+		resp:on('end', expect(function(data)
+			p('Get response ended')
+		end))
+  	end))
+  end)]]
+
+  test('http stream end #2', function(expect)
     local server
     server = http.createServer(function (req, res)
       local body = "Hello world\n"
