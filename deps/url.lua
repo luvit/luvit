@@ -23,24 +23,33 @@ local querystring = require('querystring')
 function exports.parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
+  url = url:sub((chunk and #chunk or 0) + 1)
+  
   local auth
+  chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)') 
   url = url:sub((chunk and #chunk or 0) + 1)
-  chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)')
-  url = url:sub((chunk and #chunk or 0) + 1)
-
-  local host = url:match("^([^/]+)")
-  local hostname, port
-  if host then
-    hostname = host:match("^([^:/]+)")
-    port = host:match(":(%d+)$")
-    host = hostname
+         
+  local host
+  local hostname
+  local port
+  if protocol then
+    host = url:match("^([%a%.%d-]+:?%d*)")
+    if host then
+      hostname = host:match("^([^:/]+)")
+      port = host:match(":(%d+)$")
+    end
+  url = url:sub((host and #host or 0) + 1)
   end
 
-  url = url:sub((host and #host or 0) + 1)
+  host = hostname -- Just to be compatible with our code base. Discuss this.
+
   local path
   local pathname
   local search
   local query
+  local hash  
+  hash = url:match("(#.*)$") 
+  url = url:sub(1, (#url - (hash and #hash or 0)))
 
   if url ~= '' then
     path = url
@@ -71,22 +80,12 @@ function exports.parse(url, parseQueryString)
     host = host,
     hostname = hostname,
     port = port,
-    path = path,
-    pathname = pathname,
+    path = path or '/',
+    pathname = pathname or '/',
     search = search,
     query = query,
-    auth = auth
+    auth = auth,
+    hash = hash
   }
 
 end
-
---p(exports.parse("https://GabrielNicolasAvellaneda:s3cr3t@github.com:443/GabrielNicolasAvellaneda/luvit"))
---p(exports.parse("http://creationix.com:8080/foo/bar?this=sdr"))
---p(exports.parse("http://creationix.com/foo/bar?this=sdr"))
---p(exports.parse("http://creationix.com/foo/bar"))
---p(exports.parse("http://creationix.com/"))
---p(exports.parse("creationix.com/"))
---p(exports.parse("/"))
---p(exports.parse("/foobar"))
---p(exports.parse("/README.markdown"))
-

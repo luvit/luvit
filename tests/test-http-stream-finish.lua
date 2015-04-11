@@ -1,7 +1,8 @@
 local http = require("http")
 
 require('tap')(function(test)
-  test('http stream end', function(expect)
+
+  test('http stream end #1', function(expect)
     local server
     server = http.createServer(function (req, res)
       local body = "Hello world\n"
