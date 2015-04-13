@@ -44,7 +44,7 @@ end
 
 function Process:kill(signal)
   if self.handle then uv.process_kill(self.handle, signal or 'sigterm') end
-  self:destroy()
+  self:close()
 end
 
 function Process:close()
