@@ -75,6 +75,8 @@ require('tap')(function(test)
 
     child = spawn('skfjsldkfjskdfjdsklfj')
     child:on('error', expect(onError))
+    child.stdout:on('error', expect(onError))
+    child.stderr:on('error', expect(onError))
   end)
 
   test('invalid command verify exit callback', function(expect)
