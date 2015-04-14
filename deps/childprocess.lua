@@ -23,6 +23,7 @@ local core = require('core')
 local net = require('net')
 local timer = require('timer')
 local uv = require('uv')
+local utils = require('utils')
 
 local Error = core.Error
 
@@ -42,12 +43,12 @@ function Process:setPid(pid)
 end
 
 function Process:kill(signal)
-  if self.handle then uv.process_kill(self.handle, signal or 'sigterm') end
+  if self.handle and not uv.is_closing(self.handle) then uv.process_kill(self.handle, signal or 'sigterm') end
   self:close(Error:new('killed'))
 end
 
 function Process:close(err)
-  if self.handle then uv.close(self.handle) end
+  if self.handle and not uv.is_closing(self.handle) then uv.close(self.handle) end
   self:destroy(err)
 end
 
