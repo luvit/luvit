@@ -43,27 +43,31 @@ function Process:setPid(pid)
 end
 
 function Process:kill(signal)
-  if self.handle then uv.process_kill(self.handle, signal or 'sigterm') end
-  self:close()
+  if self.handle and not uv.is_closing(self.handle) then uv.process_kill(self.handle, signal or 'sigterm') end
+  self:close(Error:new('killed'))
 end
 
-function Process:close()
-  if self.handle then uv.close(self.handle) end
-  self:destroy()
+function Process:close(err)
+  if self.handle and not uv.is_closing(self.handle) then uv.close(self.handle) end
+  self:destroy(err)
 end
 
 function Process:destroy(err)
-  self:_cleanup()
+  self:_cleanup(err)
   if err then
-    timer.setImmediate(utils.bind(self.emit, self, 'error', err))
+    timer.setImmediate(function() self:emit('error', err) end)
   end
 end
 
-function Process:_cleanup()
-  self.stdout:on('end', function() self.stdout:destroy() end)
-  self.stdout:resume()
-  self.stderr:destroy()
-  self.stdin:destroy()
+function Process:_cleanup(err)
+  if err then
+    self.stdout:destroy(err)
+  else
+    self.stdout:on('end', function() self.stdout:destroy() end)
+    self.stdout:resume()
+  end
+  self.stderr:destroy(err)
+  self.stdin:destroy(err)
 end
 
 local function spawn(command, args, options)
@@ -109,8 +113,10 @@ local function spawn(command, args, options)
   em:setPid(pid)
 
   if em.handle == nil then
-    process.nextTick(utils.bind(em.emit, em, 'exit', -127))
-    em:destroy(Error:new(pid))
+    timer.setImmediate(function()
+      em:emit('exit', -127)
+      em:destroy(Error:new(pid))
+    end)
   end
 
   return em
