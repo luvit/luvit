@@ -63,7 +63,7 @@ function Process:_cleanup(err)
   if err then
     self.stdout:destroy(err)
   else
-    self.stdout:on('end', function() self.stdout:destroy() end)
+    self.stdout:once('end', function() self.stdout:destroy(err) end)
     self.stdout:resume()
   end
   self.stderr:destroy(err)

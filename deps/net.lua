@@ -215,10 +215,10 @@ function Socket:destroy(exception, callback)
   self.writable = false
 
   if uv.is_closing(self._handle) then
-    return callback(exception)
+    timer.setImmediate(callback)
+  else
+    uv.close(self._handle, callback)
   end
-
-  uv.close(self._handle)
 
   if exception then
     process.nextTick(function()
