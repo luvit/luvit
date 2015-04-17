@@ -48,6 +48,7 @@ return require('./init')(function (...)
 
   local function version()
     print('luvit version: ' .. package.version)
+    print('luvi version: ' .. require('luvi').version)
     startRepl = false
   end
 

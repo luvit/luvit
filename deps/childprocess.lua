@@ -17,13 +17,12 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/childprocess"
-exports.version = "1.0.3"
+exports.version = "1.0.4"
 
 local core = require('core')
 local net = require('net')
 local timer = require('timer')
 local uv = require('uv')
-local utils = require('utils')
 
 local Error = core.Error
 
