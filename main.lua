@@ -74,7 +74,7 @@ return require('./init')(function (...)
       startRepl = true
     end,
     ["no-color"] = function ()
-      utils.loadColors()
+      utils.loadColors(false)
     end,
     ["16-colors"] = function ()
       utils.loadColors(16)
