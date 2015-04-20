@@ -23,7 +23,7 @@ module.
 local core = exports
 
 exports.name = "luvit/core"
-exports.version = "1.0.1"
+exports.version = "1.0.2"
 
 --[[
 Returns whether obj is instance of class or not.
