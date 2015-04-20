@@ -28,9 +28,8 @@ local onwrite, writeAfterEnd, validChunk, writeOrBuffer, clearBuffer,
 
 local WriteReq = core.Object:extend()
 
-function WriteReq:initialize(chunk, encoding, cb)
+function WriteReq:initialize(chunk, cb)
   self.chunk = chunk
-  self.encoding = encoding
   self.callback = cb
 end
 
@@ -89,13 +88,6 @@ function WritableState:initialize(options, stream)
   // handling at a lower level.
   local noDecode = options.decodeStrings == false
   self.decodeStrings = not noDecode
-  --]]
-
-  --[[
-  // Crypto is kind of old and crusty.  Historically, its default string
-  // encoding is 'binary' so we have to make this configurable.
-  // Everything else in the universe uses 'utf8', though.
-  self.defaultEncoding = options.defaultEncoding || 'utf8'
   --]]
 
   --[[
@@ -224,21 +216,9 @@ function validChunk(stream, state, chunk, cb)
   return valid
 end
 
-function Writable:write(chunk, encoding, cb)
+function Writable:write(chunk, cb)
   local state = self._writableState
   local ret = false
-
-  if type(encoding) == 'function' then
-    cb = encoding
-    encoding = nil
-  end
-  --[[
-
-  if (util.isBuffer(chunk))
-    encoding = 'buffer'
-  else if (!encoding)
-    encoding = state.defaultEncoding
-  --]]
 
   if type(cb) ~= 'function' then
     cb = function() end
@@ -248,7 +228,7 @@ function Writable:write(chunk, encoding, cb)
     writeAfterEnd(self, state, cb)
   elseif validChunk(self, state, chunk, cb) then
     state.pendingcb = state.pendingcb + 1
-    ret = writeOrBuffer(self, state, chunk, encoding, cb)
+    ret = writeOrBuffer(self, state, chunk, cb)
   end
 
   return ret
@@ -276,13 +256,13 @@ function Writable:uncork()
   end
 end
 
-function decodeChunk(state, chunk, encoding)
+function decodeChunk(state, chunk)
 
 --[[
   if (!state.objectMode &&
       state.decodeStrings !== false &&
       util.isString(chunk)) {
-    chunk = new Buffer(chunk, encoding)
+    chunk = new Buffer(chunk)
   }
 --]]
   return chunk
@@ -293,8 +273,8 @@ end
 // in the queue, and wait our turn.  Otherwise, call _write
 // If we return false, then we need a drain event, so set that flag.
 --]]
-function writeOrBuffer(stream, state, chunk, encoding, cb)
-  chunk = decodeChunk(state, chunk, encoding)
+function writeOrBuffer(stream, state, chunk, cb)
+  chunk = decodeChunk(state, chunk)
   --[[
   if (util.isBuffer(chunk))
     encoding = 'buffer'
@@ -317,15 +297,15 @@ function writeOrBuffer(stream, state, chunk, encoding, cb)
   end
 
   if state.writing or state.corked ~= 0 then
-    table.insert(state.buffer, WriteReq:new(chunk, encoding, cb))
+    table.insert(state.buffer, WriteReq:new(chunk, cb))
   else
-    doWrite(stream, state, false, len, chunk, encoding, cb)
+    doWrite(stream, state, false, len, chunk, cb)
   end
 
   return ret
 end
 
-function doWrite(stream, state, writev, len, chunk, encoding, cb)
+function doWrite(stream, state, writev, len, chunk, cb)
   state.writelen = len
   state.writecb = cb
   state.writing = true
@@ -333,7 +313,7 @@ function doWrite(stream, state, writev, len, chunk, encoding, cb)
   if writev then
     stream:_writev(chunk, state.onwrite)
   else
-    stream:_write(chunk, encoding, state.onwrite)
+    stream:_write(chunk, state.onwrite)
   end
   state.sync = false
 end
@@ -453,7 +433,6 @@ function clearBuffer(stream, state)
     while c <= table.getn(state.buffer) do
       local entry = state.buffer[c]
       local chunk = entry.chunk
-      local encoding = entry.encoding
       local cb = entry.callback
       local len
       if state.objectMode then
@@ -462,7 +441,7 @@ function clearBuffer(stream, state)
         len =string.len(chunk)
       end
 
-      doWrite(stream, state, false, len, chunk, encoding, cb)
+      doWrite(stream, state, false, len, chunk, cb)
 
       --[[
       // if we didn't call the onwrite immediately, then
@@ -490,25 +469,22 @@ function clearBuffer(stream, state)
   state.bufferProcessing = false
 end
 
-function Writable:_write(chunk, encoding, cb)
+function Writable:_write(chunk, cb)
   cb(Error:new('not implemented'))
 end
 
 Writable._writev = nil
 
-function Writable:_end(chunk, encoding, cb)
+function Writable:_end(chunk, cb)
   local state = self._writableState
 
   if type(chunk) == 'function' then
     cb = chunk
     chunk = nil
-  elseif type(encoding) == 'function' then
-    cb = encoding
-    encoding = nil
   end
 
   if chunk ~= nil then
-    self:write(chunk, encoding)
+    self:write(chunk)
   end
 
   --[[

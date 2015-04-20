@@ -88,7 +88,7 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:_write(data, encoding, callback)
+function Socket:_write(data, callback)
   if not self._handle then return end
   timer.active(self)
   uv.write(self._handle, data, function(err)
