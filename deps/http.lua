@@ -123,7 +123,7 @@ function ServerResponse:finish(chunk)
   if #last > 0 then
     self.socket:write(last)
   end
-  timer.setImmediate(function()
+  process.nextTick(function()
     self.socket:shutdown(function() self.socket:_end() end)
   end)
 end

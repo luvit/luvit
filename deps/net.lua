@@ -90,6 +90,7 @@ end
 
 function Socket:_write(data, encoding, callback)
   if not self._handle then return end
+  if not callback then callback = function() end end
   timer.active(self)
   uv.write(self._handle, data, function(err)
     timer.active(self)
