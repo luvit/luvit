@@ -26,6 +26,7 @@ local Writable = require('stream').Writable
 local date = require('os').date
 local luvi = require('luvi')
 local utils = require('utils')
+local timer = require('timer')
 
 local IncomingMessage = net.Socket:extend()
 exports.IncomingMessage = IncomingMessage
@@ -107,9 +108,9 @@ function ServerResponse:flushHeaders()
   self:writeHead(self.statusCode, self.headers)
 end
 
-function ServerResponse:write(chunk)
+function ServerResponse:write(chunk, encoding, callback)
   self:flushHeaders()
-  return self.socket:write(self.encode(chunk))
+  return self.socket:write(self.encode(chunk), encoding, callback)
 end
 
 function ServerResponse:finish(chunk)
@@ -122,8 +123,8 @@ function ServerResponse:finish(chunk)
   if #last > 0 then
     self.socket:write(last)
   end
-  self.socket:shutdown(function()
-    self.socket:_end()
+  timer.setImmediate(function()
+    self.socket:shutdown(function() self.socket:_end() end)
   end)
 end
 
