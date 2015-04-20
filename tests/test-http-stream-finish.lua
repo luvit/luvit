@@ -7,7 +7,6 @@ require('tap')(function(test)
       local body = "Hello world\n"
       res:on("finish", expect(function()
         p('sending resp finished')
-        server:close()
       end))
       res:writeHead(200, {
         ["Content-Type"] = "text/plain",
@@ -18,6 +17,7 @@ require('tap')(function(test)
     http.get('http://127.0.0.1:8080', expect(function(resp)
       resp:on('end', expect(function(data)
         p('Get response ended')
+        server:close()
       end))
     end))
   end)

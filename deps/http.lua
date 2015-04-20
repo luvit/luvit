@@ -107,9 +107,9 @@ function ServerResponse:flushHeaders()
   self:writeHead(self.statusCode, self.headers)
 end
 
-function ServerResponse:write(chunk)
+function ServerResponse:write(chunk, callback)
   self:flushHeaders()
-  return self.socket:write(self.encode(chunk))
+  return self.socket:write(self.encode(chunk), callback)
 end
 
 function ServerResponse:finish(chunk)
@@ -120,11 +120,12 @@ function ServerResponse:finish(chunk)
   end
   last = last .. (self.encode("") or "")
   if #last > 0 then
-    self.socket:write(last)
-  end
-  self.socket:shutdown(function()
+    self.socket:write(last, function()
+      self.socket:_end()
+    end)
+  else
     self.socket:_end()
-  end)
+  end
 end
 
 function ServerResponse:writeHead(statusCode, headers)

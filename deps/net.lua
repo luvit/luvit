@@ -94,12 +94,11 @@ function Socket:_write(data, callback)
   uv.write(self._handle, data, function(err)
     timer.active(self)
     if err then
-      callback(err)
       self:destroy(err)
-      return
+      return callback(err)
     end
+    callback()
   end)
-  callback()
 end
 
 function Socket:_read(n)
