@@ -30,7 +30,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.]]
 
 
   test('fs.readstream length', function(expect)
-    local tmp_file = path.join(module.dir, 'test_readstream1.txt')
+    local tmp_file = path.join(module.dir, 'test_readstream')
     fs.writeFileSync(tmp_file, text)
 
     local options = {
@@ -60,7 +60,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.]]
   end)
 
   test('fs.readstream offset and length', function(expect)
-    local tmp_file = path.join(module.dir, 'test_readstream2.txt')
+    local tmp_file = path.join(module.dir, 'test_readstream')
     fs.writeFileSync(tmp_file, text)
 
     local options = {
@@ -90,7 +90,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.]]
   end)
 
   test('fs.readstream offset only', function(expect)
-    local tmp_file = path.join(module.dir, 'test_readstream3.txt')
+    local tmp_file = path.join(module.dir, 'test_readstream')
     fs.writeFileSync(tmp_file, text)
 
     local options = {

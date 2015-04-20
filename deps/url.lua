@@ -23,9 +23,9 @@ local querystring = require('querystring')
 function exports.parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
-  local auth
   url = url:sub((chunk and #chunk or 0) + 1)
-  chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)')
+
+  local chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)')
   url = url:sub((chunk and #chunk or 0) + 1)
 
   local host = url:match("^([^/]+)")

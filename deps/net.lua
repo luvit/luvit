@@ -90,16 +90,16 @@ end
 
 function Socket:_write(data, callback)
   if not self._handle then return end
-  if not callback then callback = function() end end
   timer.active(self)
   uv.write(self._handle, data, function(err)
     timer.active(self)
     if err then
+      callback(err)
       self:destroy(err)
-      return callback(err)
+      return
     end
-    callback()
   end)
+  callback()
 end
 
 function Socket:_read(n)
