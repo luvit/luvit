@@ -1,3 +1,15 @@
+* Changes between 2.0.5 and 2.0.6
+
+ * fix(net): set uv.close callback. [Ryan Phillips]
+ * fix(childprocess): propagate errors through the pipes. [Ryan Phillips]
+ * fix(childprocess): close handle on a process kill. [Ryan Phillips]
+ * tls(x509): use the singleton default x509 store. [Ryan Phillips]
+ * Added the Emitter:propagate method to allow event propagation. [Gabriel Nicolas Avellaneda]
+ * Modified url.parse to add auth parsing. [Gabriel Nicolas Avellaneda]
+ * Fix no-color mode [Tim Caswell]
+ * Merge pretty-print into a single file. [Tim Caswell]
+ * Update lit to 1.1.2 and luvi to v2.0.1. [Tim Caswell]
+
 * Changes between 2.0.4 and 2.0.5
 
  * Fix `connect` alias in net module. [Tim Caswell]

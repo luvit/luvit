@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/net"
-exports.version = "1.0.1"
+exports.version = "1.0.2"
 
 local uv = require('uv')
 local timer = require('timer')
@@ -88,18 +88,17 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:_write(data, encoding, callback)
+function Socket:_write(data, callback)
   if not self._handle then return end
   timer.active(self)
   uv.write(self._handle, data, function(err)
     timer.active(self)
     if err then
-      callback(err)
       self:destroy(err)
-      return
+      return callback(err)
     end
+    callback()
   end)
-  callback()
 end
 
 function Socket:_read(n)
@@ -215,10 +214,10 @@ function Socket:destroy(exception, callback)
   self.writable = false
 
   if uv.is_closing(self._handle) then
-    return callback(exception)
+    timer.setImmediate(callback)
+  else
+    uv.close(self._handle, callback)
   end
-
-  uv.close(self._handle)
 
   if exception then
     process.nextTick(function()

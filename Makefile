@@ -1,6 +1,6 @@
 APP_FILES=$(shell find . -type f -name '*.lua')
 BIN_ROOT=lit/luvi-binaries/$(shell uname -s)_$(shell uname -m)
-LIT_VERSION=1.0.3
+LIT_VERSION=1.1.2
 
 LUVIT_TAG=$(shell git describe)
 LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
@@ -20,6 +20,7 @@ lit:
 install: luvit lit
 	install luvit /usr/local/bin
 	install lit /usr/local/bin
+	install luvi /usr/local/bin
 
 uninstall:
 	rm -f /usr/local/bin/luvit

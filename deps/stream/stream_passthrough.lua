@@ -35,7 +35,7 @@ function PassThrough:initialize(options)
   Transform.initialize(self, options)
 end
 
-function PassThrough:_transform(chunk, encoding, cb)
+function PassThrough:_transform(chunk, cb)
   cb(nil, chunk)
 end
 

@@ -48,6 +48,7 @@ return require('./init')(function (...)
 
   local function version()
     print('luvit version: ' .. package.version)
+    print('luvi version: ' .. require('luvi').version)
     startRepl = false
   end
 
@@ -74,7 +75,7 @@ return require('./init')(function (...)
       startRepl = true
     end,
     ["no-color"] = function ()
-      utils.loadColors()
+      utils.loadColors(false)
     end,
     ["16-colors"] = function ()
       utils.loadColors(16)
