@@ -9,6 +9,9 @@ require('tap')(function(test)
         ["Content-Type"] = "text/plain",
         ["Content-Length"] = #body
       })
+      res:on('finish', expect(function()
+        p('sending resp finished')
+      end))
       res:finish(body)
     end):listen(8080)
     http.get('http://127.0.0.1:8080', expect(function(resp)
