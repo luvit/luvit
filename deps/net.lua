@@ -98,8 +98,8 @@ function Socket:_write(data, encoding, callback)
       self:destroy(err)
       return
     end
+    callback()
   end)
-  callback()
 end
 
 function Socket:_read(n)
