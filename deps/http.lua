@@ -121,11 +121,12 @@ function ServerResponse:finish(chunk)
   end
   last = last .. (self.encode("") or "")
   if #last > 0 then
-    self.socket:write(last)
+    self.socket:write(last, nil, function()
+      self.socket:_end()
+    end)
+  else
+    self.socket:_end()
   end
-  process.nextTick(function()
-    self.socket:shutdown(function() self.socket:_end() end)
-  end)
 end
 
 function ServerResponse:writeHead(statusCode, headers)
