@@ -103,7 +103,7 @@ function UvStreamWritable:initialize(handle)
   self.handle = handle
 end
 
-function UvStreamWritable:_write(data, encoding, callback)
+function UvStreamWritable:_write(data, callback)
   uv.write(self.handle, data, callback)
 end
 

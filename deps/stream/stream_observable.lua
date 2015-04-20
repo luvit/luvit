@@ -41,9 +41,9 @@ function Observable:initialize(options)
   self.observers = {}
 end
 
-function Observable:_transform(chunk, encoding, cb)
+function Observable:_transform(chunk, cb)
   for _,v in pairs(self.observers) do
-    v:push(chunk, encoding)
+    v:push(chunk)
   end
   cb(nil, chunk)
 end

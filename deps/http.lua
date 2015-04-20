@@ -328,7 +328,7 @@ function ClientRequest:initialize(options, callback)
     end)
 
     if self.ended then
-      self:_done(self.ended.data, self.ended.encoding, self.ended.cb)
+      self:_done(self.ended.data, self.ended.cb)
     end
 
   end)
@@ -343,13 +343,13 @@ function ClientRequest:flushHeaders()
   end
 end
 
-function ClientRequest:write(data, encoding, cb)
+function ClientRequest:write(data, cb)
   self:flushHeaders()
   local encoded = self.encode(data)
 
   -- Don't write empty strings to the socket, it breaks HTTPS.
   if #encoded > 0 then
-    Writable.write(self, encoded, encoding, cb)
+    Writable.write(self, encoded, cb)
   else
     if cb then
       cb()
@@ -357,12 +357,12 @@ function ClientRequest:write(data, encoding, cb)
   end
 end
 
-function ClientRequest:_write(data, encoding, cb)
-  self.socket:write(data, encoding, cb)
+function ClientRequest:_write(data, cb)
+  self.socket:write(data, cb)
 end
 
-function ClientRequest:_done(data, encoding, cb)
-  self:_end(data, encoding, function()
+function ClientRequest:_done(data, cb)
+  self:_end(data, function()
     self.socket = nil
     if cb then
       cb()
@@ -376,20 +376,19 @@ function ClientRequest:_setConnection()
   end
 end
 
-function ClientRequest:done(data, encoding, cb)
+function ClientRequest:done(data, cb)
   -- Optionally send one more chunk
-  if data then self:write(data, encoding) end
+  if data then self:write(data) end
 
   self:flushHeaders()
 
   local ended =
     {
       cb = cb or function() end,
-      data = '',
-      encoding = encoding
+      data = ''
     }
   if self.connected then
-    self:_done(ended.data, ended.encoding, ended.cb)
+    self:_done(ended.data, ended.cb)
   else
     self.ended = ended
   end

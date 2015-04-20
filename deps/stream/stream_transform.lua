@@ -149,9 +149,9 @@ function Transform:initialize(options)
   end)
 end
 
-function Transform:push(chunk, encoding)
+function Transform:push(chunk)
   self._transformState.needTransform = false
-  return Duplex.push(self, chunk, encoding)
+  return Duplex.push(self, chunk)
 end
 
 --[[
@@ -166,11 +166,11 @@ end
 // an error, then that'll put the hurt on the whole operation.  If you
 // never call cb(), then you'll never get another chunk.
 --]]
-function Transform:_transform(chunk, encoding, cb)
+function Transform:_transform(chunk, cb)
   error('not implemented')
 end
 
-function Transform:_write(chunk, encoding, cb)
+function Transform:_write(chunk, cb)
   local ts = self._transformState
   ts.writecb = cb
   ts.writechunk = chunk
@@ -194,7 +194,7 @@ function Transform:_read(n)
 
   if ts.writechunk ~= nil and ts.writecb and not ts.transforming then
     ts.transforming = true
-    self:_transform(ts.writechunk, ts.writeencoding, ts.afterTransform)
+    self:_transform(ts.writechunk, ts.afterTransform)
   else
     --[[
     // mark that we need a transform, so that any data that comes in

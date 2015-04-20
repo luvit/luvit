@@ -134,12 +134,12 @@ end
 // similar to how Writable.write() returns true if you should
 // write() some more.
 --]]
-function Readable:push(chunk, encoding)
+function Readable:push(chunk)
   local state = self._readableState
 
   -- encodings are not implemented
 
-  return readableAddChunk(self, state, chunk, encoding, false)
+  return readableAddChunk(self, state, chunk, false)
 end
 
 --[[
@@ -149,7 +149,7 @@ function Readable:unshift(chunk)
   return readableAddChunk(self, self._readableState, chunk, '', true)
 end
 
-function readableAddChunk(stream, state, chunk, encoding, addToFront)
+function readableAddChunk(stream, state, chunk, addToFront)
   local er = chunkInvalid(state, chunk)
   if er then
     stream:emit('error', er)
