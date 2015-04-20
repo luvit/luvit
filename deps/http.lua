@@ -26,7 +26,6 @@ local Writable = require('stream').Writable
 local date = require('os').date
 local luvi = require('luvi')
 local utils = require('utils')
-local timer = require('timer')
 
 local IncomingMessage = net.Socket:extend()
 exports.IncomingMessage = IncomingMessage
