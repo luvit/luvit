@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/net"
-exports.version = "1.0.2"
+exports.version = "1.1.0"
 
 local uv = require('uv')
 local timer = require('timer')
