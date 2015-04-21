@@ -1,6 +1,10 @@
 return {
   name = "luvit/luvit",
   version = "2.1.0",
+  luvi = {
+    version = "2.0.3",
+    flavor = "regular",
+  },
   dependencies = {
     "luvit/buffer@1.0.0",
     "luvit/childprocess@1.0.4",
