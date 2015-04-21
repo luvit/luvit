@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http"
-exports.version = "1.0.4"
+exports.version = "1.1.0"
 
 local net = require('net')
 local url = require('url')

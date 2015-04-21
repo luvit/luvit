@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/tls"
-exports.version = "1.0.3"
+exports.version = "1.1.0"
 
 local loaded = pcall(require, 'openssl')
 if not loaded then return end
