@@ -16,7 +16,10 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/url"
-exports.version = "1.0.3"
+exports.version = "1.0.4"
+exports.dependencies = {
+  "luvit/querystring@1.0.0",
+}
 
 local querystring = require('querystring')
 
