@@ -65,7 +65,7 @@ function exports.request(options, callback)
   end
   options.port = options.port or 443
   options.connect_emitter = 'secureConnection'
-  options.socket = options.socket or createConnection(options.port, options.host)
+  options.socket = options.socket or createConnection(options)
   return http.request(options, callback)
 end
 
