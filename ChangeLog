@@ -1,3 +1,11 @@
+* Changes between 2.1.0 and 2.1.1
+
+ * fix(fs): fs WriteStream was using append flag [Ryan Phillips]
+ * fix(fs): fs streams need to close the socket on 'end' [Ryan Phillips]
+ * fix(https): pass all options to tls socket [Ryan Phillips]
+ * fix(readline): readline fix for pasted strings [Tim Caswell]
+ * fix(dep): querystring for URL module [Tim Caswell]
+
 * Changes between 2.0.6 and 2.1.0
 
  * fix(net): double callback in net :_write [Ryan Phillips]

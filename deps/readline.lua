@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/readline"
-exports.version = "1.0.1"
+exports.version = "1.0.2"
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
