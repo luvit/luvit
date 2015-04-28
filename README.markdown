@@ -3,9 +3,9 @@
 [![Linux Build Status](https://travis-ci.org/luvit/luvit.svg?branch=master)](https://travis-ci.org/luvit/luvit)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/72ccr146fm51k7up/branch/master?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvit/branch/master)
 
-Welcome to the source code for Luvit 2.0.  This repo contains the luvit/luvit metapackage and all luvit/* packages as published to lit.
+Welcome to the source code for Luvit 2.0.  This repo contains the luvit/luvit metapackage and all luvit/* packages as published to [lit][].
 
-This collection of packages and modules implementes a node.js style API for the luvi/lit runtime.  It can be used as both a library or a standalone executible.
+This collection of packages and modules implementes a node.js style API for the [luvi][]/[lit][] runtime.  It can be used as both a library or a standalone executible.
 
 See the main project webpage for more details. <https://luvit.io/>
 
@@ -55,3 +55,5 @@ any work.  There might have been unpublished changes locally in luvit that
 aren't in the lit central database yet.
 
 [Publishing Compiled Code]: https://github.com/luvit/lit/wiki/Publishing-Compiled-Code
+[lit]: https://github.com/luvit/lit/
+[luvi]: https://github.com/luvit/luvi/
