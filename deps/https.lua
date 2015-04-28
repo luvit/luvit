@@ -60,12 +60,11 @@ end
 
 function exports.request(options, callback)
   options = http.parseUrl(options)
-  if options.protocol and options.protocol ~= 'https' then
-    error(fmt('Protocol %s not supported', options.protocol))
+  if options.protocol == 'https' then
+    options.port = options.port or 443
+    options.connect_emitter = 'secureConnection'
+    options.socket = options.socket or createConnection(options.port, options.host)
   end
-  options.port = options.port or 443
-  options.connect_emitter = 'secureConnection'
-  options.socket = options.socket or createConnection(options.port, options.host)
   return http.request(options, callback)
 end
 
