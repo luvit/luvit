@@ -146,6 +146,7 @@ function Socket:keepalive(enable, delay)
 end
 
 function Socket:pause()
+  if not self._handle then return end
   uv.read_stop(self._handle)
 end
 

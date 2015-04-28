@@ -425,7 +425,7 @@ function fs.WriteStream:initialize(path, options)
 
   if not self.fd then self:open() end
 
-  self:on('finish', bind(self.close, self))
+  self:on('end', bind(self.close, self))
 end
 function fs.WriteStream:open(callback)
   if self.fd then self:destroy() end
@@ -522,7 +522,7 @@ function fs.ReadStream:initialize(path, options)
   self.length = options.length
   self.bytesRead = 0
   if not self.fd then self:open() end
-  self:on('finish', bind(self.close, self))
+  self:on('end', bind(self.close, self))
 end
 function fs.ReadStream:open(callback)
   if self.fd then self:destroy() end
