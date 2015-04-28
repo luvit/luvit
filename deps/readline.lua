@@ -90,7 +90,7 @@ function Editor:insert(character)
   local position = self.position
   if #line == position - 1 then
     self.line = line .. character
-    self.position = position + 1
+    self.position = position + #character
     if self.promptLength + #self.line < self.columns then
       self.stdout:write(character)
     else
