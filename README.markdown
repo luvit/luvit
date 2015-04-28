@@ -29,21 +29,19 @@ cd luvit
 make
 ```
 
-If you want to test luvit without constantly building, set the magic `LUVI_APP` variable that makes **all** luvi binaries use a certain folder for the app bundle.  This is best done with a bash alias so as to not break other luvi based apps like `lit`.
+If you want to test luvit without constantly building, use `luvi`.
 
 ```sh
-alias luvit=LUVI_APP=`pwd`" "luvit
+luvi . 
 ```
-
-Also you can use `lit run` in the luvit root folder.
 
 Always make sure to run `make test` before submitting a PR.
 
 ## Notes to Maintainers
 
- - Use `LUVI_APP=/path/to/luvit luvit` to test changes without rebuilding the binary.
- - To run the test suite, either run `make test` to build a luvit and use that.
- - If you want to test a custom built luvi, run `LUVI_APP=. /path/to/luvi tests/run.lua`
+ - Use `luvi /path/to/luvit` to test changes without rebuilding the binary.
+ - To run the test suite, run `make test` to build a luvit and use that.
+ - If you want to test a custom built luvi, run `luvi . -- tests/run.lua`
  - There is a wiki page on making new luvit releases at <https://github.com/luvit/luvit/wiki/Making-a-luvit-release>.
 
 The packages in deps live primarily in this repo, but some are duplicated in
