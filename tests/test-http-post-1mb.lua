@@ -53,6 +53,7 @@ require('tap')(function(test)
         {'Content-Length', MB},
         {'Transfer-Encoding', 'chunked'}
       }
+      local body = {}
       local req = http.request({
         host = HOST,
         port = PORT,
@@ -63,10 +64,12 @@ require('tap')(function(test)
         assert(response.statusCode == 200)
         assert(response.httpVersion == '1.1')
         response:on('data', expect(function(data)
-          assert(data:len() == MB)
-          p('All data received')
+          body[#body+1] = data
+          p('chunk received',data:len())
         end))
         response:on('end', expect(function(data)
+          data = table.concat(body)
+          assert(data:len() == MB)
           p('Response ended')
           server:close()
         end))
