@@ -262,10 +262,10 @@ end
 local function escapeKeysForDisplay(keys)
   return string.gsub(keys, '[%c\\\128-\255]', function(c)
     local b = string.byte(c, 1)
-    if i < 10 then return '\\00' .. c end
-    if i <= 31 then return '\\0' .. c end
-    if i == 92 then return '\\\\' end
-    if i >= 128 and i <= 255 then return '\\' .. c end
+    if b < 10 then return '\\00' .. b end
+    if b <= 31 then return '\\0' .. b end
+    if b == 92 then return '\\\\' end
+    if b >= 128 and b <= 255 then return '\\' .. b end
   end)
 end
 
