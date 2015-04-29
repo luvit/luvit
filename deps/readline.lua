@@ -85,6 +85,16 @@ function Editor:refreshLine()
                .. "\x1b[0G\x1b[" .. tostring(position + self.promptLength - 1) .. "C"
   self.stdout:write(command)
 end
+function Editor:insertAbove(line)
+  -- Cursor to left edge
+  local command = "\x1b[0G"
+  -- Erase to right
+               .. "\x1b[0K"
+
+  self.stdout:write(command .. line .. "\n", function()
+    self:refreshLine()
+  end)
+end
 function Editor:insert(character)
   local line = self.line
   local position = self.position
@@ -249,6 +259,16 @@ function Editor:complete()
   self:refreshLine()
 end
 
+local function escapeKeysForDisplay(keys)
+  return string.gsub(keys, '[%c\\\128-\255]', function(c)
+    local b = string.byte(c, 1)
+    if i < 10 then return '\\00' .. c end
+    if i <= 31 then return '\\0' .. c end
+    if i == 92 then return '\\\\' end
+    if i >= 128 and i <= 255 then return '\\' .. c end
+  end)
+end
+
 function Editor:onKey(key)
   local char = string.byte(key, 1)
   if     char == 13 then  -- Enter
@@ -331,7 +351,7 @@ function Editor:onKey(key)
   elseif char > 31 then
     self:insert(key)
   else
-    p(char, key)
+    self:insertAbove(string.format("Unhandled key(s): %s", escapeKeysForDisplay(key)))
   end
   return true
 end
