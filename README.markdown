@@ -5,7 +5,7 @@
 
 Welcome to the source code for Luvit 2.0.  This repo contains the luvit/luvit metapackage and all luvit/* packages as published to [lit][].
 
-This collection of packages and modules implementes a node.js style API for the [luvi][]/[lit][] runtime.  It can be used as both a library or a standalone executible.
+This collection of packages and modules implementes a node.js style API for the [luvi][]/[lit][] runtime.  It can be used as both a library or a standalone executable.
 
 See the main project webpage for more details. <https://luvit.io/>
 
