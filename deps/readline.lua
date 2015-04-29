@@ -269,9 +269,19 @@ local function escapeKeysForDisplay(keys)
   end)
 end
 
-function Editor:onKey(key)
-  local char = string.byte(key, 1)
-  if     char == 13 then  -- Enter
+-- an array of tables so that the iteration order is consistent
+-- each entry is an array with two entries: a table and a function
+-- the table can contain any number of the following:
+--   numbers (to be compared to the char value),
+--   strings (to be compared to the input string that has been truncated to the same length),
+--   functions (to be called with the (key, char) values and returns either the consumed keys or nil)
+-- the function recieves the Editor instance as the first parameter and the consumedKeys as the second
+--   its returns will be propagated to Editor:onKey if either of them are non-nil
+--   note: the function is only called if the key handler is the one doing the consuming
+local keyHandlers = 
+{
+  -- Enter
+  {{13}, function(self)
     local history = self.history
     local line = self.line
     -- Only record new history if it's non-empty and new
@@ -281,75 +291,139 @@ function Editor:onKey(key)
       history[#history] = nil
     end
     return self.line
-  elseif char == 9 then   -- Tab
-    self:complete()
-  elseif char == 3 then   -- Control-C
+  end},
+  -- Tab
+  {{9}, function(self)
+    self:complete() 
+  end},
+  -- Control-C
+  {{3}, function(self)
     self.stdout:write("^C\n")
     if #self.line > 0 then
       self:deleteLine()
     else
       return false, "SIGINT in readLine"
     end
-  elseif char == 127      -- Backspace
-      or char == 8 then   -- Control-H
+  end},
+  -- Backspace, Control-H
+  {{127, 8}, function(self)
     self:backspace()
-  elseif char == 4 then   -- Control-D
+  end},
+  -- Control-D
+  {{4}, function(self)
     if #self.line > 0 then
       self:delete()
     else
       self.history:updateLastLine()
       return nil, "EOF in readLine"
     end
-  elseif char == 20 then  -- Control-T
+  end},
+  -- Control-T
+  {{20}, function(self)
     self:swap()
-  elseif key == '\027[A'  -- Up Arrow
-      or char == 16 then  -- Control-P
+  end},
+  -- Up Arrow, Control-P
+  {{'\027[A', 16}, function(self)
     self:getHistory(-1)
-  elseif key == '\027[B'  -- Down Arrow
-      or char == 14 then  -- Control-N
+  end},
+  -- Down Arrow, Control-N
+  {{'\027[B', 14}, function(self)
     self:getHistory(1)
-  elseif key == '\027[C'  -- Right Arrow
-      or char == 6 then   -- Control-F
+  end},
+  -- Right Arrow, Control-F
+  {{'\027[C', 6}, function(self)
     self:moveRight()
-  elseif key == '\027[D'  -- Left Arrow
-      or char == 2 then   -- Control-B
+  end},
+  -- Left Arrow, Control-B
+  {{'\027[D', 2}, function(self)
     self:moveLeft()
-  elseif key == '\027[H'  -- Home Key
-      or key == '\027OH'  -- Home for terminator
-      or key == '\027[1~' -- Home for CMD.EXE
-      or char == 1 then   -- Control-A
+  end},
+  -- Home Key, Home for terminator, Home for CMD.EXE, Control-A
+  {{'\027[H', '\027OH', '\027[1~', 1}, function(self)
     self:moveHome()
-  elseif key == '\027[F'  -- End Key
-      or key == '\027OF'  -- End for terminator
-      or key == '\027[4~' -- End for CMD.EXE
-      or char == 5 then   -- Control-E
+  end},
+  -- End Key, End for terminator, End for CMD.EXE, Control-E
+  {{'\027[F', '\027OF', '\027[4~', 5}, function(self)
     self:moveEnd()
-  elseif char == 21 then  -- Control-U
+  end},
+  -- Control-U
+  {{21}, function(self)
     self:deleteLine()
-  elseif char == 11 then  -- Control-K
+  end},
+  -- Control-K
+  {{11}, function(self)
     self:deleteEnd()
-  elseif char == 12 then  -- Control-L
+  end},
+  -- Control-L
+  {{12}, function(self)
     self:clearScreen()
-  elseif char == 23 then  -- Control-W
+  end},
+  -- Control-W
+  {{23}, function(self)
     self:deleteWord()
-  elseif key == '\027[3~' then -- Delete Key
+  end},
+  -- Delete Key
+  {{'\027[3~'}, function(self)
     self:delete()
-  elseif key == '\027[1;5D'  -- Control Left Arrow
-      or key == '\027\027[D' -- Alt Left Arrow (iTerm.app)
-      or key == '\027b' then -- Alt Left Arrow (Terminal.app)
+  end},
+  -- Control Left Arrow, Alt Left Arrow (iTerm.app), Alt Left Arrow (Terminal.app)
+  {{'\027[1;5D', '\027\027[D', '\027b'}, function(self)
     self:jumpLeft()
-  elseif key == '\027[1;5C'  -- Control Right Arrow
-      or key == '\027\027[C' -- Alt Right Arrow (iTerm.app)
-      or key == '\027f' then -- Alt Right Arrow (Terminal.app)
+  end},
+  -- Control Right Arrow, Alt Right Arrow (iTerm.app), Alt Right Arrow (Terminal.app)
+  {{'\027[1;5C', '\027\027[C', '\027f'}, function(self)
     self:jumpRight()
-  elseif key == '\027\027[A'   -- Alt Up Arrow (iTerm.app)
-      or key == '\027[5~' then -- Page Up
+  end},
+  -- Alt Up Arrow (iTerm.app), Page Up
+  {{'\027\027[A', '\027[5~'}, function(self)
     self:getHistory(-10)
-  elseif key == '\027\027[B'   -- Alt Down Arrow (iTerm.app)
-      or key == '\027[6~' then -- Page Down
+  end},
+  -- Alt Down Arrow (iTerm.app), Page Down
+  {{'\027\027[B', '\027[6~'}, function(self)
     self:getHistory(10)
-  elseif char > 31 then
-    self:insert(key)
+  end},
+  -- Printable characters
+  {{function(key, char) return char > 31 and key:sub(1,1) or nil end}, function(self, consumedKeys)
+    self:insert(consumedKeys)
+  end},
+}
+
+function Editor:onKey(key)
+  local char = string.byte(key, 1)
+  local consumedKeys = nil
+
+  for _, keyHandler in ipairs(keyHandlers) do
+    local handledKeys = keyHandler[1]
+    local handlerFn = keyHandler[2]
+    for _, handledKey in ipairs(handledKeys) do
+      if type(handledKey) == "number" then
+        consumedKeys = handledKey == char and key:sub(1,1) or nil
+      elseif type(handledKey) == "string" then
+        -- test against the first key using the same strlen as the handled key
+        local testKey = (type(handledKey) == "string" and #key >= #handledKey) and key:sub(1,#handledKey) or nil
+        consumedKeys = (testKey and testKey == handledKey) and testKey or nil
+      elseif type(handledKey) == "function" then
+        consumedKeys = handledKey(key, char)
+      end
+      if consumedKeys ~= nil then 
+        local ret, err = handlerFn(self, consumedKeys)
+        if err ~= nil or ret ~= nil then
+          return ret, err
+        end
+        break 
+      end
+    end
+    if consumedKeys ~= nil then break end
+  end
+
+  if consumedKeys ~= nil then
+    assert(#consumedKeys > 0)
+    if #consumedKeys < #key then
+      local unconsumedKeys = key:sub(#consumedKeys+1)
+      if #unconsumedKeys > 0 then
+        self:onKey(unconsumedKeys)
+      end
+    end
   else
     self:insertAbove(string.format("Unhandled key(s): %s", escapeKeysForDisplay(key)))
   end
