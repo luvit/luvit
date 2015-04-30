@@ -28,8 +28,10 @@ local History = require('readline').History
 setmetatable(exports, {
   __call = function (_, stdin, stdout, greeting)
 
+  local req, mod = require('require')(pathJoin(uv.cwd(), "repl"))
   local global = setmetatable({
-    require = require('require')(pathJoin(uv.cwd(), "repl"))
+    require = req,
+    module = mod,
   }, {
     __index = _G
   })

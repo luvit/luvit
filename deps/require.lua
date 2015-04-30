@@ -62,6 +62,50 @@ local function readFile(path)
   return data
 end
 
+local function scanDir(path)
+  local bundlePath = path:match("^bundle:/*(.*)")
+  if bundlePath then
+    local names, err = bundle.readdir(bundlePath)
+    if not names then return nil, err end
+    local i = 1
+    return function ()
+      local name = names[i]
+      if not name then return end
+      i = i + 1
+      local stat = assert(bundle.stat(bundlePath .. "/" .. name))
+      return {
+        name = name,
+        type = stat.type,
+      }
+    end
+  else
+    local req, err = uv.fs_scandir(path)
+    if not req then return nil, err end
+    return function ()
+      return uv.fs_scandir_next(req)
+    end
+  end
+end
+
+local statCache = {}
+local function statFile(path)
+  local stat, err
+  stat = statCache[path]
+  if stat then return stat end
+  local bundlePath = path:match("^bundle:/*(.*)")
+  if bundlePath then
+    stat, err = bundle.stat(bundlePath)
+  else
+    stat, err = uv.fs_stat(path)
+  end
+  if stat then
+    statCache[path] = stat
+    return stat
+  end
+  return nil, err or "Problem statting: " .. path
+end
+
+
 local dirCache = {}
 local function isDir(path)
   assert(path)
@@ -133,98 +177,132 @@ local function moduleRequire(base, name)
   end
 end
 
+
 local moduleCache = {}
 
-local function generator(modulePath)
-  assert(modulePath, "Missing path to require generator")
 
+-- Prototype for module tables
+-- module.path - is path to module
+-- module.dir - is path to directory containing module
+-- module.exports - actual exports, initially is an empty table
+local Module = {}
+local moduleMeta = { __index = Module }
+
+local function makeModule(modulePath)
   -- Convert windows paths to unix paths (mostly)
   local path = modulePath:gsub("\\", "/")
   -- Normalize slashes around prefix to be exactly one after
   path = path:gsub("^/*([^/:]+:)/*", "%1/")
+  return setmetatable({
+    path = path,
+    dir = pathJoin(path, ".."),
+    exports = {}
+  }, moduleMeta)
+end
 
-  local base = pathJoin(path, "..")
+function Module:load(path)
+  return readFile(self:resolve(path))
+end
 
-  local function resolve(name)
-    assert(name, "Missing name to resolve")
-    if name:byte(1) == 46 then -- Starts with "."
-      return fixedRequire(pathJoin(base, name))
-    elseif name:byte(1) == 47 then -- Starts with "/"
-      return fixedRequire(name)
-    end
-    return moduleRequire(base, name)
+function Module:scan(path)
+  return scanDir(self:resolve(path))
+end
+
+function Module:stat(path)
+  return statFile(self:resolve(path))
+end
+
+function Module:resolve(name)
+  assert(name, "Missing name to resolve")
+  if name:byte(1) == 46 then -- Starts with "."
+    return fixedRequire(pathJoin(self.dir, name))
+  elseif name:byte(1) == 47 then -- Starts with "/"
+    return fixedRequire(name)
+  end
+  return moduleRequire(self.dir, name)
+end
+
+function Module:require(name)
+  assert(name, "Missing name to require")
+
+  if package.preload[name] or package.loaded[name] then
+    return realRequire(name)
   end
 
-  local function require(name)
-    assert(name, "Missing name to require")
-
-    if package.preload[name] or package.loaded[name] then
-      return realRequire(name)
+  -- Resolve the path
+  local data, path, key = self:resolve(name)
+  if not path then
+    local success, value = pcall(realRequire, name)
+    if success then return value end
+    if not success then
+      error("No such module '" .. name .. "' in '" .. self.path .. "'")
     end
+  end
 
-    -- Resolve the path
-    local data, path, key = resolve(name)
-    if not path then
-      local success, value = pcall(realRequire, name)
-      if success then return value end
-      if not success then
-        error("No such module '" .. name .. "' in '" .. modulePath .. "'")
+  -- Check in the cache for this module
+  local module = moduleCache[key]
+  if module then return module.exports end
+  -- Put a new module in the cache if not
+  module = makeModule(path)
+  moduleCache[key] = module
+
+  local ext = path:match("%.[^/]+$")
+  if ext == ".lua" then
+    local fn = assert(loadstring(data, path))
+    local global = {
+      module = module,
+      exports = module.exports,
+      require = function (...)
+        return module:require(...)
       end
-    end
+    }
+    setfenv(fn, setmetatable(global, { __index = _G }))
+    local ret = fn()
 
-    -- Check in the cache for this module
-    local module = moduleCache[key]
-    if module then return module.exports end
-    -- Put a new module in the cache if not
-    module = { path = path, dir = pathJoin(path, ".."), exports = {} }
-    moduleCache[key] = module
+    -- Allow returning the exports as well
+    if ret then module.exports = ret end
 
-    local ext = path:match("%.[^/]+$")
-    if ext == ".lua" then
-      local fn = assert(loadstring(data, path))
-      local global = {
-        module = module,
-        exports = module.exports
-      }
-      global.require, module.resolve = generator(path)
-      setfenv(fn, setmetatable(global, { __index = _G }))
-      local ret = fn()
-
-      -- Allow returning the exports as well
-      if ret then module.exports = ret end
-
-    elseif ext == binExt then
-      local fnName = "luaopen_" .. name:match("[^/]+$"):match("^[^%.]+")
-      local fn, err
-      local realPath = uv.fs_access(path, "r") and path or uv.fs_access(key, "r") and key
-      if realPath then
-        -- If it's a real file, load it directly
-        fn, err = package.loadlib(realPath, fnName)
-        if not fn then
-          error(realPath .. "#" .. fnName .. ": " .. err)
-        end
-      else
-        -- Otherwise, copy to a temporary folder and read from there
-        local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
-        path = pathJoin(dir, path:match("[^/\\]+$"))
-        local fd = uv.fs_open(path, "w", 384) -- 0600
-        uv.fs_write(fd, data, 0)
-        uv.fs_close(fd)
-        fn, err = package.loadlib(path, fnName)
-        if not fn then
-          error(path .. "#" .. fnName .. ": " .. err)
-        end
-        uv.fs_unlink(path)
-        uv.fs_rmdir(dir)
+  elseif ext == binExt then
+    local fnName = "luaopen_" .. name:match("[^/]+$"):match("^[^%.]+")
+    local fn, err
+    local realPath = uv.fs_access(path, "r") and path or uv.fs_access(key, "r") and key
+    if realPath then
+      -- If it's a real file, load it directly
+      fn, err = package.loadlib(realPath, fnName)
+      if not fn then
+        error(realPath .. "#" .. fnName .. ": " .. err)
       end
-      module.exports = fn()
     else
-      error("Unknown type at '" .. path .. "' for '" .. name .. "' in '" .. modulePath .. "'")
+      -- Otherwise, copy to a temporary folder and read from there
+      local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
+      path = pathJoin(dir, path:match("[^/\\]+$"))
+      local fd = uv.fs_open(path, "w", 384) -- 0600
+      uv.fs_write(fd, data, 0)
+      uv.fs_close(fd)
+      fn, err = package.loadlib(path, fnName)
+      if not fn then
+        error(path .. "#" .. fnName .. ": " .. err)
+      end
+      uv.fs_unlink(path)
+      uv.fs_rmdir(dir)
     end
-    return module.exports
+    module.exports = fn()
+  else
+    error("Unknown type at '" .. path .. "' for '" .. name .. "' in '" .. self.path .. "'")
+  end
+  return module.exports
+end
+
+
+local function generator(modulePath)
+  assert(modulePath, "Missing path to require generator")
+
+  local module = makeModule(modulePath)
+  local function require(...)
+    return module:require(...)
   end
 
-  return require, resolve, moduleCache
+  return require, module
 end
 
 return generator
