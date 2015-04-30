@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/readline"
-exports.version = "1.0.2"
+exports.version = "1.1.0"
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
@@ -278,7 +278,7 @@ end
 -- the function recieves the Editor instance as the first parameter and the consumedKeys as the second
 --   its returns will be propagated to Editor:onKey if either of them are non-nil
 --   note: the function is only called if the key handler is the one doing the consuming
-local keyHandlers = 
+local keyHandlers =
 {
   -- Enter
   {{13}, function(self)
@@ -294,7 +294,7 @@ local keyHandlers =
   end},
   -- Tab
   {{9}, function(self)
-    self:complete() 
+    self:complete()
   end},
   -- Control-C
   {{3}, function(self)
@@ -405,12 +405,12 @@ function Editor:onKey(key)
       elseif type(handledKey) == "function" then
         consumedKeys = handledKey(key, char)
       end
-      if consumedKeys ~= nil then 
+      if consumedKeys ~= nil then
         local ret, err = handlerFn(self, consumedKeys)
         if err ~= nil or ret ~= nil then
           return ret, err
         end
-        break 
+        break
       end
     end
     if consumedKeys ~= nil then break end

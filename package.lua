@@ -1,6 +1,6 @@
 return {
   name = "luvit/luvit",
-  version = "2.1.1",
+  version = "2.1.2",
   luvi = {
     version = "2.0.3",
     flavor = "regular",
@@ -25,14 +25,14 @@ return {
     "luvit/pretty-print@1.0.1",
     "luvit/process@1.1.0",
     "luvit/querystring@1.0.0",
-    "luvit/readline@1.0.2",
-    "luvit/repl@1.0.0",
-    "luvit/require@1.0.1",
+    "luvit/readline@1.1.0",
+    "luvit/repl@1.0.1",
+    "luvit/require@1.1.0",
     "luvit/stream@1.1.0",
     "luvit/timer@1.0.0",
     "luvit/tls@1.1.0",
     "luvit/utils@1.0.0",
-    "luvit/url@1.0.3",
+    "luvit/url@1.0.4",
   },
   files = {
     "*.lua",

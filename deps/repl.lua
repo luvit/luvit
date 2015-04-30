@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/repl"
-exports.version = "1.0.0"
+exports.version = "1.0.1"
 
 local uv = require('uv')
 local utils = require('utils')

@@ -18,7 +18,7 @@ limitations under the License.
 
 if exports then
   exports.name = "luvit/require"
-  exports.version = "1.0.1"
+  exports.version = "1.1.0"
 end
 
 local luvi = require('luvi')

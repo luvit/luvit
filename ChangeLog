@@ -1,3 +1,9 @@
+* Changes between 2.1.1 and 2.1.2
+
+ * Add module:load, module:scan, module:stat, and module:resolve [Tim Caswell]
+ * Fix repl to have `module` [Tim Caswell]
+ * Improve readline handling [Ryan Liptak]
+
 * Changes between 2.1.0 and 2.1.1
 
  * fix(fs): fs WriteStream was using append flag [Ryan Phillips]
