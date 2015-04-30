@@ -201,15 +201,15 @@ local function makeModule(modulePath)
 end
 
 function Module:load(path)
-  return readFile(self:resolve(path))
+  return readFile(pathJoin(self.dir, './' .. path))
 end
 
 function Module:scan(path)
-  return scanDir(self:resolve(path))
+  return scanDir(pathJoin(self.dir, './' .. path))
 end
 
 function Module:stat(path)
-  return statFile(self:resolve(path))
+  return statFile(pathJoin(self.dir, './' .. path))
 end
 
 function Module:resolve(name)
