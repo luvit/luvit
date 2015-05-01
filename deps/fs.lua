@@ -621,3 +621,31 @@ end
 function fs.createReadStream(path, options)
   return fs.ReadStream:new(path, options)
 end
+function fs.appendFile(filename, data, callback)
+  callback = callback or function() end
+  local function write(fd, offset, buffer, callback)
+    local function onWrite(err, written)
+      if err then return fs.close(fd, function() callback(err) end) end
+      if written == #buffer then
+        fs.close(fd, callback)
+      else
+        offset = offset + written
+        buffer = buffer:sub(offset)
+        write(fd, offset, buffer, callback)
+      end
+    end
+    fs.write(fd, -1, data, onWrite)
+  end
+  fs.open(filename, "a", 438 --[[ 0666 ]], function(err, fd)
+    if err then return callback(err) end
+    write(fd, -1, data, callback)
+  end)
+end
+function fs.appendFileSync(path, data)
+  local written
+  local fd, err = fs.openSync(path, 'a')
+  if not fd then return err end
+  written, err = fs.writeSync(fd, -1, data)
+  if not written then fs.close(fd) ; return err end
+  fs.close(fd)
+end
