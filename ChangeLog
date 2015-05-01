@@ -1,3 +1,12 @@
+* Changes between 2.1.2 and 2.1.3
+
+ * feat(fs): fs.appendFile [Ryan Phillips]
+ * feat(fs): fs.createWriteStream [Ryan Phillips]
+ * feat(fs): fs.exists and fs.truncate [George Zhao]
+ * fix(fs): WriteStream closes on 'finish' [Ryan Phillips]
+ * fix(buffer): fix bug when luajit link with static run times lib [George Zhao]
+ * Ported a bunch of unit tests from Luvit 1 to Luvit 2 [George Zhao]
+
 * Changes between 2.1.1 and 2.1.2
 
  * Add module:load, module:scan, module:stat, and module:resolve [Tim Caswell]
