@@ -1,8 +1,8 @@
 return {
   name = "luvit/luvit",
-  version = "2.1.3",
+  version = "2.1.4",
   luvi = {
-    version = "2.0.3",
+    version = "2.0.4",
     flavor = "regular",
   },
   dependencies = {
