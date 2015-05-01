@@ -17,23 +17,27 @@ limitations under the License.
 --]]
 
 require('tap')(function(test)
-    local FS = require('fs')
-    local Path = require('path')
+  local math = require('math')
+  local string = require('string')
+  local FS = require('fs')
+  local Path = require('path')
 
-    local f = module.path
+  test('fs.read and fs.readSync', function()
+    local filepath = Path.join(module.dir, 'fixtures', 'x.txt')
+    print(filepath)
+    local fd = FS.openSync(filepath, 'r')
+    local expected = 'xyz\n'
+    local readCalled = 0
 
-    test('fs.exists', function()
-      -- TODO: Is it OK that this callback signature is different from node.js,
-      --       which is function(exists)?
-      FS.exists(f, function(err, y)
-        assert(y)
-      end)
-
-      FS.exists(f .. '-NO', function(err, y)
-        assert(not y)
-      end)
-
-      assert(FS.existsSync(f))
-      assert(not FS.existsSync(f .. '-NO'))
+    FS.read(fd, #expected, 0, function(err, str, bytesRead)
+      readCalled = readCalled + 1
+      assert(not err)
+      assert(str == expected)
+      assert(#str == #expected)
     end)
+
+    local r,e = FS.readSync(fd, #expected, 0)
+    assert(r == expected)
+    assert(#r == #expected)
+  end)
 end)
