@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/buffer"
-exports.version = "1.0.0"
+exports.version = "1.0.1"
 
 local Object = require('core').Object
 local ffi = require('ffi')
