@@ -33,14 +33,18 @@ local buffer = exports
 local Buffer = Object:extend()
 buffer.Buffer = Buffer
 
+--avoid bugs when link with static run times lib, eg. /MT link flags
+local C = ffi.os=='Windows' and ffi.load('msvcrt') or ffi.C
+
 function Buffer:initialize(length)
   if type(length) == "number" then
     self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", ffi.C.malloc(length)), ffi.C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(length)), C.free)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
-    self.ctype = ffi.cast("unsigned char*", string)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
+    ffi.copy(self.ctype,string,self.length)
   else
     error("Input must be a string or number")
   end
@@ -57,7 +61,7 @@ function Buffer.meta:__ipairs()
 end
 
 function Buffer.meta:__tostring()
-  return ffi.string(self.ctype)
+  return ffi.string(self.ctype,self.length)
 end
 
 function Buffer.meta:__concat(other)
