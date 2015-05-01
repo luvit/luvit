@@ -32,7 +32,7 @@ require('tap')(function (test)
     data = 'hello world\n'
     filePath = path.join(module.dir, 'testFileYYY.txt')
     pcall(fs.unlinkSync, filePath)
-    stream = fs.WriteStream:new(filePath)
+    stream = fs.createWriteStream(filePath)
     stream:write(data)
     stream:_end()
     stream:on('finish', expect(onFinish))

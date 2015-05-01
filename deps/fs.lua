@@ -463,6 +463,9 @@ function fs.WriteStream:destroy()
     self.fd = nil
   end
 end
+function fs.createWriteStream(path, options)
+  return fs.WriteStream:new(path, options)
+end
 
 fs.WriteStreamSync = fs.WriteStream:extend()
 function fs.WriteStreamSync:initialize(path, options)
