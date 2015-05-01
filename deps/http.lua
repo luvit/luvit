@@ -395,6 +395,18 @@ function ClientRequest:done(data, cb)
   end
 end
 
+function ClientRequest:setTimeout(msecs, callback)
+  if self.socket then
+    self.socket:setTimeout(msecs,callback)
+  end
+end
+
+function ClientRequest:destroy()
+  if self.socket then
+    self.socket:destroy()
+  end
+end
+
 function exports.parseUrl(options)
   if type(options) == 'string' then
     options = url.parse(options)
