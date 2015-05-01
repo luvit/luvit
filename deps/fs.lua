@@ -586,7 +586,8 @@ function fs.appendFile(filename, data, callback)
         fs.close(fd, callback)
       else
         offset = offset + written
-        write(fd, offset, buffer:sub(offset), callback)
+        buffer = buffer:sub(offset)
+        write(fd, offset, buffer, callback)
       end
     end
     fs.write(fd, -1, data, onWrite)
