@@ -4,7 +4,7 @@ local PORT = process.env.PORT or 10080
 
 require('tap')(function(test)
 
-  test('http-post-1mb', function(expect)
+  test('http-get-url', function(expect)
     local seen_req = false
     local server
     server = http.createServer(function(req, res)
