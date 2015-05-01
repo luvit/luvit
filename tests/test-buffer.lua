@@ -19,10 +19,6 @@ limitations under the License.
 require('tap')(function (test)
 
   test("buffer test", function()
-    if (require('jit').os == "Windows") then
-      print("buffer is broken on win32, need to not ffi into malloc")
-      return
-    end
 
     local Buffer = require('buffer').Buffer
     local buf = Buffer:new(4)
