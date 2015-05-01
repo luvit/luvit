@@ -216,6 +216,14 @@ function fs.scandirSync(path)
     end
   end
 end
+function fs.exists(path, callback)
+  local stat,err = uv.fs_stat(path)
+  callback(err,stat~=nil)
+end
+function fs.existsSync(path)
+  local stat,err = uv.fs_stat(path)
+  return stat~=nil
+end
 function fs.stat(path, callback)
   return adapt(callback, uv.fs_stat, path)
 end
