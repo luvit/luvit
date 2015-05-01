@@ -26,6 +26,7 @@ require('tap')(function(test)
     p('open ' .. file)
 
     FS.open(file, 'a', '0777', function(err, fd)
+      print(err, fd)
       p('fd ' .. fd)
       assert(not err)
 
