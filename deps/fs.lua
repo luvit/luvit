@@ -585,12 +585,11 @@ function fs.appendFile(filename, data, callback)
       if written == #buffer then
         fs.close(fd, callback)
       else
-        if offset == -1 then offset = 0 end
         offset = offset + written
-        write(fd, offset, buffer, callback)
+        write(fd, offset, buffer:sub(offset), callback)
       end
     end
-    fs.write(fd, offset, data, onWrite)
+    fs.write(fd, -1, data, onWrite)
   end
   fs.open(filename, "a", 438 --[[ 0666 ]], function(err, fd)
     if err then return callback(err) end
