@@ -597,3 +597,11 @@ function fs.appendFile(filename, data, callback)
     write(fd, -1, data, callback)
   end)
 end
+function fs.appendFileSync(path, data)
+  local written
+  local fd, err = fs.openSync(path, 'a')
+  if not fd then return err end
+  written, err = fs.writeSync(fd, -1, data)
+  if not written then fs.close(fd) ; return err end
+  fs.close(fd)
+end
