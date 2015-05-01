@@ -466,7 +466,7 @@ function fs.WriteStream:initialize(path, options)
 
   if not self.fd then self:open() end
 
-  self:on('end', bind(self.close, self))
+  self:on('finish', bind(self.close, self))
 end
 function fs.WriteStream:open(callback)
   if self.fd then self:destroy() end
@@ -503,6 +503,9 @@ function fs.WriteStream:destroy()
     fs.close(self.fd)
     self.fd = nil
   end
+end
+function fs.createWriteStream(path, options)
+  return fs.WriteStream:new(path, options)
 end
 
 fs.WriteStreamSync = fs.WriteStream:extend()
