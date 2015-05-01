@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2012 The Luvit Authors. All Rights Reserved.
+Copyright 2012-2015 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License")
 you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@ limitations under the License.
 
 --]]
 
-require("helper")
+require('tap')(function(test)
+  local FS = require('fs')
+  local Path = require('path')
+  local string = require('string')
+    
+  test('fs.readFile sync', function()
+    local fn = Path.join(module.dir, 'fixtures', 'elipses.txt')
 
-local FS = require('fs')
-local Path = require('path')
-local string = require('string')
-
-local fn = Path.join(__dirname, 'fixtures', 'elipses.txt')
-
-local s = FS.readFileSync(fn)
-assert(s == string.rep('…', 10000))
-assert(#s == 10000 * 3)
+    local s = FS.readFileSync(fn)
+    assert(s == string.rep(string.char(0xe2,0x80,0xA6), 10000))
+    assert(#s == 10000 * 3)
+  end)
+end)

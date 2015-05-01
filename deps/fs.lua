@@ -216,6 +216,14 @@ function fs.scandirSync(path)
     end
   end
 end
+function fs.exists(path, callback)
+  local stat,err = uv.fs_stat(path)
+  callback(err,stat~=nil)
+end
+function fs.existsSync(path)
+  local stat,err = uv.fs_stat(path)
+  return stat~=nil
+end
 function fs.stat(path, callback)
   return adapt(callback, uv.fs_stat, path)
 end
@@ -263,11 +271,44 @@ function fs.ftruncate(fd, offset, callback)
   end
   return adapt(callback, uv.fs_ftruncate, fd, offset)
 end
+function fs.truncate(fname, offset, callback)
+  local ot = type(offset)
+  if (ot == 'function' or ot == 'thread') and
+     (callback == nil) then
+    callback, offset = offset, nil
+  end
+  if offset == nil then
+    offset = 0
+  end
+  fs.open(fname,'w', function(err,fd)
+    if(err) then 
+      callback(err) 
+    else
+      local cb = function(err)
+        uv.fs_close(fd)
+        callback(err)
+      end
+      return adapt(callback, uv.fs_ftruncate, fd, offset)
+    end
+  end)
+end
 function fs.ftruncateSync(fd, offset)
   if offset == nil then
     offset = 0
   end
   return uv.fs_ftruncate(fd, offset)
+end
+function fs.truncateSync(fname, offset)
+  if offset == nil then
+    offset = 0
+  end
+  local fd, err = fs.openSync(fname, "w")
+  local ret
+  if fd then
+    ret, err = uv.fs_ftruncate(fd, offset)
+    fs.closeSync(fd)
+  end
+  return ret,err
 end
 function fs.sendfile(outFd, inFd, offset, length, callback)
   return adapt(callback, uv.fs_sendfile, outFd, inFd, offset, length)

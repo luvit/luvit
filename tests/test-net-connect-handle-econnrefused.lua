@@ -1,6 +1,6 @@
 --[[
 
-Copyright 2012 The Luvit Authors. All Rights Reserved.
+Copyright 2012-2015 The Luvit Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,26 +16,23 @@ limitations under the License.
 
 --]]
 
-require("helper")
-
 local Tcp = require('uv').Tcp
 local net = require('net')
 
 local PORT = process.env.PORT or 10085
-local c, err = net.createConnection(PORT)
 
-c:on('connect', function ()
-  print("error: connnected, please shutdown whatever is running on " .. PORT)
-  assert(false)
-end)
+require('tap')(function(test)
+  test('net-connect-handle-econnerefuesed', function(expected)
+    local c, err = net.createConnection(PORT)
+    c:on('connect', function ()
+      print("error: connnected, please shutdown whatever is running on " .. PORT)
+      assert(false)
+    end)
 
-local gotError = false
-c:on('error', function (err)
-  assert('ECONNREFUSED' == err.code or 'EADDRNOTAVAIL' == err.code)
-  gotError = true
-  c:destroy()
-end)
-
-process:on('exit', function()
-  assert(gotError == true)
+    c:on('error', function (err)
+      assert('ECONNREFUSED' == err or 'EADDRNOTAVAIL' == err)
+      expected = {gotError = true}
+      c:destroy()
+    end)
+  end)
 end)

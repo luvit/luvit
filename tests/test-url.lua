@@ -50,4 +50,16 @@ require('tap')(function(test)
   local expected = {href = 'https://www.google.com.br/test#q=luvit', protocol = 'https', host = 'www.google.com.br', hostname = 'www.google.com.br', path = '/test', pathname = '/test', hash = '#q=luvit'}
   assert(deepEqual(expected, parsed))
   end)
+  
+  test('should parse url /somepath?test=bar&ponies=foo', function (expected)
+  local parsed = url.parse('/somepath?test=bar&ponies=foo')
+  local expected = { pathname = '/somepath', query = 'test=bar&ponies=foo',href='/somepath?test=bar&ponies=foo',path='/somepath?test=bar&ponies=foo',search='?test=bar&ponies=foo'}
+  assert(deepEqual(expected, parsed))
+  end)
+  
+  test('should parse url /somepath?test=bar&ponies=foo with querystring', function (expected)
+  local parsed = url.parse('/somepath?test=bar&ponies=foo',true)
+  local expected = { pathname = '/somepath', query = {test = 'bar', ponies = 'foo'},href='/somepath?test=bar&ponies=foo',path='/somepath?test=bar&ponies=foo',search='?test=bar&ponies=foo'}
+  assert(deepEqual(expected, parsed))
+  end)
 end)
