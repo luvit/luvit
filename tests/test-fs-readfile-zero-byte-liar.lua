@@ -28,6 +28,7 @@ require('tap')(function(test)
 
   test('fs readfile zero byte liar', function()
     -- sometimes stat returns size=0, but it's a lie.
+    local _fstat,_fstatSync = FS.fstat,FS.fstatSync
     FS._fstat = FS.fstat
     FS._fstatSync = FS.fstatSync
 
@@ -52,6 +53,7 @@ require('tap')(function(test)
 
     FS.readFile(__filename, function (er, d)
       assert(d == dataExpected)
+      FS.fstat,FS.fstatSync = _fstat,_fstatSync
     end)
   end)
 end)
