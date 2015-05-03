@@ -21,13 +21,15 @@ require('tap')(function(test)
   local Path = require('path')
   local Buffer = require('buffer').Buffer
   local string = require('string')
-
-  local filename = Path.join(module.dir, 'tmp', 'truncate-file.txt')
+  local dir = Path.join(module.dir, 'tmp')
+  local filename = Path.join(dir, 'truncate-file.txt')
   local data = string.rep('x', 1024 * 16)
   
   test('fs truncate', function()
     local stat
-
+    _, err = FS.statSync(dir) 
+    if err then FS.mkdirp(dir, "0755") end
+    
     -- truncateSync
     FS.writeFileSync(filename, data)
     stat = FS.statSync(filename)
@@ -133,6 +135,7 @@ require('tap')(function(test)
                     end
                     assert(stat.size == 0)
                     FS.close(fd, cb)
+                    FS.unlinkSync(filename)
                   end)
                 end)
               end)
