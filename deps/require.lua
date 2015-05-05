@@ -246,7 +246,7 @@ function Module:require(name)
   module = makeModule(path)
   moduleCache[key] = module
 
-  local ext = path:match("%.[^/]+$")
+  local ext = path:match("%.[^/\\]+$")
   if ext == ".lua" then
     local fn = assert(loadstring(data, path))
     local global = {
