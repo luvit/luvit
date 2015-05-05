@@ -7,7 +7,7 @@ os:
 
 before_install:
  # install the gnu debugger for later use in reading the core file
- - sudo apt-get -y install gdb
+ #- sudo apt-get -y install gdb
 
 install:
  # What is the current file size max for core files?
