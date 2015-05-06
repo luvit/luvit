@@ -168,12 +168,12 @@ local function stringEscape(c)
   return controls[string.byte(c, 1)]
 end
 
-function dump(value)
+function dump(value, recurse, nocolor)
   local seen = {}
   local output = {}
   local offset = 0
   local stack = {}
-
+  
   local function recalcOffset(index)
     for i = index + 1, #output do
       local m = string.match(output[i], "\n([^\n]*)$")
@@ -232,7 +232,7 @@ function dump(value)
       end
     elseif typ == 'table' and not seen[value] then
 
-      seen[value] = true
+      if not recurse then seen[value] = true end
       write(obrace)
       local i = 1
       -- Count the number of keys so we know when to stop adding commas
@@ -278,8 +278,8 @@ function dump(value)
   end
 
   process(value)
-
-  return table.concat(output, "")
+  local s =  table.concat(output, "")
+  return nocolor and strip(s) or s
 end
 
 -- Print replacement that goes through libuv.  This is useful on windows

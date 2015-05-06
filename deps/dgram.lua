@@ -92,12 +92,37 @@ function Socket:setBroadcast(status)
   uv.udp_set_broadcast(self._handle, status)
 end
 
+function Socket:setMembership(multicastAddress, multicastInterface, op)
+  if not multicastAddress then
+    error("multicast address must be specified")
+  end
+
+  if not multicastInterface then
+    if self._family == 'udp4' then
+      multicastInterface = '0.0.0.0'
+    elseif self._family == 'udp6' then
+      multicastInterface = '::0'
+    end
+  end
+  return uv.udp_set_membership(self._handle, multicastAddress, multicastInterface, op)
+end
+
+function Socket:addMembership(multicastAddress, interfaceAddress)
+  return self:setMembership(multicastAddress, interfaceAddress, 'join')
+end
+
+function Socket:dropMembership(multicastAddress, interfaceAddress)
+  return self:setMembership(multicastAddress, interfaceAddress, 'leave')
+end
+
 function Socket:setTTL(ttl)
   uv.udp_set_ttl(self._handle, ttl)
 end
 
 local function createSocket(type, callback)
-  return Socket:new(type, callback)
+  local ret = Socket:new(type, callback)
+  ret._family = type
+  return ret
 end
 
 exports.Socket = Socket

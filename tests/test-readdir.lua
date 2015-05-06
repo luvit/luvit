@@ -36,9 +36,13 @@ require('tap')(function(test)
     function onReadDir(err, files)
       assert(err == nil)
       assert(#files == 3)
+      fs.unlink(path.join(dir, "1"), function() end)
+      fs.unlink(path.join(dir, "2"), function() end)
+      fs.unlink(path.join(dir, "3"), function() end)      
     end
 
     fs.readdir(dir, expect(onReadDir))
   end)
+  
 end)
 

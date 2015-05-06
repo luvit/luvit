@@ -64,7 +64,7 @@ require('tap')(function(test)
       end
     end))
 
-    fs.open(file2, 'a', tonumber(0666, 8), expect(function(err, fd)
+    fs.open(file2, 'a', tonumber('0666', 8), expect(function(err, fd)
       assert(not err)
       fs.fchmod(fd, mode_async, expect(function(err)
         assert(not err)
