@@ -16,9 +16,14 @@ limitations under the License.
 
 --]]
 
+exports.name = "luvit/tap"
+exports.version = "0.1.0"
+exports.dependencies = {
+  "luvit/pretty-print"
+}
+
 local uv = require('uv')
-local utils = require('utils')
-local colorize = utils.colorize
+local colorize = require('pretty-print').colorize
 
 -- Capture output from global print and prefix with two spaces
 local print = _G.print
