@@ -1,5 +1,7 @@
-* Changes between 2.1.4 and 2.1.5
 
+* Changes between 2.1.4 and 2.1.6
+
+ * Update lit to 1.2.2 and luvi to v2.0.5 [Tim Caswell]
  * Document inter-dependencies between lit packages. [Tim Caswell]
  * Add metadata to all lit packages. [Tim Caswell]
  * Fix extension match on windows. [Playermet]
