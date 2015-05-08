@@ -17,8 +17,11 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/helpful"
-exports.version = "1.0.0"
+exports.version = "1.0.0-1"
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/helpful.lua"
+exports.description = "Levenshtein distance for property-not-found hints in modules."
+exports.tags = {"levenshtein", "string"}
 
 function string.levenshtein(str1, str2)
   local len1 = string.len(str1)

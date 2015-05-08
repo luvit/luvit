@@ -17,12 +17,15 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/path"
-exports.version = "1.0.0"
+exports.version = "1.0.0-1"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/los@1.0.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/path"
+exports.description = "A port of node.js's path module for luvit."
+exports.tags = {"luvit", "path"}
 
 local los = require('los')
 local path_base = require('./base')

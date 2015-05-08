@@ -17,8 +17,11 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/deep-equal"
-exports.version = "0.1.0"
+exports.version = "0.1.0-1"
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/tests/libs/deep-equal.lua"
+exports.description = "Utility for doing deep comparisons of lua values"
+exports.tags = {"compare", "test"}
 
 return function (expected, actual, path)
   if expected == actual then

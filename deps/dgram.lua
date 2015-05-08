@@ -17,12 +17,15 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/dgram"
-exports.version = "1.1.0"
+exports.version = "1.1.0-1"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/timer@1.0.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/dgram.lua"
+exports.description = "Node-style udp module for luvit"
+exports.tags = {"luvit", "dgram", "udp"}
 
 local uv = require('uv')
 local Emitter = require('core').Emitter

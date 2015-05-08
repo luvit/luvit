@@ -16,13 +16,16 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/fs"
-exports.version = "1.1.2"
+exports.version = "1.1.2-1"
 exports.dependencies = {
   "luvit/utils@1.0.0",
   "luvit/path@1.0.0",
   "luvit/stream@1.1.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/fs.lua"
+exports.description = "Node-style filesystem module for luvit"
+exports.tags = {"luvit", "fs", "stream"}
 
 local uv = require('uv')
 local adapt = require('utils').adapt

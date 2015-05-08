@@ -23,8 +23,11 @@ module.
 local core = exports
 
 exports.name = "luvit/core"
-exports.version = "1.0.2"
+exports.version = "1.0.2-1"
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/core.lua"
+exports.description = "Core object model for luvit using simple prototypes and inheritance."
+exports.tags = {"luvit", "objects", "inheritance"}
 
 --[[
 Returns whether obj is instance of class or not.

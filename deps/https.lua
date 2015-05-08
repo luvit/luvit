@@ -17,12 +17,15 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/https"
-exports.version = "1.0.1"
+exports.version = "1.0.1-1"
 exports.dependencies = {
   "luvit/tls@1.1.0",
   "luvit/http@1.1.1",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/https.lua"
+exports.description = "Node-style https client and server module for luvit"
+exports.tags = {"luvit", "https", "stream"}
 
 local tls = require('tls')
 local http = require('http')

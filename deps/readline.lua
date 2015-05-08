@@ -16,8 +16,12 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/readline"
-exports.version = "1.1.0"
+exports.version = "1.1.0-1"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/readline.lua"
+exports.description = "A readline interface for terminals in pure lua."
+exports.tags = {"readline", "tty"}
 exports.license = "Apache 2"
+exports.author = { name = "Tim Caswell" }
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 

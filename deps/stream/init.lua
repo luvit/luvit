@@ -17,12 +17,15 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/stream"
-exports.version = "1.1.0"
+exports.version = "1.1.0-1"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/utils@1.0.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/stream"
+exports.description = "A port of node.js's stream module for luvit."
+exports.tags = {"luvit", "stream"}
 
 exports.Stream = require('./stream_core').Stream
 exports.Writable = require('./stream_writable').Writable

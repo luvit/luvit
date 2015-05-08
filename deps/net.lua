@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/net"
-exports.version = "1.1.1"
+exports.version = "1.1.1-1"
 exports.dependencies = {
   "luvit/timer@1.0.0",
   "luvit/utils@1.0.0",
@@ -25,6 +25,9 @@ exports.dependencies = {
   "luvit/stream@1.1.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/net.lua"
+exports.description = "Node-style net client and server module for luvit"
+exports.tags = {"luvit", "tcp", "pipe", "stream"}
 
 local uv = require('uv')
 local timer = require('timer')

@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/tls"
-exports.version = "1.1.0"
+exports.version = "1.1.0-1"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/net@1.1.1",
@@ -25,6 +25,9 @@ exports.dependencies = {
   "luvit/utils@1.0.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/tls"
+exports.description = "A node-style tls module for luvit."
+exports.tags = {"luvit", "tls"}
 
 local loaded = pcall(require, 'openssl')
 if not loaded then return end

@@ -16,11 +16,14 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/url"
-exports.version = "1.0.4"
+exports.version = "1.0.4-1"
 exports.dependencies = {
   "luvit/querystring@1.0.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/url.lua"
+exports.description = "Node-style url codec for luvit"
+exports.tags = {"luvit", "url", "codec"}
 
 local querystring = require('querystring')
 

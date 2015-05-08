@@ -17,11 +17,14 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/buffer"
-exports.version = "1.0.1"
+exports.version = "1.0.1-1"
 exports.dependencies = {
   "luvit/core@1.0.2"
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/buffer.lua"
+exports.description = "A mutable buffer using ffi for luvit."
+exports.tags = {"luvit", "buffer"}
 
 local Object = require('core').Object
 local ffi = require('ffi')

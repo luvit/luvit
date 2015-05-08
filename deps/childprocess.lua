@@ -17,13 +17,16 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/childprocess"
-exports.version = "1.0.4"
+exports.version = "1.0.4-1"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/net@1.1.1",
   "luvit/timer@1.0.0",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/childprocess.lua"
+exports.description = "A port of node.js's childprocess module for luvit."
+exports.tags = {"luvit", "spawn", "process"}
 
 local core = require('core')
 local net = require('net')

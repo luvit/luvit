@@ -17,8 +17,11 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/querystring"
-exports.version = "1.0.0"
+exports.version = "1.0.0-1"
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/querystring.lua"
+exports.description = "Node-style query-string codec for luvit"
+exports.tags = {"luvit", "url", "codec"}
 
 local find = string.find
 local gsub = string.gsub

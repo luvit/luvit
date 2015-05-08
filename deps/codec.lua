@@ -16,8 +16,11 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/codec"
-exports.version = "1.0.0"
+exports.version = "1.0.0-1"
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/codec.lua"
+exports.description = "Utilities for working with luvit streams and codecs."
+exports.tags = {"luvit", "codec", "stream"}
 
 local uv = require('uv')
 

@@ -17,11 +17,14 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/utils"
-exports.version = "1.0.0"
+exports.version = "1.0.0-1"
 exports.dependencies = {
   "luvit/pretty-print@1.0.2",
 }
 exports.license = "Apache 2"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"
+exports.description = "Wrapper around pretty-print with extra tools for luvit"
+exports.tags = {"luvit", "bind", "adapter"}
 
 local pp = require('pretty-print')
 for name, value in pairs(pp) do
