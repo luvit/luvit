@@ -21,6 +21,7 @@ exports.version = "0.1.0"
 exports.dependencies = {
   "luvit/pretty-print@1.0.2"
 }
+exports.license = "Apache 2"
 
 local uv = require('uv')
 local colorize = require('pretty-print').colorize

@@ -20,6 +20,7 @@ exports.version = "1.0.4"
 exports.dependencies = {
   "luvit/querystring@1.0.0",
 }
+exports.license = "Apache 2"
 
 local querystring = require('querystring')
 
@@ -27,11 +28,11 @@ function exports.parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
-  
+
   local auth
-  chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)') 
+  chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)')
   url = url:sub((chunk and #chunk or 0) + 1)
-         
+
   local host
   local hostname
   local port
@@ -50,8 +51,8 @@ function exports.parse(url, parseQueryString)
   local pathname
   local search
   local query
-  local hash  
-  hash = url:match("(#.*)$") 
+  local hash
+  hash = url:match("(#.*)$")
   url = url:sub(1, (#url - (hash and #hash or 0)))
 
   if url ~= '' then

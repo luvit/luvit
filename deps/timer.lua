@@ -21,6 +21,7 @@ exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/utils@1.0.0",
 }
+exports.license = "Apache 2"
 
 local uv = require('uv')
 local Object = require('core').Object

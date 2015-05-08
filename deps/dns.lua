@@ -29,6 +29,7 @@ exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/tls@1.1.0",
 }
+exports.license = "Apache 2"
 
 local dgram = require('dgram')
 local fs = require('fs')

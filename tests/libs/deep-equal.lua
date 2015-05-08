@@ -16,7 +16,11 @@ limitations under the License.
 
 --]]
 
-local function deepEqual(expected, actual, path)
+exports.name = "luvit/deep-equal"
+exports.version = "0.1.0"
+exports.license = "Apache 2"
+
+return function (expected, actual, path)
   if expected == actual then
     return true
   end
@@ -52,4 +56,3 @@ local function deepEqual(expected, actual, path)
   return true
 end
 
-return deepEqual

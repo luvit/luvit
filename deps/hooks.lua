@@ -25,6 +25,7 @@ exports.version = "1.0.0"
 exports.dependencies = {
   "luvit/core@1.0.2",
 }
+exports.license = "Apache 2"
 
 local Emitter = require('core').Emitter
 setmetatable(exports, Emitter.meta)

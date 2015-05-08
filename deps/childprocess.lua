@@ -23,6 +23,7 @@ exports.dependencies = {
   "luvit/net@1.1.1",
   "luvit/timer@1.0.0",
 }
+exports.license = "Apache 2"
 
 local core = require('core')
 local net = require('net')

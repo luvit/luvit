@@ -22,6 +22,7 @@ exports.dependencies = {
   "luvit/tls@1.1.0",
   "luvit/http@1.1.1",
 }
+exports.license = "Apache 2"
 
 local tls = require('tls')
 local http = require('http')

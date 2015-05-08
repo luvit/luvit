@@ -18,6 +18,7 @@ limitations under the License.
 
 exports.name = "luvit/querystring"
 exports.version = "1.0.0"
+exports.license = "Apache 2"
 
 local find = string.find
 local gsub = string.gsub

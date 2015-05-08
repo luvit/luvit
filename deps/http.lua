@@ -25,6 +25,7 @@ exports.dependencies = {
   "luvit/stream@1.1.0",
   "luvit/utils@1.0.0",
 }
+exports.license = "Apache 2"
 
 local net = require('net')
 local url = require('url')

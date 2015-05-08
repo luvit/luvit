@@ -22,6 +22,7 @@ exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/los@1.0.0",
 }
+exports.license = "Apache 2"
 
 local los = require('los')
 local path_base = require('./base')

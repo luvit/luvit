@@ -24,6 +24,7 @@ exports.dependencies = {
   "luvit/timer@1.0.0",
   "luvit/utils@1.0.0",
 }
+exports.license = "Apache 2"
 
 local loaded = pcall(require, 'openssl')
 if not loaded then return end

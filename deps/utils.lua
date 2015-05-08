@@ -21,6 +21,7 @@ exports.version = "1.0.0"
 exports.dependencies = {
   "luvit/pretty-print@1.0.2",
 }
+exports.license = "Apache 2"
 
 local pp = require('pretty-print')
 for name, value in pairs(pp) do

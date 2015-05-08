@@ -21,6 +21,7 @@ exports.version = "1.0.1"
 exports.dependencies = {
   "luvit/core@1.0.2"
 }
+exports.license = "Apache 2"
 
 local Object = require('core').Object
 local ffi = require('ffi')

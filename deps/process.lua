@@ -26,6 +26,7 @@ exports.dependencies = {
   "luvit/stream@1.1.0",
   "luvit/pretty-print@1.10.2",
 }
+exports.license = "Apache 2"
 
 local env = require('env')
 local hooks = require('hooks')

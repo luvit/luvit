@@ -22,6 +22,7 @@ exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/timer@1.0.0",
 }
+exports.license = "Apache 2"
 
 local uv = require('uv')
 local Emitter = require('core').Emitter

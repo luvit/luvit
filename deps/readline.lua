@@ -17,6 +17,7 @@ limitations under the License.
 --]]
 exports.name = "luvit/readline"
 exports.version = "1.1.0"
+exports.license = "Apache 2"
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 

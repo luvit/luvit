@@ -22,6 +22,7 @@ exports.dependencies = {
   "luvit/utils@1.0.0",
   "luvit/readline@1.1.0",
 }
+exports.license = "Apache 2"
 
 local uv = require('uv')
 local utils = require('utils')
