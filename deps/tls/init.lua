@@ -18,6 +18,12 @@ limitations under the License.
 
 exports.name = "luvit/tls"
 exports.version = "1.1.0"
+exports.dependencies = {
+  "luvit/core@1.0.2",
+  "luvit/net@1.1.1",
+  "luvit/timer@1.0.0",
+  "luvit/utils@1.0.0",
+}
 
 local loaded = pcall(require, 'openssl')
 if not loaded then return end

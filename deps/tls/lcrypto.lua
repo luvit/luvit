@@ -17,7 +17,6 @@ limitations under the License.
 --]]
 --
 local _, openssl = pcall(require, 'openssl')
-local table = require('table')
 
 local function randomBytesOpenSSL(size, callback)
   local str = openssl.random(size)

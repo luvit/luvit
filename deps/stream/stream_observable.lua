@@ -22,8 +22,6 @@ limitations under the License.
 --stream. Streams created by observe() do not affect back-pressure.
 --]]
 
-local table = require('table')
-
 local Transform = require('./stream_transform').Transform
 local Readable = require('./stream_readable').Readable
 

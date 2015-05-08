@@ -18,6 +18,10 @@ limitations under the License.
 
 exports.name = "luvit/path"
 exports.version = "1.0.0"
+exports.dependencies = {
+  "luvit/core@1.0.2",
+  "luvit/los@1.0.0",
+}
 
 local los = require('los')
 local path_base = require('./base')

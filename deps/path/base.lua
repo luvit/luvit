@@ -17,7 +17,6 @@ limitations under the License.
 --]]
 
 local Object = require('core').Object
-local table = require('table')
 
 local Path = Object:extend()
 
@@ -164,8 +163,8 @@ function Path:join(...)
   return self:normalize(joined)
 end
 
--- Works backwards, joining the arguments until it resolves to an absolute path. 
--- If an absolute path is not resolved, then the current working directory is 
+-- Works backwards, joining the arguments until it resolves to an absolute path.
+-- If an absolute path is not resolved, then the current working directory is
 -- prepended
 function Path:resolve(...)
   local paths = {...}
@@ -296,7 +295,7 @@ end
 local PosixPath = Path:extend()
 
 function PosixPath:initialize()
-  Path.initialize(self, '/', '/') 
+  Path.initialize(self, '/', '/')
 end
 
 function PosixPath:isAbsolute(filepath)
@@ -323,7 +322,7 @@ end
 local WindowsPath = Path:extend()
 
 function WindowsPath:initialize()
-  Path.initialize(self, 'c:\\', '\\') 
+  Path.initialize(self, 'c:\\', '\\')
 end
 
 -- Windows paths are case-insensitive

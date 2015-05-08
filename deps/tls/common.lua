@@ -18,7 +18,6 @@ limitations under the License.
 
 local Object = require('core').Object
 local Error = require('core').Error
-local bit = require('bit')
 local net = require('net')
 local openssl = require('openssl')
 local timer = require('timer')
