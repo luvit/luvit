@@ -18,7 +18,7 @@ limitations under the License.
 
 if exports then
   exports.name = "luvit/require"
-  exports.version = "1.1.1-1"
+  exports.version = "1.2.0"
   exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
   exports.description = "Luvit's custom require system with relative requires and sane search paths."
   exports.tags = {"luvit", "require"}
@@ -215,6 +215,16 @@ end
 
 function Module:stat(path)
   return statFile(pathJoin(self.dir, './' .. path))
+end
+
+function Module:action(path, action)
+  path = pathJoin(self.dir, './' .. path)
+  local bundlePath = path:match("^bundle:/*(.*)")
+  if bundlePath then
+    return bundle.action(bundlePath, action)
+  else
+    return action(path)
+  end
 end
 
 function Module:resolve(name)
