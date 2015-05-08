@@ -1,3 +1,12 @@
+* Changes between 2.1.4 and 2.1.5
+
+ * Document inter-dependencies between lit packages. [Tim Caswell]
+ * Add metadata to all lit packages. [Tim Caswell]
+ * Fix extension match on windows. [Playermet]
+ * Enhance dump support with `recurs` and `nocolor`. [George Zhao]
+ * Add dgram.setMembership, dgram.addMembership, dgram.dropMembership to support
+   multicast [George Zhao]
+
 * Changes between 2.1.3 and 2.1.4
 
  * lit: Update lit to 1.1.7 and luvi to v2.0.4 [Tim Caswell]
