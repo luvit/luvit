@@ -22,6 +22,9 @@ limitations under the License.
 
 exports.name = "luvit/hooks"
 exports.version = "1.0.0"
+exports.dependencies = {
+  "luvit/core@1.0.2",
+}
 
 local Emitter = require('core').Emitter
 setmetatable(exports, Emitter.meta)

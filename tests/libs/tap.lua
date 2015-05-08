@@ -19,7 +19,7 @@ limitations under the License.
 exports.name = "luvit/tap"
 exports.version = "0.1.0"
 exports.dependencies = {
-  "luvit/pretty-print"
+  "luvit/pretty-print@1.0.2"
 }
 
 local uv = require('uv')

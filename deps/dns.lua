@@ -21,6 +21,14 @@ limitations under the License.
 
 exports.name = "luvit/dns"
 exports.version = "1.0.0"
+exports.dependencies = {
+  "luvit/dgram@1.1.0",
+  "luvit/fs@1.1.2",
+  "luvit/net@1.1.1",
+  "luvit/timer@1.0.0",
+  "luvit/core@1.0.2",
+  "luvit/tls@1.1.0",
+}
 
 local dgram = require('dgram')
 local fs = require('fs')

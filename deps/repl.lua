@@ -18,6 +18,10 @@ limitations under the License.
 
 exports.name = "luvit/repl"
 exports.version = "1.0.1"
+exports.dependencies = {
+  "luvit/utils@1.0.0",
+  "luvit/readline@1.1.0",
+}
 
 local uv = require('uv')
 local utils = require('utils')

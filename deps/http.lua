@@ -18,6 +18,13 @@ limitations under the License.
 
 exports.name = "luvit/http"
 exports.version = "1.1.1"
+exports.dependencies = {
+  "luvit/net@1.1.1",
+  "luvit/url@1.0.4",
+  "luvit/http-codec@1.0.0",
+  "luvit/stream@1.1.0",
+  "luvit/utils@1.0.0",
+}
 
 local net = require('net')
 local url = require('url')

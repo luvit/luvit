@@ -18,6 +18,13 @@ limitations under the License.
 
 exports.name = "luvit/net"
 exports.version = "1.1.1"
+exports.dependencies = {
+  "luvit/timer@1.0.0",
+  "luvit/utils@1.0.0",
+  "luvit/core@1.0.2",
+  "luvit/stream@1.1.0",
+}
+
 
 local uv = require('uv')
 local timer = require('timer')

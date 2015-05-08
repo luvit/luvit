@@ -17,7 +17,12 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http-codec"
-exports.version = "1.0.0"
+exports.version = "1.0.0-1"
+exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/http-codec.lua"
+exports.description = "A simple pair of functions for converting between hex and raw strings."
+exports.tags = {"codec", "http"}
+exports.license = "Apache 2"
+exports.author = { name = "Tim Caswell" }
 
 local sub = string.sub
 local gsub = string.gsub

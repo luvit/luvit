@@ -18,6 +18,10 @@ limitations under the License.
 
 exports.name = "luvit/dgram"
 exports.version = "1.1.0"
+exports.dependencies = {
+  "luvit/core@1.0.2",
+  "luvit/timer@1.0.0",
+}
 
 local uv = require('uv')
 local Emitter = require('core').Emitter

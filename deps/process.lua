@@ -18,6 +18,14 @@ limitations under the License.
 
 exports.name = "luvit/process"
 exports.version = "1.1.0"
+exports.dependencies = {
+  "luvit/hooks@1.0.0",
+  "luvit/timer@1.0.0",
+  "luvit/utils@1.0.0",
+  "luvit/core@1.0.2",
+  "luvit/stream@1.1.0",
+  "luvit/pretty-print@1.10.2",
+}
 
 local env = require('env')
 local hooks = require('hooks')

@@ -18,6 +18,11 @@ limitations under the License.
 
 exports.name = "luvit/childprocess"
 exports.version = "1.0.4"
+exports.dependencies = {
+  "luvit/core@1.0.2",
+  "luvit/net@1.1.1",
+  "luvit/timer@1.0.0",
+}
 
 local core = require('core')
 local net = require('net')

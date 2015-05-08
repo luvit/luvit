@@ -17,6 +17,11 @@ limitations under the License.
 --]]
 exports.name = "luvit/fs"
 exports.version = "1.1.2"
+exports.dependencies = {
+  "luvit/utils@1.0.0",
+  "luvit/path@1.0.0",
+  "luvit/stream@1.1.0",
+}
 
 local uv = require('uv')
 local adapt = require('utils').adapt
@@ -281,8 +286,8 @@ function fs.truncate(fname, offset, callback)
     offset = 0
   end
   fs.open(fname,'w', function(err,fd)
-    if(err) then 
-      callback(err) 
+    if(err) then
+      callback(err)
     else
       local cb = function(err)
         uv.fs_close(fd)
