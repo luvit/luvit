@@ -18,7 +18,12 @@ limitations under the License.
 
 if exports then
   exports.name = "luvit/require"
-  exports.version = "1.1.0"
+  exports.version = "1.1.1"
+  exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
+  exports.description = "Luvit's custom require system with relative requires and sane search paths."
+  exports.tags = {"luvit", "require"}
+  exports.license = "Apache 2"
+  exports.author = { name = "Tim Caswell" }
 end
 
 local luvi = require('luvi')
