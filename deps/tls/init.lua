@@ -66,6 +66,9 @@ function Server:init(options, connectionListener)
     socket:on('secureConnection', function()
       connectionListener(socket)
     end)
+    socket:on('error',function(err)
+      connectionListener(socket,err)
+    end)
   end)
 end
 
