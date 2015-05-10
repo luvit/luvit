@@ -210,6 +210,7 @@ function exports.handleConnection(socket, onRequest)
         end
       else
         self:emit('error',event)
+        break
       end
     end
   end)
@@ -302,7 +303,7 @@ function ClientRequest:initialize(options, callback)
       buffer = buffer .. chunk
       while true do
         local R, event, extra = pcall(self.decode,buffer)
-        if R then
+        if R==true then
           -- nil extra means the decoder needs more data, we're done here.
           if not extra then break end
           -- Store the leftover data.
@@ -338,6 +339,7 @@ function ClientRequest:initialize(options, callback)
           end
         else
           self:emit('error', event)
+          break
         end
       end
     end)

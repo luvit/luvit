@@ -65,7 +65,6 @@ require('tap')(function (test)
           req:destroy()
           server:close()          
         end
-
       end)
       
       req:done()
