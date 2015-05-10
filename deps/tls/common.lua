@@ -141,6 +141,9 @@ function TLSSocket:_init()
   self.inp = openssl.bio.mem(8192)
   self.out = openssl.bio.mem(8192)
   self.ssl = self.ctx.context:ssl(self.inp, self.out, self.server)
+  if (not self.server) and self.options.servername then
+    self.ssl:set('hostname',self.options.servername)
+  end
 end
 
 function TLSSocket:getPeerCertificate()
@@ -205,6 +208,17 @@ function TLSSocket:connect(...)
 
   self:on('secureConnection', secureCallback)
   net.Socket.connect(self, unpack(args))
+end
+
+function TLSSocket:sni(hosts)
+  if self.server then
+    local maps = {}
+    for k,v in pairs(hosts) do
+      local ctx = exports.createCredentials(v)
+      maps[k] = ctx.context
+    end
+    self.ctx.context:set_servername_callback(maps) 
+  end
 end
 
 function TLSSocket:_write(data, callback)
