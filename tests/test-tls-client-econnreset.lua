@@ -14,7 +14,7 @@ require('tap')(function (test)
   }
   
   test("tls client econnreset", function()
-    if(los.type() == 'win32') then return end
+    if los.type() == 'win32' then return end
     local child = childprocess.spawn('openssl', args)
     child:on('error', function(err)
       p(err)
@@ -42,7 +42,9 @@ require('tap')(function (test)
       c:on('error', function(err)
         print("got connection error")
         p(err)
-        c:destroy()
+        timer.setTimeout(100, function()
+          interval:close()
+        end)
       end)
       c:on('close', function()
         print('got close signal')
@@ -56,7 +58,7 @@ require('tap')(function (test)
     end)
 
     timer.setTimeout(1000, function()
-      child:kill(9)
+      child:kill()
     end)
   end)
 end)
