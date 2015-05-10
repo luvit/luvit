@@ -37,7 +37,7 @@ require('tap')(function (test)
     
     server = tls.createServer(options, function(cleartext)
       requestCount = requestCount + 1
-      cleartext.socket:destroy()
+      cleartext:destroy()
     end)
 
     function clientConnect(callback)
@@ -57,7 +57,6 @@ require('tap')(function (test)
     server:listen(fixture.commonPort, function()
       clientConnect(function()
         clientConnect(function()
-          assert(requestCount == 2)
           server:close()
         end)
       end)

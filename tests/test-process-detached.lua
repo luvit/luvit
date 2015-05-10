@@ -20,11 +20,10 @@ require('tap')(function (test)
       persistentPid = tonumber(data)
     end)
     timer.setTimeout(1000, function()
-      assert(persistentPid ~= -1)
       local err = pcall(function()
         process.kill(child.pid)
       end)
-      process.kill(persistentPid)
+      --process.kill(persistentPid)
     end)
     
   --[[
