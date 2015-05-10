@@ -179,35 +179,37 @@ function exports.handleConnection(socket, onRequest)
     -- Run the chunk through the decoder by concatenating and looping
     buffer = buffer .. chunk
     while true do
-      local event, extra = pcall(decode,buffer)
-      -- nil extra means the decoder needs more data, we're done here.
-      if not extra then break end
-      -- Store the leftover data.
-      buffer = extra
-      if type(event) == "table" then
-        -- If there was an old request that never closed, end it.
-        if req then flush() end
-        -- Create a new request object
-        req = IncomingMessage:new(event, socket)
-        -- Create a new response object
-        res = ServerResponse:new(socket)
-        -- Call the user callback to handle the request
-        onRequest(req, res)
-      elseif req and type(event) == "string" then
-        if #event == 0 then
-          -- Empty string in http-decoder means end of body
-          -- End the request stream and remove the req reference.
-          flush()
-        else
-          -- Forward non-empty body chunks to the req stream.
-          if not req:push(event) then
-            -- If it's queue is full, pause the source stream
-            -- This will be resumed by IncomingMessage:_read
-            socket:pause()
+      local R, event, extra = pcall(decode,buffer)
+      if R then
+        -- nil extra means the decoder needs more data, we're done here.
+        if not extra then break end
+        -- Store the leftover data.
+        buffer = extra
+        if type(event) == "table" then
+          -- If there was an old request that never closed, end it.
+          if req then flush() end
+          -- Create a new request object
+          req = IncomingMessage:new(event, socket)
+          -- Create a new response object
+          res = ServerResponse:new(socket)
+          -- Call the user callback to handle the request
+          onRequest(req, res)
+        elseif req and type(event) == "string" then
+          if #event == 0 then
+            -- Empty string in http-decoder means end of body
+            -- End the request stream and remove the req reference.
+            flush()
+          else
+            -- Forward non-empty body chunks to the req stream.
+            if not req:push(event) then
+              -- If it's queue is full, pause the source stream
+              -- This will be resumed by IncomingMessage:_read
+              socket:pause()
+            end
           end
         end
-      elseif not event then
-        socket:emit('error',extra)
+      else
+        self:emit('error',event)
       end
     end
   end)
@@ -299,41 +301,43 @@ function ClientRequest:initialize(options, callback)
       -- Run the chunk through the decoder by concatenating and looping
       buffer = buffer .. chunk
       while true do
-        local event, extra = pcall(self.decode,buffer)
-        -- nil extra means the decoder needs more data, we're done here.
-        if not extra then break end
-        -- Store the leftover data.
-        buffer = extra
-        if type(event) == "table" then
-          if self.method ~= 'CONNECT' or res == nil then
-            -- If there was an old response that never closed, end it.
-            if res then flush() end
-            -- Create a new response object
-            res = IncomingMessage:new(event, socket)
-            -- Call the user callback to handle the response
-            if callback then
-              callback(res)
+        local R, event, extra = pcall(self.decode,buffer)
+        if R then
+          -- nil extra means the decoder needs more data, we're done here.
+          if not extra then break end
+          -- Store the leftover data.
+          buffer = extra
+          if type(event) == "table" then
+            if self.method ~= 'CONNECT' or res == nil then
+              -- If there was an old response that never closed, end it.
+              if res then flush() end
+              -- Create a new response object
+              res = IncomingMessage:new(event, socket)
+              -- Call the user callback to handle the response
+              if callback then
+                callback(res)
+              end
+              self:emit('response', res)
             end
-            self:emit('response', res)
-          end
-          if self.method == 'CONNECT' then
-            self:emit('connect', res, socket, event)
-          end
-        elseif res and type(event) == "string" then
-          if #event == 0 then
-            -- Empty string in http-decoder means end of body
-            -- End the res stream and remove the res reference.
-            flush()
-          else
-            -- Forward non-empty body chunks to the res stream.
-            if not res:push(event) then
-              -- If it's queue is full, pause the source stream
-              -- This will be resumed by IncomingMessage:_read
-              socket:pause()
+            if self.method == 'CONNECT' then
+              self:emit('connect', res, socket, event)
+            end
+          elseif res and type(event) == "string" then
+            if #event == 0 then
+              -- Empty string in http-decoder means end of body
+              -- End the res stream and remove the res reference.
+              flush()
+            else
+              -- Forward non-empty body chunks to the res stream.
+              if not res:push(event) then
+                -- If it's queue is full, pause the source stream
+                -- This will be resumed by IncomingMessage:_read
+                socket:pause()
+              end
             end
           end
-        elseif not event then
-          socket:emit('error', extra)
+        else
+          self:emit('error', event)
         end
       end
     end)
@@ -379,7 +383,6 @@ end
 
 function ClientRequest:_done(data, cb)
   self:_end(data, function()
-    --self.socket = nil
     if cb then
       cb()
     end
