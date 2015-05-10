@@ -179,7 +179,7 @@ function exports.handleConnection(socket, onRequest)
     -- Run the chunk through the decoder by concatenating and looping
     buffer = buffer .. chunk
     while true do
-      local event, extra = decode(buffer)
+      local event, extra = pcall(decode,buffer)
       -- nil extra means the decoder needs more data, we're done here.
       if not extra then break end
       -- Store the leftover data.
@@ -206,6 +206,8 @@ function exports.handleConnection(socket, onRequest)
             socket:pause()
           end
         end
+      elseif not event then
+        socket:emit('error',extra)
       end
     end
   end)
@@ -297,7 +299,7 @@ function ClientRequest:initialize(options, callback)
       -- Run the chunk through the decoder by concatenating and looping
       buffer = buffer .. chunk
       while true do
-        local event, extra = self.decode(buffer)
+        local event, extra = pcall(self.decode,buffer)
         -- nil extra means the decoder needs more data, we're done here.
         if not extra then break end
         -- Store the leftover data.
@@ -330,6 +332,8 @@ function ClientRequest:initialize(options, callback)
               socket:pause()
             end
           end
+        elseif not event then
+          socket:emit('error', extra)
         end
       end
     end)
@@ -375,7 +379,7 @@ end
 
 function ClientRequest:_done(data, cb)
   self:_end(data, function()
-    self.socket = nil
+    --self.socket = nil
     if cb then
       cb()
     end
