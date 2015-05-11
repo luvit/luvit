@@ -175,10 +175,16 @@ function exports.handleConnection(socket, onRequest)
     req = nil
   end
 
-  socket:on('data', function (chunk)
+  function onEnd()
+    -- Just in case the stream ended and we still had an open request,
+    -- end it.
+    if req then flush() end
+  end
+  function onData(chunk)
     -- Run the chunk through the decoder by concatenating and looping
     buffer = buffer .. chunk
     while true do
+<<<<<<< HEAD
       local R, event, extra = pcall(decode,buffer)
       if R then
         -- nil extra means the decoder needs more data, we're done here.
@@ -206,6 +212,46 @@ function exports.handleConnection(socket, onRequest)
               -- This will be resumed by IncomingMessage:_read
               socket:pause()
             end
+=======
+      local event, extra = decode(buffer)
+      -- nil extra means the decoder needs more data, we're done here.
+      if not extra then break end
+      -- Store the leftover data.
+      buffer = extra
+      if type(event) == "table" then
+        -- If there was an old request that never closed, end it.
+        if req then flush() end
+        -- Create a new request object
+        req = IncomingMessage:new(event, socket)
+        -- Create a new response object
+        res = ServerResponse:new(socket)
+        -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
+        if req.headers.upgrade then
+          req.is_upgraded = true
+          socket:removeListener("data", onData)
+          socket:removeListener("end", onEnd)
+          if #buffer > 0 then
+            socket:pause()
+            socket:unshift(buffer)
+          end
+          onRequest(req, res)
+          break
+        else
+          -- Call the user callback to handle the request
+          onRequest(req, res)
+        end
+      elseif req and type(event) == "string" then
+        if #event == 0 then
+          -- Empty string in http-decoder means end of body
+          -- End the request stream and remove the req reference.
+          flush()
+        else
+          -- Forward non-empty body chunks to the req stream.
+          if not req:push(event) then
+            -- If it's queue is full, pause the source stream
+            -- This will be resumed by IncomingMessage:_read
+            socket:pause()
+>>>>>>> add connection upgrade support
           end
         end
       else
@@ -213,12 +259,9 @@ function exports.handleConnection(socket, onRequest)
         break
       end
     end
-  end)
-  socket:on('end', function ()
-    -- Just in case the stream ended and we still had an open request,
-    -- end it.
-    if req then flush() end
-  end)
+  end
+  socket:on('data', onData)
+  socket:on('end', onEnd)
 end
 
 function exports.createServer(onRequest)
@@ -298,7 +341,12 @@ function ClientRequest:initialize(options, callback)
     self.connected = true
     self:emit('socket', socket)
 
-    socket:on('data', function(chunk)
+    function onEnd()
+      -- Just in case the stream ended and we still had an open response,
+      -- end it.
+      if res then flush() end
+    end
+    function onData(chunk)
       -- Run the chunk through the decoder by concatenating and looping
       buffer = buffer .. chunk
       while true do
@@ -314,11 +362,26 @@ function ClientRequest:initialize(options, callback)
               if res then flush() end
               -- Create a new response object
               res = IncomingMessage:new(event, socket)
+              -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
+              local is_upgraded
+              if res.headers.upgrade then
+                is_upgraded = true
+                socket:removeListener("data", onData)
+                socket:removeListener("end", onEnd)
+                socket:read(0)
+                if #buffer > 0 then
+                  socket:pause()
+                  socket:unshift(buffer)
+                end
+              end
               -- Call the user callback to handle the response
               if callback then
                 callback(res)
               end
               self:emit('response', res)
+              if is_upgraded then
+                break
+              end
             end
             if self.method == 'CONNECT' then
               self:emit('connect', res, socket, event)
@@ -342,12 +405,9 @@ function ClientRequest:initialize(options, callback)
           break
         end
       end
-    end)
-    socket:on('end', function ()
-      -- Just in case the stream ended and we still had an open response,
-      -- end it.
-      if res then flush() end
-    end)
+    end
+    socket:on('data', onData)
+    socket:on('end', onEnd)
 
     if self.ended then
       self:_done(self.ended.data, self.ended.cb)
