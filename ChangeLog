@@ -1,3 +1,6 @@
+* Changes between 2.1.7 and 2.1.8
+
+ * Update luvi to get libuv v1.5.0 stable and release binaries.
 
 * Changes between 2.1.4 and 2.1.7
 
