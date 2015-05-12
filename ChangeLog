@@ -1,6 +1,8 @@
-* Changes between 2.1.7 and 2.1.8
+* Changes between 2.1.7 and 2.1.9
 
  * Update luvi to get libuv v1.5.0 stable and release binaries.
+ * Drop reference to CA certs strings after parding. [Ryan Phillips]
+ * Lit update that compiles all lua source files in bundle [Tim Caswell]
 
 * Changes between 2.1.4 and 2.1.7
 
