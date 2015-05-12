@@ -41,16 +41,12 @@ end
 
 -------------------------------------------------------------------------------
 
-local loadRootCAStore = function()
-  local store = openssl.x509.store:new()
-  for _, cert in pairs(_root_ca.roots) do
-    cert = assert(openssl.x509.read(cert))
-    assert(store:add(cert))
-  end
-  return store
+exports.DEFAULT_CA_STORE = openssl.x509.store:new()
+for _, cert in pairs(_root_ca.roots) do
+  cert = assert(openssl.x509.read(cert))
+  assert(exports.DEFAULT_CA_STORE:add(cert))
 end
-
-exports.DEFAULT_CA_STORE = loadRootCAStore()
+_root_ca.roots = nil
 
 -------------------------------------------------------------------------------
 
