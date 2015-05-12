@@ -263,7 +263,7 @@ function Module:require(name)
 
   local ext = path:match("%.[^/\\]+$")
   if ext == ".lua" then
-    local fn = assert(loadstring(data, path))
+    local fn = loadstring(string.dump(assert(loadstring(data, path)), true), path)
     local global = {
       module = module,
       exports = module.exports,
