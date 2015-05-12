@@ -20,14 +20,14 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 exports.name = "luvit/dns"
-exports.version = "1.0.0-1"
+exports.version = "1.0.0-2"
 exports.dependencies = {
   "luvit/dgram@1.1.0",
   "luvit/fs@1.1.2",
   "luvit/net@1.1.1",
   "luvit/timer@1.0.0",
   "luvit/core@1.0.2",
-  "luvit/tls@1.1.0",
+  "luvit/tls@1.1.1",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/dns.lua"
