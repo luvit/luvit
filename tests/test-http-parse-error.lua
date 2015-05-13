@@ -20,8 +20,7 @@ require('tap')(function (test)
 
   local net = require('net')
   local http = require('http')
-  local los = require('los')
-  local PORT = process.env.PORT or 10081
+  local PORT = process.env.PORT or 10084
   local HOST = '127.0.0.1'
 
   local running = false
@@ -30,13 +29,11 @@ require('tap')(function (test)
   local gotParseError = false
 
   test("tls http parse error", function()
-    if los.type()=='win32' then
-      print('Please help make this pass on appveyor')
-      return
-    end
     local server = net.createServer(function(client)
       client:write('test\n\n',function(...) 
-        client:destroy()
+        client:setTimeout(100,function()
+          client:destroy()
+        end)
       end)
       client:on("end", function()
         client:destroy()

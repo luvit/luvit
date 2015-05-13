@@ -20,7 +20,7 @@ local http = require('http')
 local string = require('string')
 
 local HOST = "127.0.0.1"
-local PORT = process.env.PORT or 10080
+local PORT = process.env.PORT or 10085
 local server = nil
 local client = nil
 

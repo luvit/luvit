@@ -19,7 +19,7 @@ limitations under the License.
 local Tcp = require('uv').Tcp
 local net = require('net')
 
-local PORT = process.env.PORT or 10085
+local PORT = process.env.PORT or 10088
 
 require('tap')(function(test)
   test('net-connect-handle-econnerefuesed', function(expected)
