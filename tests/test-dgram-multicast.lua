@@ -37,8 +37,8 @@ require('tap')(function (test)
     s2:bind(PORT+1,HOST)
     s1:bind(PORT,HOST)
 
-    assert(s2:addMembership('224.0.0.0'))
+    assert(s2:addMembership('239.255.0.1'))
 
-    s1:send('HELLO', PORT+1, '224.0.0.0')
+    s1:send('HELLO', PORT+1, '127.0.0.1')
   end)
 end)

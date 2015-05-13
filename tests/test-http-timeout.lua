@@ -4,7 +4,7 @@ local http = require('http')
 require('tap')(function(test)
 
   test('http-timeout', function(expect)
-    local PORT = process.env.PORT or 10081
+    local PORT = process.env.PORT or 10086
     local options = {
       method = 'GET',
       port = PORT,

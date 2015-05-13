@@ -18,7 +18,7 @@ limitations under the License.
 
 local net = require('net')
 
-local PORT = process.env.PORT or 10081
+local PORT = process.env.PORT or 10087
 local HOST = '127.0.0.1'
 
 require('tap')(function(test)

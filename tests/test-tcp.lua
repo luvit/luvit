@@ -19,7 +19,7 @@ limitations under the License.
 local net = require('net')
 
 local HOST = '127.0.0.1'
-local PORT = 10082
+local PORT = 10089
 
 require('tap')(function(test)
   test("server", function(expect)

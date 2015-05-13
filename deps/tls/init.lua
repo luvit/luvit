@@ -66,7 +66,18 @@ function Server:init(options, connectionListener)
     socket:on('secureConnection', function()
       connectionListener(socket)
     end)
+    socket:on('error',function(err)
+      connectionListener(socket,err)
+    end)
+    self.socket = socket
+    if self.sni_hosts then
+      socket:sni(self.sni_hosts)   
+    end
   end)
+end
+
+function Server:sni(hosts)
+  self.sni_hosts = hosts
 end
 
 local DEFAULT_OPTIONS = {
@@ -81,7 +92,7 @@ exports.connect = function(options, callback)
   callback = callback or function() end
   options = extend({}, DEFAULT_OPTIONS, options or {})
   port = options.port
-  hostname = options.servername or options.host
+  hostname = options.host or options.servername
 
   sock = _common_tls.TLSSocket:new(nil, options)
   sock:connect(port, hostname, callback)
