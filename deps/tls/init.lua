@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/tls"
-exports.version = "1.1.1"
+exports.version = "1.2.0"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/net@1.1.1",
@@ -71,7 +71,7 @@ function Server:init(options, connectionListener)
     end)
     self.socket = socket
     if self.sni_hosts then
-      socket:sni(self.sni_hosts)   
+      socket:sni(self.sni_hosts)
     end
   end)
 end

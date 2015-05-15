@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http"
-exports.version = "1.1.1-1"
+exports.version = "1.1.2"
 exports.dependencies = {
   "luvit/net@1.1.1",
   "luvit/url@1.0.4",
@@ -209,7 +209,7 @@ function exports.handleConnection(socket, onRequest)
           end
         end
       else
-        self:emit('error',event)
+        socket:emit('error',event)
         break
       end
     end

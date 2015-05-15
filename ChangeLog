@@ -1,3 +1,9 @@
+* Changes between 2.1.9 and 2.1.11
+
+ * Update luvi to get SNI in lua-openssl. [George Zhao]
+ * Rename `fs.mkdirp` to `fs.mkdirpSync` to match behavior. [Tim Caswell]
+ * Update luajit to v2.0.4 [Tim Caswell]
+
 * Changes between 2.1.7 and 2.1.9
 
  * Update luvi to get libuv v1.5.0 stable and release binaries.

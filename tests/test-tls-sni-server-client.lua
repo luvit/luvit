@@ -15,15 +15,9 @@ limitations under the License.
 ]]--
 require('tap')(function (test)
   local fixture = require('./fixture-tls')
-  local fs = require('fs')
-  local childprocess = require('childprocess')
   local table = require('table')
   local tls = require('tls')
 
-  if true then
-    print('Please update luvi build with last lua-openssl')
-    return
-  end
   local options = {
     key = fixture.loadPEM('agent2-key'),
     cert = fixture.loadPEM('agent2-cert')
@@ -69,8 +63,8 @@ require('tap')(function (test)
       p(conn.ssl:get('hostname'))
       table.insert(serverResults, conn.serverName)
     end)
-      
-    function connectClient(options, callback)
+
+    local function connectClient(options, callback)
       local client
       options.host = '127.0.0.1'
       client = tls.connect(options)
@@ -82,7 +76,7 @@ require('tap')(function (test)
       end)
     end
 
-      
+
     server:listen(fixture.commonPort, '127.0.0.1', function()
       server:sni({
         ['a.example.com']=SNIContexts['a.example.com'],

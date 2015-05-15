@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/fs"
-exports.version = "1.1.2-1"
+exports.version = "1.2.0"
 exports.dependencies = {
   "luvit/utils@1.0.0",
   "luvit/path@1.0.0",
@@ -149,13 +149,13 @@ function fs.mkdirSync(path, mode)
   end
   return uv.fs_mkdir(path, mode)
 end
-function fs.mkdirp(path, mode, callback)
+function fs.mkdirpSync(path, mode)
   local success, err = fs.mkdirSync(path, mode)
   if success or string.match(err, "^EEXIST") then
     return true
   end
   if string.match(err, "^ENOENT:") then
-    success, err = fs.mkdirp(join(path, ".."), mode)
+    success, err = fs.mkdirpSync(join(path, ".."), mode)
     if not success then return nil, err end
     return fs.mkdirSync(path, mode)
   end
@@ -230,8 +230,8 @@ function fs.exists(path, callback)
   callback(err,stat~=nil)
 end
 function fs.existsSync(path)
-  local stat,err = uv.fs_stat(path)
-  return stat~=nil
+  local stat, err = uv.fs_stat(path)
+  return stat ~= nil, err
 end
 function fs.stat(path, callback)
   return adapt(callback, uv.fs_stat, path)
@@ -293,11 +293,11 @@ function fs.truncate(fname, offset, callback)
     if(err) then
       callback(err)
     else
-      local cb = function(err)
+      local cb = function(error)
         uv.fs_close(fd)
-        callback(err)
+        callback(error)
       end
-      return adapt(callback, uv.fs_ftruncate, fd, offset)
+      return adapt(cb, uv.fs_ftruncate, fd, offset)
     end
   end)
 end
