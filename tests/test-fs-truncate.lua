@@ -28,7 +28,7 @@ require('tap')(function(test)
   test('fs truncate', function()
     local stat
     _, err = FS.statSync(dir) 
-    if err then FS.mkdirp(dir, "0755") end
+    if err then FS.mkdirpSync(dir, "0755") end
     
     -- truncateSync
     FS.writeFileSync(filename, data)

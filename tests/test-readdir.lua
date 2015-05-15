@@ -24,7 +24,7 @@ require('tap')(function(test)
     local dir, _, err, files, onReadDir
     dir = path.join(module.dir, 'tmp', 'readdir')
     _, err = fs.statSync(dir) 
-    if err then fs.mkdirp(dir, "0755") end
+    if err then fs.mkdirpSync(dir, "0755") end
 
     fs.writeFileSync(path.join(dir, "1"), "")
     fs.writeFileSync(path.join(dir, "2"), "")
