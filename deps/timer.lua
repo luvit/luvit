@@ -78,6 +78,14 @@ Timer.now = uv.now
 
 ------------------------------------------------------------------------------
 
+function exports.sleep(delay, thread)
+  thread = thread or coroutine.running()
+  uv.new_timer():start(delay, 0, function ()
+    return assert(coroutine.resume(thread))
+  end)
+  return coroutine.yield()
+end
+
 function exports.setTimeout(delay, callback, ...)
   local timer = uv.new_timer()
   local args = {...}
