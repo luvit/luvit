@@ -186,7 +186,6 @@ function exports.handleConnection(socket, onRequest)
     -- Run the chunk through the decoder by concatenating and looping
     buffer = buffer .. chunk
     while true do
-<<<<<<< HEAD
       local R, event, extra = pcall(decode,buffer)
       if R then
         -- nil extra means the decoder needs more data, we're done here.
@@ -200,8 +199,21 @@ function exports.handleConnection(socket, onRequest)
           req = IncomingMessage:new(event, socket)
           -- Create a new response object
           res = ServerResponse:new(socket)
-          -- Call the user callback to handle the request
-          onRequest(req, res)
+          -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
+          if req.headers.upgrade then
+            req.is_upgraded = true
+            socket:removeListener("data", onData)
+            socket:removeListener("end", onEnd)
+            if #buffer > 0 then
+              socket:pause()
+              socket:unshift(buffer)
+            end
+            onRequest(req, res)
+            break
+          else
+            -- Call the user callback to handle the request
+            onRequest(req, res)
+          end
         elseif req and type(event) == "string" then
           if #event == 0 then
             -- Empty string in http-decoder means end of body
@@ -214,46 +226,6 @@ function exports.handleConnection(socket, onRequest)
               -- This will be resumed by IncomingMessage:_read
               socket:pause()
             end
-=======
-      local event, extra = decode(buffer)
-      -- nil extra means the decoder needs more data, we're done here.
-      if not extra then break end
-      -- Store the leftover data.
-      buffer = extra
-      if type(event) == "table" then
-        -- If there was an old request that never closed, end it.
-        if req then flush() end
-        -- Create a new request object
-        req = IncomingMessage:new(event, socket)
-        -- Create a new response object
-        res = ServerResponse:new(socket)
-        -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
-        if req.headers.upgrade then
-          req.is_upgraded = true
-          socket:removeListener("data", onData)
-          socket:removeListener("end", onEnd)
-          if #buffer > 0 then
-            socket:pause()
-            socket:unshift(buffer)
-          end
-          onRequest(req, res)
-          break
-        else
-          -- Call the user callback to handle the request
-          onRequest(req, res)
-        end
-      elseif req and type(event) == "string" then
-        if #event == 0 then
-          -- Empty string in http-decoder means end of body
-          -- End the request stream and remove the req reference.
-          flush()
-        else
-          -- Forward non-empty body chunks to the req stream.
-          if not req:push(event) then
-            -- If it's queue is full, pause the source stream
-            -- This will be resumed by IncomingMessage:_read
-            socket:pause()
->>>>>>> add connection upgrade support
           end
         end
       else
