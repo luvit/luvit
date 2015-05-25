@@ -70,13 +70,14 @@ local ServerResponse = Writable:extend()
 exports.ServerResponse = ServerResponse
 
 function ServerResponse:initialize(socket)
+  Writable.initialize(self)
   local encode = codec.encoder()
   self.socket = socket
   self.encode = encode
   self.statusCode = 200
   self.headersSent = false
   self.headers = {}
-  for _, evt in pairs({'close', 'finish'}) do
+  for _, evt in pairs({'close', 'finish', 'drain', 'end' }) do
     self.socket:on(evt, utils.bind(self.emit, self, evt))
   end
 end
@@ -158,7 +159,8 @@ function ServerResponse:writeHead(statusCode, headers)
     head[#head + 1] = {"Transfer-Encoding", "chunked"}
   end
   head.code = statusCode
-  self.socket:write(self.encode(head))
+  local h = self.encode(head)
+  self.socket:write(h)
 
 end
 

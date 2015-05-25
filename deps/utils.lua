@@ -32,6 +32,7 @@ for name, value in pairs(pp) do
 end
 
 local function bind(fn, self, ...)
+  assert(fn, "fn is nil")
   local bindArgsLength = select("#", ...)
 
   -- Simple binding, just inserts self (or one arg or any kind)
