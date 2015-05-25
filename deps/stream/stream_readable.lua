@@ -918,6 +918,7 @@ function fromList(n, state)
     ret = table.remove(list, 1)
   elseif not n or n >= length then
     ret = table.concat(list, '')
+    state.buffer = {}
   else
     --[[
     // read just some of it.
