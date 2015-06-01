@@ -250,7 +250,7 @@ function Module:require(name)
     local success, value = pcall(realRequire, name)
     if success then return value end
     if not success then
-      error("No such module '" .. name .. "' in '" .. self.path .. "'")
+      error("No such module '" .. name .. "' in '" .. self.path .. "'\r\n" ..  value)
     end
   end
 
