@@ -127,6 +127,10 @@ function TLSSocket:initialize(socket, options)
     self:once('secure', utils.bind(self._verifyClient, self))
   end
 
+  if socket then
+    self._connecting = socket._connecting
+  end
+
   self:read(0)
 end
 
