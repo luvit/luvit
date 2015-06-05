@@ -1,3 +1,13 @@
+* Changes between 2.1.12 to 2.1.13
+
+ * Connection Upgrade Support [Martin Croome]
+ * print error message why realRequire failed [runner]
+ * Expose the TLSSocket [Ryan Phillips]
+
+* Changes between 2.1.11 and 2.1.12
+
+ * Update luvi again to get sni fixes [Tim Caswell]
+
 * Changes between 2.1.9 and 2.1.11
 
  * Update luvi to get SNI in lua-openssl. [George Zhao]
