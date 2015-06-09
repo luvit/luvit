@@ -1,5 +1,7 @@
 local spawn = require('childprocess').spawn
 local los = require('los')
+local net = require('net')
+local uv = require('uv')
 
 require('tap')(function(test)
 
@@ -115,6 +117,28 @@ require('tap')(function(test)
     iterate()
     assert(process.env[key] == nil)
     assert(found == false)
+  end)
+
+  test('child process no stdin', function(expect)
+    local child, onData, options
+
+    options = {
+      stdio = {
+        nil,
+        net.Socket:new({ handle = uv.new_pipe(false) }),
+        net.Socket:new({ handle = uv.new_pipe(false) })
+      }
+    }
+
+    function onData(data) end
+
+    if los.type() == 'win32' then
+      child = spawn('cmd.exe', {'/C', 'set'}, options)
+    else
+      child = spawn('env', {}, options)
+    end
+    child:on('data', onData)
+    child:on('exit', expect(function() end))
   end)
 end)
 

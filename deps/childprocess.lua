@@ -68,14 +68,16 @@ function Process:destroy(err)
 end
 
 function Process:_cleanup(err)
-  if err then
-    self.stdout:destroy(err)
-  else
-    self.stdout:once('end', function() self.stdout:destroy(err) end)
-    self.stdout:resume()
+  if self.stdout then
+    if err then
+      self.stdout:destroy(err)
+    else
+      self.stdout:once('end', function() self.stdout:destroy(err) end)
+      self.stdout:resume()
+    end
   end
-  self.stderr:destroy(err)
-  self.stdin:destroy(err)
+  if self.stderr then self.stderr:destroy(err) end
+  if self.stdin then self.stdin:destroy(err) end
 end
 
 local function spawn(command, args, options)
@@ -93,10 +95,20 @@ local function spawn(command, args, options)
     end
   end
 
-  stdout = net.Socket:new({ handle = uv.new_pipe(false) })
-  stderr = net.Socket:new({ handle = uv.new_pipe(false) })
-  stdin = net.Socket:new({ handle = uv.new_pipe(false) })
-  stdio = { stdin._handle, stdout._handle, stderr._handle}
+  if options.stdio then
+    stdio = {}
+    stdin = options.stdio[1]
+    stdout = options.stdio[2]
+    stderr = options.stdio[3]
+    stdio[1] = options.stdio[1] and options.stdio[1]._handle
+    stdio[2] = options.stdio[2] and options.stdio[2]._handle
+    stdio[3] = options.stdio[3] and options.stdio[3]._handle
+  else
+    stdin = net.Socket:new({ handle = uv.new_pipe(false) })
+    stdout = net.Socket:new({ handle = uv.new_pipe(false) })
+    stderr = net.Socket:new({ handle = uv.new_pipe(false) })
+    stdio = { stdin._handle, stdout._handle, stderr._handle}
+  end
 
   function onExit(code, signal)
     if signal then
