@@ -222,18 +222,14 @@ function TLSSocket:sni(hosts)
 end
 
 function TLSSocket:_write(data, callback)
-  local ret, i, err
-  if not self.ssl then
-    return
-  end
-  ret, err = self.ssl:write(data)
-  if ret == nil then
-    return self:destroy(err)
-  end
-  i = self.out:pending()
+  if not self.ssl then return end
+  local ret, err = self.ssl:write(data)
+  if not ret then return self:destroy(err) end
+  local i = self.out:pending()
   if i > 0 then
-    net.Socket._write(self, self.out:read(), callback)
+    net.Socket._write(self, self.out:read())
   end
+  timer.setImmediate(callback)
 end
 
 function TLSSocket:_read(n)
@@ -251,7 +247,7 @@ function TLSSocket:_read(n)
         until not plainText
       end
     else
-      self:push(nil)
+      self:push()
       self:emit('_socketEnd')
     end
   end
@@ -277,6 +273,7 @@ function TLSSocket:_read(n)
       if not uv.is_active(self._handle) then return end
       uv.read_stop(self._handle)
       uv.read_start(self._handle, onData)
+      self._handshake_done = true
       self:emit('secure')
     end
   end
@@ -296,10 +293,12 @@ function TLSSocket:_read(n)
 
   if self._connecting then
     self:once('connect', utils.bind(self._read, self, n))
-  elseif not self._reading then
+  elseif not self._reading and not self._handshake_done then
     self._reading = true
     uv.read_start(self._handle, onHandshake)
     handshake()
+  else
+    uv.read_start(self._handle, onData)
   end
 end
 

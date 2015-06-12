@@ -1,10 +1,10 @@
 require('tap')(function (test)
   local fixture = require('./fixture-tls')
   local childprocess = require('childprocess')
-  local os = require('os')
   local los = require('los')
   local tls = require('tls')
   local timer = require('timer')
+  local uv = require('uv')
 
   local args = {
     's_server',
@@ -12,7 +12,7 @@ require('tap')(function (test)
     '-key', 'tests/fixtures/keys/agent1-key.pem',
     '-cert', 'tests/fixtures/keys/agent1-cert.pem',
   }
-  
+
   test("tls client econnreset", function()
     if los.type() == 'win32' then return end
     local child = childprocess.spawn('openssl', args)
@@ -32,19 +32,10 @@ require('tap')(function (test)
       print('server: ' .. data)
     end)
 
-    interval = timer.setInterval(100, function()
-      local success, err = pcall(child.stdin.write, child.stdin, "Hello world")
-    end)
-
     timer.setTimeout(200,function ()
-      local c
-      c = tls.connect({port = fixture.commonPort, host = '127.0.0.1'})
+      local c = tls.connect({port = fixture.commonPort, host = '127.0.0.1'})
       c:on('error', function(err)
         print("got connection error")
-        p(err)
-        timer.setTimeout(100, function()
-          interval:close()
-        end)
       end)
       c:on('close', function()
         print('got close signal')
