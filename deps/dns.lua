@@ -28,6 +28,7 @@ exports.dependencies = {
   "luvit/timer@1.0.0",
   "luvit/core@1.0.2",
   "luvit/tls@1.2.0",
+  "luvit/utils@1.0.0",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/dns.lua"
@@ -39,6 +40,7 @@ local fs = require('fs')
 local net = require('net')
 local timer = require('timer')
 local Error = require('core').Error
+local adapt = require('utils').adapt
 
 local bit = require('bit')
 local crypto = require('tls/lcrypto')
@@ -681,34 +683,37 @@ local function _query(servers, name, dnsclass, qtype, callback)
   end
 end
 
-exports.query = _query
+local function query(servers, name, dnsclass, qtype, callback)
+  return adapt(callback, _query, servers, name, dnsclass, qtype)
+end
+exports.query = query
 
 exports.resolve4 = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_A, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_A, callback)
 end
 
 exports.resolve6 = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_AAAA, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_AAAA, callback)
 end
 
 exports.resolveSrv = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_SRV, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_SRV, callback)
 end
 
 exports.resolveMx = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_MX, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_MX, callback)
 end
 
 exports.resolveNs = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_NS, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_NS, callback)
 end
 
 exports.resolveCname = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_CNAME, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_CNAME, callback)
 end
 
 exports.resolveTxt = function(name, callback)
-  _query(SERVERS, name, exports.CLASS_IN, exports.TYPE_TXT, callback)
+  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_TXT, callback)
 end
 
 exports.setServers = function(servers)
