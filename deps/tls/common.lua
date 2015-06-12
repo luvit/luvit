@@ -223,7 +223,8 @@ end
 
 function TLSSocket:_write(data, callback)
   if not self.ssl then return end
-  self.ssl:write(data)
+  local ret, err = self.ssl:write(data)
+  if not ret then return self:destroy(err) end
   while self.out:pending() > 0 do
     net.Socket._write(self, self.out:read())
   end
@@ -238,11 +239,12 @@ function TLSSocket:_read(n)
     if err then
       return self:destroy(err)
     elseif cipherText then
-      self.inp:write(cipherText)
-      repeat
-        local plainText = self.ssl:read()
-        if plainText then self:push(plainText) end
-      until not plainText
+      if self.inp:write(cipherText) then
+        repeat
+          local plainText = self.ssl:read()
+          if plainText then self:push(plainText) end
+        until not plainText
+      end
     else
       self:push()
       self:emit('_socketEnd')
