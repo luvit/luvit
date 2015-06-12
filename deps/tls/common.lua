@@ -245,8 +245,9 @@ function TLSSocket:_read(n)
       return self:destroy(err)
     elseif cipherText then
       if self.inp:write(cipherText) then
+        local plainText
         repeat
-          local plainText = self.ssl:read()
+          plainText, extra = self.ssl:read()
           if plainText then self:push(plainText) end
         until not plainText
       end
