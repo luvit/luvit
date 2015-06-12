@@ -226,7 +226,6 @@ exports.decoder = function ()
     end
 
     return head, sub(chunk, length + 1)
-
   end
 
   -- This is used for inserting a single empty string into the output string for known empty bodies
@@ -264,18 +263,15 @@ exports.decoder = function ()
     local length = #chunk
     -- Make sure we have at least one byte to process
     if length == 0 then return end
-
-    if length >= bytesLeft then
-      mode = decodeEmpty
-    end
-
     -- If the entire chunk fits, pass it all through
     if length <= bytesLeft then
       bytesLeft = bytesLeft - length
       return chunk, ""
     end
 
-    return sub(chunk, 1, bytesLeft), sub(chunk, bytesLeft + 1)
+    length = bytesLeft
+    bytesLeft = 0
+    return sub(chunk, 1, length), sub(chunk, length + 1) or ''
   end
 
   -- Switch between states by changing which decoder mode points to
