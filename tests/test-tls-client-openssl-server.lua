@@ -21,12 +21,13 @@ local los = require('los')
 local tls = require('tls')
 local timer = require('timer')
 local path = require('luvi').path
+local uv = require('uv')
 
 require('tap')(function(test)
   test('tls client econnreset', function(expect)
-    local port, args, child, interval, timerCallback, key, cert
-    local onInterval, onStartClient, client, data
-    local count, maxCount
+    local port, args, child, key, cert
+    local onInterval, client, data
+    local count, maxCount, startClient
 
     if los.type() == 'win32' then return end
 
@@ -36,55 +37,53 @@ require('tap')(function(test)
     port = 32312
     key = path.join(module.dir, 'fixtures', 'keys', 'agent1-key.pem')
     cert = path.join(module.dir, 'fixtures', 'keys', 'agent1-cert.pem')
-    args = { 's_server', '-accept', port, '-key', key, '-cert', cert }
-
-    child = childprocess.spawn('openssl', args)
-    child.stdout:once('data', function(data)
-      p(data)
-      timer.setTimeout(100, begin)
-    end)
-
-    function begin()
-      p('begin')
-      interval = timer.setInterval(200, onInterval)
-      timer.setTimeout(100, startClient)
-    end
+    args = { 's_server', '-accept', '127.0.0.1:'..port, '-key', key, '-cert', cert }
 
     function onInterval()
       p('onInterval')
-      child.stdin:write('hello world\n')
+      child.stdin:write('hello world\r\n')
       count = count + 1
-      if count == maxCount then
-        timer.clearInterval(interval)
+      if count < maxCount then
+        timer.setTimeout(200, onInterval)
       end
     end
 
     function startClient()
-      local onData, options, count
-
-      p('onStartClient')
-
-      options = {
+      local onData
+      local count = 0
+      local options = {
         port = port,
         host = '127.0.0.1',
         rejectUnauthorized = false,
       }
 
-      count = 0
+      p('startClient')
 
       function onData(_data)
-        p('client data ' .. _data)
+        p('client data', _data)
         data = data .. _data
         count = count + 1
         if count == 5 then
-          client:destroy()
-          child:kill()
+          p('kill')
+          --client:destroy()
+          --child:kill()
         end
       end
 
       client = tls.connect(options)
       client:on('data', onData)
+      client:on('error', p)
     end
+
+    child = childprocess.spawn('openssl', args)
+    child.stdout:on('data', function(data)
+      if data:match('ACCEPT') then
+        p('starting interval')
+        timer.setTimeout(700, onInterval)
+      end
+    end)
+    timer.setTimeout(200, startClient)
   end)
+
 end)
 
