@@ -225,10 +225,11 @@ function TLSSocket:_write(data, callback)
   if not self.ssl then return end
   local ret, err = self.ssl:write(data)
   if not ret then return self:destroy(err) end
-  while self.out:pending() > 0 do
+  local i = self.out:pending()
+  if i > 0 then
     net.Socket._write(self, self.out:read())
   end
-  callback()
+  timer.setImmediate(callback)
 end
 
 function TLSSocket:_read(n)
