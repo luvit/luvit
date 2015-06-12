@@ -273,6 +273,7 @@ function TLSSocket:_read(n)
       if ret == false then return end
 
       self._connected = true
+      self._handshake_complete = true
 
       if not uv.is_active(self._handle) then return end
       uv.read_stop(self._handle)
@@ -296,10 +297,13 @@ function TLSSocket:_read(n)
 
   if self._connecting then
     self:once('connect', utils.bind(self._read, self, n))
-  elseif not self._reading then
+  elseif not self._reading and not self._handshake_complete then
     self._reading = true
     uv.read_start(self._handle, onHandshake)
     handshake()
+  elseif not self._reading then
+    self._reading = true
+    uv.read_start(self._handle, onData)
   end
 end
 
