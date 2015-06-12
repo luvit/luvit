@@ -105,9 +105,9 @@ function Socket:_write(data, callback)
     timer.active(self)
     if err then
       self:destroy(err)
-      return callback(err)
+      if callback then return callback(err) end
     end
-    callback()
+    if callback then callback() end
   end)
 end
 
