@@ -177,12 +177,13 @@ function exports.handleConnection(socket, onRequest)
     req = nil
   end
 
-  function onEnd()
+  local function onEnd()
     -- Just in case the stream ended and we still had an open request,
     -- end it.
     if req then flush() end
   end
-  function onData(chunk)
+
+  local function onData(chunk)
     -- Run the chunk through the decoder by concatenating and looping
     buffer = buffer .. chunk
     while true do
@@ -302,7 +303,7 @@ function ClientRequest:initialize(options, callback)
   local res
 
   local function flush()
-    res:_end()
+    res:push()
     res = nil
   end
 
@@ -315,12 +316,12 @@ function ClientRequest:initialize(options, callback)
     self.connected = true
     self:emit('socket', socket)
 
-    function onEnd()
+    local function onEnd()
       -- Just in case the stream ended and we still had an open response,
       -- end it.
       if res then flush() end
     end
-    function onData(chunk)
+    local function onData(chunk)
       -- Run the chunk through the decoder by concatenating and looping
       buffer = buffer .. chunk
       while true do
