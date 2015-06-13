@@ -106,3 +106,4 @@ exports.createServer = function(options, secureCallback)
 end
 
 exports.TLSSocket = _common_tls.TLSSocket
+exports.createCredentials = _common_tls.createCredentials
