@@ -1,3 +1,10 @@
+* Changes between 2.1.15 to 2.1.16
+
+ * Add more coroutine support [Tim Caswell]
+ * TLS Fixes [Ryan Phillips]
+ * Add timer.sleep using coroutines [Tim Caswell]
+ * Add coroutine support to dns queries [Tim Caswell]
+
 * Changes between 2.1.14 to 2.1.15
 
  * Add stdio options to spawn [Ryan Phillips]
