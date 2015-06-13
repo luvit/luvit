@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/timer"
-exports.version = "1.0.0-1"
+exports.version = "1.0.0-2"
 exports.dependencies = {
   "luvit/core@1.0.2",
   "luvit/utils@1.0.0",
