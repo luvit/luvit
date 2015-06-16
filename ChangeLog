@@ -1,3 +1,8 @@
+* Changes between 2.1.16 to 2.2.0
+
+ * Update lit to 2.0.3 [Tim Caswell]
+ * Update luvi to v2.1.1 [Tim Caswell]
+
 * Changes between 2.1.15 to 2.1.16
 
  * Add more coroutine support [Tim Caswell]

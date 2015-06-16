@@ -1,6 +1,6 @@
 APP_FILES=$(shell find . -type f -name '*.lua')
 BIN_ROOT=lit/luvi-binaries/$(shell uname -s)_$(shell uname -m)
-LIT_VERSION=1.3.0
+LIT_VERSION=2.0.3
 
 LUVIT_TAG=$(shell git describe)
 LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
