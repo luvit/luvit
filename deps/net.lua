@@ -137,7 +137,7 @@ end
 
 function Socket:shutdown(callback)
   if self.destroyed == true then
-    return
+    return callback()
   end
 
   if uv.is_closing(self._handle) then

@@ -229,9 +229,10 @@ end
 
 function Module:resolve(name)
   assert(name, "Missing name to resolve")
-  if name:byte(1) == 46 then -- Starts with "."
+  local debundled_name = name:match("^bundle:(.*)") or name
+  if debundled_name:byte(1) == 46 then -- Starts with "."
     return fixedRequire(pathJoin(self.dir, name))
-  elseif name:byte(1) == 47 then -- Starts with "/"
+  elseif debundled_name:byte(1) == 47 then -- Starts with "/"
     return fixedRequire(name)
   end
   return moduleRequire(self.dir, name)
