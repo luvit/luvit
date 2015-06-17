@@ -102,6 +102,8 @@ end
 
 
 function loadColors(index)
+  if index == nil then index = defaultTheme end
+
   -- Remove the old theme
   for key in pairs(theme) do
     theme[key] = nil
