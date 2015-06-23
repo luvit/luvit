@@ -28,6 +28,13 @@ return function (main, ...)
     math.randomseed(os.clock())
   end
 
+  -- Load Resolver
+  do
+    local jit = require('jit')
+    local dns = require('dns')
+    if jit.os ~= 'Windows' then dns.loadResolver() end
+  end
+
   local args = {...}
   local success, err = xpcall(function ()
     -- Call the main app

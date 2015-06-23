@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/net"
-exports.version = "1.1.1-2"
+exports.version = "1.1.2"
 exports.dependencies = {
   "luvit/timer@1.0.0",
   "luvit/utils@1.0.0",
@@ -137,7 +137,7 @@ end
 
 function Socket:shutdown(callback)
   if self.destroyed == true then
-    return
+    return callback()
   end
 
   if uv.is_closing(self._handle) then
