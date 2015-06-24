@@ -109,8 +109,12 @@ end
 
 local function exit(self, code)
   code = code or 0
+  local function onStdoutClose()
+    os.exit(code)
+  end
+  process.stdout:once('close', onStdoutClose)
+  process.stdout:_end()
   self:emit('exit', code)
-  os.exit(code)
 end
 
 local UvStreamWritable = Writable:extend()
