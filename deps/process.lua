@@ -108,9 +108,18 @@ local function removeListener(self, _type, listener)
 end
 
 local function exit(self, code)
+  local left = 2
   code = code or 0
-  self:emit('exit', code)
-  os.exit(code)
+  local function onEnd()
+    left = left - 1
+    if left > 0 then return end
+    self:emit('exit', code)
+    os.exit(code)
+  end
+  process.stdout:once('end', onEnd)
+  process.stdout:_end()
+  process.stderr:once('end', onEnd)
+  process.stderr:_end()
 end
 
 local UvStreamWritable = Writable:extend()
