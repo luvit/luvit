@@ -85,8 +85,8 @@ end
 local signalWraps = {}
 
 local function on(self, _type, listener)
-  if _type == "error" then
-    Emitter.on(self, "error", listener)
+  if _type == "error" or _type == "exit" then
+    Emitter.on(self, _type, listener)
   else
     if not signalWraps[_type] then
       local signal = uv.new_signal()
