@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/process"
-exports.version = "1.1.0-3"
+exports.version = "1.1.1-3"
 exports.dependencies = {
   "luvit/hooks@1.0.0",
   "luvit/timer@1.0.0",
