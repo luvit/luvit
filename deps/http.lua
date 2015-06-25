@@ -405,7 +405,7 @@ function ClientRequest:write(data, cb)
   local encoded = self.encode(data)
 
   -- Don't write empty strings to the socket, it breaks HTTPS.
-  if #encoded > 0 then
+  if encoded and #encoded > 0 then
     Writable.write(self, encoded, cb)
   else
     if cb then
@@ -480,4 +480,3 @@ function exports.get(options, onResponse)
   req:done()
   return req
 end
-
