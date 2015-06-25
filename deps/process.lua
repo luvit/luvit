@@ -110,15 +110,15 @@ end
 local function exit(self, code)
   local left = 2
   code = code or 0
-  local function onEnd()
+  local function onClose()
     left = left - 1
     if left > 0 then return end
     self:emit('exit', code)
     os.exit(code)
   end
-  process.stdout:once('end', onEnd)
+  process.stdout:once('close', onClose)
   process.stdout:_end()
-  process.stderr:once('end', onEnd)
+  process.stderr:once('close', onClose)
   process.stderr:_end()
 end
 
