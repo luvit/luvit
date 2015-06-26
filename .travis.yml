@@ -13,3 +13,7 @@ script:
 notifications:
   email: true
   irc: "irc.freenode.org#luvit"
+
+env:
+  global:
+    secure: pQr0Jc5N3CIWyGn8JmH/2C1AbKTmTJvJfQgVJMuhZjFzU3wHG5U2Opjgbs2kGeijvevCI2UDhw1l0M28kqvxM0tmi3JSLHKPbbV0aaqJpATUbVa6BSCnsFvl7ZKn3oLlPPS/VdHPXM10KrZGMCWGy2zLWn84n14rMwKflAYFrQE=

@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/pretty-print"
-exports.version = "1.0.2-1"
+exports.version = "1.0.3"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
 exports.description = "A lua value pretty printer and colorizer for terminals."
 exports.tags = {"colors", "tty"}
@@ -212,7 +212,7 @@ function dump(value, recurse, nocolor)
     output[#output + 1] = text
     offset = offset + length
     if offset > width then
-      dump(stack)
+      return dump(stack)
     end
   end
 
@@ -236,7 +236,6 @@ function dump(value, recurse, nocolor)
         write(quote .. string.gsub(value, "[%c\\'\128-\255]", stringEscape) .. quote2)
       end
     elseif typ == 'table' and not seen[value] then
-
       if not recurse then seen[value] = true end
       write(obrace)
       local i = 1
@@ -323,6 +322,7 @@ end
 if uv.guess_handle(1) == 'tty' then
   stdout = assert(uv.new_tty(1, false))
   width = uv.tty_get_winsize(stdout)
+  if width == 0 then width = 80 end
   -- auto-detect when 16 color mode should be used
   local term = env.get("TERM")
   if term == 'xterm' or term == 'xterm-256color' then

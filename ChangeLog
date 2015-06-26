@@ -1,3 +1,13 @@
+* Changes between 2.2.0 to 2.2.1
+
+ * Bump lit to 2.1.0 [Ryan Phillips]
+ * Stdout/Stderr flush on process:exit [Ryan Phillips]
+ * Don't use require's file cache for module:load() [Tim Caswell]
+ * require fixes [Martin Croome]
+ * net socket fix for destroy [Martin Croome]
+ * load resolver from /etc/resolv.conf on Unix systems [Ryan Phillips]
+ * Disable color output [Martin Croome]
+
 * Changes between 2.1.16 to 2.2.0
 
  * Update lit to 2.0.3 [Tim Caswell]

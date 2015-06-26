@@ -131,6 +131,10 @@ function TLSSocket:initialize(socket, options)
     self._connecting = socket._connecting
   end
 
+  self:once('end', function()
+    self:destroy()
+  end)
+
   self:read(0)
 end
 
@@ -202,10 +206,9 @@ function TLSSocket:_verifyServer()
 end
 
 function TLSSocket:destroy(err)
-   if self.ssl then
-     self.ssl:shutdown()
-   end
-   net.Socket.destroy(self, err)
+  if self._destroyed then return end
+  if self.ssl then self.ssl:shutdown() end
+  net.Socket.destroy(self, err)
 end
 
 function TLSSocket:connect(...)

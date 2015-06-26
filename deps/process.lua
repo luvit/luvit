@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/process"
-exports.version = "1.1.0-3"
+exports.version = "1.1.1-3"
 exports.dependencies = {
   "luvit/hooks@1.0.0",
   "luvit/timer@1.0.0",
@@ -85,8 +85,8 @@ end
 local signalWraps = {}
 
 local function on(self, _type, listener)
-  if _type == "error" then
-    Emitter.on(self, "error", listener)
+  if _type == "error" or _type == "exit" then
+    Emitter.on(self, _type, listener)
   else
     if not signalWraps[_type] then
       local signal = uv.new_signal()
@@ -110,15 +110,15 @@ end
 local function exit(self, code)
   local left = 2
   code = code or 0
-  local function onEnd()
+  local function onClose()
     left = left - 1
     if left > 0 then return end
     self:emit('exit', code)
     os.exit(code)
   end
-  process.stdout:once('end', onEnd)
+  process.stdout:once('close', onClose)
   process.stdout:_end()
-  process.stderr:once('end', onEnd)
+  process.stderr:once('close', onClose)
   process.stderr:_end()
 end
 
