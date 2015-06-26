@@ -1,3 +1,10 @@
+* Changes between 2.2.1 to 2.2.2
+
+ * destroy tls socket on end [Ryan Phillips]
+ * flush stdout and stderr stream fix [Ryan Phillips]
+ * fix stack overflow when terminal width is 0 [Tim Caswell]
+ * fix exception if nil string [gsick]
+
 * Changes between 2.2.0 to 2.2.1
 
  * Bump lit to 2.1.0 [Ryan Phillips]
