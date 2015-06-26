@@ -116,9 +116,9 @@ local function exit(self, code)
     self:emit('exit', code)
     os.exit(code)
   end
-  process.stdout:once('close', onClose)
+  process.stdout:once('end', onClose)
   process.stdout:_end()
-  process.stderr:once('close', onClose)
+  process.stderr:once('end', onClose)
   process.stderr:_end()
 end
 
