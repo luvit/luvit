@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http"
-exports.version = "1.1.2"
+exports.version = "1.1.2-3"
 exports.dependencies = {
   "luvit/net@1.1.1",
   "luvit/url@1.0.4",
@@ -47,6 +47,10 @@ function IncomingMessage:initialize(head, socket)
   local headers = {}
   for i = 1, #head do
     local name, value = unpack(head[i])
+    local lname = name:lower()
+    if lname == 'connection' and value:lower() == "keep-alive" then
+      self.keepAlive = true
+    end
     headers[name:lower()] = value
   end
   self.headers = headers
@@ -120,11 +124,17 @@ function ServerResponse:flushHeaders()
 end
 
 function ServerResponse:write(chunk, callback)
+  if chunk and #chunk > 0 then
+    self.hasBody = true
+  end
   self:flushHeaders()
   return self.socket:write(self.encode(chunk), callback)
 end
 
 function ServerResponse:finish(chunk)
+  if chunk and #chunk > 0 then
+    self.hasBody = true
+  end
   self:flushHeaders()
   local last = ""
   if chunk then
@@ -133,10 +143,14 @@ function ServerResponse:finish(chunk)
   last = last .. (self.encode("") or "")
   if #last > 0 then
     self.socket:write(last, function()
-      self.socket:_end()
+      if not self.keepAlive then
+        self.socket:_end()
+      end
     end)
   else
-    self.socket:_end()
+    if not self.keepAlive then
+      self.socket:_end()
+    end
   end
 end
 
@@ -148,15 +162,34 @@ function ServerResponse:writeHead(statusCode, headers)
 
   local lower = {}
 
+  local sent_connection, sent_transfer_encoding, sent_content_length
   for key, value in pairs(headers) do
-    lower[key:lower()] = value
+    local klower = key:lower()
+    lower[klower] = value
     head[#head + 1] = {tostring(key), tostring(value)}
+    if klower == "connection" then
+      self.keepAlive = value:lower() ~= "close"
+      sent_connection = true
+    elseif klower == "transfer-encoding" then
+      sent_transfer_encoding = true
+    elseif klower == "content-length" then
+      sent_content_length = true
+    end
   end
   if not lower.date and self.sendDate then
     head[#head + 1] = {"Date", date("!%a, %d %b %Y %H:%M:%S GMT")}
   end
-  if not lower["content-length"] and not lower["transfer-encoding"] then
+  if self.hasBody and not sent_transfer_encoding and not sent_content_length then
+    sent_transfer_encoding = true
     head[#head + 1] = {"Transfer-Encoding", "chunked"}
+  end
+  if not sent_connection then
+    if sent_transfer_encoding or sent_content_length and self.keepAlive then
+      head[#head + 1] = {"Connection", "keep-alive"}
+    else
+      self.keepAlive = false
+      head[#head + 1] = {"Connection", "close"}
+    end
   end
   head.code = statusCode
   local h = self.encode(head)
@@ -165,7 +198,6 @@ function ServerResponse:writeHead(statusCode, headers)
 end
 
 function exports.handleConnection(socket, onRequest)
-
   -- Initialize the two halves of the stateful decoder and encoder for HTTP.
   local decode = codec.decoder()
 
@@ -177,12 +209,19 @@ function exports.handleConnection(socket, onRequest)
     req = nil
   end
 
-  function onEnd()
+  local function onEnd()
     -- Just in case the stream ended and we still had an open request,
     -- end it.
     if req then flush() end
   end
-  function onData(chunk)
+
+  local function onTimeout()
+    socket:shutdown(function()
+      socket:done()
+    end)
+  end
+
+  local function onData(chunk)
     -- Run the chunk through the decoder by concatenating and looping
     buffer = buffer .. chunk
     while true do
@@ -199,9 +238,14 @@ function exports.handleConnection(socket, onRequest)
           req = IncomingMessage:new(event, socket)
           -- Create a new response object
           res = ServerResponse:new(socket)
+          if req.headers['connection'] and req.headers['connection']:lower() == "keep-alive" then
+            res.keepAlive = true
+          end
           -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
           if req.headers.upgrade then
             req.is_upgraded = true
+            socket:setTimeout(0)
+            socket:removeListener("timeout", onTimeout)
             socket:removeListener("data", onData)
             socket:removeListener("end", onEnd)
             if #buffer > 0 then
@@ -234,6 +278,9 @@ function exports.handleConnection(socket, onRequest)
       end
     end
   end
+  socket:on('timeout', onTimeout)
+  -- set socket timeout
+  socket:setTimeout(120000)
   socket:on('data', onData)
   socket:on('end', onEnd)
 end
@@ -302,7 +349,7 @@ function ClientRequest:initialize(options, callback)
   local res
 
   local function flush()
-    res:_end()
+    res:push()
     res = nil
   end
 
@@ -315,12 +362,12 @@ function ClientRequest:initialize(options, callback)
     self.connected = true
     self:emit('socket', socket)
 
-    function onEnd()
+    local function onEnd()
       -- Just in case the stream ended and we still had an open response,
       -- end it.
       if res then flush() end
     end
-    function onData(chunk)
+    local function onData(chunk)
       -- Run the chunk through the decoder by concatenating and looping
       buffer = buffer .. chunk
       while true do
