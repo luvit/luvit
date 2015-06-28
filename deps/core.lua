@@ -23,7 +23,7 @@ module.
 local core = exports
 
 exports.name = "luvit/core"
-exports.version = "1.0.2-1"
+exports.version = "1.0.3-2"
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/core.lua"
 exports.description = "Core object model for luvit using simple prototypes and inheritance."
@@ -230,11 +230,12 @@ function Emitter:emit(name, ...)
     self:missingHandlerType(name, ...)
     return
   end
-  for i = 1, #handlers_for_type do
-    handlers_for_type[i](...)
-  end
-  for i = #handlers_for_type, 1, -1 do
-    if not handlers_for_type[i] then
+  local i = 1
+  while i <= #handlers_for_type do
+    if handlers_for_type[i] then
+      handlers_for_type[i](...)
+      i = i + 1
+    else
       table.remove(handlers_for_type, i)
     end
   end
