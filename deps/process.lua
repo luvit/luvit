@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/process"
-exports.version = "1.1.1-3"
+exports.version = "1.1.1-4"
 exports.dependencies = {
   "luvit/hooks@1.0.0",
   "luvit/timer@1.0.0",
@@ -110,15 +110,15 @@ end
 local function exit(self, code)
   local left = 2
   code = code or 0
-  local function onClose()
+  local function onFinish()
     left = left - 1
     if left > 0 then return end
     self:emit('exit', code)
     os.exit(code)
   end
-  process.stdout:once('close', onClose)
+  process.stdout:once('finish', onFinish)
   process.stdout:_end()
-  process.stderr:once('close', onClose)
+  process.stderr:once('finish', onFinish)
   process.stderr:_end()
 end
 
