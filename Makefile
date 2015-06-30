@@ -1,6 +1,6 @@
 APP_FILES=$(shell find . -type f -name '*.lua')
 BIN_ROOT=lit/luvi-binaries/$(shell uname -s)_$(shell uname -m)
-LIT_VERSION=2.1.0
+LIT_VERSION=2.1.4
 
 LUVIT_TAG=$(shell git describe)
 LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
@@ -12,7 +12,7 @@ test: luvit
 	./luvit tests/run.lua
 
 clean:
-	rm -rf luvit lit lit-* luvi luvit.tar.gz
+	rm -rf luvit lit lit-* luvi
 
 lit:
 	curl -L https://github.com/luvit/lit/raw/$(LIT_VERSION)/get-lit.sh | sh
