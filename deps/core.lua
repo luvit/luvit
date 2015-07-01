@@ -231,7 +231,8 @@ function Emitter:emit(name, ...)
     return
   end
   for i = 1, #handlers_for_type do
-    handlers_for_type[i](...)
+    local handler = handlers_for_type[i]
+    if handler then handler(...) end
   end
   for i = #handlers_for_type, 1, -1 do
     if not handlers_for_type[i] then
@@ -332,5 +333,3 @@ function Error:initialize(message)
 end
 
 --------------------------------------------------------------------------------
-
-
