@@ -35,6 +35,16 @@ return function (main, ...)
     if jit.os ~= 'Windows' then dns.loadResolver() end
   end
 
+  -- EPIPE ignore
+  do
+    local jit = require('jit')
+    if jit.os ~= 'Windows' then
+      local sig = uv.new_signal()
+      uv.signal_start(sig, 'sigpipe', function() end)
+      uv.unref(sig)
+    end
+  end
+
   local args = {...}
   local success, err = xpcall(function ()
     -- Call the main app
