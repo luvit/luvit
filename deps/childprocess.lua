@@ -126,6 +126,8 @@ local function spawn(command, args, options)
     args = args,
     env = envPairs,
     detached = options.detached,
+    uid = options.uid,
+    gid = options.gid
   }, onExit)
 
   em = Process:new(stdin, stdout, stderr)
