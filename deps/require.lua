@@ -30,7 +30,8 @@ local luvi = require('luvi')
 local bundle = luvi.bundle
 local pathJoin = luvi.path.join
 local env = require('env')
-local os = require('ffi').os
+local ffi = require('ffi')
+local os = ffi.os
 local uv = require('uv')
 
 local realRequire = _G.require
@@ -183,6 +184,17 @@ local function moduleRequire(base, name)
 end
 
 
+local function load_lib(path, fnName)
+  fn, err = package.loadlib(path, fnName)
+  if not fn then
+    fn, err = ffi.load(path)
+  else
+    fn = fn()
+  end
+  return fn, err
+end
+
+
 local moduleCache = {}
 
 
@@ -299,10 +311,7 @@ function Module:require(name)
     local realPath = uv.fs_access(path, "r") and path or uv.fs_access(key, "r") and key
     if realPath then
       -- If it's a real file, load it directly
-      fn, err = package.loadlib(realPath, fnName)
-      if not fn then
-        error(realPath .. "#" .. fnName .. ": " .. err)
-      end
+      fn, err = load_lib(realPath, fnName)
     else
       -- Otherwise, copy to a temporary folder and read from there
       local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
@@ -310,14 +319,14 @@ function Module:require(name)
       local fd = uv.fs_open(path, "w", 384) -- 0600
       uv.fs_write(fd, data, 0)
       uv.fs_close(fd)
-      fn, err = package.loadlib(path, fnName)
-      if not fn then
-        error(path .. "#" .. fnName .. ": " .. err)
-      end
+      fn, err = load_lib(path, fnName)
       uv.fs_unlink(path)
       uv.fs_rmdir(dir)
     end
-    module.exports = fn()
+    if err then
+      error(path .. "#" .. fnName .. ": " .. err)
+    end
+    module.exports = fn
   else
     error("Unknown type at '" .. path .. "' for '" .. name .. "' in '" .. self.path .. "'")
   end
