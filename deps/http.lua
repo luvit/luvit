@@ -120,23 +120,35 @@ function ServerResponse:flushHeaders()
 end
 
 function ServerResponse:write(chunk, callback)
+  if chunk and #chunk > 0 then
+    self.hasBody = true
+  end
   self:flushHeaders()
   return self.socket:write(self.encode(chunk), callback)
 end
 
 function ServerResponse:finish(chunk)
+  if chunk and #chunk > 0 then
+    self.hasBody = true
+  end
   self:flushHeaders()
   local last = ""
   if chunk then
     last = last .. self.encode(chunk)
   end
   last = last .. (self.encode("") or "")
+  local function maybeClose()
+    self:emit('finish')
+    if not self.keepAlive then
+      self.socket:_end()
+    end
+  end
   if #last > 0 then
     self.socket:write(last, function()
-      self.socket:_end()
+      maybeClose()
     end)
   else
-    self.socket:_end()
+    maybeClose()
   end
 end
 
@@ -148,15 +160,47 @@ function ServerResponse:writeHead(statusCode, headers)
 
   local lower = {}
 
+  local sent_connection, sent_transfer_encoding, sent_content_length
   for key, value in pairs(headers) do
-    lower[key:lower()] = value
+    local klower = key:lower()
+    lower[klower] = value
     head[#head + 1] = {tostring(key), tostring(value)}
+    if klower == "connection" then
+      self.keepAlive = value:lower() ~= "close"
+      sent_connection = true
+    elseif klower == "transfer-encoding" then
+      sent_transfer_encoding = true
+    elseif klower == "content-length" then
+      sent_content_length = true
+    end
   end
   if not lower.date and self.sendDate then
     head[#head + 1] = {"Date", date("!%a, %d %b %Y %H:%M:%S GMT")}
   end
-  if not lower["content-length"] and not lower["transfer-encoding"] then
+  if self.hasBody and not sent_transfer_encoding and not sent_content_length then
+    sent_transfer_encoding = true
     head[#head + 1] = {"Transfer-Encoding", "chunked"}
+  end
+  if not sent_connection then
+    if self.keepAlive then
+      if self.hasBody then
+        if sent_transfer_encoding or sent_content_length then
+          head[#head + 1] = {"Connection", "keep-alive"}
+        else
+          -- body has no length so close to indicate end
+          self.keepAlive = false
+          head[#head + 1] = {"Connection", "close"}
+        end
+      elseif statusCode >= 300 then
+        self.keepAlive = false
+        head[#head + 1] = {"Connection", "close"}
+      else
+        head[#head + 1] = {"Connection", "keep-alive"}
+      end
+    else
+      self.keepAlive = false
+      head[#head + 1] = {"Connection", "close"}
+    end
   end
   head.code = statusCode
   local h = self.encode(head)
@@ -177,7 +221,12 @@ function exports.handleConnection(socket, onRequest)
     req = nil
   end
 
+  local function onTimeout()
+    socket:_end()
+  end
+
   local function onEnd()
+    process:removeListener('exit', onTimeout)
     -- Just in case the stream ended and we still had an open request,
     -- end it.
     if req then flush() end
@@ -200,11 +249,16 @@ function exports.handleConnection(socket, onRequest)
           req = IncomingMessage:new(event, socket)
           -- Create a new response object
           res = ServerResponse:new(socket)
+          res.keepAlive = event.keepAlive
+
           -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
           if req.headers.upgrade then
             req.is_upgraded = true
+            socket:setTimeout(0)
+            socket:removeListener("timeout", onTimeout)
             socket:removeListener("data", onData)
             socket:removeListener("end", onEnd)
+            process:removeListener('exit', onTimeout)
             if #buffer > 0 then
               socket:pause()
               socket:unshift(buffer)
@@ -235,8 +289,12 @@ function exports.handleConnection(socket, onRequest)
       end
     end
   end
+  socket:once('timeout', onTimeout)
+  -- set socket timeout
+  socket:setTimeout(120000)
   socket:on('data', onData)
   socket:on('end', onEnd)
+  process:once('exit', onTimeout)
 end
 
 function exports.createServer(onRequest)
