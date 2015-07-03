@@ -195,9 +195,43 @@ function TLSSocket:_verifyServer()
 end
 
 function TLSSocket:destroy(err)
-  if self._destroyed then return end
-  if self.ssl then self.ssl:shutdown() end
-  net.Socket.destroy(self, err)
+  local function shutdown()
+    timer.active(self)
+    if self._shutdown then
+      local _, shutdown_err = self.ssl:shutdown()
+      if shutdown_err == "want_read" or shutdown_err == "want_write" or shutdown_err == "syscall" then
+        local r = self.out:pending()
+        if r > 0 then
+          net.Socket._write(self, self.out:read(), function()
+            shutdown()
+          end)
+        end
+      else
+        self._shutdown = false
+        return net.Socket.destroy(self, err)
+      end
+    end
+  end
+
+  local function onShutdown(read_err, data)
+    timer.active(self)
+    if read_err or not data then
+      return net.Socket.destroy(self, read_err)
+    end
+    self.inp:write(data)
+    shutdown()
+  end
+
+  if self.destroyed or self._shutdown then return end
+  if self.ssl and not self._socket_eof then
+    self._shutdown = true
+    uv.read_stop(self._handle)
+    uv.read_start(self._handle, onShutdown)
+    self:emit('shutdown')
+    shutdown()
+  else
+    net.Socket.destroy(self, err)
+  end
 end
 
 function TLSSocket:connect(...)
@@ -226,12 +260,14 @@ end
 
 function TLSSocket:_write(data, callback)
   local ret, i, err
-  if not self.ssl then
+  if not self.ssl or self.destroyed or self._shutdown or not self._connected then
     return
   end
-  ret, err = self.ssl:write(data)
-  if ret == nil then
-    return self:destroy(err)
+  if data then
+    ret, err = self.ssl:write(data)
+    if ret == nil then
+      return self:destroy(err)
+    end
   end
   i = self.out:pending()
   if i > 0 then
@@ -254,6 +290,7 @@ function TLSSocket:_read(n)
         until not plainText
       end
     else
+      self._socket_eof = true
       self:push(nil)
       self:emit('_socketEnd')
     end
@@ -263,6 +300,7 @@ function TLSSocket:_read(n)
     if not self._connected then
       local ret, err = self.ssl:handshake()
       if ret == nil then
+        self._socket_eof = true
         return self:destroy(err)
       else
         local i = self.out:pending()
@@ -288,9 +326,11 @@ function TLSSocket:_read(n)
   function onHandshake(err, data)
     timer.active(self)
     if err then
+      self._socket_eof = true
       return self:destroy(err)
     end
     if not data then
+      self._socket_eof = true
       self:destroy()
       return
     end
