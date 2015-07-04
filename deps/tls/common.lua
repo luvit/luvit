@@ -208,6 +208,7 @@ function TLSSocket:destroy(err)
         end
       else
         self._shutdown = false
+        self.ssl = nil
         return net.Socket.destroy(self, err)
       end
     end
@@ -223,7 +224,7 @@ function TLSSocket:destroy(err)
   end
 
   if self.destroyed or self._shutdown then return end
-  if self.ssl and not self._socket_eof then
+  if self.ssl and not self.rejectUnauthorized then
     self._shutdown = true
     uv.read_stop(self._handle)
     uv.read_start(self._handle, onShutdown)
@@ -290,7 +291,7 @@ function TLSSocket:_read(n)
         until not plainText
       end
     else
-      self._socket_eof = true
+      self.ssl = nil
       self:push(nil)
       self:emit('_socketEnd')
     end
@@ -300,7 +301,7 @@ function TLSSocket:_read(n)
     if not self._connected then
       local ret, err = self.ssl:handshake()
       if ret == nil then
-        self._socket_eof = true
+        self.ssl = nil
         return self:destroy(err)
       else
         local i = self.out:pending()
@@ -326,11 +327,11 @@ function TLSSocket:_read(n)
   function onHandshake(err, data)
     timer.active(self)
     if err then
-      self._socket_eof = true
-      return self:destroy(err)
+      self.ssl = nil
+    return self:destroy(err)
     end
     if not data then
-      self._socket_eof = true
+      self.ssl = nil
       self:destroy()
       return
     end
