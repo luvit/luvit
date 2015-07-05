@@ -224,7 +224,7 @@ function TLSSocket:destroy(err)
   end
 
   if self.destroyed or self._shutdown then return end
-  if self.ssl and not self.rejectUnauthorized then
+  if self.ssl and self.authorized then
     self._shutdown = true
     uv.read_stop(self._handle)
     uv.read_start(self._handle, onShutdown)
@@ -286,8 +286,17 @@ function TLSSocket:_read(n)
     elseif cipherText then
       if self.inp:write(cipherText) then
         repeat
-          local plainText = self.ssl:read()
-          if plainText then self:push(plainText) end
+          local plainText, op = self.ssl:read()
+          if not plainText then
+            if op == 0 then
+              self.ssl = nil
+              return self:destroy()
+            else
+              return
+            end
+          else
+            self:push(plainText)
+          end
         until not plainText
       end
     else
