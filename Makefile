@@ -29,6 +29,9 @@ uninstall:
 lint:
 	find deps -name "*.lua" | xargs luacheck
 
+trim:
+	find . -type f -name '*.lua' -print0 | xargs -0 perl -pi -e 's/ +$$//'
+
 luvit.tar.gz: luvit lit README.markdown ChangeLog LICENSE.txt
 	echo 'Copy `lit` and `luvit` to somewhere in your path like /usr/local/bin/' > INSTALL
 	tar -czf luvit.tar.gz INSTALL README.markdown ChangeLog LICENSE.txt luvit lit
