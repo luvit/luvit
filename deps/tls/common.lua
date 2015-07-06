@@ -145,8 +145,14 @@ function TLSSocket:_init()
   self.inp = openssl.bio.mem(8192)
   self.out = openssl.bio.mem(8192)
   self.ssl = self.ctx.context:ssl(self.inp, self.out, self.server)
-  if (not self.server) and self.options.servername then
-    self.ssl:set('hostname',self.options.servername)
+
+  if (not self.server) then
+    if self.options.servername then
+      self.ssl:set('hostname',self.options.servername)
+    end
+    if self.ctx.session then
+      self.ssl:session(self.ctx.session)
+    end
   end
 end
 
@@ -155,20 +161,25 @@ function TLSSocket:getPeerCertificate()
 end
 
 function TLSSocket:_verifyClient()
-  local verifyError, verifyResults
-
-  verifyError, verifyResults = self.ssl:getpeerverification()
-  if verifyError then
-    self.authorized = true
+  if self.ssl:session_reused() then
+    self.sessionReused = true
     self:emit('secureConnection', self)
   else
-    self.authorized = false
-    self.authorizationError = verifyResults[1].error_string
-    if self.rejectUnauthorized then
-      local err = Error:new(self.authorizationError)
-      self:destroy(err)
-    else
+    local verifyError, verifyResults
+    self.ctx.session = self.ssl:session()
+    verifyError, verifyResults = self.ssl:getpeerverification()
+    if verifyError then
+      self.authorized = true
       self:emit('secureConnection', self)
+    else
+      self.authorized = false
+      self.authorizationError = verifyResults[1].error_string
+      if self.rejectUnauthorized then
+        local err = Error:new(self.authorizationError)
+        self:destroy(err)
+      else
+        self:emit('secureConnection', self)
+      end
     end
   end
 end
