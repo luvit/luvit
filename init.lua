@@ -30,17 +30,15 @@ return function (main, ...)
 
   -- Load Resolver
   do
-    local jit = require('jit')
     local dns = require('dns')
     if jit.os ~= 'Windows' then dns.loadResolver() end
   end
 
   -- EPIPE ignore
   do
-    local jit = require('jit')
     if jit.os ~= 'Windows' then
       local sig = uv.new_signal()
-      uv.signal_start(sig, 'sigpipe', function() end)
+      uv.signal_start(sig, 'sigpipe')
       uv.unref(sig)
     end
   end
