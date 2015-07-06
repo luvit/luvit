@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/path"
-exports.version = "1.0.0-1"
+exports.version = "1.0.0-2"
 exports.dependencies = {
-  "luvit/core@1.0.2",
+  "luvit/core@1.0.4",
   "luvit/los@1.0.0",
 }
 exports.license = "Apache 2"

@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/http"
-exports.version = "1.1.3-1"
+exports.version = "1.1.4"
 exports.dependencies = {
-  "luvit/net@1.1.1",
+  "luvit/net@1.1.2",
   "luvit/url@1.0.4",
   "luvit/http-codec@1.0.0",
   "luvit/stream@1.1.0",

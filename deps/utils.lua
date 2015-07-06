@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/utils"
-exports.version = "1.0.0-2"
+exports.version = "1.0.0-3"
 exports.dependencies = {
-  "luvit/pretty-print@1.0.2",
+  "luvit/pretty-print@1.0.3",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"

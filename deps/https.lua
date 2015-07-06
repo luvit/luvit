@@ -17,10 +17,10 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/https"
-exports.version = "1.0.1-3"
+exports.version = "1.0.1-4"
 exports.dependencies = {
-  "luvit/tls@1.2.0",
-  "luvit/http@1.1.2",
+  "luvit/tls@1.2.1",
+  "luvit/http@1.1.4",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/https.lua"
@@ -83,4 +83,3 @@ function exports.get(options, onResponse)
   req:done()
   return req
 end
-
