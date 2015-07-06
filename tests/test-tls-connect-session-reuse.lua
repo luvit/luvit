@@ -21,7 +21,7 @@ require('tap')(function (test)
       p('server accepted',serverConnected)
       conns[serverConnected] = conn
       if (serverConnected == 2) then
-        timer.setTimeout(1000,function()      
+        timer.setTimeout(1000,function()
           server:close()
           p('server closed')
           assert(session1:id()==session2:id())
@@ -37,7 +37,7 @@ require('tap')(function (test)
       p('server listening at:',fixture.commonPort)
 
       local options = {
-        port = fixture.commonPort, 
+        port = fixture.commonPort,
         host = '127.0.0.1',
         rejectUnauthorized=false
       }
@@ -55,12 +55,12 @@ require('tap')(function (test)
       end)
 
       client1:on('error', function(err)
-        p(err)      
+        p(err)
         client1:destroy()
       end)
       client1:on('end', function()
         p('client end')
-      end)  
+      end)
 
       calltwo = function()
         client2 = tls.connect(options)
@@ -71,12 +71,12 @@ require('tap')(function (test)
           clientConnected = clientConnected + 1
         end)
         client2:on('error', function(err)
-          p(err) 
+          p(err)
           client2:destroy()
         end)
         client2:on('end', function()
           p('client end')
-        end) 
+        end)
       end
       --]]
     end)
