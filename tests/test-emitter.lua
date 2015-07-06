@@ -34,6 +34,28 @@ require('tap')(function (test)
       :emit("foo", { a = "b" })
   end)
   
+  test("removal", function(expect)
+    local e1 = require('core').Emitter:new()
+    local cnt = 0
+    local function checkCount()
+      cnt = cnt + 1
+      if cnt == 2 then
+        assert(e1:listenerCount('t1') == 2)
+      end
+    end
+    local function dummy()
+    end
+    e1:on('t1', expect(function()
+      checkCount()
+    end))
+    e1:on('t1', dummy)
+    e1:on('t1', expect(function()
+      checkCount()
+    end))
+    e1:removeListener('t1', dummy)
+    e1:emit('t1')
+  end)
+  
   test("remove all listeners", function(expect)
     local em = require('core').Emitter:new()
     em:on('data', function() end)
