@@ -208,7 +208,6 @@ function TLSSocket:destroy(err)
         end
       else
         self._shutdown = false
-        self.ssl = nil
         return net.Socket.destroy(self, err)
       end
     end
@@ -289,8 +288,7 @@ function TLSSocket:_read(n)
           local plainText, op = self.ssl:read()
           if not plainText then
             if op == 0 then
-              self.ssl = nil
-              return self:destroy()
+              return net.Socket.destroy(self)
             else
               return
             end
@@ -310,8 +308,7 @@ function TLSSocket:_read(n)
     if not self._connected then
       local ret, err = self.ssl:handshake()
       if ret == nil then
-        self.ssl = nil
-        return self:destroy(err)
+        return net.Socket.destroy(self, err)
       else
         local i = self.out:pending()
         if i > 0 then
@@ -336,13 +333,10 @@ function TLSSocket:_read(n)
   function onHandshake(err, data)
     timer.active(self)
     if err then
-      self.ssl = nil
-    return self:destroy(err)
+      return net.Socket.destroy(self, err)
     end
     if not data then
-      self.ssl = nil
-      self:destroy()
-      return
+      return net.Socket.destroy(self)
     end
     self.inp:write(data)
     handshake()
