@@ -214,7 +214,13 @@ function Emitter:listenerCount(name)
   if not handlers_for_type then
     return 0
   else
-    return #handlers_for_type
+    local count = 0
+    for i = 1, #handlers_for_type do
+      if handlers_for_type[i] then
+        count = count + 1
+      end
+    end
+    return count
   end
 end
 
@@ -250,7 +256,7 @@ function Emitter:removeListener(name, callback)
   if not handlers_for_type then return end
   for i = #handlers_for_type, 1, -1 do
     if handlers_for_type[i] == callback or callback == nil then
-      handlers_for_type[i] = nil
+      handlers_for_type[i] = false
     end
   end
 end
@@ -263,7 +269,7 @@ function Emitter:removeAllListeners(name)
   local handlers_for_type = rawget(handlers, name)
   if handlers_for_type then
     for i = #handlers_for_type, 1, -1 do
-        handlers_for_type[i] = nil
+        handlers_for_type[i] = false
     end
   else
     rawset(self, "handlers", {})
