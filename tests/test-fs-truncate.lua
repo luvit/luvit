@@ -24,12 +24,12 @@ require('tap')(function(test)
   local dir = Path.join(module.dir, 'tmp')
   local filename = Path.join(dir, 'truncate-file.txt')
   local data = string.rep('x', 1024 * 16)
-  
+
   test('fs truncate', function()
     local stat
-    _, err = FS.statSync(dir) 
+    _, err = FS.statSync(dir)
     if err then FS.mkdirpSync(dir, "0755") end
-    
+
     -- truncateSync
     FS.writeFileSync(filename, data)
     stat = FS.statSync(filename)

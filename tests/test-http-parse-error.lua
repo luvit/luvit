@@ -30,7 +30,7 @@ require('tap')(function (test)
 
   test("tls http parse error", function()
     local server = net.createServer(function(client)
-      client:write('test\n\n',function(...) 
+      client:write('test\n\n',function(...)
         client:setTimeout(100,function()
           client:destroy()
         end)
@@ -64,10 +64,10 @@ require('tap')(function (test)
           gotParseError = true
           running = false
           req:destroy()
-          server:close()          
+          server:close()
         end
       end)
-      
+
       req:done()
     end)
 

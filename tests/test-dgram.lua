@@ -25,7 +25,7 @@ require('tap')(function(test)
 
     HOST = '127.0.0.1'
     PORT = 53211
-    
+
     s1 = dgram.createSocket()
     s2 = dgram.createSocket()
 
@@ -45,7 +45,7 @@ require('tap')(function(test)
     function onError(err)
       assert(err)
     end
-    
+
     s1:on('message', expect(onMessageS1))
     s1:on('error', onError)
     s1:bind(PORT,'127.0.0.1')

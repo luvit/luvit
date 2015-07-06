@@ -20,7 +20,7 @@ require('tap')(function(test)
   local FS = require('fs')
   local Path = require('path')
   local string = require('string')
-    
+
   test('fs.readFile sync', function()
     local fn = Path.join(module.dir, 'fixtures', 'elipses.txt')
 

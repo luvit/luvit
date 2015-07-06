@@ -39,7 +39,7 @@ function fiber.new(block) return function (callback)
       if sync == nil then
         sync = true
         ret = {...}
-        return 
+        return
       end
       check(coroutine.resume(co, ...))
     end)

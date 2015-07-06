@@ -21,7 +21,7 @@ require('tap')(function(test)
   test('fs windows long path', function()
     local los = require('los')
     local __dirname = module.dir
-    
+
     if los.type() == "win32" then
       local Path = require('path')
       -- test the win32 long path logic

@@ -92,6 +92,6 @@ net.createServer(function (client)
     parser:finish()
   end)
 
-  
+
 end):listen(8080)
 print("http server listening on 8080")

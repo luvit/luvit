@@ -7,7 +7,7 @@ require('tap')(function (test)
   local os = require('los')
   local __dirname = module.dir
 
-  test("tls process detached", function() 
+  test("tls process detached", function()
     local childPath = path.join(__dirname, 'fixtures', 'parent-process-nonpersistent.lua')
     local persistentPid = -1
 
@@ -25,7 +25,7 @@ require('tap')(function (test)
       end)
       --process.kill(persistentPid)
     end)
-    
+
   --[[
     process:on('exit', function()
       assert(persistentPid ~= -1)

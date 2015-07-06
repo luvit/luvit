@@ -220,7 +220,7 @@ function TLSSocket:sni(hosts)
       local ctx = exports.createCredentials(v)
       maps[k] = ctx.context
     end
-    self.ctx.context:set_servername_callback(maps) 
+    self.ctx.context:set_servername_callback(maps)
   end
 end
 

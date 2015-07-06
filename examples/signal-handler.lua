@@ -11,7 +11,7 @@ end)
 -- Use timer to keep loop running
 local timer = uv.new_timer()
 timer:start(1000, 1000, function(t)
-  print("Still running...") 
+  print("Still running...")
 end)
 
-print("Running...") 
+print("Running...")

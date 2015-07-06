@@ -59,7 +59,7 @@ require('tap')(function(test)
         p("client:write")
         assert(err == nil)
       end
-      
+
       client:on('data', expect(onData))
       client:write("ping", expect(onWrite))
     end

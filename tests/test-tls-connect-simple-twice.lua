@@ -1,7 +1,7 @@
 require('tap')(function (test)
   local fixture = require('./fixture-tls')
   local tls = require('tls')
-  
+
   local options = {
     cert = fixture.certPem,
     key = fixture.keyPem

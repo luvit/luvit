@@ -28,7 +28,7 @@ require('tap')(function(test)
   test('tls client reject', function(expect)
     local options, key, cert, port, server
     local onClient
-         
+
     port = 32333
     options = {}
     options.port = port
@@ -90,7 +90,7 @@ require('tap')(function(test)
       end
 
       socket = tls.connect({
-        port = port,                   
+        port = port,
         host = '127.0.0.1',
         rejectUnauthorized = true
       }, onConnect)

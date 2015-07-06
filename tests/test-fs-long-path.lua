@@ -49,7 +49,7 @@ require('tap')(function(test)
           assert(successes == 2)
           if successes > 0 then
             FS.unlinkSync(fileName)
-          end          
+          end
         end
       end)
     end)

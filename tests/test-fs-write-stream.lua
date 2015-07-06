@@ -42,7 +42,7 @@ require('tap')(function (test)
   --test("writefile stream fd", function(expect)
   --  local stream, data, onFinish
 
-  --  function onFinish() assert(stream.bytesWritten == 12) end 
+  --  function onFinish() assert(stream.bytesWritten == 12) end
 
   --  data = 'hello world\n'
   --  stream = fs.WriteStream:new(nil, { fd = 2 })

@@ -21,7 +21,7 @@ local parent = Emitter:new()
 local child = Emitter:new()
 
 child:propagate('error', parent)
-parent:on('error', p) 
+parent:on('error', p)
 
 child:emit('error', 'from child')
 

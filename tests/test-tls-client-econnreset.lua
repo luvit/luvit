@@ -12,7 +12,7 @@ require('tap')(function (test)
     '-key', 'tests/fixtures/keys/agent1-key.pem',
     '-cert', 'tests/fixtures/keys/agent1-cert.pem',
   }
-  
+
   test("tls client econnreset", function()
     if los.type() == 'win32' then return end
     local child = childprocess.spawn('openssl', args)

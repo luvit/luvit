@@ -78,7 +78,7 @@ require('tap')(function(test)
       child:on('exit', onExit)
       child.stdout:on('data', onStdout)
     end
-    
+
     server = tls.createServer(options, expect(onConnection))
     server:listen(port, '127.0.0.1', expect(onListen))
   end)

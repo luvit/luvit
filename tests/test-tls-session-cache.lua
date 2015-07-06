@@ -34,7 +34,7 @@ require('tap')(function (test)
   test("tls connect simple twice", function()
     local server
     if los.type() == 'win32' then return end
-    
+
     server = tls.createServer(options, function(cleartext)
       requestCount = requestCount + 1
       cleartext:destroy()

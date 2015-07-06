@@ -24,7 +24,7 @@ require('tap')(function (test)
   }
 
   local verified = false
-  
+
   test("tls peer certificate", function()
     local server
     server = tls.createServer(options, function(cleartext,err)
@@ -44,19 +44,19 @@ require('tap')(function (test)
           local peercert = assert(socket:getPeerCertificate())
           peercert = peercert:parse()
           assert(tostring(peercert.subject) == '/CN=alice/subjectAltName=uniformResourceIdentifier:http://localhost:8000/alice.foaf#me')
-          verified = true        
+          verified = true
           socket:destroy()
-          server:close()               
+          server:close()
         end)
         socket:on('end',function() print('END') end)
-        socket:on('error',function(err) 
-          --print('ERROR',err) 
+        socket:on('error',function(err)
+          --print('ERROR',err)
           local peercert = assert(socket:getPeerCertificate())
           peercert = peercert:parse()
           assert(tostring(peercert.subject) == '/CN=alice/subjectAltName=uniformResourceIdentifier:http://localhost:8000/alice.foaf#me')
-          verified = true  
+          verified = true
           socket:destroy()
-          server:close()             
+          server:close()
         end)
       end)
 

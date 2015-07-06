@@ -13,7 +13,7 @@ require('tap')(function (test)
 
   local server
   local client1
-  
+
   test("tls connect simple test", function()
     server = tls.createServer(options, function(conn)
       serverConnected = serverConnected + 1
@@ -32,12 +32,12 @@ require('tap')(function (test)
         clientConnected = clientConnected + 1
       end)
       client1:on('error', function(err)
-        p(err) 
+        p(err)
         client1:destroy()
       end)
       client1:on('end', function()
         p('client end')
-      end)      
+      end)
     end)
   end)
 end)

@@ -38,7 +38,7 @@ http.createServer(function(req, res)
     if not stat.is_file then
       return res:notFound("Requested url is not a file\n")
     end
-    
+
     res:writeHead(200, {
       ["Content-Type"] = mime.getType(path),
       ["Content-Length"] = stat.size

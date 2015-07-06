@@ -21,7 +21,7 @@ http.createServer(function (req, res)
     })
     res:finish(body)
   end)
-    
+
 end):listen(8080)
 
 print("Server listening at http://localhost:8080/")

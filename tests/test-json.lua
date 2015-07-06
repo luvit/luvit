@@ -56,7 +56,7 @@ require('tap')(function(test)
     -- escaped strings
     assert(JSON.stringify('a"b\tc\nd') == '"a\\"b\\tc\\nd"')
     assert(JSON.parse('"a\\"b\\tc\\nd"') == 'a"b\tc\nd')
-    
+
     -- booleans
     assert(JSON.stringify(true) == 'true')
     assert(JSON.stringify(false) == 'false')

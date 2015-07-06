@@ -23,7 +23,7 @@ require('tap')(function(test)
   local string = require('string')
   local los = require('los')
   local __filename = module.path
-  
+
   test('fs utime', function()
     local is_windows = los.type() == 'win32'
 

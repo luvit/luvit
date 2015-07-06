@@ -37,7 +37,7 @@ require('tap')(function(test)
 
     local client
     local receivedMessage = false
-    
+
     server:listen(PORT, HOST, function()
       p('server listening')
       local msg= 'hello world'
@@ -62,7 +62,7 @@ require('tap')(function(test)
         end)
       end)
     end)
-    
+
 
     server:on("error", function(err)
       assert(err)

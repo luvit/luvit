@@ -31,7 +31,7 @@ local message2 = 'will be signed'
 local message = message1 .. message2
 
 require('tap')(function (test)
-  
+
   local ca_path = path.join(module.dir, 'ca')
   local RSA_PUBLIC_KEY = fs.readFileSync(path.join(ca_path, 'server.pub'))
   local RSA_PRIV_KEY = fs.readFileSync(path.join(ca_path, 'server.key.insecure'))
@@ -40,7 +40,7 @@ require('tap')(function (test)
   local sha256 = openssl.digest.get("sha256")
 
   assert(kpub:export({pem = true}) == RSA_PUBLIC_KEY)
-  
+
   test("test digests", function()
     local hash = 'da0fd2505f0fc498649d6cf9abc7513be179b3295bb1838091723b457febe96a'
     local d = openssl.digest.new(sha256)
@@ -54,7 +54,7 @@ require('tap')(function (test)
     ret = d:final()
     assert(hash ~= ret)
   end)
-  
+
   test("test signing", function()
     local sig = kpriv:sign(message, sha256)
     assert(openssl.pkey.verify(kpub, message1 .. message2, sig, sha256))
@@ -65,7 +65,7 @@ require('tap')(function (test)
     assert(openssl.pkey.verify(kpub, message1 .. message2, sig, sha256))
     assert(not openssl.pkey.verify(kpub, message1 .. message2 .. 'x', sig, sha256))
   end)
-  
+
   test("full buffer verify", function()
     local sig = kpriv:sign(message, sha256)
     assert(openssl.pkey.verify(kpub, message, sig, sha256))

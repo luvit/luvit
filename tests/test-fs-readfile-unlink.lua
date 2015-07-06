@@ -27,7 +27,7 @@ require('tap')(function(test)
 
   local bufStr = string.rep(string.char(42), 512 * 1024)
   local buf = Buffer:new(bufStr)
-  
+
   test('fs readfile unlink', function()
 
     local ok, err

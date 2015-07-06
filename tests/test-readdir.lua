@@ -23,7 +23,7 @@ require('tap')(function(test)
   test('fs.readdir', function(expect)
     local dir, _, err, files, onReadDir
     dir = path.join(module.dir, 'tmp', 'readdir')
-    _, err = fs.statSync(dir) 
+    _, err = fs.statSync(dir)
     if err then fs.mkdirpSync(dir, "0755") end
 
     fs.writeFileSync(path.join(dir, "1"), "")
@@ -38,11 +38,11 @@ require('tap')(function(test)
       assert(#files == 3)
       fs.unlink(path.join(dir, "1"), function() end)
       fs.unlink(path.join(dir, "2"), function() end)
-      fs.unlink(path.join(dir, "3"), function() end)      
+      fs.unlink(path.join(dir, "3"), function() end)
     end
 
     fs.readdir(dir, expect(onReadDir))
   end)
-  
+
 end)
 
