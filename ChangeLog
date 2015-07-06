@@ -1,3 +1,12 @@
+* Changes between 2.2.3 to 2.2.4
+
+ * Ignore sigpipe by default [Martin Croome]
+ * Add support for TLS client session reuse [George Zhao]
+ * Add uid/gid to spawn API [Martin Croome]
+ * Fix emitter code to handle holes properly [Martin Croome]
+ * Pump shutdown on destroy [Martin Croome]
+ * Update lit to 2.1.4 and luvi to 2.1.3 [Tim Caswell]
+
 * Changes between 2.2.2 to 2.2.3
 
  * Bump luvi [Ryan Phillips]
