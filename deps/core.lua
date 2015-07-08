@@ -336,6 +336,7 @@ end
 
 function Error:initialize(message)
   self.message = message
+  if message then self.code = message:match('([^:]+): ') end
 end
 
 --------------------------------------------------------------------------------

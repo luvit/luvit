@@ -31,9 +31,10 @@ local uv = require('uv')
 local adapt = require('utils').adapt
 local bind = require('utils').bind
 local join = require('path').join
-local fs = exports
+local Error = require('core').Error
 local Writable = require('stream').Writable
 local Readable = require('stream').Readable
+local fs = exports
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
@@ -175,7 +176,7 @@ function fs.rmdirSync(path)
 end
 local function readdir(path, callback)
   uv.fs_scandir(path, function (err, req)
-    if err then return callback(err) end
+    if err then return callback(Error:new(err)) end
     local files = {}
     local i = 1
     while true do
