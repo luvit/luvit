@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/utils"
-exports.version = "1.0.0-3"
+exports.version = "1.0.0-4"
 exports.dependencies = {
   "luvit/pretty-print@1.0.3",
 }

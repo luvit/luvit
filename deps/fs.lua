@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/fs"
-exports.version = "1.2.0"
+exports.version = "1.2.1"
 exports.dependencies = {
   "luvit/utils@1.0.0",
   "luvit/path@1.0.0",
