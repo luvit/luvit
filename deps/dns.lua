@@ -739,10 +739,8 @@ exports.loadResolver = function(options)
     file = '/etc/resolv.conf'
   }
 
-  local err, data = pcall(fs.readFileSync, options.file)
-  if err == false then
-    return
-  end
+  local data, err = fs.readFileSync(options.file)
+  if err then return end
 
   local posa = 1
 
