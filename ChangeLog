@@ -1,3 +1,8 @@
+* Changes between 2.2.7 and 2.2.8
+
+ - tls: Add shutdown timer. [Ryan Phillips]
+ - Update luvi to 2.1.5 and lit to 2.1.6 [Tim Caswell]
+
 * Changes between 2.2.6 to 2.2.7
 
  * Fix TLS destroy pump on socket error [Ryan Phillips]
