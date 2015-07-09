@@ -100,9 +100,7 @@ end
 
 function Socket:_write(data, callback)
   if not self._handle then return end
-  timer.active(self)
   uv.write(self._handle, data, function(err)
-    timer.active(self)
     if err then
       self:destroy(err)
       return callback(err)
@@ -113,7 +111,6 @@ end
 
 function Socket:_read(n)
   local onRead
-  timer.active(self)
 
   function onRead(err, data)
     timer.active(self)
