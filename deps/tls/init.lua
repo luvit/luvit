@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/tls"
-exports.version = "1.2.1"
+exports.version = "1.2.2"
 exports.dependencies = {
   "luvit/core@1.0.4",
   "luvit/net@1.1.2",
