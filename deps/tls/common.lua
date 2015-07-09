@@ -206,6 +206,14 @@ function TLSSocket:_verifyServer()
 end
 
 function TLSSocket:destroy(err)
+
+  local hasShutdown = false
+  local function reallyShutdown()
+    if hasShutdown then return end
+    hasShutdown = true
+    net.Socket.destroy(self, err)
+  end
+
   local function shutdown()
     timer.active(self)
     if self._shutdown then
@@ -213,17 +221,19 @@ function TLSSocket:destroy(err)
       if shutdown_err == "want_read" or shutdown_err == "want_write" or shutdown_err == "syscall" then
         local r = self.out:pending()
         if r > 0 then
+          timer.active(self._shutdownTimer)
           net.Socket._write(self, self.out:read(), function(err)
+            timer.active(self._shutdownTimer)
             if err then
               self._shutdown = false
-              return net.Socket.destroy(self, err)
+              return reallyShutdown()
             end
             shutdown()
           end)
         end
       else
         self._shutdown = false
-        return net.Socket.destroy(self, err)
+        return reallyShutdown()
       end
     end
   end
@@ -231,21 +241,25 @@ function TLSSocket:destroy(err)
   local function onShutdown(read_err, data)
     timer.active(self)
     if read_err or not data then
-      return net.Socket.destroy(self, read_err)
+      return reallyShutdown()
     end
+    timer.active(self._shutdownTimer)
     self.inp:write(data)
     shutdown()
   end
 
   if self.destroyed or self._shutdown then return end
   if self.ssl and self.authorized then
+    if not self._shutdownTimer then
+      self._shutdownTimer = timer.setTimeout(5000, reallyShutdown)
+    end
     self._shutdown = true
     uv.read_stop(self._handle)
     uv.read_start(self._handle, onShutdown)
     self:emit('shutdown')
     shutdown()
   else
-    net.Socket.destroy(self, err)
+    reallyShutdown()
   end
 end
 
