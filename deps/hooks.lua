@@ -21,9 +21,9 @@ limitations under the License.
 -- through this emitter.
 
 exports.name = "luvit/hooks"
-exports.version = "1.0.0-2"
+exports.version = "1.0.0-3"
 exports.dependencies = {
-  "luvit/core@1.0.4",
+  "luvit/core@1.0.5",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/hooks.lua"

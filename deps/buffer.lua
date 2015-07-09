@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/buffer"
-exports.version = "1.0.1-2"
+exports.version = "1.0.1-3"
 exports.dependencies = {
-  "luvit/core@1.0.4"
+  "luvit/core@1.0.5"
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/buffer.lua"

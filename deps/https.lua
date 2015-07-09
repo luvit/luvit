@@ -17,9 +17,9 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/https"
-exports.version = "1.0.1-4"
+exports.version = "1.0.1-5"
 exports.dependencies = {
-  "luvit/tls@1.2.1",
+  "luvit/tls@1.2.3",
   "luvit/http@1.1.4",
 }
 exports.license = "Apache 2"
