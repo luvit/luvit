@@ -12,7 +12,7 @@ test: luvit
 	./luvit tests/run.lua
 
 clean:
-	rm -rf luvit lit lit-* luvi
+	git clean -dx -f
 
 lit:
 	curl -L https://github.com/luvit/lit/raw/$(LIT_VERSION)/get-lit.sh | sh
