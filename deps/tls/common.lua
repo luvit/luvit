@@ -213,7 +213,11 @@ function TLSSocket:destroy(err)
       if shutdown_err == "want_read" or shutdown_err == "want_write" or shutdown_err == "syscall" then
         local r = self.out:pending()
         if r > 0 then
-          net.Socket._write(self, self.out:read(), function()
+          net.Socket._write(self, self.out:read(), function(err)
+            if err then
+              self._shutdown = false
+              return net.Socket.destroy(self, err)
+            end
             shutdown()
           end)
         end
