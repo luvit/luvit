@@ -21,7 +21,7 @@ require('tap')(function(test)
   local Path = require('path')
 
   test('fs.readFile nonexistant path', function(expect)
-    local filepath = Path.join(module.dir, '/skldfjslfjslf')
+    local filepath = '/skldfjslfjslf'
     print(filepath)
     local fd = FS.readFile(filepath, expect(function(err)
       assert(err)
