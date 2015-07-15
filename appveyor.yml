@@ -1,5 +1,10 @@
 configuration: Release
 
+environment:
+  matrix:
+    - LUVI_ARCH: Windows-amd64
+    - LUVI_ARCH: Windows-ia32
+
 matrix:
     fast_finish: true
 
