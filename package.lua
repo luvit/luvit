@@ -1,6 +1,6 @@
 return {
   name = "luvit/luvit",
-  version = "2.2.8",
+  version = "2.3.0",
   luvi = {
     version = "2.1.5",
     flavor = "regular",
@@ -29,7 +29,7 @@ return {
     "luvit/fs@1.2.1",
     "luvit/helpful@1.0.0",
     "luvit/hooks@1.0.0",
-    "luvit/http@1.1.4",
+    "luvit/http@1.2.0",
     "luvit/http-codec@1.0.0",
     "luvit/https@1.0.1",
     "luvit/json@2.5.0",
@@ -40,7 +40,7 @@ return {
     "luvit/process@1.1.1",
     "luvit/querystring@1.0.0",
     "luvit/readline@1.1.0",
-    "luvit/repl@1.0.1",
+    "luvit/repl@1.1.0",
     "luvit/require@1.2.2",
     "luvit/stream@1.1.0",
     "luvit/timer@1.0.0",

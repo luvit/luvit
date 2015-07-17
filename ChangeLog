@@ -1,3 +1,9 @@
+* Changes between 2.2.8 and 2.3.0
+
+ - http: Defer senting headers till first write or finish is attempted [Tim Caswell]
+ - http: Add metatable to headers to allow numerical or keyed access [Tim Caswell]
+ - repl: Run repl commands in coroutine and wait for it to finish [Tim Caswell]
+
 * Changes between 2.2.7 and 2.2.8
 
  - tls: Add shutdown timer. [Ryan Phillips]
