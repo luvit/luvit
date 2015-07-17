@@ -64,8 +64,8 @@ setmetatable(exports, {
   local buffer = ''
 
   local function evaluateLine(line)
-    if line == "<3\n" or line == "♥\n" then
-      print("I " .. c("Bred") .. "♥" .. c() .. " you too!")
+    if line == "<3" or line == "♥" then
+      print("I " .. c("err") .. "♥" .. c() .. " you too!")
       return '>'
     end
     local chunk  = buffer .. line
