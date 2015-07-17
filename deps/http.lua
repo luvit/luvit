@@ -38,16 +38,57 @@ local date = require('os').date
 local luvi = require('luvi')
 local utils = require('utils')
 
+
+-- Provide a nice case insensitive interface to headers.
+-- Pulled from https://github.com/creationix/weblit/blob/master/libs/weblit-app.lua
+local headerMeta = {
+  __index = function (list, name)
+    if type(name) ~= "string" then
+      return rawget(list, name)
+    end
+    name = name:lower()
+    for i = 1, #list do
+      local key, value = unpack(list[i])
+      if key:lower() == name then return value end
+    end
+  end,
+  __newindex = function (list, name, value)
+    -- non-string keys go through as-is.
+    if type(name) ~= "string" then
+      return rawset(list, name, value)
+    end
+    -- First remove any existing pairs with matching key
+    local lowerName = name:lower()
+    for i = #list, 1, -1 do
+      if list[i][1]:lower() == lowerName then
+        table.remove(list, i)
+      end
+    end
+    -- If value is nil, we're done
+    if value == nil then return end
+    -- Otherwise, set the key(s)
+    if (type(value) == "table") then
+      -- We accept a table of strings
+      for i = 1, #value do
+        rawset(list, #list + 1, {name, tostring(value[i])})
+      end
+    else
+      -- Or a single value interperted as string
+      rawset(list, #list + 1, {name, tostring(value)})
+    end
+  end,
+}
+exports.headerMeta = headerMeta
+
 local IncomingMessage = net.Socket:extend()
 exports.IncomingMessage = IncomingMessage
 
 function IncomingMessage:initialize(head, socket)
   net.Socket.initialize(self)
   self.httpVersion = tostring(head.version)
-  local headers = {}
+  local headers = setmetatable({}, headerMeta)
   for i = 1, #head do
-    local name, value = unpack(head[i])
-    headers[name:lower()] = value
+    headers[i] = head[i]
   end
   self.headers = headers
   if head.method then
@@ -76,7 +117,8 @@ function ServerResponse:initialize(socket)
   self.encode = encode
   self.statusCode = 200
   self.headersSent = false
-  self.headers = {}
+  self.headers = setmetatable({}, headerMeta)
+
   for _, evt in pairs({'close', 'drain', 'end' }) do
     self.socket:on(evt, utils.bind(self.emit, self, evt))
   end
@@ -92,31 +134,71 @@ end
 
 function ServerResponse:getHeader(name)
   assert(not self.headersSent, "headers already sent")
-  local lower = name:lower()
-  for key, value in pairs(self.headers) do
-    if lower == key:lower() then
-      return value
-    end
-  end
+  return self.headers[name]
 end
 
 function ServerResponse:removeHeader(name)
   assert(not self.headersSent, "headers already sent")
-  local lower = name:lower()
-  local toRemove = {}
-  for key in pairs(self.headers) do
-    if lower == key:lower() then
-      toRemove[#toRemove + 1] = key
-    end
-  end
-  for i = 1, #toRemove do
-    self.headers[toRemove[i]] = nil
-  end
+  self.headers[name] = nil
 end
 
 function ServerResponse:flushHeaders()
   if self.headersSent then return end
-  self:writeHead(self.statusCode, self.headers)
+  self.headersSent = true
+  local headers = self.headers
+  local statusCode = self.statusCode
+
+  local head = {}
+  local sent_date, sent_connection, sent_transfer_encoding, sent_content_length
+  for i = 1, #headers do
+    local key, value = table.unpack(headers[i])
+    local klower = key:lower()
+    head[#head + 1] = {tostring(key), tostring(value)}
+    if klower == "connection" then
+      self.keepAlive = value:lower() ~= "close"
+      sent_connection = true
+    elseif klower == "transfer-encoding" then
+      sent_transfer_encoding = true
+    elseif klower == "content-length" then
+      sent_content_length = true
+    elseif klower == "date" then
+      sent_date = true
+    end
+    head[i] = headers[i]
+  end
+
+  if not sent_date and self.sendDate then
+    head[#head + 1] = {"Date", date("!%a, %d %b %Y %H:%M:%S GMT")}
+  end
+  if self.hasBody and not sent_transfer_encoding and not sent_content_length then
+    sent_transfer_encoding = true
+    head[#head + 1] = {"Transfer-Encoding", "chunked"}
+  end
+  if not sent_connection then
+    if self.keepAlive then
+      if self.hasBody then
+        if sent_transfer_encoding or sent_content_length then
+          head[#head + 1] = {"Connection", "keep-alive"}
+        else
+          -- body has no length so close to indicate end
+          self.keepAlive = false
+          head[#head + 1] = {"Connection", "close"}
+        end
+      elseif statusCode >= 300 then
+        self.keepAlive = false
+        head[#head + 1] = {"Connection", "close"}
+      else
+        head[#head + 1] = {"Connection", "keep-alive"}
+      end
+    else
+      self.keepAlive = false
+      head[#head + 1] = {"Connection", "close"}
+    end
+  end
+  head.code = statusCode
+  local h = self.encode(head)
+  self.socket:write(h)
+
 end
 
 function ServerResponse:write(chunk, callback)
@@ -152,60 +234,14 @@ function ServerResponse:finish(chunk)
   end
 end
 
-function ServerResponse:writeHead(statusCode, headers)
+function ServerResponse:writeHead(newStatusCode, newHeaders)
   assert(not self.headersSent, "headers already sent")
-  self.headersSent = true
-  headers = headers or {}
-  local head = {}
-
-  local lower = {}
-
-  local sent_connection, sent_transfer_encoding, sent_content_length
-  for key, value in pairs(headers) do
-    local klower = key:lower()
-    lower[klower] = value
-    head[#head + 1] = {tostring(key), tostring(value)}
-    if klower == "connection" then
-      self.keepAlive = value:lower() ~= "close"
-      sent_connection = true
-    elseif klower == "transfer-encoding" then
-      sent_transfer_encoding = true
-    elseif klower == "content-length" then
-      sent_content_length = true
-    end
+  self.statusCode = newStatusCode
+  local headers = setmetatable({}, headerMeta)
+  self.headers = headers
+  for k, v in pairs(newHeaders) do
+    headers[k] = v
   end
-  if not lower.date and self.sendDate then
-    head[#head + 1] = {"Date", date("!%a, %d %b %Y %H:%M:%S GMT")}
-  end
-  if self.hasBody and not sent_transfer_encoding and not sent_content_length then
-    sent_transfer_encoding = true
-    head[#head + 1] = {"Transfer-Encoding", "chunked"}
-  end
-  if not sent_connection then
-    if self.keepAlive then
-      if self.hasBody then
-        if sent_transfer_encoding or sent_content_length then
-          head[#head + 1] = {"Connection", "keep-alive"}
-        else
-          -- body has no length so close to indicate end
-          self.keepAlive = false
-          head[#head + 1] = {"Connection", "close"}
-        end
-      elseif statusCode >= 300 then
-        self.keepAlive = false
-        head[#head + 1] = {"Connection", "close"}
-      else
-        head[#head + 1] = {"Connection", "keep-alive"}
-      end
-    else
-      self.keepAlive = false
-      head[#head + 1] = {"Connection", "close"}
-    end
-  end
-  head.code = statusCode
-  local h = self.encode(head)
-  self.socket:write(h)
-
 end
 
 function exports.handleConnection(socket, onRequest)
@@ -316,23 +352,21 @@ end
 function ClientRequest:initialize(options, callback)
   Writable.initialize(self)
   self:cork()
-  local headers = options.headers or { }
+  local headers = setmetatable({}, headerMeta)
+  if options.headers then
+    for k, v in pairs(options.headers) do
+      headers[k] = v
+    end
+  end
+
   local host_found, connection_found, user_agent
-  for i, header in ipairs(headers) do
-    local key, value = unpack(header)
-    local hfound = key:lower() == 'host'
-    if hfound then
-      host_found = value
-    end
-    local cfound = key:lower() == 'connection'
-    if cfound then
-      connection_found = value
-    end
-    local uafound = key:lower() == 'user-agent'
-    if uafound then
-      user_agent = value
-    end
-    table.insert(self, header)
+  for i = 1, #headers do
+    self[#self + 1] = headers[i]
+    local key, value = unpack(headers[i])
+    local klower = key:lower()
+    host_found = klower == 'host' and value
+    connection_found = klower == 'connection' and value
+    user_agent = klower == 'user-agent' and value
   end
 
   if not user_agent then
@@ -340,11 +374,11 @@ function ClientRequest:initialize(options, callback)
   end
 
   if user_agent ~= '' then
-    table.insert(self, 1, { 'user-agent', user_agent })
+    table.insert(self, 1, { 'User-Agent', user_agent })
   end
 
   if not host_found and options.host then
-    table.insert(self, 1, { 'host', options.host })
+    table.insert(self, 1, { 'Host', options.host })
   end
 
   self.host = options.host
