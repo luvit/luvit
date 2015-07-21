@@ -24,7 +24,6 @@ local timer = require('timer')
 local utils = require('utils')
 local uv = require('uv')
 
-local _root_ca = require('./root_ca')
 
 local DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
                         'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
@@ -41,12 +40,19 @@ end
 
 -------------------------------------------------------------------------------
 
-exports.DEFAULT_CA_STORE = openssl.x509.store:new()
-for _, cert in pairs(_root_ca.roots) do
-  cert = assert(openssl.x509.read(cert))
-  assert(exports.DEFAULT_CA_STORE:add(cert))
+do
+  local data = module:load("root_ca.dat")
+  exports.DEFAULT_CA_STORE = openssl.x509.store:new()
+  local index = 1
+  local len = #data
+  while index < len do
+    local len = bit.bor(bit.lshift(data:byte(index), 8), data:byte(index + 1))
+    index = index + 2
+    local cert = assert(openssl.x509.read(data:sub(index, index + len)))
+    index = index + len
+    assert(exports.DEFAULT_CA_STORE:add(cert))
+  end
 end
-_root_ca.roots = nil
 
 -------------------------------------------------------------------------------
 
