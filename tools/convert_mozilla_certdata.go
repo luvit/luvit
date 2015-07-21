@@ -1,3 +1,5 @@
+// Imported from https://github.com/agl/extract-nss-root-certs
+
 // Copyright 2012 Google Inc. All Rights Reserved.
 // Author: agl@chromium.org (Adam Langley)
 

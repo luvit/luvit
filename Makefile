@@ -26,6 +26,20 @@ uninstall:
 	rm -f /usr/local/bin/luvit
 	rm -f /usr/local/bin/lit
 
+
+tools/certdata.txt:
+	curl https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt -o tools/certdata.txt
+
+tools/certs.pem: tools/certdata.txt
+	cd tools && go run convert_mozilla_certdata.go > certs.pem
+
+tools/certs.dat: tools/certs.pem
+	luvit tools/convert
+
+update-certs:	tools/certs.dat
+	cp tools/certs.dat deps/tls/certs.dat
+
+
 lint:
 	find deps -name "*.lua" | xargs luacheck
 

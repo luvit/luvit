@@ -1,5 +1,7 @@
-local pem = require('fs').readFileSync("certs.pem")
+-- local request = require('coro-http').request
 local x509 = require('openssl').x509
+
+local pem = module:load("certs.pem")
 local out = {}
 for cert in pem:gmatch("%-%-%-%-%-BEGIN CERTIFICATE%-%-%-%-%-[^-]+%-%-%-%-%-END CERTIFICATE%-%-%-%-%-") do
   p(cert)
@@ -14,4 +16,4 @@ for cert in pem:gmatch("%-%-%-%-%-BEGIN CERTIFICATE%-%-%-%-%-[^-]+%-%-%-%-%-END 
   )
   out[#out + 1] = der
 end
-require('fs').writeFileSync("certs.dat", table.concat(out))
+require('fs').writeFileSync(module.dir .. "/certs.dat", table.concat(out))
