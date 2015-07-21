@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/tls"
-exports.version = "1.2.3-1"
+exports.version = "1.3.0"
 exports.dependencies = {
   "luvit/core@1.0.5",
   "luvit/net@1.2.0",
@@ -34,7 +34,6 @@ if not loaded then return end
 
 local _common_tls = require('./common')
 local net = require('net')
-
 
 local DEFAULT_CIPHERS = _common_tls.DEFAULT_CIPHERS
 

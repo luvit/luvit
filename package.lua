@@ -44,7 +44,7 @@ return {
     "luvit/require@1.2.2",
     "luvit/stream@1.1.0",
     "luvit/timer@1.0.0",
-    "luvit/tls@1.2.3",
+    "luvit/tls@1.3.0",
     "luvit/utils@1.0.0",
     "luvit/url@1.0.4",
   },
