@@ -29,6 +29,9 @@ uninstall:
 lint:
 	find deps -name "*.lua" | xargs luacheck
 
+size:
+	find deps -type f -name '*.lua' | xargs  -I{} sh -c "luajit -bs {} - | echo \`wc -c\` {}" | sort -n
+
 trim:
 	find . -type f -name '*.lua' -print0 | xargs -0 perl -pi -e 's/ +$$//'
 
