@@ -404,7 +404,7 @@ function fs.fchownSync(fd, uid, gid)
 end
 local function noop() end
 local function readFile(path, callback)
-  local fd, onStat, onRead, pos, chunks
+  local fd, onStat, onRead, onChunk, pos, chunks
   uv.fs_open(path, "r", 438 --[[ 0666 ]], function (err, result)
     if err then return callback(err) end
     fd = result
@@ -437,7 +437,7 @@ local function readFile(path, callback)
       return uv.fs_read(fd, 8192, pos, onChunk)
     end
     uv.fs_close(fd, noop)
-    return callback(nul, table.concat(chunks))
+    return callback(nil, table.concat(chunks))
   end
 end
 function fs.readFile(path, callback)
