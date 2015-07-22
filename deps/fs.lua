@@ -404,7 +404,7 @@ function fs.fchownSync(fd, uid, gid)
 end
 local function noop() end
 local function readFile(path, callback)
-  local fd, onStat, onRead
+  local fd, onStat, onRead, onChunk, pos, chunks
   uv.fs_open(path, "r", 438 --[[ 0666 ]], function (err, result)
     if err then return callback(err) end
     fd = result
@@ -412,11 +412,32 @@ local function readFile(path, callback)
   end)
   function onStat(err, stat)
     if err then return onRead(err) end
-    uv.fs_read(fd, stat.size, 0, onRead)
+    if stat.size > 0 then
+      uv.fs_read(fd, stat.size, 0, onRead)
+    else
+      -- the kernel lies about many files.
+      -- Go ahead and try to read some bytes.
+      pos = 0
+      chunks = {}
+      uv.fs_read(fd, 8192, 0, onChunk)
+    end
   end
   function onRead(err, chunk)
     uv.fs_close(fd, noop)
     return callback(err, chunk)
+  end
+  function onChunk(err, chunk)
+    if err then
+      uv.fs_close(fd, noop)
+      return callback(err)
+    end
+    if chunk and #chunk > 0 then
+      chunks[#chunks + 1] = chunk
+      pos = pos + #chunk
+      return uv.fs_read(fd, 8192, pos, onChunk)
+    end
+    uv.fs_close(fd, noop)
+    return callback(nil, table.concat(chunks))
   end
 end
 function fs.readFile(path, callback)
@@ -428,7 +449,21 @@ function fs.readFileSync(path)
   if err then return false, err end
   stat, err = uv.fs_fstat(fd)
   if stat then
-    chunk, err = uv.fs_read(fd, stat.size, 0)
+    if stat.size > 0 then
+      chunk, err = uv.fs_read(fd, stat.size, 0)
+    else
+      local chunks = {}
+      local pos = 0
+      while true do
+        chunk, err = uv.fs_read(fd, 8192, pos)
+        if not chunk or #chunk == 0 then break end
+        pos = pos + #chunk
+        chunks[#chunks + 1] = chunk
+      end
+      if not err then
+        chunk = table.concat(chunks)
+      end
+    end
   end
   uv.fs_close(fd, noop)
   return chunk, err
