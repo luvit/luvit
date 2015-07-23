@@ -440,7 +440,7 @@ function Editor:readLine(prompt, callback)
 
   self.prompt = prompt
   self.promptLength = #prompt
-  self.columns = self.stdout:get_winsize() or 80
+  self.columns = self.stdout.get_winsize and self.stdout:get_winsize() or 80
 
   function onKey(err, key)
     local r, out, reason = pcall(function ()

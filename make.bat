@@ -7,6 +7,7 @@ IF NOT "x%1" == "x" GOTO :%1
 IF NOT EXIST lit.exe CALL make.bat lit
 ECHO "Building luvit"
 lit.exe make
+if %errorlevel% neq 0 goto error
 GOTO :end
 
 :lit
@@ -19,11 +20,15 @@ IF NOT EXIST luvit.exe CALL make.bat luvit
 ECHO "Testing luvit"
 SET LUVI_APP=.
 luvit.exe tests\run.lua
+if %errorlevel% neq 0 goto error
 SET "LUVI_APP="
 GOTO :end
 
 :clean
 IF EXIST luvit.exe DEL /F /Q luvit.exe
 IF EXIST lit.exe DEL /F /Q lit.exe
+
+:error
+exit /b %errorlevel%
 
 :end
