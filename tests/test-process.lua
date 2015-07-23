@@ -45,7 +45,7 @@ require('tap')(function(test)
     end
 
     function onStdout(chunk)
-      p('stdout')
+      p('stdout', chunk)
       data = data .. chunk
     end
 
