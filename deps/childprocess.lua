@@ -52,7 +52,6 @@ end
 
 function Process:kill(signal)
   if self.handle and not uv.is_closing(self.handle) then uv.process_kill(self.handle, signal or 'sigterm') end
-  self:close(Error:new('killed'))
 end
 
 function Process:close(err)
