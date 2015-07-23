@@ -1,3 +1,8 @@
+* Changes between 2.3.1 and 2.3.2
+
+ - childprocess: do not prematurely close the process handle in
+   spawn [Ryan Phillips]
+
 * Changes between 2.3.0 and 2.3.1
 
  - fs: Allow using fs.readFile and fs.readFileSync on files where kernel lies
