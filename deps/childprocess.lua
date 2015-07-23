@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/childprocess"
-exports.version = "1.0.6-1"
+exports.version = "1.0.7-1"
 exports.dependencies = {
   "luvit/core@1.0.5",
   "luvit/net@1.2.0",

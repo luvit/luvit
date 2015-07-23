@@ -1,24 +1,28 @@
+* Changes between 2.3.2 and 2.3.3
+
+ * childprocess: fix flush and destroy of stdout
+
 * Changes between 2.3.1 and 2.3.2
 
- - childprocess: do not prematurely close the process handle in
+ * childprocess: do not prematurely close the process handle in
    spawn [Ryan Phillips]
 
 * Changes between 2.3.0 and 2.3.1
 
- - fs: Allow using fs.readFile and fs.readFileSync on files where kernel lies
+ * fs: Allow using fs.readFile and fs.readFileSync on files where kernel lies
    about size. [Tim Caswell]
- - tls: Moved root ca certs to binary format to save memory. [Tim Caswell]
+ * tls: Moved root ca certs to binary format to save memory. [Tim Caswell]
 
 * Changes between 2.2.8 and 2.3.0
 
- - http: Defer senting headers till first write or finish is attempted [Tim Caswell]
- - http: Add metatable to headers to allow numerical or keyed access [Tim Caswell]
- - repl: Run repl commands in coroutine and wait for it to finish [Tim Caswell]
+ * http: Defer senting headers till first write or finish is attempted [Tim Caswell]
+ * http: Add metatable to headers to allow numerical or keyed access [Tim Caswell]
+ * repl: Run repl commands in coroutine and wait for it to finish [Tim Caswell]
 
 * Changes between 2.2.7 and 2.2.8
 
- - tls: Add shutdown timer. [Ryan Phillips]
- - Update luvi to 2.1.5 and lit to 2.1.6 [Tim Caswell]
+ * tls: Add shutdown timer. [Ryan Phillips]
+ * Update luvi to 2.1.5 and lit to 2.1.6 [Tim Caswell]
 
 * Changes between 2.2.6 to 2.2.7
 

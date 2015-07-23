@@ -1,6 +1,6 @@
 return {
   name = "luvit/luvit",
-  version = "2.3.2",
+  version = "2.3.3",
   luvi = {
     version = "2.1.5",
     flavor = "regular",
@@ -21,7 +21,7 @@ return {
   },
   dependencies = {
     "luvit/buffer@1.0.1",
-    "luvit/childprocess@1.0.6",
+    "luvit/childprocess@1.0.7",
     "luvit/codec@1.0.0",
     "luvit/core@1.0.5",
     "luvit/dgram@1.1.0",
@@ -39,7 +39,7 @@ return {
     "luvit/pretty-print@1.0.3",
     "luvit/process@1.1.1",
     "luvit/querystring@1.0.0",
-    "luvit/readline@1.1.0",
+    "luvit/readline@1.1.1",
     "luvit/repl@1.1.0",
     "luvit/require@1.2.2",
     "luvit/stream@1.1.0",
