@@ -19,7 +19,7 @@ script:
   - sysctl kernel.core_pattern
   - make
   - make test || RESULT=$?
-  - for i in $(find ./ -maxdepth 1 -name 'core*' -print); do gdb /var/crash core* -ex "thread apply all bt" -ex "set pagination 0" -batch; done
+  - for i in $(find /var/crash -maxdepth 1 -name 'core*' -print); do gdb luvit $i -ex "thread apply all bt" -ex "set pagination 0" -batch; done
   - if [[ ${RESULT} != 0 ]]; then exit $RESULT ; fi
 
 notifications:
