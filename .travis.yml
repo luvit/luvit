@@ -2,13 +2,24 @@ language: c
 
 sudo: false
 
+addons:
+  apt:
+    packages:
+    - gdb
+
 os:
   - linux
   - osx
 
+before_script:
+  - ulimit -c unlimited -S
+
 script:
+  - RESULT=0
   - make
-  - make test
+  - make test || RESULT=$?
+  - for i in $(find ./ -maxdepth 1 -name 'core*' -print); do gdb $(pwd) core* -ex "thread apply all bt" -ex "set pagination 0" -batch; done
+  - if [[ ${RESULT} != 0 ]]; then exit $RESULT ; fi
 
 notifications:
   email: true
