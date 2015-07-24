@@ -16,6 +16,7 @@ before_script:
 
 script:
   - RESULT=0
+  - sysctl kernel.core_pattern
   - make
   - make test || RESULT=$?
   - for i in $(find ./ -maxdepth 1 -name 'core*' -print); do gdb $(pwd) core* -ex "thread apply all bt" -ex "set pagination 0" -batch; done
