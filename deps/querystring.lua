@@ -62,7 +62,16 @@ function exports.parse(str, sep, eq)
     else
       local key, value = match(pair, '([^' .. eq .. ']*)' .. eq .. '(.*)')
       if key then
-        vars[exports.urldecode(key)] = exports.urldecode(value)
+        key = exports.urldecode(key)
+        value = exports.urldecode(value)
+        local type = type(vars[key])
+        if type=='nil' then
+          vars[key] = value
+        elseif type=='table' then
+          table.insert(vars[key], value)
+        else
+          vars[key] = {vars[key],value}
+        end
       end
     end
   end
