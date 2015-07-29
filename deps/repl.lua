@@ -17,10 +17,10 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/repl"
-exports.version = "1.1.0"
+exports.version = "1.1.0-1"
 exports.dependencies = {
   "luvit/utils@1.0.0",
-  "luvit/readline@1.1.0",
+  "luvit/readline@1.1.1",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/repl.lua"

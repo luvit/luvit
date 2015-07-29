@@ -1,3 +1,8 @@
+* Changes between 2.3.3 and 2.3.4
+
+ * luv: Fix segfault in spawn with missing file [Ryan Phillips]
+ * querystring: Support duplicate keys names and use table [George Zhao]
+
 * Changes between 2.3.2 and 2.3.3
 
  * childprocess: fix flush and destroy of stdout

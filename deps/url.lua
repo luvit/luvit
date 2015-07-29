@@ -16,9 +16,9 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/url"
-exports.version = "1.0.4-1"
+exports.version = "1.0.4-2"
 exports.dependencies = {
-  "luvit/querystring@1.0.0",
+  "luvit/querystring@1.0.1",
 }
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/url.lua"
