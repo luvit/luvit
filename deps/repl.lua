@@ -62,15 +62,14 @@ setmetatable(exports, {
     for i = 1, results.n do
       results[i] = utils.dump(results[i])
     end
-    stdout:write(table.concat(results, '\t'))
+    stdout:write("\r" .. table.concat(results, '\t'))
   end
 
   local buffer = ''
 
   local function evaluateLine(line)
-    stdout:write("\x1b[0G");
     if line == "<3" or line == "♥" then
-      stdout:write("I " .. c("err") .. "♥" .. c() .. " you too!")
+      stdout:write("\rI " .. c("err") .. "♥" .. c() .. " you too!")
       return '>'
     end
     local chunk  = buffer .. line
@@ -93,7 +92,7 @@ setmetatable(exports, {
         end
       else
         -- error
-        stdout:write(results[1])
+        stdout:write("\r" .. string.gsub(results[1], "\n", "\n\r"))
       end
     else
 
@@ -102,7 +101,7 @@ setmetatable(exports, {
         buffer = chunk .. '\n'
         return '>> '
       else
-        stdout:write(err)
+        stdout:write("\r" .. err)
         buffer = ''
       end
     end
@@ -169,7 +168,7 @@ setmetatable(exports, {
       coroutine.wrap(function ()
         if line then
           prompt = evaluateLine(line)
-          stdout:write("\x1b[0G\n");
+          stdout:write("\n\r");
           editor.position = 1
           editor:readLine(prompt, onLine)
           -- TODO: break out of >> with control+C
