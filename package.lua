@@ -1,8 +1,8 @@
 return {
   name = "luvit/luvit",
-  version = "2.3.3",
+  version = "2.3.4",
   luvi = {
-    version = "2.1.5",
+    version = "2.1.6",
     flavor = "regular",
   },
   license = "Apache 2",
@@ -38,7 +38,7 @@ return {
     "luvit/path@1.0.0",
     "luvit/pretty-print@1.0.3",
     "luvit/process@1.1.1",
-    "luvit/querystring@1.0.0",
+    "luvit/querystring@1.0.1",
     "luvit/readline@1.1.1",
     "luvit/repl@1.1.0",
     "luvit/require@1.2.2",
