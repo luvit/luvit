@@ -49,7 +49,7 @@ setmetatable(exports, {
   })
   global._G = global
 
-  if greeting then print(greeting) end
+  if greeting then stdout:write(greeting .. '\n') end
 
   local c = utils.color
 
@@ -62,14 +62,14 @@ setmetatable(exports, {
     for i = 1, results.n do
       results[i] = utils.dump(results[i])
     end
-    print(table.concat(results, '\t'))
+    stdout:write(table.concat(results, '\t') .. '\n')
   end
 
   local buffer = ''
 
   local function evaluateLine(line)
     if line == "<3" or line == "♥" then
-      print("I " .. c("err") .. "♥" .. c() .. " you too!")
+      stdout:write("I " .. c("err") .. "♥" .. c() .. " you too!\n")
       return '>'
     end
     local chunk  = buffer .. line
@@ -92,7 +92,7 @@ setmetatable(exports, {
         end
       else
         -- error
-        print(results[1])
+        stdout:write(results[1] .. '\n')
       end
     else
 
@@ -101,7 +101,7 @@ setmetatable(exports, {
         buffer = chunk .. '\n'
         return '>> '
       else
-        print(err)
+        stdout:write(err .. '\n')
         buffer = ''
       end
     end
