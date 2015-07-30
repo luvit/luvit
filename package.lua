@@ -40,7 +40,7 @@ return {
     "luvit/process@1.1.1",
     "luvit/querystring@1.0.1",
     "luvit/readline@1.1.1",
-    "luvit/repl@1.1.0",
+    "luvit/repl@1.2.0",
     "luvit/require@1.2.2",
     "luvit/stream@1.1.0",
     "luvit/timer@1.0.0",
