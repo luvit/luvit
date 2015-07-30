@@ -364,9 +364,9 @@ function ClientRequest:initialize(options, callback)
     self[#self + 1] = headers[i]
     local key, value = unpack(headers[i])
     local klower = key:lower()
-    host_found = klower == 'host' and value
-    connection_found = klower == 'connection' and value
-    user_agent = klower == 'user-agent' and value
+    host_found = host_found or (klower == 'host' and value)
+    connection_found = connection_found or (klower == 'connection' and value)
+    user_agent = user_agent or (klower == 'user-agent' and value)
   end
 
   if not user_agent then
