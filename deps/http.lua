@@ -371,10 +371,10 @@ function ClientRequest:initialize(options, callback)
 
   if not user_agent then
     user_agent = self.getDefaultUserAgent()
-  end
 
-  if user_agent ~= '' then
-    table.insert(self, 1, { 'User-Agent', user_agent })
+    if user_agent ~= '' then
+      table.insert(self, 1, { 'User-Agent', user_agent })
+    end
   end
 
   if not host_found and options.host then
