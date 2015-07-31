@@ -1,3 +1,7 @@
+* Changes between 2.3.4 and 2.4.0
+
+ * New "rex" module with PCRE regular expressions as part of luvi update.
+
 * Changes between 2.3.3 and 2.3.4
 
  * luv: Fix segfault in spawn with missing file [Ryan Phillips]
