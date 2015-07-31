@@ -50,6 +50,30 @@ function exports.urlencode(str)
   return str
 end
 
+local function stringifyPrimitive(v)
+  return tostring(v)
+end
+
+function exports.stringify(params, sep, eq)
+  if not sep then sep = '&' end
+  if not eq then eq = '=' end
+  if type(params) == "table" then
+    local fields = {}
+    for key,value in pairs(params) do
+      local keyString = exports.urlencode(stringifyPrimitive(key)) .. eq
+      if type(value) == "table" then
+        for _, v in ipairs(value) do
+          table.insert(fields, keyString .. exports.urlencode(stringifyPrimitive(v)))
+        end
+      else
+        table.insert(fields, keyString .. exports.urlencode(stringifyPrimitive(value)))
+      end
+    end
+    return table.concat(fields, sep)
+  end
+  return ''
+end
+
 -- parse querystring into table. urldecode tokens
 function exports.parse(str, sep, eq)
   if not sep then sep = '&' end
