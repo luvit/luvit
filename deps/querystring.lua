@@ -43,12 +43,35 @@ end
 function exports.urlencode(str)
   if str then
     str = gsub(str, '\n', '\r\n')
-    str = gsub(str, '([^%w ])', function(c)
+    str = gsub(str, '([^%w])', function(c)
       return format('%%%02X', byte(c))
     end)
-    str = gsub(str, ' ', '+')
   end
   return str
+end
+
+local function stringifyPrimitive(v)
+  return tostring(v)
+end
+
+function exports.stringify(params, sep, eq)
+  if not sep then sep = '&' end
+  if not eq then eq = '=' end
+  if type(params) == "table" then
+    local fields = {}
+    for key,value in pairs(params) do
+      local keyString = exports.urlencode(stringifyPrimitive(key)) .. eq
+      if type(value) == "table" then
+        for _, v in ipairs(value) do
+          table.insert(fields, keyString .. exports.urlencode(stringifyPrimitive(v)))
+        end
+      else
+        table.insert(fields, keyString .. exports.urlencode(stringifyPrimitive(value)))
+      end
+    end
+    return table.concat(fields, sep)
+  end
+  return ''
 end
 
 -- parse querystring into table. urldecode tokens
