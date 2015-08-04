@@ -1,3 +1,9 @@
+* Changes between 2.4.0 and 2.4.1
+
+ * Updated luvi to get fixed CRC32. [Tim Caswell]
+ * Add querystring.stringify() [Ryan Liptak]
+ * Fix duplicate headers in http. [Ryan Liptak]
+
 * Changes between 2.3.4 and 2.4.0
 
  * New "rex" module with PCRE regular expressions as part of luvi update.
