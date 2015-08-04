@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/querystring"
-exports.version = "1.0.1"
+exports.version = "1.0.2"
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/querystring.lua"
 exports.description = "Node-style query-string codec for luvit"
