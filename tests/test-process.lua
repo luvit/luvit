@@ -162,7 +162,7 @@ require('tap')(function(test)
       child = spawn('env', {}, options)
     end
     child:on('data', onData)
-    child:on('close', expect(function() end))
+    child:on('close', expect(function(exitCode) assert(exitCode == 0) end))
   end)
 end)
 

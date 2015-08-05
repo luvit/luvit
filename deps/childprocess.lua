@@ -154,7 +154,8 @@ local function spawn(command, args, options)
 
   if not em.handle then
     timer.setImmediate(function()
-      em:emit('exit', -127)
+      em.exitCode = -127
+      em:emit('exit', em.exitCode)
       em:destroy(Error:new(pid))
       maybeClose()
     end)
