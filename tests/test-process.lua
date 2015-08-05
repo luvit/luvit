@@ -63,6 +63,7 @@ require('tap')(function(test)
     child.stdout:once('end', expect(onEnd))
     child.stdout:on('data', onStdout)
     child:on('exit', expect(onExit))
+    child:on('close', expect(onExit))
   end)
 
   test('invalid command', function(expect)
@@ -82,17 +83,17 @@ require('tap')(function(test)
   end)
 
   test('invalid command verify exit callback', function(expect)
-    local child, onExit
+    local child, onExit, onClose
 
     -- disable on windows, bug in libuv
     if los.type() == 'win32' then return end
 
-    function onExit(err)
-      assert(err)
-    end
+    function onExit() p('exit') end
+    function onClose() p('close') end
 
     child = spawn('skfjsldkfjskdfjdsklfj')
     child:on('exit', expect(onExit))
+    child:on('close', expect(onClose))
   end)
 
   test('process.env pairs', function()
@@ -139,6 +140,29 @@ require('tap')(function(test)
     end
     child:on('data', onData)
     child:on('exit', expect(function() end))
+    child:on('close', expect(function() end))
+  end)
+
+  test('child process (no stdin, no stderr, stdout) with close', function(expect)
+    local child, onData, options
+
+    options = {
+      stdio = {
+        nil,
+        net.Socket:new({ handle = uv.new_pipe(false) }),
+        nil
+      }
+    }
+
+    function onData(data) p(data) end
+
+    if los.type() == 'win32' then
+      child = spawn('cmd.exe', {'/C', 'set'}, options)
+    else
+      child = spawn('env', {}, options)
+    end
+    child:on('data', onData)
+    child:on('close', expect(function() end))
   end)
 end)
 

@@ -231,7 +231,10 @@ function Socket:destroy(exception, callback)
   if uv.is_closing(self._handle) then
     timer.setImmediate(callback)
   else
-    uv.close(self._handle, callback)
+    uv.close(self._handle, function()
+      self:emit('close')
+      callback()
+    end)
   end
 
   if exception then

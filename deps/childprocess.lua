@@ -70,7 +70,7 @@ function Process:_cleanup(err)
   timer.setImmediate(function()
     if self.stdout then
       self.stdout:_end(err) -- flush
-      self.stdout:destroy(err)
+      self.stdout:destroy(err) -- flush
     end
     if self.stderr then self.stderr:destroy(err) end
     if self.stdin then self.stdin:destroy(err) end
@@ -80,7 +80,7 @@ end
 local function spawn(command, args, options)
   local envPairs = {}
   local em, onExit, handle, pid
-  local stdout, stdin, stderr, stdio
+  local stdout, stdin, stderr, stdio, closesGot
 
   args = args or {}
   options = options or {}
@@ -92,6 +92,21 @@ local function spawn(command, args, options)
     end
   end
 
+  local function maybeClose()
+    closesGot = closesGot - 1
+    if closesGot == 0 then
+      em:emit('close', em.exitCode, em.signal)
+    end
+  end
+
+  local function countStdio(stdio)
+    local count = 0
+    if stdio[1] then count = count + 1 end
+    if stdio[2] then count = count + 1 end
+    if stdio[3] then count = count + 1 end
+    return count + 1 -- for exit call
+  end
+
   if options.stdio then
     stdio = {}
     stdin = options.stdio[1]
@@ -100,20 +115,26 @@ local function spawn(command, args, options)
     stdio[1] = options.stdio[1] and options.stdio[1]._handle
     stdio[2] = options.stdio[2] and options.stdio[2]._handle
     stdio[3] = options.stdio[3] and options.stdio[3]._handle
+    if stdio[1] then options.stdio[1]:once('close', maybeClose) end
+    if stdio[2] then options.stdio[2]:once('close', maybeClose) end
+    if stdio[3] then options.stdio[3]:once('close', maybeClose) end
+    closesGot = countStdio(stdio)
   else
     stdin = net.Socket:new({ handle = uv.new_pipe(false) })
     stdout = net.Socket:new({ handle = uv.new_pipe(false) })
     stderr = net.Socket:new({ handle = uv.new_pipe(false) })
     stdio = { stdin._handle, stdout._handle, stderr._handle}
+    stdin:once('close', maybeClose)
+    stdout:once('close', maybeClose)
+    stderr:once('close', maybeClose)
+    closesGot = countStdio(stdio)
   end
 
   function onExit(code, signal)
-    if signal then
-       em.signal = signal
-    else
-       em.exitCode = code
-    end
+    em.exitCode = code
+    em.signal = signal
     em:emit('exit', code, signal)
+    maybeClose()
     em:close()
   end
 
@@ -131,10 +152,11 @@ local function spawn(command, args, options)
   em:setHandle(handle)
   em:setPid(pid)
 
-  if em.handle == nil then
+  if not em.handle then
     timer.setImmediate(function()
       em:emit('exit', -127)
       em:destroy(Error:new(pid))
+      maybeClose()
     end)
   end
 
