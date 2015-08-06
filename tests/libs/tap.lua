@@ -63,11 +63,13 @@ local function run()
     print("\n# Starting Test: " .. colorize("highlight", test.name))
     local pass, err = xpcall(function ()
       local expected = 0
+      local err
       local function expect(fn, count)
         expected = expected + (count or 1)
         return function (...)
           expected = expected - 1
-          local ret = fn(...)
+          local success, ret = pcall(fn, ...)
+          if not success then err = ret end
           collectgarbage()
           return ret
         end
@@ -76,6 +78,7 @@ local function run()
       collectgarbage()
       uv.run()
       collectgarbage()
+      if err then error(err) end
       if expected > 0 then
         error("Missing " .. expected .. " expected call" .. (expected == 1 and "" or "s"))
       elseif expected < 0 then
