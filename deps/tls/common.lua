@@ -347,7 +347,8 @@ function TLSSocket:_read(n)
       else
         local i = self.out:pending()
         if i > 0 then
-          net.Socket._write(self, self.out:read(), function()
+          net.Socket._write(self, self.out:read(), function(err)
+            if err then return self:shutdown(err) end
             handshake()
           end)
         end
