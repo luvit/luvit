@@ -1,3 +1,7 @@
+* Changes between 2.4.2 and 2.4.3
+
+ * tls: fix infinite loop within handshake [Ryan Phillips]
+
 * Changes between 2.4.1 and 2.4.2
 
  * spawn: add close event when all stdio are closed [Ryan Phillips]
