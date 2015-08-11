@@ -33,6 +33,13 @@ local pathJoin = require('luvi').path.join
 local Editor = require('readline').Editor
 local History = require('readline').History
 
+local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
+  'dgram', 'dns', 'fs', 'helpful', 'hooks', 'http-codec', 'http',
+  'https', 'json', 'los', 'net', 'pretty-print', 'process',
+  'querystring', 'readline', 'timer', 'url', 'utils',
+  'stream', 'tls'
+}
+
 setmetatable(exports, {
   __call = function (_, stdin, stdout, greeting)
 
@@ -177,6 +184,15 @@ setmetatable(exports, {
     end
 
     editor:readLine(prompt, onLine)
+
+    -- Namespace builtin libs to make the repl easier to play with
+    -- Requires with filenames with a - in them will be camelcased
+    -- e.g. pretty-print -> prettyPrint
+    table.foreach(_builtinLibs, function(_, lib)
+      local requireName = lib:gsub('-.', function (char) return char:sub(2):upper() end)
+      local req = string.format('%s = require("%s")', requireName, lib)
+      evaluateLine(req)
+    end)
   end
 
   return {
