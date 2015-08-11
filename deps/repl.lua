@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/repl"
-exports.version = "1.2.0"
+exports.version = "1.3.0"
 exports.dependencies = {
   "luvit/utils@1.0.0",
   "luvit/readline@1.1.1",

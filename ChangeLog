@@ -1,3 +1,9 @@
+* Changes between 2.4.3 and 2.4.4
+
+ * Libuv update to 1.7.0 [Tim Caswell]
+ * lpeg added to luvi [George Zhao]
+ * Repl injects modules [Kaustav Haldar]
+
 * Changes between 2.4.2 and 2.4.3
 
  * tls: fix infinite loop within handshake [Ryan Phillips]
