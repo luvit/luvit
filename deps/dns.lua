@@ -564,7 +564,7 @@ local function _query(servers, name, dnsclass, qtype, callback)
   get_server_iter = function()
     local i = 1
     return function()
-      i = ((i + 1) % #servers) + 1
+      i = (i % #servers) + 1
       return servers[i]
     end
   end
