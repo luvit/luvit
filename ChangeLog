@@ -1,3 +1,8 @@
+* Changes between 2.4.4 and 2.4.5
+
+ * udp: start listening for the read after the write. Fixes DNS for ipv6
+   [Ryan Phillips]
+
 * Changes between 2.4.3 and 2.4.4
 
  * Libuv update to 1.7.0 [Tim Caswell]
