@@ -32,6 +32,8 @@ local core = require('core')
 local net = require('net')
 local timer = require('timer')
 local uv = require('uv')
+local los = require('los')
+local adapt = require('utils').adapt
 
 local Error = core.Error
 
@@ -164,4 +166,147 @@ local function spawn(command, args, options)
   return em
 end
 
+---- Exec and execfile
+
+local function normalizeExecArgs(command, options, callback)
+  if type(options) == 'function' or type(options) == 'thread' then
+    callback = options
+    options = {}
+  end
+
+  local isWindows
+  if not pcall(function() isWindows = require('luvipath').isWindows end) then
+    isWindows = los.type() == 'win32'
+  end
+
+  local file, args
+  if isWindows then
+    file = 'cmd.exe'
+    args = {'/s', '/c', '"'..command..'"'}
+  else
+    file = '/bin/sh'
+    args = {'-c', command}
+  end
+
+  if options and options.shell then file = options.shell end
+
+  return file, args, options, callback
+end
+
+local function _exec(file, args, options, callback)
+  local opts = {
+    timeout = 0,
+    maxBuffer = 4 * 1024,
+    signal = 'SIGTERM'
+  }
+  table.foreach(opts, function(k, v)
+    if not options[k] then options[k] = v end
+  end)
+
+  local child = spawn(file, args, options)
+
+  local stdout, stderr = {}, {}
+  local exited, killed = false, false
+  local stdoutLen, stderrLen = 0, 0
+  local timeoutId
+  local err = {}
+  local called = 2
+
+  local function exitHandler(code, signal)
+    if timeoutId then
+      timer.clearTimeout(timeoutId)
+      timeoutId = nil
+    end
+    if exited then return end
+    called = called - 1
+    if called == 0 then
+      if signal then err.signal = signal end
+      if not code then
+        err.message = 'Command failed: '..file
+      elseif code == 0 then
+        err = nil
+      else
+        err.code = code
+        err.message = 'Command killed'
+      end
+      exited = true
+      if not callback then return end
+      callback(err, table.concat(stdout, ""), table.concat(stderr, ""))
+    end
+  end
+  local function onClose(_exitCode)
+    exitHandler(_exitCode, nil)
+  end
+  local function kill()
+    child.stdout:emit('close', 1, options.signal)
+    child.stderr:emit('close', 1, options.signal)
+    child:emit('close', 1, options.signal)
+    killed = true
+    exitHandler(1, options.signal)
+  end
+
+  if options.timeout > 0 then
+    timeoutId = timer.setTimeout(options.timeout, function()
+      kill()
+      timeoutId = nil
+    end)
+  end
+
+  child.stdout:on('data', function(chunk)
+    stdoutLen = stdoutLen + #chunk
+    if stdoutLen > options.maxBuffer then
+      kill()
+    else
+      table.insert(stdout, chunk)
+    end
+  end):once('end', exitHandler)
+
+  child.stderr:on('data', function(chunk)
+    stderrLen = stderrLen + #chunk
+    if stderrLen > options.maxBuffer then
+      kill()
+    else
+      table.insert(stderr, chunk)
+    end
+  end)
+
+  child:once('close', onClose)
+end
+
+local function execFile(file, args, options, callback)
+  -- Make callback, args and options optional
+  -- no option or args
+  if type(args) == 'function' or type(args) == 'thread' then
+    callback = args
+    args, options = {}, {}
+    -- no options
+  elseif type(options) == 'function' or type(options) == 'thread' then
+    callback = options
+    options = {}
+    -- no options args or callback
+  elseif not args and not options and not callback then
+    callback = function() end
+    options = {}
+    args = {}
+  elseif not options then
+    options = {}
+  elseif not args then
+    args = {}
+  end
+
+  return adapt(callback, _exec, file, args, options)
+end
+
+local function exec(command, options, callback)
+  if not callback and (type(options) == "thread" or type(options) == "function") then
+    callback = options
+    options = {}
+  end
+
+  -- options is optional
+  return execFile(normalizeExecArgs(command, options, callback))
+end
+
+exports.exec = exec
+exports.execFile = execFile
 exports.spawn = spawn
