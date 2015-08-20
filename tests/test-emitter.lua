@@ -37,40 +37,33 @@ require('tap')(function (test)
   test("removal", function(expect)
     local e1 = require('core').Emitter:new()
     local cnt = 0
-    local function checkCount()
+    local function incr()
       cnt = cnt + 1
-      if cnt == 2 then
-        assert(e1:listenerCount('t1') == 2)
-      end
     end
     local function dummy()
+      assert(false, "this should be removed and never fire")
     end
-    e1:on('t1', expect(function()
-      checkCount()
-    end))
+    e1:on('t1', expect(incr))
     e1:on('t1', dummy)
-    e1:on('t1', expect(function()
-      checkCount()
-    end))
+    e1:on('t1', expect(incr))
     e1:removeListener('t1', dummy)
     e1:emit('t1')
+    assert(cnt == 2)
+    assert(e1:listenerCount('t1') == 2)
   end)
 
   test("once removal", function(expect)
     local e1 = require('core').Emitter:new()
     local cnt = 0
-    local function checkCount()
+    local function incr()
       cnt = cnt + 1
     end
     local function dummy()
+      assert(false, "this should be removed and never fire")
     end
-    e1:once('t1', expect(function()
-      checkCount()
-    end))
+    e1:once('t1', expect(incr))
     e1:once('t1', dummy)
-    e1:once('t1', expect(function()
-      checkCount()
-    end))
+    e1:once('t1', expect(incr))
     e1:removeListener('t1', dummy)
     e1:emit('t1')
     assert(cnt == 2)
