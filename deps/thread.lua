@@ -31,7 +31,13 @@ exports.start = function(thread_func, ...)
   local dumped = string.dump(thread_func)
 
   local function thread_entry(dumped, bundlePaths, ...)
-
+    local luvi = require('luvi')
+    --set is Windows
+    if _G.jit then
+      luvi.isWindows = _G.jit.os == "Windows"
+    else
+      luvi.isWindows = not not package.path:match("\\")
+    end
     -- Convert paths back to table
     local paths = {}
     for path in bundlePaths:gmatch("[^;]+") do
