@@ -43,6 +43,7 @@ return {
     "luvit/repl@1.3.0",
     "luvit/require@1.2.2",
     "luvit/stream@1.1.0",
+    "luvit/thread@0.1.0",
     "luvit/timer@1.0.0",
     "luvit/tls@1.3.1",
     "luvit/utils@1.0.0",
