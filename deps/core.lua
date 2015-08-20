@@ -176,14 +176,19 @@ function Emitter:missingHandlerType(name, ...)
   end
 end
 
+local onceMeta = {}
+function onceMeta:__call(...)
+  self.emitter:removeListener(self.name, self)
+  return self.callback(...)
+end
+
 -- Same as `Emitter:on` except it de-registers itself after the first event.
 function Emitter:once(name, callback)
-  local function wrapped(...)
-    self:removeListener(name, wrapped)
-    callback(...)
-  end
-  self:on(name, wrapped)
-  return self
+  return self:on(name, setmetatable({
+    emitter = self,
+    name = name,
+    callback = callback
+  }, onceMeta))
 end
 
 -- Adds an event listener (`callback`) for the named event `name`.
@@ -254,8 +259,20 @@ function Emitter:removeListener(name, callback)
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)
   if not handlers_for_type then return end
-  for i = #handlers_for_type, 1, -1 do
-    if handlers_for_type[i] == callback or callback == nil then
+  if callback then
+    for i = #handlers_for_type, 1, -1 do
+      local h = handlers_for_type[i]
+      if type(h) == "function" then
+        h = h == callback
+      elseif type(h) == "table" then
+        h = h == callback or h.callback == callback
+      end
+      if h then
+        handlers_for_type[i] = false
+      end
+    end
+  else
+    for i = #handlers_for_type, 1, -1 do
       handlers_for_type[i] = false
     end
   end
