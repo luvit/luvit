@@ -184,14 +184,11 @@ end
 
 -- Same as `Emitter:on` except it de-registers itself after the first event.
 function Emitter:once(name, callback)
-  local wrapped
-  wrapped = setmetatable({
+  return self:on(name, setmetatable({
     emitter = self,
     name = name,
     callback = callback
-  }, onceMeta)
-  self:on(name, wrapped)
-  return self
+  }, onceMeta))
 end
 
 -- Adds an event listener (`callback`) for the named event `name`.
