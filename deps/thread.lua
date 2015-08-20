@@ -17,8 +17,6 @@ limitations under the License.
 --]]
 
 --- luvit thread management
-local uv = require('uv')
-local bundlePaths = require('luvi').bundle.paths
 
 exports.name = "luvit/thread"
 exports.version = "0.1.0"
@@ -26,6 +24,9 @@ exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
 exports.description = "thread module for luvit"
 exports.tags = {"luvit", "thread"}
+
+local uv = require('uv')
+local bundlePaths = require('luvi').bundle.paths
 
 exports.start = function(thread_func, ...)
   local dumped = string.dump(thread_func)
