@@ -178,10 +178,16 @@ end
 
 -- Same as `Emitter:on` except it de-registers itself after the first event.
 function Emitter:once(name, callback)
-  local function wrapped(...)
-    self:removeListener(name, wrapped)
-    callback(...)
-  end
+  local wrapped
+  wrapped = setmetatable({}, {
+    __call = function (_, ...)
+      self:removeListener(name, wrapped)
+      return callback(...)
+    end,
+    __eq = function (_, other)
+      return callback == other
+    end
+  })
   self:on(name, wrapped)
   return self
 end
