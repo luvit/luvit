@@ -29,7 +29,8 @@ local uv = require('uv')
 local bundlePaths = require('luvi').bundle.paths
 
 exports.start = function(thread_func, ...)
-  local dumped = string.dump(thread_func)
+  local dumped = type(thread_func)=='function'
+    and string.dump(thread_func) or thread_func
 
   local function thread_entry(dumped, bundlePaths, ...)
 
