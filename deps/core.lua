@@ -23,7 +23,7 @@ module.
 local core = exports
 
 exports.name = "luvit/core"
-exports.version = "1.0.5"
+exports.version = "1.0.6"
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/core.lua"
 exports.description = "Core object model for luvit using simple prototypes and inheritance."
