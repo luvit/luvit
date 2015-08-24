@@ -209,6 +209,10 @@ function ServerResponse:write(chunk, callback)
   return self.socket:write(self.encode(chunk), callback)
 end
 
+function ServerResponse:_end()
+  self:finish()
+end
+
 function ServerResponse:finish(chunk)
   if chunk and #chunk > 0 then
     self.hasBody = true
