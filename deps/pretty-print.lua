@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/pretty-print"
-exports.version = "1.0.3"
+exports.version = "1.0.4"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
 exports.description = "A lua value pretty printer and colorizer for terminals."
 exports.tags = {"colors", "tty"}
@@ -123,8 +123,8 @@ function loadColors(index)
 
   quote    = colorize('quotes', "'", 'string')
   quote2   = colorize('quotes', "'")
-  dquote    = colorize('quotes', '"', 'string')
-  dquote2   = colorize('quotes', '"')
+  dquote   = colorize('quotes', '"', 'string')
+  dquote2  = colorize('quotes', '"')
   obrace   = colorize('braces', '{ ')
   cbrace   = colorize('braces', '}')
   obracket = colorize('property', '[')
@@ -227,24 +227,24 @@ function dump(value, recurse, nocolor)
     stack[#stack] = nil
   end
 
-  local function process(value)
-    local typ = type(value)
+  local function process(localValue)
+    local typ = type(localValue)
     if typ == 'string' then
-      if string.match(value, "'") and not string.match(value, '"') then
-        write(dquote .. string.gsub(value, '[%c\\\128-\255]', stringEscape) .. dquote2)
+      if string.match(localValue, "'") and not string.match(localValue, '"') then
+        write(dquote .. string.gsub(localValue, '[%c\\\128-\255]', stringEscape) .. dquote2)
       else
-        write(quote .. string.gsub(value, "[%c\\'\128-\255]", stringEscape) .. quote2)
+        write(quote .. string.gsub(localValue, "[%c\\'\128-\255]", stringEscape) .. quote2)
       end
-    elseif typ == 'table' and not seen[value] then
-      if not recurse then seen[value] = true end
+    elseif typ == 'table' and not seen[localValue] then
+      if not recurse then seen[localValue] = true end
       write(obrace)
       local i = 1
       -- Count the number of keys so we know when to stop adding commas
       local total = 0
-      for _ in pairs(value) do total = total + 1 end
+      for _ in pairs(localValue) do total = total + 1 end
 
       local nextIndex = 1
-      for k, v in pairs(value) do
+      for k, v in pairs(localValue) do
         indent()
         if k == nextIndex then
           -- if the key matches the last numerical index + 1
@@ -277,7 +277,7 @@ function dump(value, recurse, nocolor)
       end
       write(cbrace)
     else
-      write(colorize(typ, tostring(value)))
+      write(colorize(typ, tostring(localValue)))
     end
   end
 
