@@ -1,3 +1,7 @@
+* Changes between 2.5.0. and 2.5.1
+
+ * http: call self:finish() on stream _end [Ryan Phillips]
+
 * Changes between 2.4.5 and 2.5.0
 
  * thread: Tweaks to luvi/luvit to make threading support more modular [Tim Caswell]
