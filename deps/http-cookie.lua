@@ -1,6 +1,6 @@
 exports.name = "zhaozg/http-cookie"
-exports.version = "1.0.0-1"
-exports.homepage = "..."
+exports.version = "0.1.2"
+exports.homepage = "https://github.com/zhaozg/luvit/blob/extend/deps/http-cookie.lua"
 exports.description = "An adapter for build and parse http cookies."
 exports.tags = {"http", "cookie", "adapter"}
 exports.license = "MIT"
