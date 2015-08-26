@@ -1,3 +1,11 @@
+* Changes between 2.5.1 and 2.5.2
+
+ * Show all luvi option versions in `luvit -v` [Ryan Phillips]
+ * libuv: Update libuv to v1.7.2 [Tim Caswell]
+ * luv: Performance tweaks and memory leak fixes for threads [George Zhao]
+ * luvi: Add proper thread linking for luajit [Ryan Phillips]
+ * lit: Fix auth on windows when git isn't installed [Tim Caswell]
+
 * Changes between 2.5.0. and 2.5.1
 
  * http: call self:finish() on stream _end [Ryan Phillips]
