@@ -1,13 +1,13 @@
-local fs = require('fs')
 local thread = require('thread')
+local fs = require('fs')
 
 require('tap')(function(test)
 
-  test('main thread self', function()
+  test('main', function()
     p('main:',thread.self())
   end)
 
-  test('thread thread', function()
+  test('thread', function()
     local thr = thread.start(function(a,b,c)
       local thread = require'thread'
       local fs = require'fs'
@@ -26,5 +26,29 @@ require('tap')(function(test)
     p(chunk,id)
     assert(chunk==id)
     fs.unlinkSync('thread.tmp')
+  end)
+
+  test('threadpool', function()
+    local work = thread.work(
+      function(n)
+        local thread = require'thread'
+
+        local self = tostring(thread.self())
+        return self, n, n*n
+      end,
+      function(id,n,r)
+        print(id,n,r)
+        p('work result cb', id, n*n==r)
+      end
+    )
+
+    thread.queue(work, 2)
+    thread.queue(work, 4)
+    thread.queue(work, 6)
+    thread.queue(work, 8)
+    thread.queue(work, 2)
+    thread.queue(work, 4)
+    thread.queue(work, 6)
+    thread.queue(work, 8)
   end)
 end)
