@@ -5,6 +5,8 @@ LIT_VERSION=2.2.9
 LUVIT_TAG=$(shell git describe)
 LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
 
+PREFIX?=/usr/local
+
 luvit: lit $(APP_FILES)
 	./lit make
 
@@ -18,13 +20,14 @@ lit:
 	curl -L https://github.com/luvit/lit/raw/$(LIT_VERSION)/get-lit.sh | sh
 
 install: luvit lit
-	install luvit /usr/local/bin
-	install lit /usr/local/bin
-	install luvi /usr/local/bin
+	mkdir -p $(PREFIX)/bin
+	install luvit $(PREFIX)/bin/
+	install lit $(PREFIX)/bin/
+	install luvi $(PREFIX)/bin/
 
 uninstall:
-	rm -f /usr/local/bin/luvit
-	rm -f /usr/local/bin/lit
+	rm -f $(PREFIX)/bin/luvit
+	rm -f $(PREFIX)/bin/lit
 
 
 tools/certdata.txt:
