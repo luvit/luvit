@@ -22,10 +22,8 @@ local function chain()
 		end
 		client:on("data", function (chunk)
 			size = size + #chunk
-			if size == 44 then
-				num = num + 1
-				makeRequest()
-			end
+			num = num + 1
+			makeRequest()
 		end)
 		makeRequest()
 	end)
