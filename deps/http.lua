@@ -151,7 +151,7 @@ function ServerResponse:flushHeaders()
   local head = {}
   local sent_date, sent_connection, sent_transfer_encoding, sent_content_length
   for i = 1, #headers do
-    local key, value = table.unpack(headers[i])
+    local key, value = unpack(headers[i])
     local klower = key:lower()
     head[#head + 1] = {tostring(key), tostring(value)}
     if klower == "connection" then
