@@ -489,8 +489,10 @@ function Editor.new(options)
 end
 
 exports.readLine = function (prompt, options, callback)
+  local prettyPrint = require('pretty-print')
   if type(options) == "function" and callback == nil then
-    callback, options = options, callback
+    callback, options =
+      options, {stdin = prettyPrint.stdin, stdout = prettyPrint.stdout}
   end
   local editor = Editor.new(options)
   editor:readLine(prompt, callback)
