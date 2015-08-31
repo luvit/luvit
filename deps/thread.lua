@@ -23,10 +23,14 @@ exports.version = "0.1.1"
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
 exports.description = "thread module for luvit"
-exports.tags = {"luvit", "thread"}
+exports.tags = {"luvit", "thread","threadpool","work"}
+exports.dependencies = {
+  "luvit/core@1.0.5",
+}
 
 local uv = require('uv')
 local bundlePaths = require('luvi').bundle.paths
+local Object = require('core').Object
 
 exports.start = function(thread_func, ...)
   local dumped = type(thread_func)=='function'
@@ -64,4 +68,56 @@ end
 
 exports.self = function()
     return uv.thread_self()
+end
+
+--- luvit threadpool
+local Worker = Object:extend()
+
+function Worker:queue(...)
+    uv.queue_work(self.handler, self.dumped, self.bundlePaths, ...)
+end
+
+exports.work = function(thread_func, notify_entry)
+  local worker = Worker:new()
+  worker.dumped = type(thread_func)=='function'
+    and string.dump(thread_func) or thread_func
+  worker.bundlePaths = table.concat(bundlePaths, ";")
+
+  local function thread_entry(dumped, bundlePaths, ...)
+    if not _G._uv_works then
+      _G._uv_works = {}
+    end
+
+    --try to find cached function entry
+    local fn
+    if not _G._uv_works[dumped] then
+      fn = loadstring(dumped)
+
+      -- Convert paths back to table
+      local paths = {}
+      for path in bundlePaths:gmatch("[^;]+") do
+        paths[#paths + 1] = path
+      end
+
+      -- Load luvi environment
+      local _, mainRequire = require('luvibundle').commonBundle(paths)
+      -- require injected
+      getfenv(fn).require = mainRequire
+
+      -- cache it
+      _G._uv_works[dumped] = fn
+    else
+      fn = _G._uv_works[dumped]
+    end
+    -- Run function
+
+    return fn(...)
+  end
+
+  worker.handler = uv.new_work(thread_entry,notify_entry)
+  return worker
+end
+
+exports.queue = function(worker, ...)
+  worker:queue(...)
 end
