@@ -1,5 +1,5 @@
 exports.name = "luvit/json"
-exports.version = "2.5.0"
+exports.version = "2.5.1"
 exports.homepage = "http://dkolf.de/src/dkjson-lua.fsl"
 exports.description = "David Kolf's JSON library repackaged for lit."
 exports.tags = {"json", "codec"}

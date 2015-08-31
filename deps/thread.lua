@@ -19,7 +19,7 @@ limitations under the License.
 --- luvit thread management
 
 exports.name = "luvit/thread"
-exports.version = "0.1.1"
+exports.version = "0.1.2"
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
 exports.description = "thread module for luvit"

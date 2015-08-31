@@ -1,3 +1,10 @@
+* Changes between 2.5.2 and 2.5.3
+
+ * json: try to use lpeg by default [George Zhao]
+ * Fix readline module with default options [George Zhao]
+ * Convert legacy test cases to new test framework [George Zhao]
+ * makefile: support custom prefixes [Baptiste Fontaine]
+
 * Changes between 2.5.1 and 2.5.2
 
  * Show all luvi option versions in `luvit -v` [Ryan Phillips]
