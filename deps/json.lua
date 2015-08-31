@@ -13,7 +13,7 @@ exports.contributors = {
 }
 
 -- Module options:
-local always_try_using_lpeg = false
+local always_try_using_lpeg = true
 local register_global_module_table = false
 local global_module_name = 'json'
 

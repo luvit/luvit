@@ -1,9 +1,9 @@
 local fs = require('file')
 local fiber = require('wait')
 
-local input = __filename
-local output = __filename .. ".out"
-local output2 = __filename .. ".out2"
+local input = module.path
+local output = module.path .. ".out"
+local output2 = module.path .. ".out2"
 
 -- Create a normal continuable using callbacks
 local normal = function (callback)

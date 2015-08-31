@@ -1,6 +1,6 @@
 -- This is a partial port of the built-in fs module as continuable format
 
-local native = require('uv_native')
+local native = require('uv')
 local iStream = require('stream').iStream
 
 local fs = {}
@@ -21,7 +21,7 @@ function fs.open(path, flag, mode)
     error("open(path, flag, [mode]): mode must be a string")
   end
   return function (callback)
-    return native.fsOpen(path, flag, mode, callback or noop)
+    return native.fs_open(path, flag, mode, callback or noop)
   end
 end
 
@@ -36,7 +36,7 @@ function fs.read(fd, offset, length)
     error("read(fd, offset, length): length must be a number")
   end
   return function (callback)
-    return native.fsRead(fd, offset, length, callback or noop)
+    return native.fs_read(fd, offset, length, callback or noop)
   end
 end
 
@@ -51,7 +51,7 @@ function fs.write(fd, offset, chunk)
     error("write(fd, offset, chunk): chunk must be a string")
   end
   return function (callback)
-    return native.fsWrite(fd, offset, chunk, callback or noop)
+    return native.fs_write(fd, offset, chunk, callback or noop)
   end
 end
 
@@ -60,7 +60,7 @@ function fs.close(fd)
     error("close(fd): fd must be a number")
   end
   return function (callback)
-    return native.fsClose(fd, callback or noop)
+    return native.fs_close(fd, callback or noop)
   end
 end
 

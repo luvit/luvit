@@ -6,7 +6,8 @@ local server = require("http").createServer(require('stack').stack(
     })
     res:finish("Hello World\n")
   end
-)):listen(process.env.PORT or 8080, "127.0.0.1")
+)):listen(8080, "127.0.0.1")
 
 local address = server:address()
-p("http server listening on http://" .. address.address .. ':' .. address.port .. '/')
+p(address)
+p("http server listening on http://127.0.0.1:8080/")

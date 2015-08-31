@@ -113,11 +113,11 @@ end
 local Debug = require('debug')
 function stack.errorHandler(req, res, err)
   if err then
-    res:setCode(500)
+    res.code = 500
     res:finish(Debug.traceback(err) .. "\n")
     return
   end
-  res:setCode(404)
+  res.code = 404
   res:finish("Not Found\n")
 end
 

@@ -18,7 +18,9 @@ local value = JSON.parse([[
   "dependencies": {},
   "devDependencies": {}
 }
-]], {use_null=true,allow_comments=true})
+]])
 p(value)
-local json = JSON.stringify(value, {beautify=true,indent_string="  "});
+local json = JSON.stringify(value);
 print(json)
+local v2 = JSON.parse(json)
+p(v2)
