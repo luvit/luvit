@@ -1,3 +1,7 @@
+* Changes between 2.5.4 and 2.5.5
+
+ * luvi: Update to 2.3.4 [Tim Caswell]
+
 * Changes between 2.5.3 and 2.5.4
 
  * tls: update root certs as of 2015/09/04 [Ryan Phillips]
