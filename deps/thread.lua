@@ -94,7 +94,7 @@ exports.work = function(thread_func, notify_entry)
       fn = loadstring(dumped)
 
       -- Convert paths back to table
-      local paths = {}
+      local paths = { require('uv').cwd() }
       for path in bundlePaths:gmatch("[^;]+") do
         paths[#paths + 1] = path
       end

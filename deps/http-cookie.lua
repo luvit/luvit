@@ -48,6 +48,7 @@ end
 
 -- given a unix timestamp, return a utc string
 local function to_utc_string(time)
+	--TODO: local timezone convert GMT
 	return os.date("%a, %d %b %Y %H:%I:%S GMT", time)
 end
 
