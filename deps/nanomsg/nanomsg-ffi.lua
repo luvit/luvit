@@ -308,10 +308,6 @@ nn.msg = ffi.metatype( 'struct nn_msg_t', {
         return m.size
     end,
 
-    __tostring = function( m )
-            return ffi.string( m.ptr, m.size )
-    end,
-
     -- methods
     __index = {
         --- free the buffer associated with this msg, instead of waiting for GC
