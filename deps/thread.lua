@@ -110,7 +110,9 @@ exports.work = function(thread_func, notify_entry)
       fn = _G._uv_works[dumped]
     end
     -- Run function
-
+    if not _G.process then
+      _G.process = require('process').globalProcess()
+    end
     return fn(...)
   end
 
