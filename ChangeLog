@@ -1,3 +1,7 @@
+* Changes between 2.5.5 and 2.5.6
+
+ * dns: Improvements to resolve.conf parsing [Simon Vetter]
+
 * Changes between 2.5.4 and 2.5.5
 
  * luvi: Update to 2.3.4 [Tim Caswell]
