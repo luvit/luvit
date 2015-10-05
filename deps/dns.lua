@@ -745,8 +745,8 @@ exports.loadResolver = function(options)
   local posa = 1
 
   local function parse(line)
-    if not line:match('^#') then
-      local ip = line:match('nameserver%s(.*)')
+    if not (line:match('^#') or line:match('^;'))  then
+      local ip = line:match('^nameserver%s([a-fA-F0-9:\\.]+)')
       if ip then
         local server = {}
         server.host = ip

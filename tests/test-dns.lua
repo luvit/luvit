@@ -99,9 +99,10 @@ require('tap')(function (test)
       return
     end
     local servers = dns.loadResolver({ file = path.join(module.dir, 'fixtures', 'resolve.conf.a')})
-    assert(#servers > 0)
+    assert(#servers == 3)
     assert(servers[1].host == '192.168.0.1')
     assert(servers[2].host == '::1')
+    assert(servers[3].host == '::2')
     dns.setDefaultServers()
   end)
 end)
