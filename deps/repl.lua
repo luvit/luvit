@@ -37,7 +37,7 @@ local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
   'dgram', 'dns', 'fs', 'helpful', 'hooks', 'http-codec', 'http',
   'https', 'json', 'los', 'net', 'pretty-print', 'process',
   'querystring', 'readline', 'timer', 'url', 'utils',
-  'stream', 'tls'
+  'stream', 'tls', 'path'
 }
 
 setmetatable(exports, {
