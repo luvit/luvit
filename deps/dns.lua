@@ -300,8 +300,9 @@ local function parse_response(buf, id)
   local answers = {}
 
   if code ~= 0 then
-    answers.errcode = code
-    answers.errstr = resolver_errstrs[code] or "unknown"
+    answers = Error:new(
+      code .. ': ' .. resolver_errstrs[code] or "unknown"
+    )
   end
 
   for i = 1, nan do
@@ -624,7 +625,11 @@ local function _query(servers, name, dnsclass, qtype, callback)
       if not answers then
         timer.setImmediate(tcp_iter)
       else
-        callback(nil, answers)
+        if answers.code then
+          callback(answers)
+        else
+          callback(nil, answers)
+        end
       end
     end
 
@@ -659,7 +664,11 @@ local function _query(servers, name, dnsclass, qtype, callback)
       sock:close()
       local answers, err = parse_response(msg, id)
       if answers then
-        callback(nil, answers)
+        if answers.code then
+          callback(answers)
+        else
+          callback(nil, answers)
+        end
       else
         if err == 'truncated' then
           timer.setImmediate(tcp_iter)
