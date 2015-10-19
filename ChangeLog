@@ -1,3 +1,8 @@
+* Changes between 2.5.6 and 2.5.7
+
+* dns: fix the error callback parameters [Ryan Phillips]
+* repl: add path to repl autoloads [Kaustav Haldar]
+
 * Changes between 2.5.5 and 2.5.6
 
  * dns: Improvements to resolve.conf parsing [Simon Vetter]
