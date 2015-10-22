@@ -26,6 +26,7 @@ require('tap')(function (test)
   p(options)
   local server
   local c
+  local openssl = require('openssl')
   print(openssl.error(true))
   test("tls remote-address", function()
     server = tls.createServer(options, function(s,err)
