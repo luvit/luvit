@@ -79,7 +79,7 @@ end
 local function printDCB(dcb)
   print('DCBlength          ',dcb[0].DCBlength);
   print('BaudRate           ',dcb[0].BaudRate);
-  
+
   print('fBinary            ',dcb[0].fBinary);
   print('fParity            ',dcb[0].fParity);
   print('fOutxCtsFlow       ',dcb[0].fOutxCtsFlow);
@@ -90,14 +90,14 @@ local function printDCB(dcb)
   print('fOutX              ',dcb[0].fOutX);
   print('fInX               ',dcb[0].fInX);
   print('fErrorChar         ',dcb[0].fErrorChar);
-  
+
   print('fNull              ',dcb[0].fNull);
   print('fRtsControl        ',dcb[0].fRtsControl);
   print('fAbortOnError      ',dcb[0].fAbortOnError);
   print('fDummy2            ',dcb[0].fDummy2);
   print('XonLim             ',dcb[0].XonLim);
   print('XoffLim            ',dcb[0].XoffLim);
-  
+
   print('ByteSize           ',dcb[0].ByteSize);
   print('Parity             ',dcb[0].Parity);
   print('StopBits           ',dcb[0].StopBits);
@@ -129,11 +129,11 @@ function Serial:open(callback)
       set[#set+1] = string.format('%s=%s',k,v)
     end
     set = table.concat(set, ' ')
-    
+
     local h = ffi.cast('void*',self._fd)
     local ret = ffi.C.BuildCommDCBA(set,dcb)
 
-    if(ret==1) then 
+    if(ret==1) then
       ret = ffi.C.SetCommState(ffi.cast('void*',self._fd),dcb)
       assert(ret==1 or ffi.errno()==0)
       if self.debug then printDCB(dcb) end
@@ -142,7 +142,7 @@ function Serial:open(callback)
       ret = ffi.C.GetCommTimeouts(h,outs)
       assert(ret==1)
       if self.debug then printTimeouts(outs) end
-      --[[
+      ---[[
       outs[0].ReadIntervalTimeout = 10;
       outs[0].ReadTotalTimeoutMultiplier = 0;
       outs[0].ReadTotalTimeoutConstant = 0;
@@ -158,17 +158,17 @@ function Serial:open(callback)
         ..string.format('0x%08x',ffi.errno()))
     end
     --[[ device_ioctl too lower for serial
-    
+
     uv.stream_set_blocking(self.device,false)
     local baud = ffi.new('SERIAL_BAUD_RATE[1]')
     print('IOCTL_SERIAL_SET_BAUD_RATE',const.IOCTL_SERIAL_SET_BAUD_RATE)
     baud[0].BaudRate = const.SERIAL_BAUD_9600
     print(assert(uv.device_ioctl(self.device,const.IOCTL_SERIAL_SET_BAUD_RATE,
       ffi.string(baud, ffi.sizeof('SERIAL_BAUD_RATE[1]')))))
-    
+
     local set = ffi.new('SERIAL_LINE_CONTROL[1]')
     set[0].StopBits = const.STOP_BIT_1
-    set[0].Parity = const.NO_PARITY 
+    set[0].Parity = const.NO_PARITY
     set[0].WordLength = const.SERIAL_DATABITS_8
     print(assert(uv.device_ioctl(self.device,
       const.IOCTL_SERIAL_SET_LINE_CONTROL,
