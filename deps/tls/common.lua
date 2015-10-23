@@ -393,9 +393,9 @@ end
 exports.TLSSocket = TLSSocket
 
 -------------------------------------------------------------------------------
-local VERIFY_PEER = { "peer" }
-local VERIFY_PEER_FAIL = { "peer", "fail_if_no_peer_cert" }
-local VERIFY_NONE = { "none" }
+local VERIFY_PEER = openssl.ssl.peer
+local VERIFY_PEER_FAIL = bit.bor(openssl.ssl.peer,openssl.ssl.fail)
+local VERIFY_NONE = openssl.ssl.none
 
 exports.createCredentials = function(options, context)
   local ctx, returnOne
