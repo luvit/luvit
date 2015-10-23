@@ -1,3 +1,8 @@
+* Changes in 2.5.9
+
+ * libuv: Update to v1.7.5 [Tim Caswell]
+ * luv: Export `luv_loop()` and `luv_state()` [Tim Caswell]
+
 * Changes in 2.5.8
 
  * childprocess: Add exec and execFile [Kaustav Haldar]
