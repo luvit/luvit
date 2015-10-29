@@ -159,6 +159,12 @@ end
 local skips = {}
 local function moduleRequire(base, name)
   assert(base and name)
+  -- Look in bundle first to avoid conflicts when developing luvi apps.
+  if not base:match("^bundle:/*") then
+    local mod, path, key
+    mod, path, key = moduleRequire("bundle:", name)
+    if mod then return mod, path, key end
+  end
   while true do
     if not skips[base] then
       local mod, path, key
@@ -175,10 +181,6 @@ local function moduleRequire(base, name)
     -- Stop at filesystem or prefix root (58 is ":")
     if base == "/" or base:byte(-1) == 58 then break end
     base = pathJoin(base, "..")
-  end
-  -- If we didn't find it outside the bundle, look inside the bundle.
-  if not base:match("^bundle:/*") then
-    return moduleRequire("bundle:", name)
   end
 end
 
