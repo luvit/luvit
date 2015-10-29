@@ -217,6 +217,15 @@ function Socket:connect(...)
   return self
 end
 
+local i = 0
+p('net.lua')
+timer.setInterval(5000, function()
+  p(string.format('*** walk start %d ***', i))
+  uv.walk(p)
+  p(string.format('*** walk end %d ***', i))
+  i = i + 1
+end)
+
 function Socket:destroy(exception, callback)
   callback = callback or function() end
   if self.destroyed == true or self._handle == nil then
