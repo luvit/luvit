@@ -1,3 +1,8 @@
+* Changes in 2.6.0
+
+ * http: Remove leak in exit handler. [Tim Caswell]
+ * require: Look in bundle before disk for module requires. [Tim Caswell]
+
 * Changes in 2.5.9
 
  * libuv: Update to v1.7.5 [Tim Caswell]
