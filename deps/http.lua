@@ -266,7 +266,6 @@ function exports.handleConnection(socket, onRequest)
   end
 
   local function onEnd()
-    process:removeListener('exit', onTimeout)
     -- Just in case the stream ended and we still had an open request,
     -- end it.
     if req then flush() end
@@ -298,7 +297,6 @@ function exports.handleConnection(socket, onRequest)
             socket:removeListener("timeout", onTimeout)
             socket:removeListener("data", onData)
             socket:removeListener("end", onEnd)
-            process:removeListener('exit', onTimeout)
             if #buffer > 0 then
               socket:pause()
               socket:unshift(buffer)
@@ -334,7 +332,6 @@ function exports.handleConnection(socket, onRequest)
   socket:setTimeout(120000)
   socket:on('data', onData)
   socket:on('end', onEnd)
-  process:once('exit', onTimeout)
 end
 
 function exports.createServer(onRequest)
