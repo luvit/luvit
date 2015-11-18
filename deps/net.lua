@@ -60,6 +60,7 @@ function Socket:initialize(options)
   self._connecting = false
   self._reading = false
   self._destroyed = false
+  self._read_count = 0
 
   self:on('finish', utils.bind(self._onSocketFinish, self))
   self:on('_socketEnd', utils.bind(self._onSocketEnd, self))
@@ -75,9 +76,7 @@ function Socket:_onSocketFinish()
 end
 
 function Socket:_onSocketEnd()
-  self:once('end', function()
-    self:destroy()
-  end)
+  self:destroy()
 end
 
 function Socket:bind(ip, port)
@@ -117,9 +116,10 @@ function Socket:_read(n)
     if err then
       return self:destroy(err)
     elseif data then
+      self._read_count = self._read_count + #data
       self:push(data)
     else
-      self:push(nil)
+      self:push()
       self:emit('_socketEnd')
     end
   end
