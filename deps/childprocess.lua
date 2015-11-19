@@ -136,9 +136,11 @@ local function spawn(command, args, options)
   function onExit(code, signal)
     em.exitCode = code
     em.signal = signal
-    em:emit('exit', code, signal)
-    maybeClose()
-    em:close()
+    process.nextTick(function()
+      em:emit('exit', code, signal)
+      maybeClose()
+      em:close()
+    end)
   end
 
   handle, pid = uv.spawn(command, {
