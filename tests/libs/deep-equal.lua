@@ -17,11 +17,16 @@ limitations under the License.
 --]]
 
 exports.name = "luvit/deep-equal"
-exports.version = "0.1.2"
+exports.version = "0.1.3"
 exports.license = "Apache 2"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/tests/libs/deep-equal.lua"
 exports.description = "Utility for doing deep comparisons of lua values"
 exports.tags = {"compare", "test"}
+exports.dependencies = {
+  "luvit/pretty-print",
+}
+
+local prettyDump = require("pretty-print").dump
 
 local function deepEqual(expected, actual, path)
   if expected == actual then
@@ -31,7 +36,7 @@ local function deepEqual(expected, actual, path)
   local expectedType = type(expected)
   local actualType = type(actual)
   if expectedType ~= actualType then
-    return false, prefix .. "Expected type " .. expectedType .. " but found " .. actualType
+    return false, prefix .. "Expected type " .. expectedType .. " but found " .. actualType .. ", expected value " .. prettyDump(expected, false, true) .. ", but found value " .. prettyDump(actual, false, true)
   end
   if expectedType ~= "table" then
     return false, prefix .. "Expected " .. tostring(expected) .. " but found " .. tostring(actual)
