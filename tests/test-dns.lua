@@ -26,6 +26,7 @@ if require('os').getenv('APPVEYOR') then return end
 require('tap')(function (test)
   test("resolve4", function (expect)
     dns.resolve4('luvit.io', expect(function(err, answers)
+      p(err, answers)
       assert(not err)
       assert(#answers > 0)
       p(answers)
