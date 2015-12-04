@@ -1,5 +1,5 @@
 @ECHO off
-@SET LIT_VERSION=2.2.16
+@SET LIT_VERSION=2.2.18
 
 IF NOT "x%1" == "x" GOTO :%1
 
