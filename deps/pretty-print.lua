@@ -16,7 +16,7 @@ limitations under the License.
 
 --]]
 exports.name = "luvit/pretty-print"
-exports.version = "1.0.5"
+exports.version = "1.0.6"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
 exports.description = "A lua value pretty printer and colorizer for terminals."
 exports.tags = {"colors", "tty"}
@@ -325,7 +325,7 @@ if uv.guess_handle(1) == 'tty' then
   if width == 0 then width = 80 end
   -- auto-detect when 16 color mode should be used
   local term = env.get("TERM")
-  if term == 'xterm' or term:match'-256color$' then
+  if term and (term == 'xterm' or term:match'-256color$') then
     defaultTheme = 256
   else
     defaultTheme = 16
