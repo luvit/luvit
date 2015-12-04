@@ -2,7 +2,7 @@ return {
   name = "luvit/luvit",
   version = "2.7.0",
   luvi = {
-    version = "2.4.0",
+    version = "2.5.0",
     flavor = "regular",
   },
   license = "Apache 2",
