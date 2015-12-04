@@ -17,7 +17,6 @@ limitations under the License.
 
 require('tap')(function (test)
   local fixture = require('./fixture-tls')
-  local openssl = require('openssl')
   local tls = require('tls')
 
   local options = {
