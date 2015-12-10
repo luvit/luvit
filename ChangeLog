@@ -1,3 +1,9 @@
+* Changes in 2.7.1
+
+ * luvi: bump lua-openssl [Jörg Krause]
+ * luvi: bump openssl to 1.0.2e [Ryan Phillips]
+ * lit: update to 2.3.0 [Ryan Phillips]
+
 * Changes in 2.7.0
 
  * luvi: New "snapshot" module to help debug memory leaks [Tim Caswell]
