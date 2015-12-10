@@ -45,7 +45,7 @@ return {
     "luvit/stream@1.1.0",
     "luvit/thread@0.1.2",
     "luvit/timer@1.0.0",
-    "luvit/tls@1.3.1",
+    "luvit/tls@1.3.3",
     "luvit/utils@1.0.0",
     "luvit/url@1.0.4",
   },
