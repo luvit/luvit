@@ -25,6 +25,11 @@ require('tap')(function (test)
   local base = pathJoin(module.dir, "fixtures/fake.lua")
   _G.num_loaded = 0
 
+  test("native lua require should still be there", function ()
+    p(require, _G.require)
+    assert(require ~= _G.require)
+  end)
+
   test("relative require with extension", function ()
     local require = makeRequire(base)
     local mod1 = require('./libs/module1/init.lua')
