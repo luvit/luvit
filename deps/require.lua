@@ -289,7 +289,7 @@ function Module:require(name)
         return module:require(...)
       end
     }
-    setfenv(fn, setmetatable(global, { __index = _G, __newindex = _G }))
+    setfenv(fn, setmetatable(global, { __index = _G, __newindex = _G })) 
     local ret = fn()
 
     -- Allow returning the exports as well
