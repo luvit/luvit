@@ -1,3 +1,14 @@
+* Changes in 2.7.2
+
+ * luvit: clean up globals some in repl [Tim Caswell]
+ * luvi: update to 2.5.1 [Tim Caswell]
+   * luvi: Don't constantly update timestamps when creating zips. [Tim Caswell]
+   * libuv: Update to v1.8.0 [Tim Caswell]
+   * luv: Add uv.fs_realpath [Tim Caswell]
+   * luv: add netmask to network interface data [George Zhao]
+ * lit: update to 2.3.1 [Tim Caswell]
+   * lit: Make signature verification code more robust [Tim Caswell]
+
 * Changes in 2.7.1
 
  * luvi: bump lua-openssl [Jörg Krause]
