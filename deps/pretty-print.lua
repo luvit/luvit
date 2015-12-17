@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+if not exports then exports = {} end
 exports.name = "luvit/pretty-print"
 exports.version = "1.0.7"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
@@ -23,8 +24,12 @@ exports.tags = {"colors", "tty"}
 exports.license = "Apache 2"
 exports.author = { name = "Tim Caswell" }
 
-local uv = require('uv')
-local env = require('env')
+local success, uv = pcall(require, 'uv')
+if not success then
+  success, uv = pcall(require, 'luv')
+end
+assert(success, uv)
+local getenv = require('os').getenv
 
 local prettyPrint, dump, strip, color, colorize, loadColors
 local theme = {}
@@ -324,7 +329,7 @@ if uv.guess_handle(1) == 'tty' then
   width = uv.tty_get_winsize(stdout)
   if width == 0 then width = 80 end
   -- auto-detect when 16 color mode should be used
-  local term = env.get("TERM")
+  local term = getenv("TERM")
   if term and (term == 'xterm' or term:match'-256color$') then
     defaultTheme = 256
   else
@@ -355,3 +360,5 @@ exports.stdin = stdin
 exports.stdout = stdout
 exports.stderr = stderr
 exports.strip = strip
+
+return exports
