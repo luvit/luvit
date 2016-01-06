@@ -15,17 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
-exports.name = "luvit/dgram"
-exports.version = "1.1.0-3"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-  "luvit/timer@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/dgram.lua"
-exports.description = "Node-style udp module for luvit"
-exports.tags = {"luvit", "dgram", "udp"}
+--[[lit-meta
+  name = "luvit/dgram"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/core@2.0.0",
+    "luvit/timer@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/dgram.lua"
+  description = "Node-style udp module for luvit"
+  tags = {"luvit", "dgram", "udp"}
+]]
 
 local uv = require('uv')
 local Emitter = require('core').Emitter
@@ -133,5 +134,7 @@ local function createSocket(type, callback)
   return ret
 end
 
-exports.Socket = Socket
-exports.createSocket = createSocket
+return {
+  Socket = Socket,
+  createSocket = createSocket,
+}

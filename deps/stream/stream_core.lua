@@ -121,4 +121,4 @@ function Stream:pipe(dest, options)
   return dest
 end
 
-exports.Stream = Stream
+return { Stream = Stream }

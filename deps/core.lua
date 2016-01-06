@@ -20,14 +20,16 @@ limitations under the License.
 This module is for various classes and utilities that don't need their own
 module.
 ]]
-local core = exports
+--[[lit-meta
+  name = "luvit/core"
+  version = "2.0.0"
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/core.lua"
+  description = "Core object model for luvit using simple prototypes and inheritance."
+  tags = {"luvit", "objects", "inheritance"}
+]]
+local core = {}
 
-exports.name = "luvit/core"
-exports.version = "1.0.7"
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/core.lua"
-exports.description = "Core object model for luvit using simple prototypes and inheritance."
-exports.tags = {"luvit", "objects", "inheritance"}
 
 --[[
 Returns whether obj is instance of class or not.
@@ -359,3 +361,5 @@ function Error:initialize(message)
 end
 
 --------------------------------------------------------------------------------
+
+return core

@@ -15,16 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-exports.name = "luvit/timer"
-exports.version = "1.0.0-4"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-  "luvit/utils@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/timer.lua"
-exports.description = "Javascript style setTimeout and setInterval for luvit"
-exports.tags = {"luvit", "timer"}
+--[[lit-meta
+  name = "luvit/timer"
+  version = "1.0.0-4"
+  dependencies = {
+    "luvit/core@1.0.5",
+    "luvit/utils@1.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/timer.lua"
+  description = "Javascript style setTimeout and setInterval for luvit"
+  tags = {"luvit", "timer"}
+]]
 
 local uv = require('uv')
 local Object = require('core').Object
@@ -78,7 +80,7 @@ Timer.now = uv.now
 
 ------------------------------------------------------------------------------
 
-function exports.sleep(delay, thread)
+local function sleep(delay, thread)
   thread = thread or coroutine.running()
   uv.new_timer():start(delay, 0, function ()
     return assert(coroutine.resume(thread))
@@ -86,7 +88,7 @@ function exports.sleep(delay, thread)
   return coroutine.yield()
 end
 
-function exports.setTimeout(delay, callback, ...)
+local function setTimeout(delay, callback, ...)
   local timer = uv.new_timer()
   local args = {...}
   uv.timer_start(timer, delay, 0, function ()
@@ -97,20 +99,18 @@ function exports.setTimeout(delay, callback, ...)
   return timer
 end
 
-function exports.setInterval(interval, callback, ...)
+local function setInterval(interval, callback, ...)
   local timer = uv.new_timer()
   uv.timer_start(timer, interval, interval, bind(callback, ...))
   return timer
 end
 
-function exports.clearInterval(timer)
+local function clearInterval(timer)
   if uv.is_closing(timer) then return end
   uv.timer_stop(timer)
   uv.close(timer)
 end
 
-exports.clearTimeout = exports.clearInterval
-exports.clearTimer = exports.clearTimeout -- Luvit 1.x compatibility
 
 local checker = uv.new_check()
 local idler = uv.new_idle()
@@ -130,7 +130,7 @@ local function onCheck()
   end
 end
 
-function exports.setImmediate(callback, ...)
+local function setImmediate(callback, ...)
 
   -- If the queue was empty, the check hooks were disabled.
   -- Turn them back on.
@@ -244,10 +244,9 @@ local function unenroll(item)
   end
   item._idleTimeout = -1
 end
-exports.unenroll = unenroll
 
 -- does not start the timer, just initializes the item
-exports.enroll = function(item, msecs)
+local function enroll(item, msecs)
   if item._idleNext then
     unenroll(item)
   end
@@ -256,7 +255,7 @@ exports.enroll = function(item, msecs)
 end
 
 -- call this whenever the item is active (not idle)
-exports.active = function(item)
+local function active(item)
   local msecs = item._idleTimeout
   if msecs and msecs >= 0 then
     local list = lists[msecs]
@@ -268,3 +267,16 @@ exports.active = function(item)
     end
   end
 end
+
+return {
+  sleep = sleep,
+  setTimeout = setTimeout,
+  setInterval = setInterval,
+  clearInterval = clearInterval,
+  clearTimeout = clearInterval,
+  clearTimer = clearInterval, -- Luvit 1.x compatibility
+  setImmediate = setImmediate,
+  unenroll = unenroll,
+  enroll = enroll,
+  active = active,
+}

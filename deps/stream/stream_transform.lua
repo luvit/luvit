@@ -228,4 +228,4 @@ function done(stream, er)
   return stream:push(nil)
 end
 
-exports.Transform = Transform
+return { Transform = Transform }

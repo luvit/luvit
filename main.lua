@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+local bundle = require('luvi').bundle
+loadstring(bundle.readfile("luvit-loader.lua"), "bundle:luvit-loader.lua")()
 
 -- Create a luvit powered main that does the luvit CLI interface
 return require('./init')(function (...)
@@ -138,4 +140,3 @@ return require('./init')(function (...)
 
   end
 end, ...)
-

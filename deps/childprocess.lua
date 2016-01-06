@@ -15,19 +15,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
-exports.name = "luvit/childprocess"
-exports.version = "1.1.0"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-  "luvit/utils@1.0.0",
-  "luvit/net@1.2.0",
-  "luvit/timer@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/childprocess.lua"
-exports.description = "A port of node.js's childprocess module for luvit."
-exports.tags = {"luvit", "spawn", "process"}
+--[[lit-meta
+  name = "luvit/childprocess"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/core@2.0.0",
+    "luvit/utils@2.0.0",
+    "luvit/net@2.0.0",
+    "luvit/timer@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/childprocess.lua"
+  description = "A port of node.js's childprocess module for luvit."
+  tags = {"luvit", "spawn", "process"}
+]]
 
 local core = require('core')
 local net = require('net')
@@ -207,7 +208,7 @@ local function _exec(file, args, options, callback)
   local child = spawn(file, args, options)
 
   local stdout, stderr = {}, {}
-  local exited, killed = false, false
+  local exited = false
   local stdoutLen, stderrLen = 0, 0
   local timeoutId
   local err = {}
@@ -242,7 +243,6 @@ local function _exec(file, args, options, callback)
     child.stdout:emit('close', 1, options.signal)
     child.stderr:emit('close', 1, options.signal)
     child:emit('close', 1, options.signal)
-    killed = true
     exitHandler(1, options.signal)
   end
 
@@ -308,6 +308,8 @@ local function exec(command, options, callback)
   return execFile(normalizeExecArgs(command, options, callback))
 end
 
-exports.exec = exec
-exports.execFile = execFile
-exports.spawn = spawn
+return {
+  exec = exec,
+  execFile = execFile,
+  spawn = spawn,
+}

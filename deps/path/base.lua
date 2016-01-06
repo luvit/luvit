@@ -396,5 +396,7 @@ function WindowsPath:_makeLong(filepath)
   end
 end
 
-exports.nt = WindowsPath:new()
-exports.posix = PosixPath:new()
+return {
+  nt = WindowsPath:new(),
+  posix = PosixPath:new(),
+}

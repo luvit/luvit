@@ -16,13 +16,15 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/http-codec"
-exports.version = "1.0.0-1"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/http-codec.lua"
-exports.description = "A simple pair of functions for converting between hex and raw strings."
-exports.tags = {"codec", "http"}
-exports.license = "Apache 2"
-exports.author = { name = "Tim Caswell" }
+--[[lit-meta
+  name = "luvit/http-codec"
+  version = "2.0.0"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/http-codec.lua"
+  description = "A simple pair of functions for converting between hex and raw strings."
+  tags = {"codec", "http"}
+  license = "Apache 2"
+  author = { name = "Tim Caswell" }
+]]
 
 local sub = string.sub
 local gsub = string.gsub
@@ -87,7 +89,7 @@ local STATUS_CODES = {
   [510] = 'Not Extended'                -- RFC 2774
 }
 
-exports.encoder = function ()
+local function encoder()
 
   local mode
   local encodeHead, encodeRaw, encodeChunked
@@ -153,7 +155,7 @@ exports.encoder = function ()
   end
 end
 
-exports.decoder = function ()
+local function decoder()
 
   -- This decoder is somewhat stateful with 5 different parsing states.
   local decodeHead, decodeEmpty, decodeRaw, decodeChunked, decodeCounted
@@ -285,3 +287,8 @@ exports.decoder = function ()
   end
 
 end
+
+return {
+  encoder = encoder,
+  decoder = decoder,
+}

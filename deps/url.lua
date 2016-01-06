@@ -15,19 +15,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-exports.name = "luvit/url"
-exports.version = "1.0.4-2"
-exports.dependencies = {
-  "luvit/querystring@1.0.1",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/url.lua"
-exports.description = "Node-style url codec for luvit"
-exports.tags = {"luvit", "url", "codec"}
+--[[lit-meta
+  name = "luvit/url"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/querystring@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/url.lua"
+  description = "Node-style url codec for luvit"
+  tags = {"luvit", "url", "codec"}
+]]
 
 local querystring = require('querystring')
 
-function exports.parse(url, parseQueryString)
+local function parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
   url = url:sub((chunk and #chunk or 0) + 1)
@@ -96,3 +98,5 @@ function exports.parse(url, parseQueryString)
   }
 
 end
+
+return { parse = parse }

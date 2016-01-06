@@ -16,18 +16,20 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/net"
-exports.version = "1.2.1"
-exports.dependencies = {
-  "luvit/timer@1.0.0",
-  "luvit/utils@1.0.0",
-  "luvit/core@1.0.5",
-  "luvit/stream@1.1.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/net.lua"
-exports.description = "Node-style net client and server module for luvit"
-exports.tags = {"luvit", "tcp", "pipe", "stream"}
+--[[lit-meta
+  name = "luvit/net"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/timer@2.0.0",
+    "luvit/utils@2.0.0",
+    "luvit/core@2.0.0",
+    "luvit/stream@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/net.lua"
+  description = "Node-style net client and server module for luvit"
+  tags = {"luvit", "tcp", "pipe", "stream"}
+]]
 
 local uv = require('uv')
 local timer = require('timer')
@@ -324,11 +326,7 @@ end
 
 -- Exports
 
-exports.Server = Server
-
-exports.Socket = Socket
-
-exports.createConnection = function(port, ... --[[ host, cb --]])
+local function createConnection(port, ... --[[ host, cb --]])
   local args = {...}
   local host
   local options
@@ -351,10 +349,16 @@ exports.createConnection = function(port, ... --[[ host, cb --]])
   return sock
 end
 
-exports.connect = exports.createConnection
-
-exports.createServer = function(options, connectionListener)
+local function createServer(options, connectionListener)
   local server = Server:new()
   server:init(options, connectionListener)
   return server
 end
+
+return {
+  Server = Server,
+  Socket = Socket,
+  createConnection = createConnection,
+  connect = createConnection,
+  createServer = createServer,
+}

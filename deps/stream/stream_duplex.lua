@@ -73,4 +73,4 @@ function onend(self)
   process.nextTick(utils.bind(self._end, self))
 end
 
-exports.Duplex = Duplex
+return { Duplex = Duplex }

@@ -53,4 +53,4 @@ function Observable:observe()
   return obs
 end
 
-exports.Observable = Observable
+return { Observable = Observable }

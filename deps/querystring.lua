@@ -16,12 +16,14 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/querystring"
-exports.version = "1.0.2"
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/querystring.lua"
-exports.description = "Node-style query-string codec for luvit"
-exports.tags = {"luvit", "url", "codec"}
+--[[lit-meta
+  name = "luvit/querystring"
+  version = "2.0.0"
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/querystring.lua"
+  description = "Node-style query-string codec for luvit"
+  tags = {"luvit", "url", "codec"}
+]]
 
 local find = string.find
 local gsub = string.gsub
@@ -31,7 +33,7 @@ local format = string.format
 local match = string.match
 local gmatch = string.gmatch
 
-function exports.urldecode(str)
+local function urldecode(str)
   str = gsub(str, '+', ' ')
   str = gsub(str, '%%(%x%x)', function(h)
     return char(tonumber(h, 16))
@@ -40,7 +42,7 @@ function exports.urldecode(str)
   return str
 end
 
-function exports.urlencode(str)
+local function urlencode(str)
   if str then
     str = gsub(str, '\n', '\r\n')
     str = gsub(str, '([^%w])', function(c)
@@ -54,19 +56,19 @@ local function stringifyPrimitive(v)
   return tostring(v)
 end
 
-function exports.stringify(params, sep, eq)
+local function stringify(params, sep, eq)
   if not sep then sep = '&' end
   if not eq then eq = '=' end
   if type(params) == "table" then
     local fields = {}
     for key,value in pairs(params) do
-      local keyString = exports.urlencode(stringifyPrimitive(key)) .. eq
+      local keyString = urlencode(stringifyPrimitive(key)) .. eq
       if type(value) == "table" then
         for _, v in ipairs(value) do
-          table.insert(fields, keyString .. exports.urlencode(stringifyPrimitive(v)))
+          table.insert(fields, keyString .. urlencode(stringifyPrimitive(v)))
         end
       else
-        table.insert(fields, keyString .. exports.urlencode(stringifyPrimitive(value)))
+        table.insert(fields, keyString .. urlencode(stringifyPrimitive(value)))
       end
     end
     return table.concat(fields, sep)
@@ -75,18 +77,18 @@ function exports.stringify(params, sep, eq)
 end
 
 -- parse querystring into table. urldecode tokens
-function exports.parse(str, sep, eq)
+local function parse(str, sep, eq)
   if not sep then sep = '&' end
   if not eq then eq = '=' end
   local vars = {}
   for pair in gmatch(tostring(str), '[^' .. sep .. ']+') do
     if not find(pair, eq) then
-      vars[exports.urldecode(pair)] = ''
+      vars[urldecode(pair)] = ''
     else
       local key, value = match(pair, '([^' .. eq .. ']*)' .. eq .. '(.*)')
       if key then
-        key = exports.urldecode(key)
-        value = exports.urldecode(value)
+        key = urldecode(key)
+        value = urldecode(value)
         local type = type(vars[key])
         if type=='nil' then
           vars[key] = value
@@ -100,3 +102,10 @@ function exports.parse(str, sep, eq)
   end
   return vars
 end
+
+return {
+  urldecode = urldecode,
+  urlencode = urlencode,
+  stringify = stringify,
+  parse = parse,
+}

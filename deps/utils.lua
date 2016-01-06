@@ -16,18 +16,20 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/utils"
-exports.version = "1.0.0-4"
-exports.dependencies = {
-  "luvit/pretty-print@1.0.3",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"
-exports.description = "Wrapper around pretty-print with extra tools for luvit"
-exports.tags = {"luvit", "bind", "adapter"}
+--[[lit-meta
+  name = "luvit/utils"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/pretty-print@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"
+  description = "Wrapper around pretty-print with extra tools for luvit"
+  tags = {"luvit", "bind", "adapter"}
+]]
 
 local Error = require('core').Error
-
+local exports = {}
 local pp = require('pretty-print')
 for name, value in pairs(pp) do
   exports[name] = value
@@ -100,6 +102,31 @@ local function adapt(c, fn, ...)
   end
 end
 
+local uv = require('uv')
+local bundle = require('luvi').bundle
+local pathJoin = require('path').join
+local cwd = uv.cwd()
+local function load(path)
+  local caller = debug.getinfo(2, "S").source
+  if string.sub(caller, 1, 1) == "@" then
+    path = pathJoin(cwd, caller:sub(2), "..", path)
+    local fd = assert(uv.fs_open(path, "r"))
+    local stat = assert(uv.fs_fstat(fd))
+    local data = assert(uv.fs_read(fd, 0, stat.length))
+    uv.fs_close(fd)
+    return data
+  elseif string.sub(caller, 1, 7) == "bundle:" then
+    path = pathJoin(caller:sub(8), "..", path)
+    return bundle.readfile(path)
+  end
+  error("Don't know how to load relative to " .. caller)
+
+end
+
+
 exports.bind = bind
 exports.noop = noop
 exports.adapt = adapt
+exports.load = load
+
+return exports

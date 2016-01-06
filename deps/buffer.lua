@@ -15,16 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
-exports.name = "luvit/buffer"
-exports.version = "1.0.1-3"
-exports.dependencies = {
-  "luvit/core@1.0.5"
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/buffer.lua"
-exports.description = "A mutable buffer using ffi for luvit."
-exports.tags = {"luvit", "buffer"}
+--[[lit-meta
+  name = "luvit/buffer"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/core@2.0.0"
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/buffer.lua"
+  description = "A mutable buffer using ffi for luvit."
+  tags = {"luvit", "buffer"}
+]]
 
 local Object = require('core').Object
 local ffi = require('ffi')
@@ -35,7 +36,7 @@ ffi.cdef([[
   void free (void *__ptr);
 ]])
 
-local buffer = exports
+local buffer = {}
 
 local Buffer = Object:extend()
 buffer.Buffer = Buffer
