@@ -21,7 +21,8 @@ require('tap')(function(test)
   local Path = require('path')
   local Buffer = require('buffer').Buffer
   local string = require('string')
-  local dir = Path.join(module.dir, 'tmp')
+  local utils = require('utils')
+  local dir = utils.resolve("./tmp")
   local filename = Path.join(dir, 'truncate-file.txt')
   local data = string.rep('x', 1024 * 16)
 

@@ -490,4 +490,3 @@ require('tap')(function(test)
     assert(path_base.nt:relative('c:/aaaa/bbbb', 'd:\\') == 'd:\\')
   end)
 end)
-

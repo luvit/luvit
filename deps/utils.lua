@@ -104,29 +104,43 @@ end
 
 local uv = require('uv')
 local bundle = require('luvi').bundle
-local pathJoin = require('path').join
+local pathResolve = require('path').resolve
 local cwd = uv.cwd()
-local function load(path)
+
+local function resolve(path, read)
   local caller = debug.getinfo(2, "S").source
   if string.sub(caller, 1, 1) == "@" then
-    path = pathJoin(cwd, caller:sub(2), "..", path)
-    local fd = assert(uv.fs_open(path, "r"))
+    if path then
+      path = pathResolve(cwd, caller:sub(2), "..", path)
+    else
+      path = pathResolve(cwd, caller:sub(2))
+    end
+    if not read then return path end
+    local fd = assert(uv.fs_open(path, "r", 420))
     local stat = assert(uv.fs_fstat(fd))
-    local data = assert(uv.fs_read(fd, 0, stat.length))
+    local data = assert(uv.fs_read(fd, stat.size, 0))
     uv.fs_close(fd)
     return data
   elseif string.sub(caller, 1, 7) == "bundle:" then
-    path = pathJoin(caller:sub(8), "..", path)
+    if path then
+      path = pathResolve(caller:sub(8), "..", path)
+    else
+      path = pathResolve(caller:sub(8))
+    end
+    if not read then return path end
     return bundle.readfile(path)
   end
   error("Don't know how to load relative to " .. caller)
-
+end
+local function load(path)
+  return resolve(path, true)
 end
 
 
 exports.bind = bind
 exports.noop = noop
 exports.adapt = adapt
+exports.resolve = resolve
 exports.load = load
 
 return exports

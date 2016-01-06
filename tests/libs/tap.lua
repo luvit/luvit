@@ -16,15 +16,17 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/tap"
-exports.version = "0.1.1"
-exports.dependencies = {
-  "luvit/pretty-print@1.0.2"
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/tests/libs/tap.lua"
-exports.description = "Libuv loop based test runner with tap output."
-exports.tags = {"test", "tap"}
+--[[lit-meta
+  name = "luvit/tap"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/pretty-print@2.0.0"
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/tests/libs/tap.lua"
+  description = "Libuv loop based test runner with tap output."
+  tags = {"test", "tap"}
+]]
 
 local uv = require('uv')
 local colorize = require('pretty-print').colorize

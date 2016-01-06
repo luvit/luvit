@@ -117,7 +117,7 @@ return require('./init')(function (...)
   if startRepl == nil and not script then startRepl = true end
 
   if script then
-    require(luvi.path.join(uv.cwd(), script))
+    dofile(luvi.path.join(uv.cwd(), script))
   end
 
   if startRepl then
