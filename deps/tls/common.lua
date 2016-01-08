@@ -41,7 +41,7 @@ end
 
 local DEFAULT_CA_STORE
 do
-  local data = utils.load("./root_ca.dat")
+  local data = assert(utils.load("./root_ca.dat"))
   DEFAULT_CA_STORE = openssl.x509.store:new()
   local index = 1
   local len = #data

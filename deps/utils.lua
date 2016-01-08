@@ -105,15 +105,14 @@ end
 local uv = require('uv')
 local bundle = require('luvi').bundle
 local pathResolve = require('path').resolve
-local cwd = uv.cwd()
 
 local function resolve(path, read)
   local caller = debug.getinfo(2, "S").source
   if string.sub(caller, 1, 1) == "@" then
     if path then
-      path = pathResolve(cwd, caller:sub(2), "..", path)
+      path = pathResolve(caller:sub(2), "..", path)
     else
-      path = pathResolve(cwd, caller:sub(2))
+      path = pathResolve(caller:sub(2))
     end
     if not read then return path end
     local fd = assert(uv.fs_open(path, "r", 420))
@@ -123,9 +122,9 @@ local function resolve(path, read)
     return data
   elseif string.sub(caller, 1, 7) == "bundle:" then
     if path then
-      path = pathResolve(caller:sub(8), "..", path)
+      path = pathResolve("/" .. caller:sub(8), "..", path)
     else
-      path = pathResolve(caller:sub(8))
+      path = pathResolve("/" .. caller:sub(8))
     end
     if not read then return path end
     return bundle.readfile(path)
