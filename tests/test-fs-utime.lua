@@ -22,8 +22,8 @@ require('tap')(function(test)
   local os = require('os')
   local string = require('string')
   local los = require('los')
-  local utils = require('utils')
-  local __filename = utils.resolve()
+  local module = require('resource')
+  local __filename = module.path
 
   test('fs utime', function()
     local is_windows = los.type() == 'win32'

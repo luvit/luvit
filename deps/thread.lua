@@ -17,20 +17,22 @@ limitations under the License.
 --]]
 
 --- luvit thread management
-
-exports.name = "luvit/thread"
-exports.version = "0.1.2"
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
-exports.description = "thread module for luvit"
-exports.tags = {"luvit", "thread","threadpool","work"}
-exports.dependencies = {
-  "luvit/core@1.0.5",
-}
+--[[lit-meta
+  name = "luvit/thread"
+  version = "2.0.0"
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
+  description = "thread module for luvit"
+  tags = {"luvit", "thread","threadpool","work"}
+  dependencies = {
+    "luvit/core@1.0.5",
+  }
+]]
 
 local uv = require('uv')
 local bundlePaths = require('luvi').bundle.paths
 local Object = require('core').Object
+local exports = {}
 
 exports.start = function(thread_func, ...)
   local dumped = type(thread_func)=='function'
@@ -121,3 +123,5 @@ end
 exports.queue = function(worker, ...)
   worker:queue(...)
 end
+
+return exports

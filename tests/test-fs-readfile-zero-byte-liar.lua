@@ -22,8 +22,8 @@ require('tap')(function(test)
   local Path = require('path')
   local Buffer = require('buffer').Buffer
   local string = require('string')
-  local utils = require('utils')
-  local __filename = utils.resolve()
+  local module = require('resource')
+  local __filename = module.path
 
   local dataExpected = FS.readFileSync(__filename)
 

@@ -1,5 +1,6 @@
 require('tap')(function (test)
 
+  local module = require('resource')
   local path = require('path')
   local spawn = require('childprocess').spawn
   local timer = require('timer')

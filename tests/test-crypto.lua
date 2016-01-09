@@ -23,7 +23,9 @@ if openssl == nil then
   return
 end
 
-local utils = require('utils')
+local fs = require('fs')
+local path = require('luvi').path
+local module = require('resource')
 
 local message1 = 'This message '
 local message2 = 'will be signed'
@@ -31,8 +33,9 @@ local message = message1 .. message2
 
 require('tap')(function (test)
 
-  local RSA_PUBLIC_KEY = utils.load('./ca/server.pub')
-  local RSA_PRIV_KEY = utils.load('./ca/server.key.insecure')
+  local ca_path = path.join(module.dir, 'ca')
+  local RSA_PUBLIC_KEY = fs.readFileSync(path.join(ca_path, 'server.pub'))
+  local RSA_PRIV_KEY = fs.readFileSync(path.join(ca_path, 'server.key.insecure'))
   local kpriv = openssl.pkey.read(RSA_PRIV_KEY, true)
   local kpub = openssl.pkey.read(RSA_PUBLIC_KEY)
   local sha256 = openssl.digest.get("sha256")

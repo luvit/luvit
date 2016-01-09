@@ -19,15 +19,20 @@ limitations under the License.
 
 require('tap')(function (test)
 
-  local makeRequire = require('require')
   local pathJoin = require('luvi').path.join
-  local p = require('utils').prettyPrint
+  local module = require('resource')
   local base = pathJoin(module.dir, "fixtures/fake.lua")
   _G.num_loaded = 0
 
+  local function makeRequire(base)
+    return function (path)
+      return loadstring(string.format("return require(%q)", path), '@' .. base)
+    end
+  end
+
   test("native lua require should still be there", function ()
     p(require, _G.require)
-    assert(require ~= _G.require)
+    assert(require == _G.require)
   end)
 
   test("relative require with extension", function ()

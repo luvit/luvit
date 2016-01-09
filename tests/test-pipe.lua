@@ -19,6 +19,7 @@ limitations under the License.
 require('tap')(function (test)
   local path = require('path')
   local fs = require('fs')
+  local module = require('resource')
   local __dirname = module.dir
   local name = 'test-pipe'
   local tmp_file = path.join(__dirname, 'tmp', name)

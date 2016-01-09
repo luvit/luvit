@@ -21,7 +21,7 @@ local Error = require('core').Error
 local net = require('net')
 local openssl = require('openssl')
 local timer = require('timer')
-local utils = require('utils')
+local resource = require('resource')
 local uv = require('uv')
 
 local createCredentials
@@ -41,7 +41,7 @@ end
 
 local DEFAULT_CA_STORE
 do
-  local data = assert(utils.load("./root_ca.dat"))
+  local data = assert(resource.load("root_ca.dat"))
   DEFAULT_CA_STORE = openssl.x509.store:new()
   local index = 1
   local len = #data

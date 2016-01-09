@@ -18,9 +18,10 @@ limitations under the License.
 
 require('tap')(function(test)
     local FS = require('fs')
-    local utils = require('utils')
+    local Path = require('path')
+    local module = require('resource')
 
-    local f = utils.resolve(".")
+    local f = module.path
 
     test('fs.exists', function()
       -- TODO: Is it OK that this callback signature is different from node.js,

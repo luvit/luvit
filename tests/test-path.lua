@@ -20,7 +20,6 @@ local path = require('path')
 local path_base = require('path/base')
 local los = require('los')
 local deep_equal = require('./utils').deep_equal
-local utils = require('utils')
 
 local isWindows = los.type() == "win32"
 
@@ -71,8 +70,8 @@ require('tap')(function(test)
     assert(path.basename('basename.ext//') == 'basename.ext')
 
     -- test path.basename on current file
-    assert(path.basename(utils.resolve()) == "test-path.lua")
-    assert(path.basename(utils.resolve(), ".lua") == "test-path")
+    assert(path.basename(module.path) == "test-path.lua")
+    assert(path.basename(module.path, ".lua") == "test-path")
 
     -- test path.basename os specifics
     assert(path_base.posix:basename('/foo/bar.lua') == 'bar.lua')
@@ -491,3 +490,4 @@ require('tap')(function(test)
     assert(path_base.nt:relative('c:/aaaa/bbbb', 'd:\\') == 'd:\\')
   end)
 end)
+

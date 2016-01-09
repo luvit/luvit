@@ -22,12 +22,13 @@ require('tap')(function(test)
   local string = require('string')
   local FS = require('fs')
   local Path = require('path')
-  local utils = require('utils')
+  local JSON = require('json')
+  local module = require('resource')
 
   local successes = 0
 
   -- make a path that will be at least 260 chars long.
-  local tmpDir = utils.resolve("./tmp")
+  local tmpDir = Path.join(module.dir, 'tmp')
   local fileNameLen = math.max(260 - #tmpDir - 1, 1)
   local fileName = Path.join(tmpDir, string.rep('x', fileNameLen))
 

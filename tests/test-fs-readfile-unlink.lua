@@ -21,9 +21,9 @@ require('tap')(function(test)
   local Path = require('path')
   local Buffer = require('buffer').Buffer
   local string = require('string')
-  local utils = require('utils')
+  local module = require('resource')
 
-  local dirName = utils.resolve('./fixtures/test-readfile-unlink')
+  local dirName = Path.join(module.dir, 'fixtures', 'test-readfile-unlink')
   local fileName = Path.join(dirName, 'test.bin')
 
   local bufStr = string.rep(string.char(42), 512 * 1024)

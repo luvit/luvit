@@ -22,9 +22,10 @@ require('tap')(function(test)
   local string = require('string')
   local bit = require('bit')
   local los = require('los')
-  local utils = require('utils')
+  local module = require('resource')
 
   local is_windows = los.type() == 'win32'
+  local __dirname = module.dir
 
   test('fs chmod', function(expect)
     local mode_async
@@ -40,8 +41,8 @@ require('tap')(function(test)
       mode_sync = 420 --[[tonumber('0644', 8)]]
     end
 
-    local file1 = utils.resolve('./fixtures/a.lua')
-    local file2 = utils.resolve('./fixtures/a1.lua')
+    local file1 = Path.join(__dirname, 'fixtures', 'a.lua')
+    local file2 = Path.join(__dirname, 'fixtures', 'a1.lua')
 
     local function maskMode(mode, mask)
       return bit.band(mode, mask or 511 --[[tonumber('0777',8)]])
