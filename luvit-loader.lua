@@ -143,14 +143,21 @@ local function loader(dir, path, bundleOnly)
   local errors = {}
   local fullPath
   local useBundle = bundleOnly
-  local function try(tryPath)
-    local prefix = useBundle and "bundle:" or ""
-    local fileStat = useBundle and bundle.stat or uv.fs_stat
+  local function try(lookInBundle, tryPath)
+    local prefix, fileStat
+    if lookInBundle then
+      prefix = "bundle:"
+      fileStat = bundle.stat
+    else
+      prefix = ""
+      fileStat = uv.fs_stat
+    end
 
     local newPath = tryPath
     local stat = fileStat(newPath)
     if stat and stat.type == "file" then
       fullPath = newPath
+      useBundle = lookInBundle
       return true
     end
     errors[#errors + 1] = "\n\tno file '" .. prefix .. newPath .. "'"
@@ -159,6 +166,7 @@ local function loader(dir, path, bundleOnly)
     stat = fileStat(newPath)
     if stat and stat.type == "file" then
       fullPath = newPath
+      useBundle = lookInBundle
       return true
     end
     errors[#errors + 1] = "\n\tno file '" .. prefix .. newPath .. "'"
@@ -167,28 +175,29 @@ local function loader(dir, path, bundleOnly)
     stat = fileStat(newPath)
     if stat and stat.type == "file" then
       fullPath = newPath
+      useBundle = lookInBundle
       return true
     end
     errors[#errors + 1] = "\n\tno file '" .. prefix .. newPath .. "'"
-
   end
   if string.sub(path, 1, 1) == "." then
     -- Relative require
-    if not try(pathJoin(dir, path)) then
+    if not try(useBundle, pathJoin(dir, path)) then
       return table.concat(errors)
     end
   else
-    while true do
-      if try(pathJoin(dir, "deps", path)) or
-         try(pathJoin(dir, "libs", path)) then
-        break
+    if not (bundle and try(true, "deps/" .. path)) then
+      while not fullPath do
+        if try(useBundle, pathJoin(dir, "deps", path)) or
+           try(useBundle, pathJoin(dir, "libs", path)) then
+          break
+        end
+        if #dir < 2 then
+          return table.concat(errors)
+        end
+        dir = pathJoin(dir, "..")
       end
-      if #dir < 2 then
-        return table.concat(errors)
-      end
-      dir = pathJoin(dir, "..")
     end
-    -- Module require
   end
   if useBundle then
     local key = "bundle:" .. fullPath
