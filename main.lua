@@ -50,7 +50,7 @@ return require('./init')(function (...)
     print('luvit version: ' .. package.version)
     print('luvi version: ' .. require('luvi').version)
     for k, v in pairs(require('luvi').options) do
-      print(k .. ' version: ' .. v)
+      print(k .. ' version: ' .. tostring(v))
     end
     startRepl = false
   end
