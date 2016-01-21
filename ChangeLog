@@ -1,3 +1,9 @@
+* Changes in 2.7.3
+
+ * dns: fix for spaces in resolv.conf [Ryan Phillips]
+ * make pretty-print usable outside of luvit [Tim Caswell]
+ * Add support for tostring-able versions of luvi options [Ryan Liptak]
+
 * Changes in 2.7.2
 
  * luvit: clean up globals some in repl [Tim Caswell]
