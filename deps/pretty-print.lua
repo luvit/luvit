@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 if not exports then exports = {} end
 exports.name = "luvit/pretty-print"
-exports.version = "1.0.7"
+exports.version = "1.0.8"
 exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
 exports.description = "A lua value pretty printer and colorizer for terminals."
 exports.tags = {"colors", "tty"}
