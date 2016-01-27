@@ -25,6 +25,7 @@ server:listen(128, function(err)
       client:write(data)
     else
       print("Client disconnected")
+      client:close()
     end
 
   end)
