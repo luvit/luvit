@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 exports.name = "luvit/dns"
-exports.version = "1.0.2"
+exports.version = "1.1.0"
 exports.dependencies = {
   "luvit/dgram@1.1.0",
   "luvit/fs@1.2.2",
@@ -41,6 +41,7 @@ local net = require('net')
 local timer = require('timer')
 local Error = require('core').Error
 local adapt = require('utils').adapt
+local ffi = require('ffi')
 
 local bit = require('bit')
 local crypto = require('tls/lcrypto')
@@ -55,6 +56,48 @@ local rshift = bit.rshift
 local lshift = bit.lshift
 local insert = table.insert
 local concat = table.concat
+
+ffi.cdef[[
+  typedef uint32_t DWORD; //Integer
+  typedef uint32_t ULONG; //Alias
+  typedef uint32_t UINT; //Alias
+  typedef ULONG *PULONG; //Pointer
+
+  enum {
+    ERROR_SUCCESS         = 0L,
+    ERROR_BUFFER_OVERFLOW = 111L,
+    MAX_HOSTNAME_LEN      = 128,
+    MAX_DOMAIN_NAME_LEN   = 128,
+    MAX_SCOPE_ID_LEN      = 256
+  };
+
+  typedef struct {
+    char String[16];
+  } IP_ADDRESS_STRING, *PIP_ADDRESS_STRING, IP_MASK_STRING, *PIP_MASK_STRING;
+
+  typedef struct _IP_ADDR_STRING {
+    struct _IP_ADDR_STRING* Next;
+    IP_ADDRESS_STRING IpAddress;
+    IP_MASK_STRING IpMask;
+    DWORD Context;
+  } IP_ADDR_STRING, *PIP_ADDR_STRING;
+
+  typedef struct {
+    char HostName[ MAX_HOSTNAME_LEN + 4 ];
+    char DomainName[ MAX_DOMAIN_NAME_LEN + 4 ];
+    PIP_ADDR_STRING CurrentDnsServer;
+    IP_ADDR_STRING DnsServerList;
+    UINT NodeType;
+    char ScopeId[ MAX_SCOPE_ID_LEN + 4 ];
+    UINT EnableRouting;
+    UINT EnableProxy;
+    UINT EnableDns;
+  } FIXED_INFO, *PFIXED_INFO;
+
+  DWORD GetNetworkParams(PFIXED_INFO pFixedInfo, PULONG pOutBufLen);
+]]
+
+local ipapi = ffi.load('Iphlpapi.dll')
 
 local DEFAULT_SERVERS = {
   {
@@ -741,7 +784,47 @@ exports.setDefaultServers = function()
   SERVERS = DEFAULT_SERVERS
 end
 
-exports.loadResolver = function(options)
+exports.loadResolverWin = function(options)
+  local servers = {}
+
+  local pOutBufLen = ffi.new("ULONG[1]")
+  local pFixedInfo = ffi.new("FIXED_INFO[1]")
+
+  pOutBufLen[0] = ffi.sizeof("FIXED_INFO")
+  local rv = ipapi.GetNetworkParams(pFixedInfo, pOutBufLen);
+  if rv == ffi.C.ERROR_BUFFER_OVERFLOW then
+    -- allocate it as one block as an array of structs for ease
+    local multiplier = math.floor(pOutBufLen[0] / ffi.sizeof("FIXED_INFO"))
+    if pOutBufLen[0] % ffi.sizeof("FIXED_INFO") then
+      multiplier = multiplier + 1
+    end
+    pFixedInfo = ffi.new("FIXED_INFO[?]", multiplier)
+    pOutBufLen[0] = ffi.sizeof("FIXED_INFO") * multiplier
+    rv = ipapi.GetNetworkParams(pFixedInfo, pOutBufLen)
+  end
+
+  if rv == ffi.C.ERROR_SUCCESS then
+    local addr = pFixedInfo[0].DnsServerList
+    local nextp
+    repeat
+      local server = {}
+      server.port = 53
+      server.host = ffi.string(addr.IpAddress.String)
+      table.insert(servers, server)
+      nextp = addr.Next
+      if nextp ~= nil then
+        addr = nextp[0]
+      end
+    until nextp == nil
+  end
+
+  if #servers then
+    SERVERS = servers
+  end
+  return servers
+end
+
+exports.loadResolverUnix = function(options)
   local servers = {}
 
   options = options or {
@@ -779,7 +862,16 @@ exports.loadResolver = function(options)
     end
   end
 
-  SERVERS = servers
-
+  if #servers then
+    SERVERS = servers
+  end
   return servers
+end
+
+exports.loadResolver = function(options)
+  if ffi.os=='Windows' then
+    return exports.loadResolverWin(options)
+  else
+    return exports.loadResolverUnix(options)
+  end
 end
