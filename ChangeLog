@@ -1,3 +1,8 @@
+* Changes in 2.7.4
+
+ * Fix: use system setting for dns server addresses (windows) [Rob Emanuele]
+ * Fix: memory leaks in examples/tcp-echo-server.lua [Miigon]
+
 * Changes in 2.7.3
 
  * dns: fix for spaces in resolv.conf [Ryan Phillips]
