@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 
 exports.name = "luvit/dns"
-exports.version = "1.1.0"
+exports.version = "1.1.1"
 exports.dependencies = {
   "luvit/dgram@1.1.0",
   "luvit/fs@1.2.2",
@@ -797,10 +797,7 @@ exports.loadResolverWin = function(options)
   local rv = ipapi.GetNetworkParams(pFixedInfo, pOutBufLen);
   if rv == ffi.C.ERROR_BUFFER_OVERFLOW then
     -- allocate it as one block as an array of structs for ease
-    local multiplier = math.floor(pOutBufLen[0] / ffi.sizeof("FIXED_INFO"))
-    if pOutBufLen[0] % ffi.sizeof("FIXED_INFO") then
-      multiplier = multiplier + 1
-    end
+    local multiplier = math.ceil(pOutBufLen[0] / ffi.sizeof("FIXED_INFO"))
     pFixedInfo = ffi.new("FIXED_INFO[?]", multiplier)
     pOutBufLen[0] = ffi.sizeof("FIXED_INFO") * multiplier
     rv = ipapi.GetNetworkParams(pFixedInfo, pOutBufLen)
