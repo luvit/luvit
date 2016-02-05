@@ -31,7 +31,7 @@ return function (main, ...)
   -- Load Resolver
   do
     local dns = require('dns')
-    if jit.os ~= 'Windows' then dns.loadResolver() end
+    dns.loadResolver()
   end
 
   -- EPIPE ignore
