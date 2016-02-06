@@ -16,12 +16,14 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/los"
-exports.version = "1.0.0-1"
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/los.lua"
-exports.description = "Tiny helper to get os name in luvit."
-exports.tags = {"os"}
+--[[lit-meta
+  name = "luvit/los"
+  version = "2.0.0"
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/los.lua"
+  description = "Tiny helper to get os name in luvit."
+  tags = {"os"}
+]]
 
 local jit = require('jit')
 
@@ -38,4 +40,4 @@ local function type()
   return map[jit.os]
 end
 
-exports.type = type
+return { type = type }

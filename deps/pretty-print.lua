@@ -15,14 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-if not exports then exports = {} end
-exports.name = "luvit/pretty-print"
-exports.version = "1.0.8"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
-exports.description = "A lua value pretty printer and colorizer for terminals."
-exports.tags = {"colors", "tty"}
-exports.license = "Apache 2"
-exports.author = { name = "Tim Caswell" }
+--[[lit-meta
+  name = "luvit/pretty-print"
+  version = "2.0.0"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
+  description = "A lua value pretty printer and colorizer for terminals."
+  tags = {"colors", "tty"}
+  license = "Apache 2"
+  author = { name = "Tim Caswell" }
+]]
 
 local success, uv = pcall(require, 'uv')
 if not success then
@@ -349,16 +350,16 @@ else
   uv.pipe_open(stderr, 2)
 end
 
-exports.loadColors = loadColors
-exports.theme = theme
-exports.print = print
-exports.prettyPrint = prettyPrint
-exports.dump = dump
-exports.color = color
-exports.colorize = colorize
-exports.stdin = stdin
-exports.stdout = stdout
-exports.stderr = stderr
-exports.strip = strip
-
-return exports
+return {
+  loadColors = loadColors,
+  theme = theme,
+  print = print,
+  prettyPrint = prettyPrint,
+  dump = dump,
+  color = color,
+  colorize = colorize,
+  stdin = stdin,
+  stdout = stdout,
+  stderr = stderr,
+  strip = strip,
+}

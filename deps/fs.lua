@@ -15,17 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-exports.name = "luvit/fs"
-exports.version = "1.2.2"
-exports.dependencies = {
-  "luvit/utils@1.0.0",
-  "luvit/path@1.0.0",
-  "luvit/stream@1.1.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/fs.lua"
-exports.description = "Node-style filesystem module for luvit"
-exports.tags = {"luvit", "fs", "stream"}
+--[[lit-meta
+  name = "luvit/fs"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/utils@2.0.0",
+    "luvit/path@2.0.0",
+    "luvit/stream@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/fs.lua"
+  description = "Node-style filesystem module for luvit"
+  tags = {"luvit", "fs", "stream"}
+]]
 
 local uv = require('uv')
 local adapt = require('utils').adapt
@@ -34,7 +36,7 @@ local join = require('path').join
 local Error = require('core').Error
 local Writable = require('stream').Writable
 local Readable = require('stream').Readable
-local fs = exports
+local fs = {}
 
 function fs.close(fd, callback)
   return adapt(callback, uv.fs_close, fd)
@@ -694,3 +696,5 @@ function fs.appendFileSync(path, data)
   if not written then fs.close(fd) ; return err end
   fs.close(fd)
 end
+
+return fs

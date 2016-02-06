@@ -17,22 +17,23 @@ limitations under the License.
 --]]
 
 --- luvit thread management
-
-exports.name = "luvit/thread"
-exports.version = "0.1.2"
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
-exports.description = "thread module for luvit"
-exports.tags = {"luvit", "thread","threadpool","work"}
-exports.dependencies = {
-  "luvit/core@1.0.5",
-}
+--[[lit-meta
+  name = "luvit/thread"
+  version = "2.0.0"
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
+  description = "thread module for luvit"
+  tags = {"luvit", "thread","threadpool","work"}
+  dependencies = {
+    "luvit/core@1.0.5",
+  }
+]]
 
 local uv = require('uv')
 local bundlePaths = require('luvi').bundle.paths
 local Object = require('core').Object
 
-exports.start = function(thread_func, ...)
+local function start(thread_func, ...)
   local dumped = type(thread_func)=='function'
     and string.dump(thread_func) or thread_func
 
@@ -58,15 +59,15 @@ exports.start = function(thread_func, ...)
   return uv.new_thread(thread_entry, dumped, table.concat(bundlePaths, ";"), ...)
 end
 
-exports.join = function(thread)
+local function join(thread)
     return uv.thread_join(thread)
 end
 
-exports.equals = function(thread1,thread2)
+local function equals(thread1,thread2)
     return uv.thread_equals(thread1,thread2)
 end
 
-exports.self = function()
+local function self()
     return uv.thread_self()
 end
 
@@ -77,7 +78,7 @@ function Worker:queue(...)
     uv.queue_work(self.handler, self.dumped, self.bundlePaths, ...)
 end
 
-exports.work = function(thread_func, notify_entry)
+local function work(thread_func, notify_entry)
   local worker = Worker:new()
   worker.dumped = type(thread_func)=='function'
     and string.dump(thread_func) or thread_func
@@ -118,6 +119,15 @@ exports.work = function(thread_func, notify_entry)
   return worker
 end
 
-exports.queue = function(worker, ...)
+local function queue(worker, ...)
   worker:queue(...)
 end
+
+return {
+  start = start,
+  join = join,
+  equals = equals,
+  self = self,
+  work = work,
+  queue = queue,
+}

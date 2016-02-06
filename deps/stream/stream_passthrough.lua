@@ -39,4 +39,4 @@ function PassThrough:_transform(chunk, cb)
   cb(nil, chunk)
 end
 
-exports.PassThrough = PassThrough
+return { PassThrough = PassThrough }

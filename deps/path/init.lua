@@ -16,22 +16,11 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/path"
-exports.version = "1.0.0-3"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-  "luvit/los@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/path"
-exports.description = "A port of node.js's path module for luvit."
-exports.tags = {"luvit", "path"}
-
 local los = require('los')
 local path_base = require('./base')
 
 local function setup_meta(ospath)
-  local path = exports
+  local path = {}
   path._internal = ospath
   setmetatable(path, {__index = function(_, key)
     if type(path._internal[key]) == 'function' then

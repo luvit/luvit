@@ -15,16 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-exports.name = "luvit/codec"
-exports.version = "1.0.0-1"
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/codec.lua"
-exports.description = "Utilities for working with luvit streams and codecs."
-exports.tags = {"luvit", "codec", "stream"}
+--[[lit-meta
+  name = "luvit/codec"
+  version = "2.0.0"
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/codec.lua"
+  description = "Utilities for working with luvit streams and codecs."
+  tags = {"luvit", "codec", "stream"}
+]]
 
 local uv = require('uv')
 
-function exports.wrapEmitter(emitter)
+local function wrapEmitter(emitter)
   local read, write
   local queue = {}
 
@@ -103,7 +105,7 @@ end
 
 
 -- Given a raw uv_stream_t userdara, return coro-friendly read/write functions.
-function exports.wrapStream(socket)
+local function wrapStream(socket)
   local paused = true
   local queue = {}
   local waiting
@@ -166,7 +168,7 @@ function exports.wrapStream(socket)
 
   return read, write
 end
-function exports.chain(...)
+local function chain(...)
   local args = {...}
   local nargs = select("#", ...)
   return function (read, write)
@@ -211,3 +213,9 @@ function exports.chain(...)
     end
   end
 end
+
+return {
+  wrapEmitter = wrapEmitter,
+  wrapStream = wrapStream,
+  chain = chain,
+}

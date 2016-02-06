@@ -16,21 +16,23 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/utils"
-exports.version = "1.0.0-4"
-exports.dependencies = {
-  "luvit/pretty-print@1.0.3",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"
-exports.description = "Wrapper around pretty-print with extra tools for luvit"
-exports.tags = {"luvit", "bind", "adapter"}
+--[[lit-meta
+  name = "luvit/utils"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/pretty-print@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"
+  description = "Wrapper around pretty-print with extra tools for luvit"
+  tags = {"luvit", "bind", "adapter"}
+]]
 
 local Error = require('core').Error
-
+local utils = {}
 local pp = require('pretty-print')
 for name, value in pairs(pp) do
-  exports[name] = value
+  utils[name] = value
 end
 
 local function bind(fn, self, ...)
@@ -100,6 +102,8 @@ local function adapt(c, fn, ...)
   end
 end
 
-exports.bind = bind
-exports.noop = noop
-exports.adapt = adapt
+utils.bind = bind
+utils.noop = noop
+utils.adapt = adapt
+
+return utils

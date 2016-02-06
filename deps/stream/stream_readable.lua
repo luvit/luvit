@@ -995,5 +995,7 @@ function endReadable(stream)
   end
 end
 
-exports.Readable = Readable
-exports.ReadableState = ReadableState
+return {
+  Readable = Readable,
+  ReadableState = ReadableState,
+}

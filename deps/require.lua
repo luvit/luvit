@@ -15,16 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-
-if exports then
-  exports.name = "luvit/require"
-  exports.version = "1.3.0"
-  exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
-  exports.description = "Luvit's custom require system with relative requires and sane search paths."
-  exports.tags = {"luvit", "require"}
-  exports.license = "Apache 2"
-  exports.author = { name = "Tim Caswell" }
-end
+--[[lit-meta
+  name = "luvit/require"
+  version = "2.0.0"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
+  description = "Luvit's custom require system with relative requires and sane search paths."
+  tags = {"luvit", "require"}
+  license = "Apache 2"
+  author = { name = "Tim Caswell" }
+]]
 
 local luvi = require('luvi')
 local bundle = luvi.bundle

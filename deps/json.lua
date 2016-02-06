@@ -1,16 +1,18 @@
-exports.name = "luvit/json"
-exports.version = "2.5.1"
-exports.homepage = "http://dkolf.de/src/dkjson-lua.fsl"
-exports.description = "David Kolf's JSON library repackaged for lit."
-exports.tags = {"json", "codec"}
-exports.license = "MIT"
-exports.author = {
-  name = "David Kolf",
-  homepage = "http://dkolf.de/",
-}
-exports.contributors = {
-  "Tim Caswell",
-}
+--[[lit-meta
+  name = "luvit/json"
+  version = "2.5.2"
+  homepage = "http://dkolf.de/src/dkjson-lua.fsl"
+  description = "David Kolf's JSON library repackaged for lit."
+  tags = {"json", "codec"}
+  license = "MIT"
+  author = {
+    name = "David Kolf",
+    homepage = "http://dkolf.de/",
+  }
+  contributors = {
+    "Tim Caswell",
+  }
+]]
 
 -- Module options:
 local always_try_using_lpeg = true
@@ -66,7 +68,7 @@ local strrep, gsub, strsub, strbyte, strchar, strfind, strlen, strformat =
 local strmatch = string.match
 local concat = table.concat
 
-local json = exports
+local json = {}
 json.original_version = "dkjson 2.5"
 
 if register_global_module_table then
@@ -728,3 +730,4 @@ end
 json.parse = json.decode
 json.stringify = json.encode
 
+return json

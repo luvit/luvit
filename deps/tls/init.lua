@@ -16,19 +16,6 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/tls"
-exports.version = "1.3.3"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-  "luvit/net@1.2.0",
-  "luvit/timer@1.0.0",
-  "luvit/utils@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/tls"
-exports.description = "A node-style tls module for luvit."
-exports.tags = {"luvit", "tls"}
-
 local loaded = pcall(require, 'openssl')
 if not loaded then return end
 
@@ -85,7 +72,7 @@ local DEFAULT_OPTIONS = {
   -- TODO checkServerIdentity
 }
 
-exports.connect = function(options, callback)
+local function connect(options, callback)
   local hostname, port, sock
 
   callback = callback or function() end
@@ -98,11 +85,15 @@ exports.connect = function(options, callback)
   return sock
 end
 
-exports.createServer = function(options, secureCallback)
+local function createServer(options, secureCallback)
   local server = Server:new()
   server:init(options, secureCallback)
   return server
 end
 
-exports.TLSSocket = _common_tls.TLSSocket
-exports.createCredentials = _common_tls.createCredentials
+return {
+  TLSSocket = _common_tls.TLSSocket,
+  createCredentials = _common_tls.createCredentials,
+  connect = connect,
+  createServer = createServer,
+}

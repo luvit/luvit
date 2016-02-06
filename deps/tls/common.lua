@@ -21,13 +21,13 @@ local Error = require('core').Error
 local net = require('net')
 local openssl = require('openssl')
 local timer = require('timer')
-local utils = require('utils')
+local resource = require('resource')
 local uv = require('uv')
+local utils = require('utils')
 
-
+local createCredentials
 local DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
                         'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
-exports.DEFAULT_CIPHERS = DEFAULT_CIPHERS
 
 -------------------------------------------------------------------------------
 
@@ -40,9 +40,10 @@ end
 
 -------------------------------------------------------------------------------
 
+local DEFAULT_CA_STORE
 do
-  local data = module:load("root_ca.dat")
-  exports.DEFAULT_CA_STORE = openssl.x509.store:new()
+  local data = assert(resource.load("root_ca.dat"))
+  DEFAULT_CA_STORE = openssl.x509.store:new()
   local index = 1
   local len = #data
   while index < len do
@@ -50,7 +51,7 @@ do
     index = index + 2
     local cert = assert(openssl.x509.read(data:sub(index, index + len)))
     index = index + len
-    assert(exports.DEFAULT_CA_STORE:add(cert))
+    assert(DEFAULT_CA_STORE:add(cert))
   end
 end
 
@@ -70,7 +71,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
 end
 
 function Credential:addRootCerts()
-  self.context:cert_store(exports.DEFAULT_CA_STORE)
+  self.context:cert_store(DEFAULT_CA_STORE)
 end
 
 function Credential:setCA(certs)
@@ -95,7 +96,6 @@ function Credential:setKeyCert(key, cert)
   self.context:use(key, cert)
 end
 
-exports.Credential = Credential
 
 -------------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ end
 function TLSSocket:_init()
   self.ctx = self.options.secureContext or
              self.options.credentials or
-             exports.createCredentials(self.options)
+             createCredentials(self.options)
   self.inp = openssl.bio.mem(8192)
   self.out = openssl.bio.mem(8192)
   self.ssl = self.ctx.context:ssl(self.inp, self.out, self.server)
@@ -286,7 +286,7 @@ function TLSSocket:sni(hosts)
   if self.server then
     local maps = {}
     for k,v in pairs(hosts) do
-      local ctx = exports.createCredentials(v)
+      local ctx = createCredentials(v)
       maps[k] = ctx.context
     end
     self.ctx.context:set_servername_callback(maps)
@@ -390,14 +390,12 @@ function TLSSocket:_read(n)
   end
 end
 
-exports.TLSSocket = TLSSocket
-
 -------------------------------------------------------------------------------
 local VERIFY_PEER = openssl.ssl.peer
 local VERIFY_PEER_FAIL = bit.bor(openssl.ssl.peer,openssl.ssl.fail)
 local VERIFY_NONE = openssl.ssl.none
 
-exports.createCredentials = function(options, context)
+function createCredentials(options, context)
   local ctx, returnOne
 
   options = options or {}
@@ -438,3 +436,11 @@ exports.createCredentials = function(options, context)
 
   return ctx
 end
+
+return {
+  DEFAULT_CIPHERS = DEFAULT_CIPHERS,
+  DEFAULT_CA_STORE = DEFAULT_CA_STORE,
+  Credential = Credential,
+  createCredentials = createCredentials,
+  TLSSocket = TLSSocket,
+}

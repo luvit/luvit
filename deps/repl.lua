@@ -16,16 +16,18 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/repl"
-exports.version = "1.3.2"
-exports.dependencies = {
-  "luvit/utils@1.0.0",
-  "luvit/readline@1.1.1",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/repl.lua"
-exports.description = "Advanced auto-completing repl for luvit lua."
-exports.tags = {"luvit", "tty", "repl"}
+--[[lit-meta
+  name = "luvit/repl"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/utils@2.0.0",
+    "luvit/readline@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/repl.lua"
+  description = "Advanced auto-completing repl for luvit lua."
+  tags = {"luvit", "tty", "repl"}
+]]
 
 local uv = require('uv')
 local utils = require('utils')
@@ -40,8 +42,7 @@ local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
   'stream', 'tls', 'path'
 }
 
-setmetatable(exports, {
-  __call = function (_, stdin, stdout, greeting)
+return function (stdin, stdout, greeting)
 
   local req, mod = require('require')(pathJoin(uv.cwd(), "repl"))
   local oldGlobal = _G
@@ -198,4 +199,4 @@ setmetatable(exports, {
     start = start,
     evaluateLine = evaluateLine,
   }
-end})
+end

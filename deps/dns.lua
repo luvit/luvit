@@ -18,22 +18,23 @@ limitations under the License.
 
 -- Derived from Yichun Zhang (agentzh)
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
-
-exports.name = "luvit/dns"
-exports.version = "1.1.1"
-exports.dependencies = {
-  "luvit/dgram@1.1.0",
-  "luvit/fs@1.2.2",
-  "luvit/net@1.2.0",
-  "luvit/timer@1.0.0",
-  "luvit/core@1.0.5",
-  "luvit/tls@1.3.0",
-  "luvit/utils@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/dns.lua"
-exports.description = "Node-style dns module for luvit"
-exports.tags = {"luvit", "dns"}
+--[[lit-meta
+  name = "luvit/dns"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/dgram@2.0.0",
+    "luvit/fs@2.0.0",
+    "luvit/net@2.0.0",
+    "luvit/timer@2.0.0",
+    "luvit/core@2.0.0",
+    "luvit/tls@2.0.0",
+    "luvit/utils@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/dns.lua"
+  description = "Node-style dns module for luvit"
+  tags = {"luvit", "dns"}
+]]
 
 local dgram = require('dgram')
 local fs = require('fs')
@@ -56,7 +57,7 @@ local rshift = bit.rshift
 local lshift = bit.lshift
 local insert = table.insert
 local concat = table.concat
-local ipapi 
+local ipapi
 
 if ffi.os=='Windows' then
   ffi.cdef[[
@@ -64,7 +65,7 @@ if ffi.os=='Windows' then
     typedef uint32_t ULONG; //Alias
     typedef uint32_t UINT; //Alias
     typedef ULONG *PULONG; //Pointer
-  
+
     enum {
       ERROR_SUCCESS         = 0L,
       ERROR_BUFFER_OVERFLOW = 111L,
@@ -72,18 +73,18 @@ if ffi.os=='Windows' then
       MAX_DOMAIN_NAME_LEN   = 128,
       MAX_SCOPE_ID_LEN      = 256
     };
-  
+
     typedef struct {
       char String[16];
     } IP_ADDRESS_STRING, *PIP_ADDRESS_STRING, IP_MASK_STRING, *PIP_MASK_STRING;
-  
+
     typedef struct _IP_ADDR_STRING {
       struct _IP_ADDR_STRING* Next;
       IP_ADDRESS_STRING IpAddress;
       IP_MASK_STRING IpMask;
       DWORD Context;
     } IP_ADDR_STRING, *PIP_ADDR_STRING;
-  
+
     typedef struct {
       char HostName[ MAX_HOSTNAME_LEN + 4 ];
       char DomainName[ MAX_DOMAIN_NAME_LEN + 4 ];
@@ -95,10 +96,10 @@ if ffi.os=='Windows' then
       UINT EnableProxy;
       UINT EnableDns;
     } FIXED_INFO, *PFIXED_INFO;
-  
+
     DWORD GetNetworkParams(PFIXED_INFO pFixedInfo, PULONG pOutBufLen);
   ]]
-  
+
   ipapi = ffi.load('Iphlpapi.dll')
 end
 
@@ -118,16 +119,15 @@ local SERVERS = DEFAULT_SERVERS
 local DEFAULT_TIMEOUT = 2000   -- 2 seconds
 local TIMEOUT = DEFAULT_TIMEOUT
 
-exports.TYPE_A      = 1
-exports.TYPE_NS     = 2
-exports.TYPE_CNAME  = 5
-exports.TYPE_PTR    = 12
-exports.TYPE_MX     = 15
-exports.TYPE_TXT    = 16
-exports.TYPE_AAAA   = 28
-exports.TYPE_SRV    = 33
-
-exports.CLASS_IN    = 1
+local TYPE_A      = 1
+local TYPE_NS     = 2
+local TYPE_CNAME  = 5
+local TYPE_PTR    = 12
+local TYPE_MX     = 15
+local TYPE_TXT    = 16
+local TYPE_AAAA   = 28
+local TYPE_SRV    = 33
+local CLASS_IN    = 1
 
 local resolver_errstrs = {
   "format error",     -- 1
@@ -402,7 +402,7 @@ local function parse_response(buf, id)
 
     pos = pos + 10
 
-    if typ == exports.TYPE_A then
+    if typ == TYPE_A then
 
       if len ~= 4 then
         return nil, "bad A record value length: " .. len
@@ -416,7 +416,7 @@ local function parse_response(buf, id)
 
       pos = pos + 4
 
-    elseif typ == exports.TYPE_CNAME then
+    elseif typ == TYPE_CNAME then
 
       local cname, p = _decode_name(buf, pos)
       if not cname then
@@ -434,7 +434,7 @@ local function parse_response(buf, id)
 
       ans.cname = cname
 
-    elseif typ == exports.TYPE_AAAA then
+    elseif typ == TYPE_AAAA then
 
       if len ~= 16 then
         return nil, "bad AAAA record value length: " .. len
@@ -460,7 +460,7 @@ local function parse_response(buf, id)
 
       pos = pos + 16
 
-    elseif typ == exports.TYPE_MX then
+    elseif typ == TYPE_MX then
 
       -- print("len = ", len)
 
@@ -487,7 +487,7 @@ local function parse_response(buf, id)
 
       pos = p
 
-    elseif typ == exports.TYPE_SRV then
+    elseif typ == TYPE_SRV then
       if len < 7 then
         return nil, "bad SRV record value length: " .. len
       end
@@ -517,7 +517,7 @@ local function parse_response(buf, id)
 
       pos = p
 
-    elseif typ == exports.TYPE_NS then
+    elseif typ == TYPE_NS then
 
       local recname, p = _decode_name(buf, pos)
       if not recname then
@@ -535,7 +535,7 @@ local function parse_response(buf, id)
 
       ans.nsdname = recname
 
-    elseif typ == exports.TYPE_TXT then
+    elseif typ == TYPE_TXT then
 
       local slen = byte(buf, pos)
       if slen + 1 > len then
@@ -573,7 +573,7 @@ local function parse_response(buf, id)
 
       ans.txt = val
 
-    elseif typ == exports.TYPE_PTR then
+    elseif typ == TYPE_PTR then
 
       local recname, p = _decode_name(buf, pos)
       if not recname then
@@ -741,53 +741,52 @@ end
 local function query(servers, name, dnsclass, qtype, callback)
   return adapt(callback, _query, servers, name, dnsclass, qtype)
 end
-exports.query = query
 
-exports.resolve4 = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_A, callback)
+local function resolve4(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_A, callback)
 end
 
-exports.resolve6 = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_AAAA, callback)
+local function resolve6(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_AAAA, callback)
 end
 
-exports.resolveSrv = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_SRV, callback)
+local function resolveSrv(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_SRV, callback)
 end
 
-exports.resolveMx = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_MX, callback)
+local function resolveMx(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_MX, callback)
 end
 
-exports.resolveNs = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_NS, callback)
+local function resolveNs(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_NS, callback)
 end
 
-exports.resolveCname = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_CNAME, callback)
+local function resolveCname(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_CNAME, callback)
 end
 
-exports.resolveTxt = function(name, callback)
-  return query(SERVERS, name, exports.CLASS_IN, exports.TYPE_TXT, callback)
+local function resolveTxt(name, callback)
+  return query(SERVERS, name, CLASS_IN, TYPE_TXT, callback)
 end
 
-exports.setServers = function(servers)
+local function setServers(servers)
   SERVERS = servers
 end
 
-exports.setTimeout = function(timeout)
+local function setTimeout(timeout)
   TIMEOUT = timeout
 end
 
-exports.setDefaultTimeout = function()
+local function setDefaultTimeout()
   TIMEOUT = DEFAULT_TIMEOUT
 end
 
-exports.setDefaultServers = function()
+local function setDefaultServers()
   SERVERS = DEFAULT_SERVERS
 end
 
-exports.loadResolverWin = function(options)
+local function loadResolverWin(options)
   local servers = {}
 
   local pOutBufLen = ffi.new("ULONG[1]")
@@ -824,7 +823,7 @@ exports.loadResolverWin = function(options)
   return servers
 end
 
-exports.loadResolverUnix = function(options)
+local function loadResolverUnix(options)
   local servers = {}
 
   options = options or {
@@ -868,10 +867,37 @@ exports.loadResolverUnix = function(options)
   return servers
 end
 
-exports.loadResolver = function(options)
+local function loadResolver(options)
   if ffi.os=='Windows' then
-    return exports.loadResolverWin(options)
+    return loadResolverWin(options)
   else
-    return exports.loadResolverUnix(options)
+    return loadResolverUnix(options)
   end
 end
+
+return {
+  query = query,
+  TYPE_A = TYPE_A,
+  TYPE_NS = TYPE_NS,
+  TYPE_CNAME = TYPE_CNAME,
+  TYPE_PTR = TYPE_PTR,
+  TYPE_MX = TYPE_MX,
+  TYPE_TXT = TYPE_TXT,
+  TYPE_AAAA = TYPE_AAAA,
+  TYPE_SRV = TYPE_SRV,
+  CLASS_IN = CLASS_IN,
+  resolve4 = resolve4,
+  resolve6 = resolve6,
+  resolveSrv = resolveSrv,
+  resolveMx = resolveMx,
+  resolveNs = resolveNs,
+  resolveCname = resolveCname,
+  resolveTxt = resolveTxt,
+  setServers = setServers,
+  setTimeout = setTimeout,
+  setDefaultTimeout = setDefaultTimeout,
+  setDefaultServers = setDefaultServers,
+  loadResolverWin = loadResolverWin,
+  loadResolverUnix = loadResolverUnix,
+  loadResolver = loadResolver,
+}

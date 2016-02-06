@@ -16,21 +16,23 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/https"
-exports.version = "1.0.1-7"
-exports.dependencies = {
-  "luvit/tls@1.3.0",
-  "luvit/http@1.2.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/https.lua"
-exports.description = "Node-style https client and server module for luvit"
-exports.tags = {"luvit", "https", "stream"}
+--[[lit-meta
+  name = "luvit/https"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/tls@2.0.0",
+    "luvit/http@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/https.lua"
+  description = "Node-style https client and server module for luvit"
+  tags = {"luvit", "https", "stream"}
+]]
 
 local tls = require('tls')
 local http = require('http')
 
-function exports.createServer(options, onRequest)
+local function createServer(options, onRequest)
   return tls.createServer(options, function (socket)
     return http.handleConnection(socket, onRequest)
   end)
@@ -65,7 +67,7 @@ local function createConnection(...)
   return tls.connect(options, callback)
 end
 
-function exports.request(options, callback)
+local function request(options, callback)
   options = http.parseUrl(options)
   if options.protocol and options.protocol ~= 'https' then
     error(string.format('Protocol %s not supported', options.protocol))
@@ -76,10 +78,16 @@ function exports.request(options, callback)
   return http.request(options, callback)
 end
 
-function exports.get(options, onResponse)
+local function get(options, onResponse)
   options = http.parseUrl(options)
   options.method = 'GET'
-  local req = exports.request(options, onResponse)
+  local req = request(options, onResponse)
   req:done()
   return req
 end
+
+return {
+  createServer = createServer,
+  request = request,
+  get = get,
+}

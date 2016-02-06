@@ -542,6 +542,8 @@ function endWritable(stream, state, cb)
   stream:emit('end')
 end
 
-exports.WriteReq = WriteReq
-exports.WritableState = WritableState
-exports.Writable = Writable
+return {
+  WriteReq = WriteReq,
+  WritableState = WritableState,
+  Writable = Writable,
+}

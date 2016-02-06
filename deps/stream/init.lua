@@ -16,21 +16,12 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/stream"
-exports.version = "1.1.0-4"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-  "luvit/utils@1.0.0",
+return {
+  Stream = require('./stream_core').Stream,
+  Writable = require('./stream_writable').Writable,
+  Transform = require('./stream_transform').Transform,
+  Readable = require('./stream_readable').Readable,
+  PassThrough = require('./stream_passthrough').PassThrough,
+  Observable = require('./stream_observable').Observable,
+  Duplex = require('./stream_duplex').Duplex,
 }
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/stream"
-exports.description = "A port of node.js's stream module for luvit."
-exports.tags = {"luvit", "stream"}
-
-exports.Stream = require('./stream_core').Stream
-exports.Writable = require('./stream_writable').Writable
-exports.Transform = require('./stream_transform').Transform
-exports.Readable = require('./stream_readable').Readable
-exports.PassThrough = require('./stream_passthrough').PassThrough
-exports.Observable = require('./stream_observable').Observable
-exports.Duplex = require('./stream_duplex').Duplex

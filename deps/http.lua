@@ -16,19 +16,21 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/http"
-exports.version = "1.2.4"
-exports.dependencies = {
-  "luvit/net@1.2.0",
-  "luvit/url@1.0.4",
-  "luvit/http-codec@1.0.0",
-  "luvit/stream@1.1.0",
-  "luvit/utils@1.0.0",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/http.lua"
-exports.description = "Node-style http client and server module for luvit"
-exports.tags = {"luvit", "http", "stream"}
+--[[lit-meta
+  name = "luvit/http"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/net@2.0.0",
+    "luvit/url@2.0.0",
+    "luvit/http-codec@2.0.0",
+    "luvit/stream@2.0.0",
+    "luvit/utils@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/http.lua"
+  description = "Node-style http client and server module for luvit"
+  tags = {"luvit", "http", "stream"}
+]]
 
 local net = require('net')
 local url = require('url')
@@ -78,10 +80,8 @@ local headerMeta = {
     end
   end,
 }
-exports.headerMeta = headerMeta
 
 local IncomingMessage = net.Socket:extend()
-exports.IncomingMessage = IncomingMessage
 
 function IncomingMessage:initialize(head, socket)
   net.Socket.initialize(self)
@@ -108,7 +108,6 @@ function IncomingMessage:_read()
 end
 
 local ServerResponse = Writable:extend()
-exports.ServerResponse = ServerResponse
 
 function ServerResponse:initialize(socket)
   Writable.initialize(self)
@@ -248,7 +247,7 @@ function ServerResponse:writeHead(newStatusCode, newHeaders)
   end
 end
 
-function exports.handleConnection(socket, onRequest)
+local function handleConnection(socket, onRequest)
 
   -- Initialize the two halves of the stateful decoder and encoder for HTTP.
   local decode = codec.decoder()
@@ -334,20 +333,19 @@ function exports.handleConnection(socket, onRequest)
   socket:on('end', onEnd)
 end
 
-function exports.createServer(onRequest)
+local function createServer(onRequest)
   return net.createServer(function (socket)
-    return exports.handleConnection(socket, onRequest)
+    return handleConnection(socket, onRequest)
   end)
 end
 
 local ClientRequest = Writable:extend()
-exports.ClientRequest = ClientRequest
 
-function exports.ClientRequest.getDefaultUserAgent()
-  if exports.ClientRequest._defaultUserAgent == nil then
-    exports.ClientRequest._defaultUserAgent = 'luvit/http/' .. exports.version .. ' luvi/' .. luvi.version
+function ClientRequest.getDefaultUserAgent()
+  if ClientRequest._defaultUserAgent == nil then
+    ClientRequest._defaultUserAgent = 'luvit/http luvi/' .. luvi.version
   end
-  return exports.ClientRequest._defaultUserAgent
+  return ClientRequest._defaultUserAgent
 end
 
 function ClientRequest:initialize(options, callback)
@@ -555,21 +553,33 @@ function ClientRequest:destroy()
   end
 end
 
-function exports.parseUrl(options)
+local function parseUrl(options)
   if type(options) == 'string' then
     options = url.parse(options)
   end
   return options
 end
 
-function exports.request(options, onResponse)
-  return ClientRequest:new(exports.parseUrl(options), onResponse)
+local function request(options, onResponse)
+  return ClientRequest:new(parseUrl(options), onResponse)
 end
 
-function exports.get(options, onResponse)
-  options = exports.parseUrl(options)
+local function get(options, onResponse)
+  options = parseUrl(options)
   options.method = 'GET'
-  local req = exports.request(options, onResponse)
+  local req = request(options, onResponse)
   req:done()
   return req
 end
+
+return {
+  headerMeta = headerMeta,
+  IncomingMessage = IncomingMessage,
+  ServerResponse = ServerResponse,
+  handleConnection = handleConnection,
+  createServer = createServer,
+  ClientRequest = ClientRequest,
+  parseUrl = parseUrl,
+  request = request,
+  get = get,
+}

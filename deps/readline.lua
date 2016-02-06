@@ -15,13 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-exports.name = "luvit/readline"
-exports.version = "1.1.2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/readline.lua"
-exports.description = "A readline interface for terminals in pure lua."
-exports.tags = {"readline", "tty"}
-exports.license = "Apache 2"
-exports.author = { name = "Tim Caswell" }
+--[[lit-meta
+  name = "luvit/readline"
+  version = "2.0.0"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/readline.lua"
+  description = "A readline interface for terminals in pure lua."
+  tags = {"readline", "tty"}
+  license = "Apache 2"
+  author = { name = "Tim Caswell" }
+]]
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
@@ -32,7 +34,6 @@ local insert = table.insert
 local concat = table.concat
 
 local History = {}
-exports.History = History
 function History:add(line)
   assert(type(line) == "string", "line must be string")
   while #self >= self.maxLength do
@@ -75,7 +76,6 @@ function History.new()
 end
 
 local Editor = {}
-exports.Editor = Editor
 function Editor:refreshLine()
   local line = self.line
   local position = self.position
@@ -488,7 +488,7 @@ function Editor.new(options)
   return setmetatable(editor, Editor)
 end
 
-exports.readLine = function (prompt, options, callback)
+local function readLine(prompt, options, callback)
   local prettyPrint = require('pretty-print')
   if type(options) == "function" and callback == nil then
     callback, options =
@@ -498,3 +498,9 @@ exports.readLine = function (prompt, options, callback)
   editor:readLine(prompt, callback)
   return editor
 end
+
+return {
+  History = History,
+  Editor = Editor,
+  readLine = readLine,
+}

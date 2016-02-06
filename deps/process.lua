@@ -16,20 +16,22 @@ limitations under the License.
 
 --]]
 
-exports.name = "luvit/process"
-exports.version = "1.1.1-7"
-exports.dependencies = {
-  "luvit/hooks@1.0.0",
-  "luvit/timer@1.0.0",
-  "luvit/utils@1.0.0",
-  "luvit/core@1.0.5",
-  "luvit/stream@1.1.0",
-  "luvit/pretty-print@1.0.3",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/process.lua"
-exports.description = "Node-style global process table for luvit"
-exports.tags = {"luvit", "process"}
+--[[lit-meta
+  name = "luvit/process"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/hooks@2.0.0",
+    "luvit/timer@2.0.0",
+    "luvit/utils@2.0.0",
+    "luvit/core@2.0.0",
+    "luvit/stream@2.0.0",
+    "luvit/pretty-print@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/process.lua"
+  description = "Node-style global process table for luvit"
+  tags = {"luvit", "process"}
+]]
 
 local env = require('env')
 local hooks = require('hooks')
@@ -178,4 +180,5 @@ local function globalProcess()
   hooks:on('process.exit', utils.bind(process.emit, process, 'exit'))
   return process
 end
-exports.globalProcess = globalProcess
+
+return { globalProcess = globalProcess }

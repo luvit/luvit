@@ -20,16 +20,20 @@ limitations under the License.
 -- Luvit events. For example, process.exit and signals can feed
 -- through this emitter.
 
-exports.name = "luvit/hooks"
-exports.version = "1.0.0-3"
-exports.dependencies = {
-  "luvit/core@1.0.5",
-}
-exports.license = "Apache 2"
-exports.homepage = "https://github.com/luvit/luvit/blob/master/deps/hooks.lua"
-exports.description = "Core global event hooks for luvit."
-exports.tags = {"luvit", "events", "hooks"}
-
+--[[lit-meta
+  name = "luvit/hooks"
+  version = "2.0.0"
+  dependencies = {
+    "luvit/core@2.0.0",
+  }
+  license = "Apache 2"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/hooks.lua"
+  description = "Core global event hooks for luvit."
+  tags = {"luvit", "events", "hooks"}
+]]
 local Emitter = require('core').Emitter
-setmetatable(exports, Emitter.meta)
-if exports.init then exports:init() end
+--luacheck: new globals exports
+local e = exports or {}
+setmetatable(e, Emitter.meta)
+if e.init then e:init() end
+return e
