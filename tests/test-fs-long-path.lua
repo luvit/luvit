@@ -23,7 +23,6 @@ require('tap')(function(test)
   local FS = require('fs')
   local Path = require('path')
   local JSON = require('json')
-  local module = require('resource')
 
   local successes = 0
 

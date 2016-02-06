@@ -897,7 +897,7 @@ return {
   setTimeout = setTimeout,
   setDefaultTimeout = setDefaultTimeout,
   setDefaultServers = setDefaultServers,
-  loadResolver = loadResolver,
   loadResolverWin = loadResolverWin,
   loadResolverUnix = loadResolverUnix,
+  loadResolver = loadResolver,
 }

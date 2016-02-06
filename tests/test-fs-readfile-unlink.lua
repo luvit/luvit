@@ -21,7 +21,6 @@ require('tap')(function(test)
   local Path = require('path')
   local Buffer = require('buffer').Buffer
   local string = require('string')
-  local module = require('resource')
 
   local dirName = Path.join(module.dir, 'fixtures', 'test-readfile-unlink')
   local fileName = Path.join(dirName, 'test.bin')

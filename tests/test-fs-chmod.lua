@@ -22,7 +22,6 @@ require('tap')(function(test)
   local string = require('string')
   local bit = require('bit')
   local los = require('los')
-  local module = require('resource')
 
   local is_windows = los.type() == 'win32'
   local __dirname = module.dir

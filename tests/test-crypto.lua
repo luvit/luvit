@@ -25,7 +25,6 @@ end
 
 local fs = require('fs')
 local path = require('luvi').path
-local module = require('resource')
 
 local message1 = 'This message '
 local message2 = 'will be signed'

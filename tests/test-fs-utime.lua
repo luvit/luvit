@@ -22,7 +22,6 @@ require('tap')(function(test)
   local os = require('os')
   local string = require('string')
   local los = require('los')
-  local module = require('resource')
   local __filename = module.path
 
   test('fs utime', function()

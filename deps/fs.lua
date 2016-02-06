@@ -21,7 +21,7 @@ limitations under the License.
   dependencies = {
     "luvit/utils@2.0.0",
     "luvit/path@2.0.0",
-    "luvit/stream@2.1.0",
+    "luvit/stream@2.0.0",
   }
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/fs.lua"

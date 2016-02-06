@@ -29,11 +29,12 @@ limitations under the License.
   tags = {"luvit", "tty", "repl"}
 ]]
 
+local uv = require('uv')
 local utils = require('utils')
+local pathJoin = require('luvi').path.join
 local Editor = require('readline').Editor
 local History = require('readline').History
 
-local caller = debug.getinfo(1, "S").source
 local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
   'dgram', 'dns', 'fs', 'helpful', 'hooks', 'http-codec', 'http',
   'https', 'json', 'los', 'net', 'pretty-print',
@@ -41,11 +42,14 @@ local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
   'stream', 'tls', 'path'
 }
 
-return setmetatable({}, {
-  __call = function (_, stdin, stdout, greeting)
+return function (stdin, stdout, greeting)
 
+  local req, mod = require('require')(pathJoin(uv.cwd(), "repl"))
   local oldGlobal = _G
-  local global = setmetatable({}, {
+  local global = setmetatable({
+    require = req,
+    module = mod,
+  }, {
     __index = function (_, key)
       if key == "thread" then return coroutine.running() end
       return oldGlobal[key]
@@ -76,10 +80,10 @@ return setmetatable({}, {
       return '>'
     end
     local chunk  = buffer .. line
-    local f, err = loadstring('return ' .. chunk, caller) -- first we prefix return
+    local f, err = loadstring('return ' .. chunk, 'REPL') -- first we prefix return
 
     if not f then
-      f, err = loadstring(chunk, caller) -- try again without return
+      f, err = loadstring(chunk, 'REPL') -- try again without return
     end
 
 
@@ -121,7 +125,7 @@ return setmetatable({}, {
     if prefix and prefix ~= rest then return end
     local scope
     if base then
-      local f = loadstring("return " .. base, caller)
+      local f = loadstring("return " .. base)
       setfenv(f, global)
       scope = f()
     else
@@ -187,7 +191,7 @@ return setmetatable({}, {
     table.foreach(_builtinLibs, function(_, lib)
       local requireName = lib:gsub('-.', function (char) return char:sub(2):upper() end)
       local req = string.format('%s = require("%s")', requireName, lib)
-      loadstring(req, caller)()
+      evaluateLine(req)
     end)
   end
 
@@ -195,4 +199,4 @@ return setmetatable({}, {
     start = start,
     evaluateLine = evaluateLine,
   }
-end})
+end

@@ -23,6 +23,7 @@ local openssl = require('openssl')
 local timer = require('timer')
 local resource = require('resource')
 local uv = require('uv')
+local utils = require('utils')
 
 local createCredentials
 local DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2

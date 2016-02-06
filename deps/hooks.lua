@@ -22,16 +22,18 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/hooks"
-  version = "1.0.0-3"
+  version = "2.0.0"
   dependencies = {
-    "luvit/core@1.0.5",
+    "luvit/core@2.0.0",
   }
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/hooks.lua"
   description = "Core global event hooks for luvit."
   tags = {"luvit", "events", "hooks"}
 ]]
-
-return setmetatable({}, require('core').Emitter.meta)
---TODO: this was a recursive dependency, what do we do?
---if exports.init then exports:init() end
+local Emitter = require('core').Emitter
+--luacheck: new globals exports
+local e = exports or {}
+setmetatable(e, Emitter.meta)
+if e.init then e:init() end
+return e

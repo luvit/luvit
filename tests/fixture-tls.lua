@@ -81,7 +81,6 @@ e7yPcpz0+O0ZDDrxR9chAiZ7fmdBBX1Tr+pIuCrG/Ud49SBqeS5aMJGVwiSd7o1n
 dhU2Sz3Q60DwJEL1VenQHiVYlWWtqXBThe9ggqRPnCfsCRTP8qifKkjk45zWPcpN
 -----END CERTIFICATE-----
 ]]
-local module = require('resource')
 
 function filename(n)
   return require('path').join(module.dir, 'fixtures', 'keys', n)

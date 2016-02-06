@@ -19,7 +19,6 @@ limitations under the License.
 require('tap')(function(test)
     local FS = require('fs')
     local Path = require('path')
-    local module = require('resource')
 
     local f = module.path
 

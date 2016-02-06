@@ -15,8 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local bundle = require('luvi').bundle
-loadstring(bundle.readfile("luvit-loader.lua"), "bundle:luvit-loader.lua")()
 
 -- Create a luvit powered main that does the luvit CLI interface
 return require('./init')(function (...)
@@ -117,7 +115,7 @@ return require('./init')(function (...)
   if startRepl == nil and not script then startRepl = true end
 
   if script then
-    dofile(luvi.path.join(uv.cwd(), script))
+    require(luvi.path.join(uv.cwd(), script))
   end
 
   if startRepl then
@@ -140,3 +138,4 @@ return require('./init')(function (...)
 
   end
 end, ...)
+

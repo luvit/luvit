@@ -29,10 +29,10 @@ limitations under the License.
 ]]
 
 local Error = require('core').Error
-local exports = {}
+local utils = {}
 local pp = require('pretty-print')
 for name, value in pairs(pp) do
-  exports[name] = value
+  utils[name] = value
 end
 
 local function bind(fn, self, ...)
@@ -102,8 +102,8 @@ local function adapt(c, fn, ...)
   end
 end
 
-exports.bind = bind
-exports.noop = noop
-exports.adapt = adapt
+utils.bind = bind
+utils.noop = noop
+utils.adapt = adapt
 
-return exports
+return utils

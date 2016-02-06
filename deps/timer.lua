@@ -17,10 +17,10 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/timer"
-  version = "1.0.0-4"
+  version = "2.0.0"
   dependencies = {
-    "luvit/core@1.0.5",
-    "luvit/utils@1.0.0",
+    "luvit/core@2.0.0",
+    "luvit/utils@2.0.0",
   }
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/timer.lua"

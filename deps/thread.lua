@@ -32,9 +32,8 @@ limitations under the License.
 local uv = require('uv')
 local bundlePaths = require('luvi').bundle.paths
 local Object = require('core').Object
-local exports = {}
 
-exports.start = function(thread_func, ...)
+local function start(thread_func, ...)
   local dumped = type(thread_func)=='function'
     and string.dump(thread_func) or thread_func
 
@@ -60,15 +59,15 @@ exports.start = function(thread_func, ...)
   return uv.new_thread(thread_entry, dumped, table.concat(bundlePaths, ";"), ...)
 end
 
-exports.join = function(thread)
+local function join(thread)
     return uv.thread_join(thread)
 end
 
-exports.equals = function(thread1,thread2)
+local function equals(thread1,thread2)
     return uv.thread_equals(thread1,thread2)
 end
 
-exports.self = function()
+local function self()
     return uv.thread_self()
 end
 
@@ -79,7 +78,7 @@ function Worker:queue(...)
     uv.queue_work(self.handler, self.dumped, self.bundlePaths, ...)
 end
 
-exports.work = function(thread_func, notify_entry)
+local function work(thread_func, notify_entry)
   local worker = Worker:new()
   worker.dumped = type(thread_func)=='function'
     and string.dump(thread_func) or thread_func
@@ -120,8 +119,15 @@ exports.work = function(thread_func, notify_entry)
   return worker
 end
 
-exports.queue = function(worker, ...)
+local function queue(worker, ...)
   worker:queue(...)
 end
 
-return exports
+return {
+  start = start,
+  join = join,
+  equals = equals,
+  self = self,
+  work = work,
+  queue = queue,
+}
