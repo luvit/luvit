@@ -1,3 +1,12 @@
+* Changes in 2.8.0
+
+  * Use lit-meta format and not depend on global `exports` [Tim Caswell]
+  * Publish all updated modules as 2.0.0 to lit. [Tim Caswell]
+  * Add `resource` module that replaces global `module` methods. [Tim Caswell]
+  * Update root certs. [Tim Caswell]
+  * Update luvi to v2.5.2. [Tim Caswell]
+  * Update lit to v3.0.3. [Tim Caswell]
+
 * Changes in 2.7.4
 
  * Fix: use system setting for dns server addresses (windows) [Rob Emanuele]
