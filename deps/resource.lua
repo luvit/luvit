@@ -18,9 +18,9 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/resource"
-  version = "2.0.0"
+  version = "2.0.0-1"
   license = "Apache 2"
-  homepage = "https://github.com/luvit/luvit/blob/master/deps/utils.lua"
+  homepage = "https://github.com/luvit/luvit/blob/master/deps/resource.lua"
   description = "Utilities for loading relative resources"
   tags = {"luvit", "relative", "resource"}
 ]]
