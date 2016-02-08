@@ -1,8 +1,8 @@
 return {
   name = "luvit/luvit",
-  version = "2.9.0",
+  version = "2.9.1",
   luvi = {
-    version = "2.6.0",
+    version = "2.6.1",
     flavor = "regular",
   },
   license = "Apache 2",
