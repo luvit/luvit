@@ -128,7 +128,9 @@ local function run()
   end
 
   -- Close all then handles, including stdout
-  uv.walk(uv.close)
+  uv.walk(function(handle)
+    if not uv.is_closing(handle) then uv.close(handle) end
+  end)
   uv.run()
 
   os.exit(-failed)
