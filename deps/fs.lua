@@ -182,9 +182,10 @@ local function readdir(path, callback)
     local files = {}
     local i = 1
     while true do
-      local ent = uv.fs_scandir_next(req)
-      if not ent then break end
-      files[i] = ent.name
+      local name, typ = uv.fs_scandir_next(req)
+      if not name then break end
+      if type(name) == "table" then return name end
+      files[i] = { name = name, type = typ }
       i = i + 1
     end
     callback(nil, files)
@@ -198,9 +199,9 @@ function fs.readdirSync(path)
   local files = {}
   local i = 1
   while true do
-    local ent = uv.fs_scandir_next(req)
-    if not ent then break end
-    files[i] = ent.name
+    local name = uv.fs_scandir_next(req)
+    if not name then break end
+    files[i] = name
     i = i + 1
   end
   return files
@@ -209,9 +210,9 @@ local function scandir(path, callback)
   uv.fs_scandir(path, function (err, req)
     if err then return callback(err) end
     callback(nil, function ()
-      local ent = uv.fs_scandir_next(req)
-      if ent then
-        return ent.name, ent.type
+      local name, type = uv.fs_scandir_next(req)
+      if name then
+        return name, type
       end
     end)
   end)
@@ -222,9 +223,9 @@ end
 function fs.scandirSync(path)
   local req = uv.fs_scandir(path)
   return function ()
-    local ent = uv.fs_scandir_next(req)
-    if ent then
-      return ent.name, ent.type
+    local name, type = uv.fs_scandir_next(req)
+    if name then
+      return name, type
     end
   end
 end
