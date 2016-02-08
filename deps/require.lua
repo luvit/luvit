@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/require"
-  version = "2.0.0"
+  version = "2.0.1"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
   description = "Luvit's custom require system with relative requires and sane search paths."
   tags = {"luvit", "require"}
@@ -86,7 +86,15 @@ local function scanDir(path)
     local req, err = uv.fs_scandir(path)
     if not req then return nil, err end
     return function ()
-      return uv.fs_scandir_next(req)
+      local name, typ = uv.fs_scandir_next(req)
+      if type(name) == "table" then
+        return name
+      else
+        return {
+          name = name,
+          type = typ
+        }
+      end
     end
   end
 end

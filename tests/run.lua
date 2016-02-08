@@ -21,18 +21,22 @@ local uv = require("uv")
 
 local req = uv.fs_scandir("tests")
 
-repeat
-  local ent = uv.fs_scandir_next(req)
+while true do
+  local name = uv.fs_scandir_next(req)
 
-  if not ent then
-    -- run the tests!
-    tap(true)
+  if not name then
+    break
   end
-  local match = string.match(ent.name, "^test%-(.*).lua$")
+  if type(name) == "table" then
+    name = name.name
+  end
+  local match = string.match(name, "^test%-(.*).lua$")
   if match then
     local path = "./test-" .. match
     tap(match)
     require(path)
   end
-until not ent
+end
 
+-- run the tests!
+tap(true)
