@@ -86,7 +86,15 @@ local function scanDir(path)
     local req, err = uv.fs_scandir(path)
     if not req then return nil, err end
     return function ()
-      return uv.fs_scandir_next(req)
+      local name, typ = uv.fs_scandir_next(req)
+      if type(name) == "table" then
+        return name
+      else
+        return {
+          name = name,
+          type = typ
+        }
+      end
     end
   end
 end
