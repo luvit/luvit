@@ -160,7 +160,7 @@ return function (stdin, stdout, greeting)
   local function start(historyLines, onSaveHistoryLines)
     local prompt = "> "
     local history = History.new()
-    if history then
+    if historyLines then
       history:load(historyLines)
     end
     local editor = Editor.new({
