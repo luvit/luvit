@@ -117,10 +117,6 @@ function ServerResponse:initialize(socket)
   self.statusCode = 200
   self.headersSent = false
   self.headers = setmetatable({}, headerMeta)
-
-  for _, evt in pairs({'close', 'drain', 'end' }) do
-    self.socket:on(evt, utils.bind(self.emit, self, evt))
-  end
 end
 
 -- Override this in the instance to not send the date
