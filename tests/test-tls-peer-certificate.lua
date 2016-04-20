@@ -43,7 +43,7 @@ require('tap')(function (test)
           p(chunk,err)
           local peercert = assert(socket:getPeerCertificate())
           peercert = peercert:parse()
-          assert(tostring(peercert.subject) == '/CN=alice/subjectAltName=uniformResourceIdentifier:http://localhost:8000/alice.foaf#me')
+          assert(peercert.subject:tostring() == '/CN=alice/subjectAltName=uniformResourceIdentifier:http://localhost:8000/alice.foaf#me')
           verified = true
           socket:destroy()
           server:close()
