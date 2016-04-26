@@ -1,3 +1,10 @@
+* Changes in 2.10.0
+
+  * Update luvi to 2.7.1 [Tim Caswell]
+  * Update lit to 3.3.2 [Tim Caswell]
+  * Update root certs. [Tim Caswell]
+  * Fix bind socket event to http ServerResponse [George Zhao]
+
 * Changes in 2.8.0
 
   * Use lit-meta format and not depend on global `exports` [Tim Caswell]
