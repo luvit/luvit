@@ -1,3 +1,7 @@
+* Changes in 2.10.1
+
+  * Update luvi to 2.7.2 to get up-to-date openssl [Tim Caswell]
+
 * Changes in 2.10.0
 
   * Update luvi to 2.7.1 [Tim Caswell]
