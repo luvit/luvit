@@ -48,6 +48,9 @@ local function start(thread_func, ...)
     -- Load luvi environment
     local _, mainRequire = require('luvibundle').commonBundle(paths)
 
+    -- Inject the global process table
+    _G.process = mainRequire('process').globalProcess()
+
     -- Run function with require injected
     local fn = loadstring(dumped)
     getfenv(fn).require = mainRequire
@@ -102,6 +105,10 @@ local function work(thread_func, notify_entry)
 
       -- Load luvi environment
       local _, mainRequire = require('luvibundle').commonBundle(paths)
+
+      -- Inject the global process table
+      _G.process = _G.process or mainRequire('process').globalProcess()
+
       -- require injected
       getfenv(fn).require = mainRequire
 
