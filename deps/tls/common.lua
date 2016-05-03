@@ -293,6 +293,19 @@ function TLSSocket:sni(hosts)
   end
 end
 
+function TLSSocket:flush(callback)
+  local chunks = {}
+  local i = 0
+  while self.out:pending() > 0 do
+    i = i + 1
+    chunks[i] = self.out:read()
+  end
+  if i>0 then
+    chunks = table.concat(chunks)
+    net.Socket._write(self, chunks, callback)
+  end
+end
+
 function TLSSocket:_write(data, callback)
   local ret, i, err
   if not self.ssl or self.destroyed or self._shutdown or not self._connected then
@@ -304,14 +317,26 @@ function TLSSocket:_write(data, callback)
       return self:destroy(err)
     end
   end
-  i = self.out:pending()
-  if i > 0 then
-    net.Socket._write(self, self.out:read(), callback)
-  end
+  self:flush(callback)
 end
 
 function TLSSocket:_read(n)
-  local onHandshake, onData, handshake
+  local onData, handshake, incoming
+
+  function incoming()
+    repeat
+      local plainText, op = self.ssl:read()
+      if not plainText then
+        if op == 0 then
+          return net.Socket.destroy(self)
+        else
+          return
+        end
+      else
+        self:push(plainText)
+      end
+    until not plainText
+  end
 
   function onData(err, cipherText)
     timer.active(self)
@@ -319,18 +344,13 @@ function TLSSocket:_read(n)
       return self:destroy(err)
     elseif cipherText then
       if self.inp:write(cipherText) then
-        repeat
-          local plainText, op = self.ssl:read()
-          if not plainText then
-            if op == 0 then
-              return net.Socket.destroy(self)
-            else
-              return
-            end
-          else
-            self:push(plainText)
-          end
-        until not plainText
+        if self._connected then
+          -- already finish handshake
+          incoming()
+        else
+          -- do handshake
+          handshake()
+        end
       end
     else
       self.ssl = nil
@@ -340,49 +360,32 @@ function TLSSocket:_read(n)
   end
 
   function handshake()
-    if not self._connected then
-      local ret, err = self.ssl:handshake()
-      if ret == nil then
-        return net.Socket.destroy(self, err)
-      else
-        local i = self.out:pending()
-        if i > 0 then
-          net.Socket._write(self, self.out:read(), function(err)
-            if err then return self:shutdown(err) end
-            handshake()
-          end)
-        end
-      end
-
-      if ret == false then return end
-
-      self._connected = true
-      self._handshake_complete = true
-
-      if not uv.is_active(self._handle) then return end
-      uv.read_stop(self._handle)
-      uv.read_start(self._handle, onData)
-      self:emit('secure')
-    end
-  end
-
-  function onHandshake(err, data)
-    timer.active(self)
-    if err then
+    if self._connected then return end
+    local ret, err = self.ssl:handshake()
+    if ret == nil then
       return net.Socket.destroy(self, err)
+    else
+      self:flush(function(err)
+        if err then return self:shutdown(err) end
+        handshake()
+      end)
     end
-    if not data then
-      return net.Socket.destroy(self)
+
+    if ret == false then return end
+
+    self._connected = true
+    if self.ssl:peek() then
+      incoming()
     end
-    self.inp:write(data)
-    handshake()
+    if not uv.is_active(self._handle) then return end
+    self:emit('secure')
   end
 
   if self._connecting then
     self:once('connect', utils.bind(self._read, self, n))
-  elseif not self._reading and not self._handshake_complete then
+  elseif not self._reading and not self._connected then
     self._reading = true
-    uv.read_start(self._handle, onHandshake)
+    uv.read_start(self._handle, onData)
     handshake()
   elseif not self._reading then
     self._reading = true
