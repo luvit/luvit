@@ -14,6 +14,37 @@ local parseTests = {
 local parseTestsWithQueryString = {
   ["/somepath?test=bar&ponies=foo"] = { pathname = '/somepath', query = {test = 'bar', ponies = 'foo'},href='/somepath?test=bar&ponies=foo',path='/somepath?test=bar&ponies=foo',search='?test=bar&ponies=foo'},
 }
+local relativeTests = {
+  {'http://example.com/a/b/c', '/d', 'http://example.com/d'},
+  {'http://example.com/a/b/c', 'd', 'http://example.com/a/b/d'},
+  {'http://example.com/a/b/c/', 'd', 'http://example.com/a/b/c/d'},
+  {'http://example.com/b//c//d;p?q#blarg', 'https://p/a/t/h?s#hash2', 'https://p/a/t/h?s#hash2'},
+  {'http://example.com/b//c//d;p?q#blarg', 'https://u:p@h.com/p/a/t/h?s#hash2', 'https://u:p@h.com/p/a/t/h?s#hash2'},
+  {'http://example.com/b//c//d;p?q#blarg', 'https://a/b/c/d', 'https://a/b/c/d'},
+  {'http://example.com/b//c//d;p?q#blarg', 'http://u:p@h.com/p/a/t/h?s#hash2', 'http://u:p@h.com/p/a/t/h?s#hash2'},
+  {'/foo/bar/baz', '/../etc/passwd', '/etc/passwd'},
+  {'http://localhost', 'file://foo/Users', 'file://foo/Users'},
+  -- from node
+  {'/foo/bar/baz', 'quux', '/foo/bar/quux'},
+  {'/foo/bar/baz', 'quux/asdf', '/foo/bar/quux/asdf'},
+  {'/foo/bar/baz', 'quux/baz', '/foo/bar/quux/baz'},
+  {'/foo/bar/baz', '../quux/baz', '/foo/quux/baz'},
+  {'/foo/bar/baz', '/bar', '/bar'},
+  {'/foo/bar/baz/', 'quux', '/foo/bar/baz/quux'},
+  {'/foo/bar/baz/', 'quux/baz', '/foo/bar/baz/quux/baz'},
+  {'/foo/bar/baz', '../../../../../../../../quux/baz', '/quux/baz'},
+  {'/foo/bar/baz', '../../../../../../../quux/baz', '/quux/baz'},
+  {'/foo', '.', '/'},
+  {'/foo', '..', '/'},
+  {'/foo/', '.', '/foo/'},
+  {'/foo/', '..', '/'},
+  {'/foo/bar', '.', '/foo/'},
+  {'/foo/bar', '..', '/'},
+  {'/foo/bar/', '.', '/foo/bar/'},
+  {'/foo/bar/', '..', '/foo/'},
+  {'foo/bar', '../../../baz', '../../baz'},
+  {'foo/bar/', '../../../baz', '../baz'},
+}
 
 require('tap')(function(test)
   for testUrl, expected in pairs(parseTests) do
@@ -44,4 +75,15 @@ require('tap')(function(test)
     local formatted = url.format(parsed)
     assert(formatted == "http://localhost:9000/")
   end)
+
+  for testNo,relativeTest in ipairs(relativeTests) do
+    local source = relativeTest[1]
+    local relative = relativeTest[2]
+    local expected = relativeTest[3]
+    test('should resolve ' .. source .. ' to ' .. relative, function()
+      local actual = url.resolve(source, relative)
+
+      assert(actual == expected, 'relative test #' .. testNo .. ': ' .. actual .. ' should equal '.. expected)
+    end)
+  end
 end)
