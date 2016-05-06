@@ -44,6 +44,7 @@ Always make sure to run `make test` before submitting a PR.
  - Use `luvi /path/to/luvit` to test changes without rebuilding the binary.
  - To run the test suite, run `make test` to build a luvit and use that.
  - If you want to test a custom built luvi, run `luvi . -- tests/run.lua`
+ - If you want to run a specific test file with a custom built luvi, run `luvi . -- tests/test-<name-of-test>.lua` (e.g. `luvi . -- tests/test-http.lua`)
  - There is a wiki page on making new luvit releases at <https://github.com/luvit/luvit/wiki/Making-a-luvit-release>.
 
 The packages in deps live primarily in this repo, but some are duplicated in
