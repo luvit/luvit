@@ -31,7 +31,7 @@ while true do
     name = name.name
   end
   local match = string.match(name, "^test%-(.*).lua$")
-  if match then
+  if match and (not args[2] or args[2] == match) then
     local path = "./test-" .. match
     tap(match)
     require(path)
