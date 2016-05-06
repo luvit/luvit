@@ -78,8 +78,6 @@ local function parse(url, parseQueryString)
   url = url:sub((host and #host or 0) + 1)
   end
 
-  host = hostname -- Just to be compatible with our code base. Discuss this.
-
   local path
   local pathname
   local search
@@ -146,20 +144,9 @@ local function format(parsed)
     host = auth .. parsed.host
   elseif parsed.hostname and parsed.hostname ~= "" then
     host = auth .. parsed.hostname
-  end
-  -- extract port from host if possible
-  -- note: url.parse does not include the port in the host key, so
-  -- extracting the port here is just for convenience
-  if host then
-    host = string.gsub(host, "(:%d+)$", function(hostPort)
-      if not port then
-        port = string.sub(hostPort, 2)
-      end
-      return ""
-    end)
-  end
-  if host and port then
-    host = host .. ':' .. port
+    if port then
+      host = host .. ':' .. port
+    end
   end
 
   if parsed.query and type(parsed.query) == "table" then
