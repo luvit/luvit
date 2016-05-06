@@ -29,6 +29,34 @@ limitations under the License.
 
 local querystring = require('querystring')
 
+local URL = {}
+
+local function encodeAuth(str)
+  if str then
+    str = string.gsub(str, '\n', '\r\n')
+    str = string.gsub(str, '([^%w:!-.~\'()*])', function(c)
+      return string.format('%%%02X', string.byte(c))
+    end)
+  end
+  return str
+end
+
+-- add the prefix if it doesnt already exist
+local function conditionallyPrefix(str, prefix)
+  if str and str ~= "" and string.sub(str, 1, #prefix) ~= prefix then
+    str = prefix .. str
+  end
+  return str
+end
+
+-- add the suffix if it doesnt already exist
+local function conditionallySuffix(str, suffix)
+  if str and str ~= "" and string.sub(str, -(#suffix)) ~= suffix then
+    str = str .. suffix
+  end
+  return str
+end
+
 local function parse(url, parseQueryString)
   local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
@@ -49,8 +77,6 @@ local function parse(url, parseQueryString)
     end
   url = url:sub((host and #host or 0) + 1)
   end
-
-  host = hostname -- Just to be compatible with our code base. Discuss this.
 
   local path
   local pathname
@@ -83,8 +109,7 @@ local function parse(url, parseQueryString)
     query = querystring.parse(query)
   end
 
-  return {
-    href = href,
+  local parsed = {
     protocol = protocol,
     host = host,
     hostname = hostname,
@@ -96,7 +121,63 @@ local function parse(url, parseQueryString)
     auth = auth,
     hash = hash
   }
+  parsed.href = URL.format(parsed)
 
+  return parsed
 end
 
-return { parse = parse }
+local function format(parsed)
+  local auth = parsed.auth or ""
+  if auth ~= "" then
+    auth = encodeAuth(auth)
+    auth = auth .. '@'
+  end
+
+  local protocol = parsed.protocol or ""
+  local pathname = parsed.pathname or ""
+  local hash = parsed.hash or ""
+  local host = false
+  local query = ""
+  local port = parsed.port
+
+  if parsed.host and parsed.host ~= "" then
+    host = auth .. parsed.host
+  elseif parsed.hostname and parsed.hostname ~= "" then
+    host = auth .. parsed.hostname
+    if port then
+      host = host .. ':' .. port
+    end
+  end
+
+  if parsed.query and type(parsed.query) == "table" then
+    query = querystring.stringify(parsed.query)
+  end
+
+  local search = parsed.search or (query ~= "" and ('?' .. query)) or ""
+
+  protocol = conditionallySuffix(protocol, ':')
+
+  -- urlencode # and ? characters only
+  pathname = string.gsub(pathname, '([?#])', function(c)
+    return string.format('%%%02X', byte(c))
+  end)
+
+  -- add slashes
+  if host then
+    host = '//' .. host
+    pathname = conditionallyPrefix(pathname, '/')
+  else
+    host = ""
+  end
+
+  search = string.gsub(search, '#', '%23')
+  hash = conditionallyPrefix(hash, '#')
+  search = conditionallyPrefix(search, '?')
+
+  return protocol .. host .. pathname .. search .. hash
+end
+
+URL.parse = parse
+URL.format = format
+
+return URL

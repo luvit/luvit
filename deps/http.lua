@@ -382,6 +382,8 @@ function ClientRequest:initialize(options, callback)
     end
   end
 
+  options.host = host_found or options.hostname or options.host
+
   if not host_found and options.host then
     table.insert(self, 1, { 'Host', options.host })
   end
