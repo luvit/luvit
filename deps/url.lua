@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/url"
-  version = "2.0.0"
+  version = "2.1.0"
   dependencies = {
     "luvit/querystring@2.0.0",
   }
@@ -292,8 +292,8 @@ local function resolveObject(source, relative)
   local up = 0
   for i=#srcPath,1,-1 do
     last = srcPath[i]
-    if last == "." then 
-      table.remove(srcPath, i) 
+    if last == "." then
+      table.remove(srcPath, i)
     elseif last == ".." then
       table.remove(srcPath, i)
       up = up + 1

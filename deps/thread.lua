@@ -19,7 +19,7 @@ limitations under the License.
 --- luvit thread management
 --[[lit-meta
   name = "luvit/thread"
-  version = "2.0.0"
+  version = "2.1.0"
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/thread.lua"
   description = "thread module for luvit"
