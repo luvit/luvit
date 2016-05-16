@@ -1,3 +1,9 @@
+* Changes in 2.11.0
+
+ * Fix truncated paths in tracebacks for modules on disk [Tim Caswell]
+ * Add url.resolve and url.format to better match node.js [Ryan Liptak]
+ * Fixes for experimental thread module [George Zhao]
+
 * Changes in 2.10.1
 
   * Update luvi to 2.7.2 to get up-to-date openssl [Tim Caswell]
