@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/require"
-  version = "2.0.1"
+  version = "2.0.2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
   description = "Luvit's custom require system with relative requires and sane search paths."
   tags = {"luvit", "require"}
@@ -288,7 +288,7 @@ function Module:require(name)
 
   local ext = path:match("%.[^/\\]+$")
   if ext == ".lua" then
-    local fn = assert(loadstring(data, path))
+    local fn = assert(loadstring(data, '@' .. path))
     local global = {
       module = module,
       exports = module.exports,
