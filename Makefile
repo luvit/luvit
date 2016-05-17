@@ -7,8 +7,8 @@ LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
 
 PREFIX?=/usr/local
 
-test:
-	luvi . -- tests/run.lua
+test: lit
+	./luvi . -- tests/run.lua
 
 clean:
 	git clean -dx -f
