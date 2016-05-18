@@ -288,7 +288,16 @@ function Module:require(name)
 
   local ext = path:match("%.[^/\\]+$")
   if ext == ".lua" then
-    local fn = assert(loadstring(data, '@' .. path))
+    local match = path:match("^bundle:(.*)$")
+    if match then
+      local potential = pathJoin(bundle.base, "./" .. match)
+      if uv.fs_access(potential, "r") then
+        path = "@" .. potential
+      end
+    else
+      path = "@" .. path
+    end
+    local fn = assert(loadstring(data, path))
     local global = {
       module = module,
       exports = module.exports,
