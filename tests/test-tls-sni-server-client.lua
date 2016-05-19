@@ -62,15 +62,18 @@ require('tap')(function (test)
     server = tls.createServer(options, function(conn)
       p(conn.ssl:get('hostname'))
       table.insert(serverResults, conn.serverName)
+      conn:destroy()
     end)
 
     local function connectClient(options, callback)
       local client
       options.host = '127.0.0.1'
       client = tls.connect(options)
-
-      client:on('connect', function()
-        table.insert(clientResults, client.authorized)
+      clientResults[options.servername] = false
+      client:on('secureConnection', function()
+        clientResults[options.servername] = client.authorized
+      end)
+      client:on("_socketEnd", function ()
         client:destroy()
         callback()
       end)
@@ -86,6 +89,10 @@ require('tap')(function (test)
       connectClient(clientsOptions[1], function()
         connectClient(clientsOptions[2], function()
           connectClient(clientsOptions[3], function()
+            p(clientResults)
+            assert(clientResults['a.example.com'])
+            assert(clientResults['b.test.com'])
+            assert(not clientResults['c.wrong.com'])
             server:close()
           end)
         end)
