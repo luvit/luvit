@@ -97,9 +97,12 @@ return function (stdin, stdout, greeting)
         if results.n > 0 then
           printResults(results)
         end
-      else
+      elseif type(results[1]) == 'string' then
         -- error
         stdout:write(results[1] .. '\n')
+      else
+        -- error calls with non-string message objects will pass through debug.traceback without a stacktrace added
+        stdout:write('error with unexpected error message type (' .. type(results[1]) .. '), no stacktrace available\n')
       end
     else
 
