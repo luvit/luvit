@@ -1,3 +1,6 @@
+-- This example just for learning the raw uv ways of making a echo server in luvit.
+-- 'tcp-echo-server-simple.lua' is a much simpler version.
+
 local uv = require('uv')
 
 -- Create listener socket
