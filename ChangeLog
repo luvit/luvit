@@ -1,3 +1,10 @@
+* Changes in 2.11.1
+
+ * Update lit to 3.4.1 [Tim Caswell]
+ * Update luvi to 2.7.3 [Tim Caswell]
+ * Changed random seed from os.clock to os.time [SinisterRectus]
+ * Fix error() calls with a non-string message breaking the repl [Ryan Liptak]
+
 * Changes in 2.11.0
 
  * Fix truncated paths in tracebacks for modules on disk [Tim Caswell]
