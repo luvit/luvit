@@ -22,6 +22,10 @@ local Editor = readline.Editor
 
 require('tap')(function(test)
   test('readline Editor:onKey', function(expect)
+
+    -- If stdin is not a TTY, we can't run these tests.
+    if not prettyPrint.stdin.set_mode then return end
+
     local editor = Editor.new({
       stdin = prettyPrint.stdin,
       stdout = prettyPrint.stdout
