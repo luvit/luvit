@@ -7,14 +7,19 @@ LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
 
 PREFIX?=/usr/local
 
-test: lit
+test: lit luvit
 	./luvi . -- tests/run.lua
+	./luvit tests/run.lua
 
 clean:
 	git clean -dx -f
 
+
 lit:
 	curl -L https://github.com/luvit/lit/raw/$(LIT_VERSION)/get-lit.sh | sh
+
+luvit: lit $(APP_FILES)
+	./lit make
 
 install: luvit lit
 	mkdir -p $(PREFIX)/bin
