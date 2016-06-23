@@ -1,3 +1,7 @@
+* Changes in 2.11.3
+
+ * Merge all changes from 2.11.1 and 2.11.2 that diverged. [Tim Caswell]
+
 * Changes in 2.11.2
 
  * fix: do not run readline test if stdin is not a tty [Tim Caswell]
