@@ -253,7 +253,7 @@ local function _build_request(qname, id, no_recurse, opts)
   }
 end
 
-local function parse_response(buf, id)
+local function parse_response(buf, id, server)
   local n = #buf
   if n < 12 then
     return nil, 'truncated';
@@ -355,6 +355,7 @@ local function parse_response(buf, id)
     -- print(format("ans %d: qtype:%d qclass:%d", i, qtype, qclass))
 
     local ans = {}
+    ans.server = server
     insert(answers, ans)
 
     local name
@@ -611,23 +612,29 @@ local function _query(servers, name, dnsclass, qtype, callback)
   get_server_iter = function()
     local i = 1
     return function()
-      i = (i % #servers) + 1
-      return servers[i]
+      local s = servers[i]
+      i = i + 1
+      return s
     end
   end
 
   server = get_server_iter()
 
-  tcp_iter = function()
-    local srv, id, req, len, len_hi, len_lo, sock
+  tcp_iter = function(srv)
+    local id, req, len, len_hi, len_lo, sock
     local onTimeout, onConnect, onData, onError
 
     tries = tries + 1
     if tries > max_tries then
-      return callback(Error:new('Maximum attempts reached'))
+      srv = server()
+      if srv then
+        tries = 0
+        return timer.setImmediate(tcp_iter, srv)
+      else
+        return callback(Error:new('Maximum attempts reached'))
+      end
     end
 
-    srv = server()
     id = _gen_id()
     req = _build_request(name, id, false, { qtype = qtype })
     req = table.concat(req, "")
@@ -638,18 +645,18 @@ local function _query(servers, name, dnsclass, qtype, callback)
 
     function onError(err)
       sock:destroy()
-      timer.setImmediate(tcp_iter)
+      timer.setImmediate(tcp_iter, srv)
     end
 
     function onTimeout()
       sock:destroy()
-      timer.setImmediate(tcp_iter)
+      timer.setImmediate(tcp_iter, srv)
     end
 
     function onConnect(err)
       if err then
         sock:destroy()
-        return timer.setImmediate(tcp_iter)
+        return timer.setImmediate(tcp_iter, srv)
       end
       sock:on('data', onData)
       sock:on('error', onError)
@@ -667,9 +674,9 @@ local function _query(servers, name, dnsclass, qtype, callback)
 
       sock:destroy()
 
-      answers = parse_response(msg:sub(3), id)
+      answers = parse_response(msg:sub(3), id, srv)
       if not answers then
-        timer.setImmediate(tcp_iter)
+        timer.setImmediate(tcp_iter, srv)
       else
         if answers.code then
           callback(answers)
@@ -683,32 +690,38 @@ local function _query(servers, name, dnsclass, qtype, callback)
     sock:connect(srv.port, srv.host, onConnect)
   end
 
-  udp_iter = function()
-    local srv, id, req, sock, onTimeout, onMessage, onError
+  udp_iter = function(srv)
+    local id, req, sock, onTimeout, onMessage, onError
 
     tries = tries + 1
     if tries > max_tries then
-      return callback(Error:new('Maximum attempts reached'))
+      srv = server()
+      if srv then
+        tries = 0
+        timer.setImmediate(udp_iter, srv)
+        return
+      else
+        return callback(Error:new('Maximum attempts reached'))
+      end
     end
 
-    srv = server()
     id = _gen_id()
     req = _build_request(name, id, false, { qtype = qtype })
     sock = dgram.createSocket()
 
     function onError(err)
       sock:close()
-      timer.setImmediate(udp_iter)
+      timer.setImmediate(udp_iter, srv)
     end
 
     function onTimeout()
       sock:close()
-      timer.setImmediate(udp_iter)
+      timer.setImmediate(udp_iter, srv)
     end
 
     function onMessage(msg)
       sock:close()
-      local answers, err = parse_response(msg, id)
+      local answers, err = parse_response(msg, id, srv)
       if answers then
         if answers.code then
           callback(answers)
@@ -717,9 +730,9 @@ local function _query(servers, name, dnsclass, qtype, callback)
         end
       else
         if err == 'truncated' then
-          timer.setImmediate(tcp_iter)
+          timer.setImmediate(tcp_iter, srv)
         else
-          timer.setImmediate(udp_iter)
+          timer.setImmediate(udp_iter, srv)
         end
       end
     end
@@ -731,10 +744,11 @@ local function _query(servers, name, dnsclass, qtype, callback)
     sock:on('error', onError)
   end
 
-  if server().tcp then
-    tcp_iter()
+  local s = server()
+  if s.tcp then
+    tcp_iter(s)
   else
-    udp_iter()
+    udp_iter(s)
   end
 end
 

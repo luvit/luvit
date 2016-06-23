@@ -6,10 +6,10 @@ LUVIT_TAG=$(shell git describe)
 LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
 
 PREFIX?=/usr/local
+PHONY?=test lint size trim lit
 
 test: lit luvit
 	./luvi . -- tests/run.lua
-	./luvit tests/run.lua
 
 clean:
 	git clean -dx -f
