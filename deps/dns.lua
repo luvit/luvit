@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 --[[lit-meta
   name = "luvit/dns"
-  version = "2.0.0"
+  version = "2.0.1"
   dependencies = {
     "luvit/dgram@2.0.0",
     "luvit/fs@2.0.0",

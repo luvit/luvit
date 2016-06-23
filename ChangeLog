@@ -1,3 +1,14 @@
+* Changes in 2.11.1
+
+ * fix: do not run readline test if stdin is not a tty [Tim Caswell]
+ * examples: echo examples (#909) [Miigon]
+ * rng: Changed random seed from os.clock to os.time() (#906) [SinisterRectus]
+ * repl: Fix error() calls with a non-string (#898) [Ryan Liptak]
+ * fix: require to use proper paths for loadstring whenever possible (#896)
+   [Tim Caswell]
+ * fix: dns resolv.conf usage. Iterator was not honoring the order preference
+   [Ryan Phillips]
+
 * Changes in 2.11.0
 
  * Fix truncated paths in tracebacks for modules on disk [Tim Caswell]
