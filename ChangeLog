@@ -1,4 +1,4 @@
-* Changes in 2.11.1
+* Changes in 2.11.2
 
  * fix: do not run readline test if stdin is not a tty [Tim Caswell]
  * examples: echo examples (#909) [Miigon]
@@ -8,6 +8,10 @@
    [Tim Caswell]
  * fix: dns resolv.conf usage. Iterator was not honoring the order preference
    [Ryan Phillips]
+
+* Changes in 2.11.1
+
+ * ChangeLog lost, but is included in the 2.11.2 release
 
 * Changes in 2.11.0
 
