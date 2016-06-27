@@ -31,6 +31,7 @@ return {
     "luvit/hooks@2.0.0",
     "luvit/http@2.0.0",
     "luvit/http-codec@2.0.0",
+    "luvit/http-header@1.0.0",
     "luvit/https@2.0.0",
     "luvit/json@2.5.1",
     "luvit/los@2.0.0",
