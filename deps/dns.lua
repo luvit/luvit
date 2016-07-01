@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 --[[lit-meta
   name = "luvit/dns"
-  version = "2.0.1"
+  version = "2.0.2"
   dependencies = {
     "luvit/dgram@2.0.0",
     "luvit/fs@2.0.0",
@@ -347,7 +347,7 @@ local function parse_response(buf, id, server)
 
   if code ~= 0 then
     answers = Error:new(
-      code .. ': ' .. resolver_errstrs[code] or "unknown"
+      code .. ': ' .. (resolver_errstrs[code] or "unknown")
     )
   end
 
