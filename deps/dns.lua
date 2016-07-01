@@ -347,7 +347,7 @@ local function parse_response(buf, id, server)
 
   if code ~= 0 then
     answers = Error:new(
-      code .. ': ' .. resolver_errstrs[code] or "unknown"
+      code .. ': ' .. (resolver_errstrs[code] or "unknown")
     )
   end
 
