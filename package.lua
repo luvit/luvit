@@ -29,7 +29,7 @@ return {
     "luvit/fs@2.0.1",
     "luvit/helpful@2.0.0",
     "luvit/hooks@2.0.0",
-    "luvit/http@2.0.0",
+    "luvit/http@2.1.1",
     "luvit/http-codec@2.0.0",
     "luvit/http-header@1.0.0",
     "luvit/https@2.0.0",
