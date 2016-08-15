@@ -83,6 +83,9 @@ function Editor:refreshLine()
   end
 
   local position = self.position
+  if self.cover then
+    position = (#self.cover * (position - 1)) + 1
+  end
 
   -- Cursor to left edge
   local command = "\x1b[0G"
