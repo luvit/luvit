@@ -78,6 +78,10 @@ end
 local Editor = {}
 function Editor:refreshLine()
   local line = self.line
+  if self.cover then
+    line = line:gsub('.', self.cover)
+  end
+
   local position = self.position
 
   -- Cursor to left edge
@@ -101,13 +105,14 @@ function Editor:insertAbove(line)
   end)
 end
 function Editor:insert(character)
+  local display = self.cover or character
   local line = self.line
   local position = self.position
   if #line == position - 1 then
     self.line = line .. character
     self.position = position + #character
     if self.promptLength + #self.line < self.columns then
-      self.stdout:write(character)
+      self.stdout:write(display)
     else
       self:refreshLine()
     end
@@ -476,23 +481,27 @@ Editor.__index = Editor
 function Editor.new(options)
   options = options or {}
   local history = options.history or History.new()
-  assert(options.stdin, "stdin is required")
-  assert(options.stdout, "stdout is required")
+
+  if not (options.stdin and options.stdout) then
+    local prettyPrint = require('pretty-print')
+    options.stdin = options.stdin or prettyPrint.stdin
+    options.stdout = options.stdout or prettyPrint.stdout
+  end
+
   local editor = {
     wordPattern = options.wordPattern or "%w+",
     history = history,
     completionCallback = options.completionCallback,
     stdin = options.stdin,
     stdout = options.stdout,
+    cover = options.cover,
   }
   return setmetatable(editor, Editor)
 end
 
 local function readLine(prompt, options, callback)
-  local prettyPrint = require('pretty-print')
   if type(options) == "function" and callback == nil then
-    callback, options =
-      options, {stdin = prettyPrint.stdin, stdout = prettyPrint.stdout}
+    callback, options = options, nil
   end
   local editor = Editor.new(options)
   editor:readLine(prompt, callback)
