@@ -21,6 +21,17 @@ Luvit supports FFI and Lua based binary modules. There is a wiki entry
 explaining how to manage and include a binary module within a bundled
 application. [Publishing Compiled Code][]
 
+## Using LuaCov in Luvit projects
+
+To use LuaCov in Luvit projects, you need following setting in your project's `.luacov` configuration file:
+```lua
+return {
+	codefromstrings = true,
+}
+```
+
+This is necessary, because the regular Lua file loader prefixes the names of chunks loaded from a file with `@`, which LuaCov expects when trying to match source files with loaded chunks of code. Since Luvit does not prefix chunk names in this way, LuaCov is unable to recognize which file a chunk was loaded from.
+
 ## Hacking on Luvit Core
 
 First you need to clone and build luvit, this is easy and works cross-platform thanks to `Makefile` and `make.bat`.
