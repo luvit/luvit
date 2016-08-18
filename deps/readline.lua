@@ -79,7 +79,7 @@ local Editor = {}
 function Editor:refreshLine()
   local line = self.line
   if self.cover then
-    line = line:gsub('.', self.cover)
+    line = string.rep(self.cover, #line)
   end
 
   local position = self.position
@@ -108,7 +108,7 @@ function Editor:insertAbove(line)
   end)
 end
 function Editor:insert(character)
-  local display = self.cover or character
+  local display = string.rep(self.cover, #character)
   local line = self.line
   local position = self.position
   if #line == position - 1 then
