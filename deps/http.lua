@@ -18,13 +18,14 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/http"
-  version = "2.1.0"
+  version = "2.1.1"
   dependencies = {
     "luvit/net@2.0.0",
     "luvit/url@2.0.0",
     "luvit/http-codec@2.0.0",
     "luvit/stream@2.0.0",
     "luvit/utils@2.0.0",
+    "luvit/http-header@1.0.0",
   }
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/http.lua"
@@ -39,58 +40,14 @@ local Writable = require('stream').Writable
 local date = require('os').date
 local luvi = require('luvi')
 local utils = require('utils')
-
-
--- Provide a nice case insensitive interface to headers.
--- Pulled from https://github.com/creationix/weblit/blob/master/libs/weblit-app.lua
-local headerMeta = {
-  __index = function (list, name)
-    if type(name) ~= "string" then
-      return rawget(list, name)
-    end
-    name = name:lower()
-    for i = 1, #list do
-      local key, value = unpack(list[i])
-      if key:lower() == name then return value end
-    end
-  end,
-  __newindex = function (list, name, value)
-    -- non-string keys go through as-is.
-    if type(name) ~= "string" then
-      return rawset(list, name, value)
-    end
-    -- First remove any existing pairs with matching key
-    local lowerName = name:lower()
-    for i = #list, 1, -1 do
-      if list[i][1]:lower() == lowerName then
-        table.remove(list, i)
-      end
-    end
-    -- If value is nil, we're done
-    if value == nil then return end
-    -- Otherwise, set the key(s)
-    if (type(value) == "table") then
-      -- We accept a table of strings
-      for i = 1, #value do
-        rawset(list, #list + 1, {name, tostring(value[i])})
-      end
-    else
-      -- Or a single value interperted as string
-      rawset(list, #list + 1, {name, tostring(value)})
-    end
-  end,
-}
+local httpHeader = require('http-header')
 
 local IncomingMessage = net.Socket:extend()
 
 function IncomingMessage:initialize(head, socket)
   net.Socket.initialize(self)
   self.httpVersion = tostring(head.version)
-  local headers = setmetatable({}, headerMeta)
-  for i = 1, #head do
-    headers[i] = head[i]
-  end
-  self.headers = headers
+  self.headers = httpHeader.getHeaders(head)
   if head.method then
     -- server specific
     self.method = head.method
@@ -116,7 +73,7 @@ function ServerResponse:initialize(socket)
   self.encode = encode
   self.statusCode = 200
   self.headersSent = false
-  self.headers = setmetatable({}, headerMeta)
+  self.headers = httpHeader.newHeaders()
 
   local extra = self._extra_http or {}
   self._extra_http = extra
@@ -246,11 +203,7 @@ end
 function ServerResponse:writeHead(newStatusCode, newHeaders)
   assert(not self.headersSent, "headers already sent")
   self.statusCode = newStatusCode
-  local headers = setmetatable({}, headerMeta)
-  self.headers = headers
-  for k, v in pairs(newHeaders) do
-    headers[k] = v
-  end
+  self.headers = httpHeader.toHeaders(newHeaders)
 end
 
 local function handleConnection(socket, onRequest)
@@ -357,12 +310,7 @@ end
 function ClientRequest:initialize(options, callback)
   Writable.initialize(self)
   self:cork()
-  local headers = setmetatable({}, headerMeta)
-  if options.headers then
-    for k, v in pairs(options.headers) do
-      headers[k] = v
-    end
-  end
+  local headers = httpHeader.toHeaders(options.headers)
 
   local host_found, connection_found, user_agent
   for i = 1, #headers do
@@ -581,7 +529,7 @@ local function get(options, onResponse)
 end
 
 return {
-  headerMeta = headerMeta,
+  headerMeta = httpHeader.headerMeta, -- for backwards compatibility
   IncomingMessage = IncomingMessage,
   ServerResponse = ServerResponse,
   handleConnection = handleConnection,

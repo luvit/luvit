@@ -1,3 +1,32 @@
+* Changes in 2.11.5
+
+ - Lit to 3.4.3 [Tim Caswell]
+ - Luvi to 2.7.4 [Tim Caswell]
+
+* Changes in 2.11.4
+
+ * dns: error message fix for #918 [Ryan Phillips]
+ * Lit to 3.4.2
+ * Move http.headerMeta to its own package and add util function [Ryan Liptak]
+
+* Changes in 2.11.3
+
+ * Merge all changes from 2.11.1 and 2.11.2 that diverged. [Tim Caswell]
+
+* Changes in 2.11.2
+
+ * fix: do not run readline test if stdin is not a tty [Tim Caswell]
+ * examples: echo examples (#909) [Miigon]
+ * fix: dns resolv.conf usage. Iterator was not honoring the order preference
+   [Ryan Phillips]
+
+* Changes in 2.11.1
+
+ * Update lit to 3.4.1 [Tim Caswell]
+ * Update luvi to 2.7.3 [Tim Caswell]
+ * Changed random seed from os.clock to os.time [SinisterRectus]
+ * Fix error() calls with a non-string message breaking the repl [Ryan Liptak]
+
 * Changes in 2.11.0
 
  * Fix truncated paths in tracebacks for modules on disk [Tim Caswell]
