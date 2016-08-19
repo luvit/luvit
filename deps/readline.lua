@@ -108,7 +108,7 @@ function Editor:insertAbove(line)
   end)
 end
 function Editor:insert(character)
-  local display = string.rep(self.cover, #character)
+  local display = self.cover and string.rep(self.cover, #character) or character
   local line = self.line
   local position = self.position
   if #line == position - 1 then
