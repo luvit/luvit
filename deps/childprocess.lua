@@ -272,6 +272,8 @@ local function _exec(file, args, options, callback)
   end)
 
   child:once('close', onClose)
+  
+  return child
 end
 
 local function execFile(file, args, options, callback)
