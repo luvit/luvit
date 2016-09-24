@@ -50,6 +50,7 @@ return {
     "luvit/tls@2.0.0",
     "luvit/utils@2.0.0",
     "luvit/url@2.0.0",
+    "luvit/boundary@2.0.0",
   },
   files = {
     "*.lua",

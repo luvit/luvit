@@ -15,9 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
-local uv = require('uv')
 
 return function (main, ...)
+  -- truesight backward changes
+  local uv = require('uv')
+  local timer = {}
+  timer.now = uv.now
+  uv.Timer = timer
+
   -- Inject the global process table
   _G.process = require('process').globalProcess()
 
