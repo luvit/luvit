@@ -25,9 +25,9 @@ local isWindows = los.type() == "win32"
 
 -- Test that path is set correctly for the current OS
 if not isWindows then
-  assert(path._internal == path_base.posix)
+  assert(deep_equal(path._internal, path_base.posix))
 else
-  assert(path._internal == path_base.nt)
+  assert(deep_equal(path._internal, path_base.nt))
 end
 
 require('tap')(function(test)
@@ -490,4 +490,3 @@ require('tap')(function(test)
     assert(path_base.nt:relative('c:/aaaa/bbbb', 'd:\\') == 'd:\\')
   end)
 end)
-
