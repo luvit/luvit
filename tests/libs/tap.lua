@@ -30,8 +30,6 @@ limitations under the License.
 
 local uv = require('uv')
 local colorize = require('pretty-print').colorize
-_G.p = require('pretty-print').prettyPrint
-_G.module = require('resource')
 
 -- Capture output from global print and prefix with two spaces
 local print = _G.print
