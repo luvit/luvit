@@ -16,5 +16,5 @@ limitations under the License.
 
 --]]
 
-exports.hello = 'world'
 print('load package/index.lua')
+return {hello = 'world'}

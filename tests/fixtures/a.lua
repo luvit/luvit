@@ -22,6 +22,7 @@ print('load fixtures/a.lua')
 
 local string = 'A'
 
+local exports = {}
 exports.SomeClass = c.SomeClass
 
 exports.A = function()
@@ -41,3 +42,5 @@ exports.number = 42
 _G.onexit(function()
   string = 'A done'
 end)
+
+return exports
