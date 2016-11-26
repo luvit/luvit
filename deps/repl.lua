@@ -75,7 +75,7 @@ return function (stdin, stdout, greeting)
   local buffer = ''
 
   local function evaluateLine(line)
-    if line == "<3" or line == "♥" then
+    if line == "<3" or line == "♥" or line == "❤" then
       stdout:write("I " .. c("err") .. "♥" .. c() .. " you too!\n")
       return '>'
     end
