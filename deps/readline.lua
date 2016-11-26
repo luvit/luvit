@@ -27,8 +27,10 @@ limitations under the License.
 
 -- Heavily inspired by ljlinenoise : <http://fperrad.github.io/ljlinenoise/>
 
-local sub = string.sub
-local gmatch = string.gmatch
+local ustring = require "ustring"
+local emptyline = ustring.new()
+local sub = ustring.sub
+local gmatch = ustring.gmatch
 local remove = table.remove
 local insert = table.insert
 local concat = table.concat
@@ -89,12 +91,12 @@ function Editor:refreshLine()
 
   -- Cursor to left edge
   local command = "\x1b[0G"
-  -- Write the prompt and the current buffer content
-               .. self.prompt .. line
-  -- Erase to right
-               .. "\x1b[0K"
+  -- Write the prompt and the data before cursor in buffer content.
+               .. self.prompt .. tostring(line:sub(1,self.position - 1))
+  -- Save the position,erase to right and write data left.
+               .. "\x1b7\x1b[0K" .. tostring(line:sub(self.position,-1))
   -- Move cursor to original position.
-               .. "\x1b[0G\x1b[" .. tostring(position + self.promptLength - 1) .. "C"
+               .. "\x1b8"
   self.stdout:write(command)
 end
 function Editor:insertAbove(line)
@@ -111,18 +113,15 @@ function Editor:insert(character)
   local display = self.cover and string.rep(self.cover, #character) or character
   local line = self.line
   local position = self.position
+  character = ustring.new(character)
   if #line == position - 1 then
     self.line = line .. character
     self.position = position + #character
-    if self.promptLength + #self.line < self.columns then
-      self.stdout:write(display)
-    else
-      self:refreshLine()
-    end
+    self.stdout:write(display)
   else
     -- Insert the letter in the middle of the line
-    self.line = sub(line, 1, position - 1) .. character .. sub(line, position)
-    self.position = position + 1
+    self.line = sub(line, 1, position - 1) .. ustring.new(character) .. sub(line, position)
+    self.position = position + #character
     self:refreshLine()
   end
   self.history:updateLastLine(self.line)
@@ -151,7 +150,7 @@ function Editor:getHistory(delta)
       index = length
     end
     if index == self.historyIndex then return end
-    local line = self.history[index]
+    local line = ustring.new(self.history[index])
     self.line = line
     self.historyIndex = index
     self.position = #line + 1
@@ -193,7 +192,7 @@ function Editor:swap()
   end
 end
 function Editor:deleteLine()
-  self.line = ''
+  self.line = emptyline
   self.position = 1
   self.history:updateLastLine(self.line)
   self:refreshLine()
@@ -262,6 +261,7 @@ function Editor:complete()
   end
   local typ = type(res)
   if typ == "string" then
+    res = ustring.new(res)
     self.line = res .. sub(line, position + 1)
     self.position = #res + 1
     self.history:updateLastLine(self.line)
@@ -299,11 +299,11 @@ local keyHandlers =
     local line = self.line
     -- Only record new history if it's non-empty and new
     if #line > 0 and history[#history - 1] ~= line then
-      history[#history] = line
+      history[#history] = tostring(line)
     else
       history[#history] = nil
     end
-    return self.line
+    return tostring(self.line)
   end},
   -- Tab
   {{9}, function(self)
@@ -396,7 +396,7 @@ local keyHandlers =
     self:getHistory(10)
   end},
   -- Printable characters
-  {{function(key, char) return char > 31 and key:sub(1,1) or nil end}, function(self, consumedKeys)
+  {{function(key, char) return char > 31 and key or nil end}, function(self, consumedKeys)
     self:insert(consumedKeys)
   end},
 }
@@ -470,10 +470,10 @@ function Editor:readLine(prompt, callback)
     return callback(...)
   end
 
-  self.line = ""
+  self.line = emptyline
   self.position = 1
   self.stdout:write(self.prompt)
-  self.history:add(self.line)
+  self.history:add(tostring(self.line))
   self.historyIndex = #self.history
 
   self.stdin:set_mode(1)
