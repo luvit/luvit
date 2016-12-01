@@ -25,7 +25,7 @@ return function (main, ...)
   do
     local math = require('math')
     local os = require('os')
-    math.randomseed(os.clock())
+    math.randomseed(os.time())
   end
 
   -- Load Resolver

@@ -1,20 +1,25 @@
 APP_FILES=$(shell find . -type f -name '*.lua')
 BIN_ROOT=lit/luvi-binaries/$(shell uname -s)_$(shell uname -m)
-LIT_VERSION=3.3.3
+LIT_VERSION=3.4.3
 
 LUVIT_TAG=$(shell git describe)
 LUVIT_ARCH=$(shell uname -s)_$(shell uname -m)
 
 PREFIX?=/usr/local
+PHONY?=test lint size trim lit
 
-test: lit
+test: lit luvit
 	./luvi . -- tests/run.lua
 
 clean:
 	git clean -dx -f
 
+
 lit:
 	curl -L https://github.com/luvit/lit/raw/$(LIT_VERSION)/get-lit.sh | sh
+
+luvit: lit $(APP_FILES)
+	./lit make
 
 install: luvit lit
 	mkdir -p $(PREFIX)/bin

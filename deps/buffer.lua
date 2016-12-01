@@ -27,8 +27,11 @@ limitations under the License.
   tags = {"luvit", "buffer"}
 ]]
 
-local Object = require('core').Object
+local core = require('core')
 local ffi = require('ffi')
+
+local Object = core.Object
+local instanceof = core.instanceof
 
 ffi.cdef[[
   void *malloc (size_t __size);
@@ -207,6 +210,10 @@ end
 function Buffer:toString(i, j)
   local offset = i and i - 1 or 0
   return ffi.string(self.ctype + offset, (j or self.length) - offset)
+end
+
+function Buffer.isBuffer(b)
+  return instanceof(b, Buffer)
 end
 
 return buffer

@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/readline"
-  version = "2.0.0"
+  version = "2.1.0"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/readline.lua"
   description = "A readline interface for terminals in pure lua."
   tags = {"readline", "tty"}
@@ -78,7 +78,14 @@ end
 local Editor = {}
 function Editor:refreshLine()
   local line = self.line
+  if self.cover then
+    line = string.rep(self.cover, #line)
+  end
+
   local position = self.position
+  if self.cover then
+    position = (#self.cover * (position - 1)) + 1
+  end
 
   -- Cursor to left edge
   local command = "\x1b[0G"
@@ -101,13 +108,14 @@ function Editor:insertAbove(line)
   end)
 end
 function Editor:insert(character)
+  local display = self.cover and string.rep(self.cover, #character) or character
   local line = self.line
   local position = self.position
   if #line == position - 1 then
     self.line = line .. character
     self.position = position + #character
     if self.promptLength + #self.line < self.columns then
-      self.stdout:write(character)
+      self.stdout:write(display)
     else
       self:refreshLine()
     end
@@ -476,23 +484,27 @@ Editor.__index = Editor
 function Editor.new(options)
   options = options or {}
   local history = options.history or History.new()
-  assert(options.stdin, "stdin is required")
-  assert(options.stdout, "stdout is required")
+
+  if not (options.stdin and options.stdout) then
+    local prettyPrint = require('pretty-print')
+    options.stdin = options.stdin or prettyPrint.stdin
+    options.stdout = options.stdout or prettyPrint.stdout
+  end
+
   local editor = {
     wordPattern = options.wordPattern or "%w+",
     history = history,
     completionCallback = options.completionCallback,
     stdin = options.stdin,
     stdout = options.stdout,
+    cover = options.cover,
   }
   return setmetatable(editor, Editor)
 end
 
 local function readLine(prompt, options, callback)
-  local prettyPrint = require('pretty-print')
   if type(options) == "function" and callback == nil then
-    callback, options =
-      options, {stdin = prettyPrint.stdin, stdout = prettyPrint.stdout}
+    callback, options = options, nil
   end
   local editor = Editor.new(options)
   editor:readLine(prompt, callback)
