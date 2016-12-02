@@ -131,7 +131,7 @@ function ustring.lower(ustr)
     return u
 end
 
-function ustring.upper()
+function ustring.upper(ustr)
     local u = ustring.copy(ustr)
     for i = 1,#u do
         u = upper(u)
@@ -161,6 +161,9 @@ end
 _meta.__index = ustring
 
 function _meta.__eq(ustr1,ustr2)
+    if type(ustr2) == "string" then
+        return tostring(ustr1) == ustr2
+    end
     local len1 = #ustr1
     local len2 = #ustr2
     if len1 ~= len2 then return false end
