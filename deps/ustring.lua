@@ -48,7 +48,7 @@ function ustring.new(str,allowInvaild)
         end
 
         local charLen = chlen(byte)
-        assert(charLen ~= 0 or allowInvaild,"Invaild UTF-8 sequence at "..tostring(i)..",byte:"..tostring(byte))
+        if charLen == 0 and not allowInvaild then error("Invaild UTF-8 sequence at "..tostring(i)..",byte:"..tostring(byte)) end
         ustr[index] = char
         if charLen == 1 then index = index + 1 end
         append = append + charLen - 1
