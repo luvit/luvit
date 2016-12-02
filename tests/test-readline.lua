@@ -43,27 +43,27 @@ require('tap')(function(test)
 
     -- single key
     editor:onKey('a')
-    assert(editor.line == "a")
+    assert(tostring(editor.line) == "a")
     assert(editor.position == 2)
 
     -- left arrow
     editor:onKey('\027[D')
-    assert(editor.line == "a")
+    assert(tostring(editor.line) == "a")
     assert(editor.position == 1)
 
     -- multiple keys
     editor:onKey('abc')
-    assert(editor.line == "abca")
+    assert(tostring(editor.line) == "abca")
     assert(editor.position == 4)
 
     -- multiple control sequences (left arrows)
     editor:onKey('\027[D\027[D\027[D')
-    assert(editor.line == "abca")
+    assert(tostring(editor.line) == "abca")
     assert(editor.position == 1)
 
     -- mixture of characters and control sequences
     editor:onKey('a\027[Db\027[Dc\027[Dd')
-    assert(editor.line == "dcbaabca")
+    assert(tostring(editor.line) == "dcbaabca")
     assert(editor.position == 2)
   end)
 end)
