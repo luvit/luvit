@@ -34,6 +34,7 @@ local gmatch = ustring.gmatch
 local remove = table.remove
 local insert = table.insert
 local concat = table.concat
+local tostring = tostring
 
 local History = {}
 function History:add(line)
@@ -124,7 +125,7 @@ function Editor:insert(character)
     self.position = position + #character
     self:refreshLine()
   end
-  self.history:updateLastLine(self.line)
+  self.history:updateLastLine(tostring(self.line))
 end
 function Editor:moveLeft()
   if self.position > 1 then
@@ -163,7 +164,7 @@ function Editor:backspace()
   if position > 1 and #line > 0 then
     self.line = sub(line, 1, position - 2) .. sub(line, position)
     self.position = position - 1
-    self.history:updateLastLine(self.line)
+    self.history:updateLastLine(tostring(self.line))
     self:refreshLine()
   end
 end
@@ -172,7 +173,7 @@ function Editor:delete()
   local position = self.position
   if position > 0 and #line > 0 then
     self.line = sub(line, 1, position - 1) .. sub(line, position + 1)
-    self.history:updateLastLine(self.line)
+    self.history:updateLastLine(tostring(self.line))
     self:refreshLine()
   end
 end
@@ -187,19 +188,19 @@ function Editor:swap()
     if position ~= #line then
       self.position = position + 1
     end
-    self.history:updateLastLine(self.line)
+    self.history:updateLastLine(tostring(self.line))
     self:refreshLine()
   end
 end
 function Editor:deleteLine()
   self.line = emptyline
   self.position = 1
-  self.history:updateLastLine(self.line)
+  self.history:updateLastLine(tostring(self.line))
   self:refreshLine()
 end
 function Editor:deleteEnd()
   self.line = sub(self.line, 1, self.position - 1)
-  self.history:updateLastLine(self.line)
+  self.history:updateLastLine(tostring(self.line))
   self:refreshLine()
 end
 function Editor:moveHome()
@@ -255,7 +256,7 @@ function Editor:complete()
   end
   local line = self.line
   local position = self.position
-  local res = self.completionCallback(sub(line, 1, position))
+  local res = self.completionCallback(tostring(sub(line, 1, position)))
   if not res then
     return self:beep()
   end
@@ -264,7 +265,7 @@ function Editor:complete()
     res = ustring.new(res)
     self.line = res .. sub(line, position + 1)
     self.position = #res + 1
-    self.history:updateLastLine(self.line)
+    self.history:updateLastLine(tostring(self.line))
   elseif typ == "table" then
     print()
     print(unpack(res))
