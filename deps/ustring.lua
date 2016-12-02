@@ -6,6 +6,24 @@ local strsub = string.sub
 local strbyte = string.byte
 local band = bit.band
 local rshift = bit.rshift
+
+local function chlen(byte)
+    if rshift(byte,7) == 0x00 then
+        return 1
+    elseif rshift(byte,5) == 0x06 then
+        return 2
+    elseif rshift(byte,4) == 0x0E then
+        return 3
+    elseif rshift(byte,3) == 0x1E then
+        return 4
+    else
+        -- RFC 3629 (2003.11) says UTF-8 don't have characters larger than 4 bytes.
+        -- They will not be processed although they may be appeared in some old systems.
+        return 0
+    end
+end
+ustring.chlen = chlen
+
 function ustring.new(str,allowInvaild)
     local str = str and tostring(str) or ""
     local ustr = {}
@@ -29,25 +47,11 @@ function ustring.new(str,allowInvaild)
             break
         end
 
-        if rshift(byte,7) == 0x00 then -- 1 byte (ansi)
-            ustr[index] = char
-            index = index + 1
-        elseif rshift(byte,5) == 0x06 then -- 2 bytes
-            ustr[index] = char
-            append = 1
-        elseif rshift(byte,4) == 0x0E then -- 3 bytes
-            ustr[index] = char
-            append = 2
-        elseif rshift(byte,3) == 0x1E then -- 4 bytes
-            ustr[index] = char
-            append = 3
-        else
-            -- RFC 3629 (2003.11) says UTF-8 don't have characters larger than 4 bytes.
-            -- They will not be processed although they may be appeared in some old systems.
-            if not allowInvaild then
-                error("Invaild UTF-8 sequence at "..i..",byte:"..byte)
-            end
-        end
+        local charLen = chlen(byte)
+        assert(charLen ~= 0 or allowInvaild,"Invaild UTF-8 sequence at "..tostring(i)..",byte:"..tostring(byte))
+        ustr[index] = char
+        if charLen == 1 then index = index + 1 end
+        append = append + charLen - 1
 
         until true
     end

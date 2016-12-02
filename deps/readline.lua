@@ -30,6 +30,7 @@ limitations under the License.
 local ustring = require "ustring"
 local emptyline = ustring.new()
 local sub = ustring.sub
+local chlen = ustring.chlen
 local gmatch = ustring.gmatch
 local remove = table.remove
 local insert = table.insert
@@ -397,7 +398,7 @@ local keyHandlers =
     self:getHistory(10)
   end},
   -- Printable characters
-  {{function(key, char) return char > 31 and key or nil end}, function(self, consumedKeys)
+  {{function(key, char) return char > 31 and key:sub(1,chlen(key:byte())) or nil end}, function(self, consumedKeys)
     self:insert(consumedKeys)
   end},
 }
