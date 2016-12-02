@@ -32,6 +32,7 @@ local emptyline = ustring.new()
 local sub = ustring.sub
 local chlen = ustring.chlen
 local gmatch = ustring.gmatch
+local find = ustring.find
 local remove = table.remove
 local insert = table.insert
 local concat = table.concat
@@ -219,7 +220,7 @@ local function findLeft(line, position, wordPattern)
   local s
   repeat
     local start = sub(line, 1, position - 1)
-    s = string.find(start, pattern)
+    s = find(start, pattern)
     if not s then
       position = position - 1
     end
@@ -240,7 +241,7 @@ function Editor:jumpLeft()
   self:refreshLine()
 end
 function Editor:jumpRight()
-  local _, e = string.find(self.line, self.wordPattern, self.position)
+  local _, e = find(self.line, self.wordPattern, self.position)
   self.position = e and e + 1 or #self.line + 1
   self:refreshLine()
 end

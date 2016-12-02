@@ -110,6 +110,7 @@ end
 
 function ustring.find(ustr,pattern,init,plain)
     local first,last = find(tostring(ustr),tostring(pattern),init,plain)
+    if first == nil then return nil end
     local ufirst = ustring.uindex(ustr,first)
     local ulast = ustring.uindex(ustr,last,first,ufirst)
     return ufirst,ulast
@@ -130,7 +131,7 @@ end
 function ustring.lower(ustr)
     local u = ustring.copy(ustr)
     for i = 1,#u do
-        u = lower(u)
+        u[i] = lower(u[i])
     end
     return u
 end
@@ -138,7 +139,7 @@ end
 function ustring.upper(ustr)
     local u = ustring.copy(ustr)
     for i = 1,#u do
-        u = upper(u)
+        u[i] = upper(u[i])
     end
     return u
 end
@@ -165,9 +166,6 @@ end
 _meta.__index = ustring
 
 function _meta.__eq(ustr1,ustr2)
-    if type(ustr2) == "string" then
-        return tostring(ustr1) == ustr2
-    end
     local len1 = #ustr1
     local len2 = #ustr2
     if len1 ~= len2 then return false end
