@@ -183,6 +183,10 @@ local function moduleRequire(base, name)
         mod, path, key = fixedRequire(pathJoin(base, "deps", name))
         if mod then return mod, path, key end
       end
+      if isDir(pathJoin(base, "modules")) then
+        mod, path, key = fixedRequire(pathJoin(base, "modules", name))
+        if mod then return mod, path, key end
+      end
     end
 
     -- Stop at filesystem or prefix root (58 is ":")
