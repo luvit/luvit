@@ -103,7 +103,7 @@ function Buffer:inspect()
   return "<Buffer " .. table.concat(parts, " ") .. ">"
 end
 
-local function compliment8(value)
+local function complement8(value)
   return value < 0x80 and value or value - 0x100
 end
 
@@ -112,10 +112,10 @@ function Buffer:readUInt8(offset)
 end
 
 function Buffer:readInt8(offset)
-  return compliment8(self[offset])
+  return complement8(self[offset])
 end
 
-local function compliment16(value)
+local function complement16(value)
   return value < 0x8000 and value or value - 0x10000
 end
 
@@ -130,11 +130,11 @@ function Buffer:readUInt16BE(offset)
 end
 
 function Buffer:readInt16LE(offset)
-  return compliment16(self:readUInt16LE(offset))
+  return complement16(self:readUInt16LE(offset))
 end
 
 function Buffer:readInt16BE(offset)
-  return compliment16(self:readUInt16BE(offset))
+  return complement16(self:readUInt16BE(offset))
 end
 
 function Buffer:readUInt32LE(offset)
@@ -177,13 +177,8 @@ function Buffer:writeUInt16BE(offset, value)
   self[offset + 1] = bit.rshift(value, 0)
 end
 
-function Buffer:writeInt16LE(offset, value)
-  return self:writeUInt16LE(offset, value)
-end
-
-function Buffer:writeInt16BE(offset, value)
-  return self:writeUInt16BE(offset, value)
-end
+Buffer.writeInt16LE = Buffer.writeUInt16LE
+Buffer.writeInt16BE = Buffer.writeUInt16BE
 
 function Buffer:writeUInt32LE(offset, value)
   self[offset] = bit.rshift(value, 0)
@@ -199,13 +194,8 @@ function Buffer:writeUInt32BE(offset, value)
   self[offset + 3] = bit.rshift(value, 0)
 end
 
-function Buffer:writeInt32LE(offset, value)
-  return self:writeUInt32LE(offset, value)
-end
-
-function Buffer:writeInt32BE(offset, value)
-  return self:writeUInt32BE(offset, value)
-end
+Buffer.writeInt32LE = Buffer.writeUInt32LE
+Buffer.writeInt32BE = Buffer.writeUInt32BE
 
 function Buffer:toString(i, j)
   local offset = i and i - 1 or 0
