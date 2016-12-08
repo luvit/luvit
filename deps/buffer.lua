@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/buffer"
-  version = "2.0.0"
+  version = "2.1.0"
   dependencies = {
     "luvit/core@2.0.0"
   }
@@ -33,10 +33,10 @@ local ffi = require('ffi')
 local Object = core.Object
 local instanceof = core.instanceof
 
-ffi.cdef([[
+ffi.cdef[[
   void *malloc (size_t __size);
   void free (void *__ptr);
-]])
+]]
 
 local buffer = {}
 
@@ -44,7 +44,7 @@ local Buffer = Object:extend()
 buffer.Buffer = Buffer
 
 --avoid bugs when link with static run times lib, eg. /MT link flags
-local C = ffi.os=='Windows' and ffi.load('msvcrt') or ffi.C
+local C = ffi.os == "Windows" and ffi.load("msvcrt") or ffi.C
 
 function Buffer:initialize(length)
   if type(length) == "number" then
@@ -54,7 +54,7 @@ function Buffer:initialize(length)
     local string = length
     self.length = #string
     self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
-    ffi.copy(self.ctype,string,self.length)
+    ffi.copy(self.ctype, string, self.length)
   else
     error("Input must be a string or number")
   end
@@ -71,7 +71,7 @@ function Buffer.meta:__ipairs()
 end
 
 function Buffer.meta:__tostring()
-  return ffi.string(self.ctype,self.length)
+  return ffi.string(self.ctype, self.length)
 end
 
 function Buffer.meta:__concat(other)
@@ -97,14 +97,14 @@ end
 
 function Buffer:inspect()
   local parts = {}
-  for i = 1, tonumber(self.length) do
+  for i = 1, self.length do
     parts[i] = bit.tohex(self[i], 2)
   end
   return "<Buffer " .. table.concat(parts, " ") .. ">"
 end
 
-local function compliment8(value)
-  return value < 0x80 and value or -0x100 + value
+local function complement8(value)
+  return value < 0x80 and value or value - 0x100
 end
 
 function Buffer:readUInt8(offset)
@@ -112,11 +112,11 @@ function Buffer:readUInt8(offset)
 end
 
 function Buffer:readInt8(offset)
-  return compliment8(self[offset])
+  return complement8(self[offset])
 end
 
-local function compliment16(value)
-  return value < 0x8000 and value or -0x10000 + value
+local function complement16(value)
+  return value < 0x8000 and value or value - 0x10000
 end
 
 function Buffer:readUInt16LE(offset)
@@ -130,11 +130,11 @@ function Buffer:readUInt16BE(offset)
 end
 
 function Buffer:readInt16LE(offset)
-  return compliment16(self:readUInt16LE(offset))
+  return complement16(self:readUInt16LE(offset))
 end
 
 function Buffer:readInt16BE(offset)
-  return compliment16(self:readUInt16BE(offset))
+  return complement16(self:readUInt16BE(offset))
 end
 
 function Buffer:readUInt32LE(offset)
@@ -158,6 +158,44 @@ end
 function Buffer:readInt32BE(offset)
   return bit.tobit(self:readUInt32BE(offset))
 end
+
+function Buffer:writeUInt8(offset, value)
+  self[offset] = value
+end
+
+function Buffer:writeInt8(offset, value)
+  return self:writeUInt8(offset, value)
+end
+
+function Buffer:writeUInt16LE(offset, value)
+  self[offset] = bit.rshift(value, 0)
+  self[offset + 1] = bit.rshift(value, 8)
+end
+
+function Buffer:writeUInt16BE(offset, value)
+  self[offset] = bit.rshift(value, 8)
+  self[offset + 1] = bit.rshift(value, 0)
+end
+
+Buffer.writeInt16LE = Buffer.writeUInt16LE
+Buffer.writeInt16BE = Buffer.writeUInt16BE
+
+function Buffer:writeUInt32LE(offset, value)
+  self[offset] = bit.rshift(value, 0)
+  self[offset + 1] = bit.rshift(value, 8)
+  self[offset + 2] = bit.rshift(value, 16)
+  self[offset + 3] = bit.rshift(value, 24)
+end
+
+function Buffer:writeUInt32BE(offset, value)
+  self[offset] = bit.rshift(value, 24)
+  self[offset + 1] = bit.rshift(value, 16)
+  self[offset + 2] = bit.rshift(value, 8)
+  self[offset + 3] = bit.rshift(value, 0)
+end
+
+Buffer.writeInt32LE = Buffer.writeUInt32LE
+Buffer.writeInt32BE = Buffer.writeUInt32BE
 
 function Buffer:toString(i, j)
   local offset = i and i - 1 or 0
