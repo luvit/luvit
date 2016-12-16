@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/repl"
-  version = "2.0.2"
+  version = "2.1.0"
   dependencies = {
     "luvit/utils@2.0.0",
     "luvit/readline@2.0.0",
