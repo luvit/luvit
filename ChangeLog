@@ -1,3 +1,11 @@
+# Changes in 2.12.0
+
+ - childprocess: Fix `childprogress.exec` return. (Cyril Hou)
+ - ustring: New module to help with unicode strings. (Miigon)
+ - readline: Add new options.cover to hide input (Tim Caswell)
+ - readline: Fix unicode handling using ustring. (Miigon)
+ - repl: Fix unicode handling using ustring (Miigon)
+
 * Changes in 2.11.5
 
  - Lit to 3.4.3 [Tim Caswell]
