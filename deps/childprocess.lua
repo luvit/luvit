@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/childprocess"
-  version = "2.0.0"
+  version = "2.1.0"
   dependencies = {
     "luvit/core@2.0.0",
     "luvit/utils@2.0.0",
@@ -272,7 +272,7 @@ local function _exec(file, args, options, callback)
   end)
 
   child:once('close', onClose)
-  
+
   return child
 end
 
