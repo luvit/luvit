@@ -5,7 +5,7 @@ local server = http.createServer(function (req, res)
 	getTitles(res);
 end
 ):listen(8080);
-print('Server running at http://127.0.0.1:1337/')
+print('Server running at http://127.0.0.1:8080/')
 
 function getTitles(res) 
 	fs.readFile('./titles.json', 
