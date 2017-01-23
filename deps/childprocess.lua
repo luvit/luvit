@@ -64,21 +64,9 @@ function Process:close(err)
 end
 
 function Process:destroy(err)
-  self:_cleanup(err)
   if err then
     timer.setImmediate(function() self:emit('error', err) end)
   end
-end
-
-function Process:_cleanup(err)
-  timer.setImmediate(function()
-    if self.stdout then
-      self.stdout:_end(err) -- flush
-      self.stdout:destroy(err) -- flush
-    end
-    if self.stderr then self.stderr:destroy(err) end
-    if self.stdin then self.stdin:destroy(err) end
-  end)
 end
 
 local function spawn(command, args, options)
@@ -155,6 +143,10 @@ local function spawn(command, args, options)
   em = Process:new(stdin, stdout, stderr)
   em:setHandle(handle)
   em:setPid(pid)
+
+  if stdout then stdout:resume() end
+  if stderr then stderr:resume() end
+  if stdin then stdin:resume() end
 
   if not em.handle then
     timer.setImmediate(function()
