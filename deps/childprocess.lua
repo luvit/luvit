@@ -144,18 +144,21 @@ local function spawn(command, args, options)
   em:setHandle(handle)
   em:setPid(pid)
 
-  if stdout then stdout:resume() end
-  if stderr then stderr:resume() end
-  if stdin then stdin:resume() end
-
   if not em.handle then
     timer.setImmediate(function()
       em.exitCode = -127
       em:emit('exit', em.exitCode)
-      em:destroy(Error:new(pid))
+      em:emit('error', Error:new(pid))
+      if em.stdout then em.stdout:emit('error', Error:new(pid)) end
+      if em.stderr then em.stderr:emit('error', Error:new(pid)) end
+      if em.stdin then em.stdin:emit('error', Error:new(pid)) end
       maybeClose()
     end)
   end
+
+  if stdout then stdout:resume() end
+  if stderr then stderr:resume() end
+  if stdin then stdin:resume() end
 
   return em
 end
