@@ -25,7 +25,7 @@ return {
     "luvit/codec@2.0.0",
     "luvit/core@2.0.0",
     "luvit/dgram@2.0.0",
-    "luvit/dns@2.0.2",
+    "luvit/dns@2.0.3",
     "luvit/fs@2.0.1",
     "luvit/helpful@2.0.0",
     "luvit/hooks@2.0.0",
