@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 --[[lit-meta
   name = "luvit/dns"
-  version = "2.0.2"
+  version = "2.0.3"
   dependencies = {
     "luvit/dgram@2.0.0",
     "luvit/fs@2.0.0",
@@ -51,6 +51,7 @@ local byte = string.byte
 local gsub = string.gsub
 local sub = string.sub
 local format = string.format
+local match = string.match
 local band = bit.band
 local bor = bit.bor
 local rshift = bit.rshift
@@ -604,6 +605,20 @@ local function parse_response(buf, id, server)
 end
 
 local function _query(servers, name, dnsclass, qtype, callback)
+
+  -- Try to resolve IPs directly, without contacting DNS servers
+  if (qtype == TYPE_A and match(name, "^%d+%.%d+%.%d+%.%d+$")) -- numeric IPv4
+     or (qtype == TYPE_AAAA and match(name, "^[:%x]+$")) -- hexadecimal IPv6
+  then
+    -- Answer query 'locally', by passing suitable arguments to the callback
+    -- function. This reports a single address result, with no (`nil`) name,
+    -- an empty "server" table and a TTL of 0.
+    callback(nil, {
+      {address = name, type = qtype, class = CLASS_IN, server = {}, ttl = 0}
+    })
+    return
+  end
+
   local tries, max_tries, server, tcp_iter, udp_iter, get_server_iter
 
   tries = 1
