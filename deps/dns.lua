@@ -608,7 +608,7 @@ local function _query(servers, name, dnsclass, qtype, callback)
 
   -- Try to resolve IPs directly, without contacting DNS servers
   if (qtype == TYPE_A and match(name, "^%d+%.%d+%.%d+%.%d+$")) -- numeric IPv4
-     or (qtype == TYPE_AAAA and match(name, "^[:%x]+$")) -- hexadecimal IPv6
+     or (qtype == TYPE_AAAA and match(name, "^%x*:[.:%x]+$")) -- IPv6
   then
     -- Answer query 'locally', by passing suitable arguments to the callback
     -- function. This reports a single address result, with no (`nil`) name,
