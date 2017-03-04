@@ -55,11 +55,11 @@ require('tap')(function (test)
           end
           data = data .. chunk
           repeat
-            local event, extra = decode(data)
+            local event, extra = decode(data, 1)
             if event then
               parts[#parts + 1] = event
               if event == "" then return finish() end
-              data = extra
+              data = extra and data and data:str(extra)
             end
           until not event
         end))

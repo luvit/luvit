@@ -121,7 +121,6 @@ return require('./init')(function (...)
   if startRepl then
     local env = require('env')
     local pathJoin = require('luvi').path.join
-    local fs = require('fs')
     local c = utils.color
     local greeting = "Welcome to the " .. c("err") .. "L" .. c("quotes") .. "uv" .. c("table") .. "it" .. c() .. " repl!"
     local historyFile
@@ -130,12 +129,33 @@ return require('./init')(function (...)
     else
       historyFile = pathJoin(env.get("HOME"), ".luvit_history")
     end
-    local lines = fs.readFileSync(historyFile) or ""
+
+    local function readFile(path)
+      assert(path)
+      local data
+      local stat = uv.fs_stat(path)
+      if stat and stat.type == "file" then
+        local fd = uv.fs_open(path, "r", 511)
+        if fd then
+          data = uv.fs_read(fd, stat.size, -1)
+          uv.fs_close(fd)
+        end
+      end
+      return data
+    end
+
+    local function writeFile(path, data)
+      assert(path)
+      local fd = assert(uv.fs_open(path, "w", 511))
+      uv.fs_write(fd, data, 0)
+      uv.fs_close(fd)
+    end
+
+    local lines = readFile(historyFile) or ""
     local function saveHistory(lines)
-      fs.writeFileSync(historyFile, lines)
+      writeFile(historyFile, lines)
     end
     require('repl')(utils.stdin, utils.stdout, greeting, ...).start(lines, saveHistory)
 
   end
 end, ...)
-

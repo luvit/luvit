@@ -35,12 +35,7 @@ local pathJoin = require('luvi').path.join
 local Editor = require('readline').Editor
 local History = require('readline').History
 
-local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
-  'dgram', 'dns', 'fs', 'helpful', 'hooks', 'http-codec', 'http',
-  'https', 'json', 'los', 'net', 'pretty-print',
-  'querystring', 'readline', 'timer', 'url', 'utils',
-  'stream', 'tls', 'path'
-}
+local _builtinLibs = { 'core', 'hooks','pretty-print', 'readline', 'utils' }
 
 return function (stdin, stdout, greeting)
 

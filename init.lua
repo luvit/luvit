@@ -18,20 +18,12 @@ limitations under the License.
 local uv = require('uv')
 
 return function (main, ...)
-  -- Inject the global process table
-  _G.process = require('process').globalProcess()
 
   -- Seed Lua's RNG
   do
     local math = require('math')
     local os = require('os')
     math.randomseed(os.time())
-  end
-
-  -- Load Resolver
-  do
-    local dns = require('dns')
-    dns.loadResolver()
   end
 
   -- EPIPE ignore
@@ -52,12 +44,12 @@ return function (main, ...)
     uv.run()
   end, debug.traceback)
 
+  local exitCode
+
   if success then
-    -- Allow actions to run at process exit.
-    require('hooks'):emit('process.exit')
     uv.run()
   else
-    _G.process.exitCode = -1
+    exitCode = -1
     require('pretty-print').stderr:write("Uncaught exception:\n" .. err .. "\n")
   end
 
@@ -68,5 +60,5 @@ return function (main, ...)
   uv.run()
 
   -- Send the exitCode to luvi to return from C's main.
-  return _G.process.exitCode
+  return exitCode
 end
