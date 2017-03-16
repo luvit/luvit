@@ -43,7 +43,7 @@ require('tap')(function(test)
     end
 
     FS.fstatSync = function(fd)
-      local st = FS._fstatSync
+      local st = FS._fstatSync(fd)
       st.size = 0
       return st
     end
