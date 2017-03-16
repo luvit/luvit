@@ -77,7 +77,7 @@ return function (stdin, stdout, greeting)
   local function evaluateLine(line)
     if line == "<3" or line == "♥" or line == "❤" then
       stdout:write("I " .. c("err") .. "♥" .. c() .. " you too!\n")
-      return '>'
+      return '> '
     end
     local chunk  = buffer .. line
     local f, err = loadstring('return ' .. chunk, 'REPL') -- first we prefix return
