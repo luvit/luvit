@@ -31,9 +31,9 @@ local function httpDecoder(emit)
     if err then return emit(err) end
     input = (input and chunk) and (input .. chunk) or chunk
     repeat
-      local event, extra = decode(input)
+      local event, extra = decode(input, 1)
       if event then
-        input = extra
+        input = extra and input and input:sub(extra)
         emit(nil, event)
       end
     until not event

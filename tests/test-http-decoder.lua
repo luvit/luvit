@@ -25,10 +25,10 @@ local function testDecoder(decoder, inputs)
   local offset = 2
   local decode = decoder()
   while true do
-    local event, extra = decode(chunk)
+    local event, extra = decode(chunk, 1)
     if event then
       outputs[#outputs + 1] = event
-      chunk = extra
+      chunk = extra and chunk and chunk:sub(extra)
     else
       local more = inputs[offset]
       offset = offset + 1
