@@ -45,19 +45,12 @@ local function start(thread_func, ...)
       paths[#paths + 1] = path
     end
 
-    -- Load luvi environment
-    local _, mainRequire = require('luvibundle').commonBundle(paths)
+    -- Load luvit-loader environment
+    local bundle = require('luvibundle').commonBundle(paths)
+    loadstring(bundle.readfile("luvit-loader.lua"), "bundle:luvit-loader.lua")()
 
-    -- Inject the global process table
-    _G.process = mainRequire('process').globalProcess()
-
-    -- Run function with require injected
-    local fn = loadstring(dumped)
-    getfenv(fn).require = mainRequire
-    fn(...)
-
-    -- Start new event loop for thread.
-    require('uv').run()
+    -- Run thread in luvit environment
+    require('init')(loadstring(dumped), ...)
   end
   return uv.new_thread(thread_entry, dumped, table.concat(bundlePaths, ";"), ...)
 end
@@ -104,13 +97,11 @@ local function work(thread_func, notify_entry)
       end
 
       -- Load luvi environment
-      local _, mainRequire = require('luvibundle').commonBundle(paths)
+      local bundle = require('luvibundle').commonBundle(paths)
+      loadstring(bundle.readfile("luvit-loader.lua"), "bundle:luvit-loader.lua")()
 
       -- Inject the global process table
-      _G.process = _G.process or mainRequire('process').globalProcess()
-
-      -- require injected
-      getfenv(fn).require = mainRequire
+      _G.process = _G.process or require('process').globalProcess()
 
       -- cache it
       _G._uv_works[dumped] = fn

@@ -19,51 +19,70 @@ limitations under the License.
 
 require('tap')(function (test)
 
-  local makeRequire = require('require')
-  local pathJoin = require('luvi').path.join
-  local p = require('utils').prettyPrint
-  local base = pathJoin(module.dir, "fixtures/fake.lua")
+  local getinfo = debug.getinfo
+  local fakeGetInfo = function(thread, fn, what)
+    if type(thread) == "number" then
+      thread = thread + 1
+    end
+    local info = getinfo(thread, fn, what)
+    if info.source and info.source:sub(1,1) == "@" then
+      info.source = info.source:gsub("test%-require%.lua", "fixtures/fake.lua")
+    end
+    return info
+  end
   _G.num_loaded = 0
 
   test("native lua require should still be there", function ()
-    p(require, _G.require)
-    assert(require ~= _G.require)
+    print(require, _G.require)
+    assert(require == _G.require)
+  end)
+
+  test("required files should get their package name as ...", function ()
+    debug.getinfo = fakeGetInfo
+    local moduleKey = require('./module.lua')
+    print(moduleKey)
+    assert(moduleKey ~= nil)
+    debug.getinfo = getinfo
   end)
 
   test("relative require with extension", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     local mod1 = require('./libs/module1/init.lua')
     assert(_G.num_loaded == 1)
     assert(mod1[1] == "module1")
+    debug.getinfo = getinfo
   end)
 
   test("relative require as package with index", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     local mod1 = require('./libs/module1')
-    p(_G.num_loaded)
+    print(_G.num_loaded)
     assert(_G.num_loaded == 1)
     assert(mod1[1] == "module1")
+    debug.getinfo = getinfo
   end)
 
   test("relative require with auto-extension", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     local mod1 = require('./libs/module1/init')
     assert(_G.num_loaded == 1)
     assert(mod1[1] == "module1")
+    debug.getinfo = getinfo
   end)
 
   test("cached with different paths", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     local mod1_1 = require('./libs/module1/init.lua')
     local mod1_2 = require('./libs/module1/init')
     local mod1_3 = require('./libs/module1')
     assert(_G.num_loaded == 1)
     assert(mod1_1 == mod1_2)
     assert(mod1_2 == mod1_3)
+    debug.getinfo = getinfo
   end)
 
   test("Lots-o-requires", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     local m1 = require("module1")
     local m1_m2 = require("module1/module2")
     local m2_m2 = require("module2/module2")
@@ -79,17 +98,18 @@ require('tap')(function (test)
     assert(m1_m2 == rm1_m2 and m1_m2 == rm2sm1_m2)
     assert(m2_m2 == rm2_m2 and m2_m2 == rm1sm2_m2)
     assert(m3 == rm3)
+    debug.getinfo = getinfo
   end)
 
   test("inter-dependencies", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     local callbacks = {}
     _G.onexit = function (fn)
       callbacks[#callbacks + 1] = fn
     end
     local e = require('./a')
-    p(e)
-    p{
+    print(e)
+    print{
       A=e.A(),
       C=e.C(),
       D=e.D(),
@@ -100,8 +120,8 @@ require('tap')(function (test)
     for i = 1, #callbacks do
       callbacks[i]()
     end
-    p(e)
-    p{
+    print(e)
+    print{
       A=e.A(),
       C=e.C(),
       D=e.D(),
@@ -109,36 +129,27 @@ require('tap')(function (test)
     assert(e.A() == 'A done')
     assert(e.C() == 'C done')
     assert(e.D() == 'D done')
+    debug.getinfo = getinfo
   end)
 
-  test("circular dependencies", function ()
-    local require = makeRequire(base)
-    local parent = require('parent');
-    p(parent)
-    assert(parent.child.parent == parent)
-    local child = require('child');
-    p(child)
-    assert(child.parent.child == child)
+  test("circular dependencies throw error", function ()
+    debug.getinfo = fakeGetInfo
+    local ok, err = pcall(require, 'parent')
+    assert(not ok)
+    assert(err:find("loop or previous error"), "Wrong error. Expecting loop error, got: \n\n-----\n" .. err .. "\n-----\n")
+    print(err)
+    debug.getinfo = getinfo
   end)
 
   test("deps folder", function ()
-    local require = makeRequire(base)
+    debug.getinfo = fakeGetInfo
     _G.num_loaded = 0
     local N = require('moduleN')
-    p(N, _G.num_loaded)
+    print(N, _G.num_loaded)
     assert(_G.num_loaded == 2)
     assert(N[1] == 'moduleN')
     assert(N.M[1] == 'moduleM')
+    debug.getinfo = getinfo
   end)
 
 end)
-
-
--- -- Test native addons
--- --[[
--- local vectors = {
---   require("vector"),
---   require("vector-renamed"),
--- }
--- assert(vectors[1] == vectors[2], "Symlinks should realpath and load real module and reuse cache")
--- ]]

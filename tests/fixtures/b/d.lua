@@ -20,6 +20,7 @@ print('load fixtures/b/d.lua')
 
 local string = 'D'
 
+local exports = {}
 exports.D = function()
   return string
 end
@@ -27,3 +28,5 @@ end
 _G.onexit(function()
   string = 'D done'
 end)
+
+return exports

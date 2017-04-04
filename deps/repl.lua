@@ -29,30 +29,16 @@ limitations under the License.
   tags = {"luvit", "tty", "repl"}
 ]]
 
-local uv = require('uv')
 local utils = require('utils')
-local pathJoin = require('luvi').path.join
 local Editor = require('readline').Editor
 local History = require('readline').History
 
-local _builtinLibs = { 'buffer', 'childprocess', 'codec', 'core',
-  'dgram', 'dns', 'fs', 'helpful', 'hooks', 'http-codec', 'http',
-  'https', 'json', 'los', 'net', 'pretty-print',
-  'querystring', 'readline', 'timer', 'url', 'utils',
-  'stream', 'tls', 'path'
-}
 
 return function (stdin, stdout, greeting)
 
-  local req, mod = require('require')(pathJoin(uv.cwd(), "repl"))
-  local oldGlobal = _G
-  local global = setmetatable({
-    require = req,
-    module = mod,
-  }, {
+  setmetatable(_G, {
     __index = function (_, key)
       if key == "thread" then return coroutine.running() end
-      return oldGlobal[key]
     end
   })
 
@@ -88,7 +74,6 @@ return function (stdin, stdout, greeting)
 
 
     if f then
-      setfenv(f, global)
       buffer = ''
       local success, results = gatherResults(xpcall(f, debug.traceback))
 
@@ -129,12 +114,11 @@ return function (stdin, stdout, greeting)
     local scope
     if base then
       local f = loadstring("return " .. base)
-      setfenv(f, global)
       scope = f()
     else
       base = ''
       sep = ''
-      scope = global
+      scope = _G
     end
     local matches = {}
     local prop = sep ~= ':'
@@ -188,14 +172,6 @@ return function (stdin, stdout, greeting)
 
     editor:readLine(prompt, onLine)
 
-    -- Namespace builtin libs to make the repl easier to play with
-    -- Requires with filenames with a - in them will be camelcased
-    -- e.g. pretty-print -> prettyPrint
-    table.foreach(_builtinLibs, function(_, lib)
-      local requireName = lib:gsub('-.', function (char) return char:sub(2):upper() end)
-      local req = string.format('%s = require("%s")', requireName, lib)
-      evaluateLine(req)
-    end)
   end
 
   return {

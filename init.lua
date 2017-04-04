@@ -20,6 +20,8 @@ local uv = require('uv')
 return function (main, ...)
   -- Inject the global process table
   _G.process = require('process').globalProcess()
+  _G.p = require('pretty-print').prettyPrint
+  _G.module = require('resource')
 
   -- Seed Lua's RNG
   do

@@ -34,4 +34,6 @@ local function deep_equal(expected, actual, path)
   return true
 end
 
-exports.deep_equal = deep_equal
+return {
+  deep_equal = deep_equal
+}

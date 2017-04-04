@@ -42,7 +42,6 @@ return {
     "luvit/querystring@2.0.0",
     "luvit/readline@2.0.0",
     "luvit/repl@2.0.0",
-    "luvit/require@2.0.1",
     "luvit/resource@2.0.0",
     "luvit/stream@2.0.0",
     "luvit/thread@2.0.0",

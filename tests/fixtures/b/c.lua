@@ -26,6 +26,7 @@ print('load fixtures/b/c.lua')
 
 local string = 'C'
 
+local exports = {}
 exports.SomeClass = function()
 
 end
@@ -42,3 +43,5 @@ _G.onexit(function()
   string = 'C done'
   print('b/c.lua exit')
 end)
+
+return exports
