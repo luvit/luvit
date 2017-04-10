@@ -77,6 +77,7 @@ local STATUS_CODES = {
   [424] = 'Failed Dependency',          -- RFC 4918
   [425] = 'Unordered Collection',       -- RFC 4918
   [426] = 'Upgrade Required',           -- RFC 2817
+  [429] = 'Too Many Requests',          -- RFC 6585
   [500] = 'Internal Server Error',
   [501] = 'Not Implemented',
   [502] = 'Bad Gateway',
