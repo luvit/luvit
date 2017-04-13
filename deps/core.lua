@@ -217,18 +217,9 @@ function Emitter:listenerCount(name)
   if not handlers then
     return 0
   end
-  local handlers_for_type = rawget(handlers, name)
-  if not handlers_for_type then
-    return 0
-  else
-    local count = 0
-    for i = 1, #handlers_for_type do
-      if handlers_for_type[i] then
-        count = count + 1
-      end
-    end
-    return count
-  end
+
+  handlers = rawget(handlers, name)
+  return handlers and #handlers or 0
 end
 
 -- Emit a named event to all listeners with optional data argument(s).
@@ -238,20 +229,22 @@ function Emitter:emit(name, ...)
     self:missingHandlerType(name, ...)
     return
   end
-  local handlers_for_type = rawget(handlers, name)
-  if not handlers_for_type then
+
+  handlers = rawget(handlers, name)
+  if handlers then
+    -- avoid be removed
+    local _ = {}
+    for i=1, #handlers do
+      _[i] = handlers[i]
+    end
+    for i=1, #_ do
+      _[i](...)
+    end
+  else
     self:missingHandlerType(name, ...)
     return
   end
-  for i = 1, #handlers_for_type do
-    local handler = handlers_for_type[i]
-    if handler then handler(...) end
-  end
-  for i = #handlers_for_type, 1, -1 do
-    if not handlers_for_type[i] then
-      table.remove(handlers_for_type, i)
-    end
-  end
+
   return self
 end
 
@@ -259,24 +252,33 @@ end
 function Emitter:removeListener(name, callback)
   local handlers = rawget(self, "handlers")
   if not handlers then return end
-  local handlers_for_type = rawget(handlers, name)
-  if not handlers_for_type then return end
+
+  if not name then
+    rawset(self, "handlers", {})
+    return
+  end
+
   if callback then
-    for i = #handlers_for_type, 1, -1 do
-      local h = handlers_for_type[i]
-      if type(h) == "function" then
-        h = h == callback
-      elseif type(h) == "table" then
-        h = h == callback or h.callback == callback
+    handlers = rawget(handlers, name)
+    if not handlers then return end
+
+    for i = #handlers, 1, -1 do
+      local h = handlers[i]
+      if type(callback) == "table" then
+        -- only remove once callback table
+        h = type(h) == 'table' and h == callback or false
+      elseif type(callback) == "function" then
+        -- remove once callback table or other callback function
+        h = type(h) == 'table' and h.callback == callback or h == callback
       end
       if h then
-        handlers_for_type[i] = false
+        table.remove(handlers,i)
       end
     end
   else
-    for i = #handlers_for_type, 1, -1 do
-      handlers_for_type[i] = false
-    end
+    handlers = rawget(handlers, name)
+    if not handlers then return end
+    rawset(handlers, name, {})
   end
 end
 
@@ -286,12 +288,7 @@ function Emitter:removeAllListeners(name)
   local handlers = rawget(self, "handlers")
   if not handlers then return end
   if name then
-    local handlers_for_type = rawget(handlers, name)
-    if handlers_for_type then
-      for i = #handlers_for_type, 1, -1 do
-          handlers_for_type[i] = false
-      end
-    end
+    rawset(handlers, name, {})
   else
     rawset(self, "handlers", {})
   end
@@ -301,15 +298,7 @@ end
 --  @param {String} name event name
 function Emitter:listeners(name)
   local handlers = rawget(self, "handlers")
-  if not handlers then
-    return 0
-  end
-  local handlers_for_type = rawget(handlers, name)
-  if not handlers_for_type then
-    return {}
-  else
-    return handlers_for_type
-  end
+  return handlers and (rawget(handlers, name) or {}) or {}
 end
 
 --[[
