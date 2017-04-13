@@ -301,15 +301,7 @@ end
 --  @param {String} name event name
 function Emitter:listeners(name)
   local handlers = rawget(self, "handlers")
-  if not handlers then
-    return 0
-  end
-  local handlers_for_type = rawget(handlers, name)
-  if not handlers_for_type then
-    return {}
-  else
-    return handlers_for_type
-  end
+  return handlers and (rawget(handlers, name) or {}) or {}
 end
 
 --[[
