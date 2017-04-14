@@ -362,12 +362,11 @@ function ClientRequest:initialize(options, callback)
     socket:removeListener('error')
     socket:removeListener("data")
     socket:removeListener("end")
-    socket:removeListener(connect_emitter)
   end
 
   self.socket = socket
   socket:on('error',function(...) self:emit('error',...) end)
-  socket:on(connect_emitter, function()
+  socket:once(connect_emitter, function()
     self.connected = true
     self:emit('socket', socket)
 
