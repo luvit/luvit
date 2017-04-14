@@ -346,7 +346,7 @@ function ClientRequest:initialize(options, callback)
   self.decode = codec.decoder()
 
   local buffer = ''
-  local res
+  local res, keepAlive
 
   local function flush()
     res:push()
@@ -357,8 +357,9 @@ function ClientRequest:initialize(options, callback)
   local connect_emitter = options.connect_emitter or 'connect'
 
   self.socket = socket
-  socket:on('error',function(...) self:emit('error',...) end)
-  socket:on(connect_emitter, function()
+
+  local function onError(...) self:emit('error',...) end
+  local function onConnect()
     self.connected = true
     self:emit('socket', socket)
 
@@ -395,6 +396,8 @@ function ClientRequest:initialize(options, callback)
                   socket:unshift(buffer)
                 end
               end
+              -- Whether the server supports keepAlive connection
+              keepAlive = 'keep-alive' == string.lower(res.headers.Connection)
               -- Call the user callback to handle the response
               if callback then
                 callback(res)
@@ -434,7 +437,19 @@ function ClientRequest:initialize(options, callback)
       self:_done(self.ended.data, self.ended.cb)
     end
 
-  end)
+    self.reset = function()
+      if keepAlive then
+        socket:removeListener('data', onData)
+        socket:removeListener('end', onEnd)
+        socket:removeListener('error', onError)
+        socket:removeListener(connect_emitter, onConnect)
+        return socket
+      end
+    end
+  end
+
+  socket:on('error', onError)
+  socket:on(connect_emitter, onConnect)
 end
 
 function ClientRequest:flushHeaders()
