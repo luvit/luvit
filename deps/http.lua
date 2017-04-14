@@ -187,7 +187,9 @@ function ServerResponse:finish(chunk)
   last = last .. (self.encode("") or "")
   local function maybeClose()
     self:emit('finish')
-    self.socket:_end()
+    if not self.keepAlive then
+      self.socket:_end()
+    end
     collectgarbage()
   end
   if #last > 0 then
