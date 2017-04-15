@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/require"
-  version = "2.0.3"
+  version = "2.1.0"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
   description = "Luvit's custom require system with relative requires and sane search paths."
   tags = {"luvit", "require"}
@@ -166,12 +166,6 @@ end
 local skips = {}
 local function moduleRequire(base, name)
   assert(base and name)
-  -- Look in bundle first to avoid conflicts when developing luvi apps.
-  if not base:match("^bundle:/*") then
-    local mod, path, key
-    mod, path, key = moduleRequire("bundle:", name)
-    if mod then return mod, path, key end
-  end
   while true do
     if not skips[base] then
       local mod, path, key
