@@ -868,10 +868,8 @@ local function loadResolverUnix(options)
     if not (line:match('^#') or line:match('^;'))  then
       local ip = line:match('^nameserver%s+([a-fA-F0-9:\\.]+)')
       if ip then
-        local server = {}
-        server.host = ip
-        server.port = 53
-        table.insert(servers, server)
+        ip = ip:match('^%s*(.*%S)')
+        table.insert(servers, { host = ip, port = 53})
       end
     end
   end
