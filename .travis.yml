@@ -18,7 +18,8 @@ script:
   - RESULT=0
   - make
   - make test || RESULT=$?
-  - for i in $(find ./ -maxdepth 1 -name 'core*' -print); do gdb $(pwd) core* -ex "thread apply all bt" -ex "set pagination 0" -batch; done
+  - for i in $(find . -name 'core*' -print); do gdb luvit -c $i -ex "thread apply all bt" -ex "set pagination 0" -batch; done
+  - ls -l
   - if [[ ${RESULT} != 0 ]]; then exit $RESULT ; fi
 
 notifications:
