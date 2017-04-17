@@ -1,6 +1,7 @@
 local spawn = require('childprocess').spawn
 local los = require('los')
 local net = require('net')
+local path = require('path')
 local uv = require('uv')
 
 require('tap')(function(test)
@@ -163,6 +164,29 @@ require('tap')(function(test)
     end
     child:on('data', onData)
     child:on('close', expect(function(exitCode) assert(exitCode == 0) end))
+  end)
+
+  test('child process (stdout and lots of processes)', function(expect)
+    if los.type() == 'win32' then return end
+    local count = 40
+    local function createChild(k)
+      local buffer = {}
+      local function onExit(code)
+        print('exit', code)
+        assert(code == 0)
+        assert(#table.concat(buffer) == 2400013)
+      end
+      local function onData(data)
+        buffer[#buffer + 1] = data
+      end
+      local child = spawn(path.join(module.dir, 'fixtures', 'lots_of_data.sh'))
+      child.stdout:on('data', onData)
+      child:on('exit', expect(onExit))
+    end
+    for k=1, count do
+      print('spawning', k)
+      createChild(k)
+    end
   end)
 end)
 
