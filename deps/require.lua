@@ -62,7 +62,7 @@ local function readFile(path)
       end
     end
   end
-  fileCache[path] = data and true or false
+  fileCache[path] = data or false
   return data
 end
 
