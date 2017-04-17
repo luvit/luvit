@@ -98,7 +98,7 @@ local function work(thread_func, notify_entry)
       fn = loadstring(dumped)
 
       -- Convert paths back to table
-      local paths = {}
+      local paths = { require('uv').cwd() }
       for path in bundlePaths:gmatch("[^;]+") do
         paths[#paths + 1] = path
       end
@@ -118,7 +118,9 @@ local function work(thread_func, notify_entry)
       fn = _G._uv_works[dumped]
     end
     -- Run function
-
+    if not _G.process then
+      _G.process = require('process').globalProcess()
+    end
     return fn(...)
   end
 
