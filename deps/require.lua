@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/require"
-  version = "2.1.0"
+  version = "2.2.0"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/require.lua"
   description = "Luvit's custom require system with relative requires and sane search paths."
   tags = {"luvit", "require"}
