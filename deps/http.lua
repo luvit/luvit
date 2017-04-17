@@ -74,16 +74,6 @@ function ServerResponse:initialize(socket)
   self.statusCode = 200
   self.headersSent = false
   self.headers = httpHeader.newHeaders()
-
-  local extra = self._extra_http or {}
-  self._extra_http = extra
-  for _, evt in pairs({'close', 'drain', 'end' }) do
-    if extra[evt] then
-      self.socket:removeListener(evt,extra[evt])
-    end
-    extra[evt] = utils.bind(self.emit, self, evt)
-    self.socket:on(evt, extra[evt])
-  end
 end
 
 -- Override this in the instance to not send the date
