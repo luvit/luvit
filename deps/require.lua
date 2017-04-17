@@ -179,9 +179,16 @@ local function moduleRequire(base, name)
       end
     end
 
-    -- Stop at filesystem or prefix root (58 is ":")
-    if base == "/" or base:byte(-1) == 58 then break end
-    base = pathJoin(base, "..")
+    if base == "/" then
+      -- If we reach filesystem root, look in root on bundle
+      base = "bundle:"
+    elseif base:byte(-1) == 58 then
+      -- If we reach root of bundle, it doesn't exist
+      break
+    else
+      -- Otherwise, keep going higher
+      base = pathJoin(base, "..")
+    end
   end
 end
 
