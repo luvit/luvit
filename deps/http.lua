@@ -262,7 +262,14 @@ local function handleConnection(socket, onRequest)
             break
           else
             -- Call the user callback to handle the request
-            onRequest(req, res)
+            if req.method=='POST' then
+              req:on('data',function(body)
+                req.body = body
+                onRequest(req, res)
+              end)
+            else
+              onRequest(req, res)
+            end
           end
         elseif req and type(event) == "string" then
           if #event == 0 then
