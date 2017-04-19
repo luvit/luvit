@@ -1,7 +1,9 @@
 -- This is a partial port of the built-in fs module as continuable format
 
 local native = require('uv')
-local iStream = require('stream').iStream
+local Emitter = require('core').Emitter
+
+local iStream = Emitter:extend()
 
 local fs = {}
 
