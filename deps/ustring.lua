@@ -125,6 +125,7 @@ function ustring.uindex2index(ustr,uindex,initrawindex,inituindex)
     -- convert the index of a UIF-8 char into a raw index
     -- return `nil` if rawindex is invaild
     -- the last 2 arguments are optional and used for better performance (only if uindex isn't negative)
+    uindex = uindex or 1
     local ulen = #ustr
     if uindex < 0 then
         local index = 0
