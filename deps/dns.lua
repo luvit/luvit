@@ -60,6 +60,7 @@ local insert = table.insert
 local concat = table.concat
 local ipapi
 
+
 if _G._luvit_dns_load then
   ipapi = _G._luvit_dns_load
 elseif ffi.os=='Windows' then
