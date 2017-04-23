@@ -58,6 +58,7 @@ require('tap')(function(test)
     function onEnd()
       assert(data:find('TEST1=1'))
       p('found')
+      child.stdin:destroy()
     end
 
     child.stdout:once('end', expect(onEnd))

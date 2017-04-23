@@ -60,7 +60,10 @@ local insert = table.insert
 local concat = table.concat
 local ipapi
 
-if ffi.os=='Windows' then
+
+if _G._luvit_dns_load then
+  ipapi = _G._luvit_dns_load
+elseif ffi.os=='Windows' then
   ffi.cdef[[
     typedef uint32_t DWORD; //Integer
     typedef uint32_t ULONG; //Alias
@@ -102,6 +105,7 @@ if ffi.os=='Windows' then
   ]]
 
   ipapi = ffi.load('Iphlpapi.dll')
+  _G._luvit_dns_load = ipapi
 end
 
 local DEFAULT_SERVERS = {

@@ -34,7 +34,7 @@ end
 
 require('tap')(function(test)
   test('ustring', function(expect)
-    
+
     -- construct & tostring
     local r = "abc123\11\27\0中文-日本語-한국❤😘😄💎💛"
     local u = ustring.new(r)
@@ -49,13 +49,13 @@ require('tap')(function(test)
     assert(compareTable(u2,u))
     assert(compareTable(u2,e))
     assert(u2 == u) -- __eq
-    
+
     -- uindex
-    assert(u:uindex(13) == 11)
-    assert(u:uindex(43) == 21)
-    assert(u:uindex(13,10,10) == 11)
-    assert(u:uindex(43,39,20) == 21)
-    
+    assert(u:index2uindex(13) == 11)
+    assert(u:index2uindex(43) == 21)
+    assert(u:index2uindex(13,10,10) == 11)
+    assert(u:index2uindex(43,39,20) == 21)
+
     -- other
     local u = ustring.new "xx中x中😄" .. ustring.new "文💛"
     assert(tostring(u) == "xx中x中😄文💛")
