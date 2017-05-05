@@ -70,7 +70,7 @@ local function parse(url, parseQueryString)
   url = url:sub((chunk and #chunk or 0) + 1)
 
   local auth
-  chunk, auth = url:match('(([0-9a-zA-Z]+:?[0-9a-zA-Z]+)@)')
+  chunk, auth = url:match('(([%w%p]+:?[%w%p]+)@)')
   url = url:sub((chunk and #chunk or 0) + 1)
 
   local host
