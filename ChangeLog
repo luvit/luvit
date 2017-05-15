@@ -5,6 +5,7 @@
  - require: Fix bundle requires on Windows [Squeek]
  - Support punctuation in http credentials [Charles Farquhar]
  - Update lit to 3.5.4 [Tim Caswell]
+ - Revert fs change that broke readstreams [Tim Caswell]
 
 # Changes in 2.12.1
 
