@@ -1,3 +1,11 @@
+# Changes in 2.14.1
+
+ - dns: Allow ip addresses in dns resolve to resolve internally. [NiteHawk]
+ - http-codec: Add HTTP status codes of RFC 6585 [Navid]
+ - require: Fix bundle requires on Windows [Squeek]
+ - Support punctuation in http credentials [Charles Farquhar]
+ - Update lit to 3.5.4 [Tim Caswell]
+
 # Changes in 2.12.1
 
  - childprocess: Fix spawn to cleanup correctly (Ryan Phillips)
