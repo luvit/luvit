@@ -658,17 +658,18 @@ function fs.ReadStream:_read(n)
     end
   end
 
-  local bytes,err = fs.readSync(self.fd, to_read, self.offset)
-  if err then return self:destroy(err) end
-  if #bytes > 0 then
-    self.bytesRead = self.bytesRead + #bytes
-    if self.offset then
-      self.offset = self.offset + #bytes
+  fs.read(self.fd, to_read, self.offset, function(err, bytes)
+    if err then return self:destroy(err) end
+    if #bytes > 0 then
+      self.bytesRead = self.bytesRead + #bytes
+      if self.offset then
+        self.offset = self.offset + #bytes
+      end
+      self:push(bytes)
+    else
+      self:push()
     end
-    self:push(bytes)
-  else
-    self:push()
-  end
+  end)
 end
 function fs.ReadStream:close()
   self:destroy()
