@@ -126,6 +126,7 @@ function ustring.uindex2index(ustr,uindex,initrawindex,inituindex)
     -- the last 2 arguments are optional and used for better performance (only if uindex isn't negative)
     uindex = uindex or 1
     local ulen = #ustr
+    uindex = uindex or 1
     if uindex < 0 then
         local index = 0
         for i = ulen,ulen + uindex + 1,-1 do
