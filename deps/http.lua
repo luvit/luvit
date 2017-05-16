@@ -74,16 +74,6 @@ function ServerResponse:initialize(socket)
   self.statusCode = 200
   self.headersSent = false
   self.headers = httpHeader.newHeaders()
-
-  local extra = self._extra_http or {}
-  self._extra_http = extra
-  for _, evt in pairs({'close', 'drain', 'end' }) do
-    if extra[evt] then
-      self.socket:removeListener(evt,extra[evt])
-    end
-    extra[evt] = utils.bind(self.emit, self, evt)
-    self.socket:on(evt, extra[evt])
-  end
 end
 
 -- Override this in the instance to not send the date
@@ -187,7 +177,9 @@ function ServerResponse:finish(chunk)
   last = last .. (self.encode("") or "")
   local function maybeClose()
     self:emit('finish')
-    self.socket:_end()
+    if not self.keepAlive then
+      self.socket:_end()
+    end
     collectgarbage()
   end
   if #last > 0 then
@@ -346,7 +338,7 @@ function ClientRequest:initialize(options, callback)
   self.decode = codec.decoder()
 
   local buffer = ''
-  local res
+  local res, keepAlive
 
   local function flush()
     res:push()
@@ -357,8 +349,9 @@ function ClientRequest:initialize(options, callback)
   local connect_emitter = options.connect_emitter or 'connect'
 
   self.socket = socket
-  socket:on('error',function(...) self:emit('error',...) end)
-  socket:on(connect_emitter, function()
+
+  local function onError(...) self:emit('error',...) end
+  local function onConnect()
     self.connected = true
     self:emit('socket', socket)
 
@@ -395,6 +388,8 @@ function ClientRequest:initialize(options, callback)
                   socket:unshift(buffer)
                 end
               end
+              -- Whether the server supports keepAlive connection
+              keepAlive = 'keep-alive' == string.lower(res.headers.Connection)
               -- Call the user callback to handle the response
               if callback then
                 callback(res)
@@ -434,7 +429,19 @@ function ClientRequest:initialize(options, callback)
       self:_done(self.ended.data, self.ended.cb)
     end
 
-  end)
+    self.reset = function()
+      if keepAlive then
+        socket:removeListener('data', onData)
+        socket:removeListener('end', onEnd)
+        socket:removeListener('error', onError)
+        socket:removeListener(connect_emitter, onConnect)
+        return socket
+      end
+    end
+  end
+
+  socket:on('error', onError)
+  socket:on(connect_emitter, onConnect)
 end
 
 function ClientRequest:flushHeaders()
