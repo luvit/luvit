@@ -187,7 +187,9 @@ function ServerResponse:finish(chunk)
   last = last .. (self.encode("") or "")
   local function maybeClose()
     self:emit('finish')
-    self.socket:_end()
+    if not self.keepAlive then
+      self.socket:_end()
+    end
     collectgarbage()
   end
   if #last > 0 then
@@ -356,9 +358,15 @@ function ClientRequest:initialize(options, callback)
   local socket = options.socket or net.createConnection(self.port, self.host)
   local connect_emitter = options.connect_emitter or 'connect'
 
+  if options.socket then
+    socket:removeListener('error')
+    socket:removeListener("data")
+    socket:removeListener("end")
+  end
+
   self.socket = socket
   socket:on('error',function(...) self:emit('error',...) end)
-  socket:on(connect_emitter, function()
+  socket:once(connect_emitter, function()
     self.connected = true
     self:emit('socket', socket)
 
@@ -433,8 +441,11 @@ function ClientRequest:initialize(options, callback)
     if self.ended then
       self:_done(self.ended.data, self.ended.cb)
     end
-
   end)
+
+  if options.socket then
+    socket:emit(connect_emitter)
+  end
 end
 
 function ClientRequest:flushHeaders()
