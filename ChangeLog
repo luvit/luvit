@@ -1,3 +1,7 @@
+# Changes in 2.14.2
+
+ - tls: add servername to TLS options [Ryan Phillips]
+
 # Changes in 2.14.1
 
  - dns: Allow ip addresses in dns resolve to resolve internally. [NiteHawk]
