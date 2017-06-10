@@ -57,7 +57,7 @@ require('tap')(function (test)
 
   local serverResults = {}
   local clientResults = {}
-  test("tls sni server cleint", function()
+  test("tls sni server client", function()
     local server
     server = tls.createServer(options, function(conn)
       p(conn.ssl:get('hostname'))
