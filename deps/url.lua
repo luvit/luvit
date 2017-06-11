@@ -169,7 +169,7 @@ local function format(parsed)
 
   -- urlencode # and ? characters only
   pathname = string.gsub(pathname, '([?#])', function(c)
-    return string.format('%%%02X', byte(c))
+    return string.format('%%%02X', string.byte(c))
   end)
 
   -- add slashes
