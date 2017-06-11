@@ -56,7 +56,10 @@ return function (stdin, stdout, greeting)
     end
   })
 
-  if greeting then stdout:write(greeting .. '\n') end
+  if greeting then
+    stdout:write(greeting)
+    stdout:write('\n')
+  end
 
   local c = utils.color
 
@@ -69,7 +72,8 @@ return function (stdin, stdout, greeting)
     for i = 1, results.n do
       results[i] = utils.dump(results[i])
     end
-    stdout:write(table.concat(results, '\t') .. '\n')
+    stdout:write(table.concat(results, '\t'))
+    stdout:write('\n')
   end
 
   local buffer = ''
@@ -99,7 +103,8 @@ return function (stdin, stdout, greeting)
         end
       elseif type(results[1]) == 'string' then
         -- error
-        stdout:write(results[1] .. '\n')
+        stdout:write(results[1])
+        stdout:write('\n')
       else
         -- error calls with non-string message objects will pass through debug.traceback without a stacktrace added
         stdout:write('error with unexpected error message type (' .. type(results[1]) .. '), no stacktrace available\n')
@@ -111,7 +116,8 @@ return function (stdin, stdout, greeting)
         buffer = chunk .. '\n'
         return '>> '
       else
-        stdout:write(err .. '\n')
+        stdout:write(err)
+        stdout:write('\n')
         buffer = ''
       end
     end
