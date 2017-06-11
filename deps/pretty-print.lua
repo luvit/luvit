@@ -106,7 +106,6 @@ function strip(str)
   return string.gsub(str, '\027%[[^m]*m', '')
 end
 
-
 function loadColors(index)
   if index == nil then index = defaultTheme end
 
@@ -318,10 +317,6 @@ function prettyPrint(...)
   end
   uv.write(stdout, table.concat(arguments, "\t"))
   uv.write(stdout, "\n")
-end
-
-function strip(str)
-  return string.gsub(str, '\027%[[^m]*m', '')
 end
 
 if uv.guess_handle(0) == 'tty' then
