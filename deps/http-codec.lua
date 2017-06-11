@@ -109,10 +109,10 @@ local function encoder()
     if item.method then
       local path = item.path
       assert(path and #path > 0, "expected non-empty path")
-      head = { item.method, ' ', item.path, ' HTTP/', version, '\r\n' }
+      head = { item.method .. ' ' .. item.path .. ' HTTP/' .. version .. '\r\n' }
     else
       local reason = item.reason or STATUS_CODES[item.code]
-      head = { 'HTTP/', version, ' ', item.code, ' ', reason, '\r\n' }
+      head = { 'HTTP/' .. version .. ' ' .. item.code .. ' ' .. reason .. '\r\n' }
     end
     for i = 1, #item do
       local key, value = unpack(item[i])
