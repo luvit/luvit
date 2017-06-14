@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/url"
-  version = "2.1.1"
+  version = "2.1.2"
   dependencies = {
     "luvit/querystring@2.0.0",
   }

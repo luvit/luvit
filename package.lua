@@ -27,7 +27,7 @@ return {
     "luvit/dgram@2.0.0",
     "luvit/dns@2.0.3",
     "luvit/fs@2.0.1",
-    "luvit/helpful@2.0.0",
+    "luvit/helpful@2.0.1",
     "luvit/hooks@2.0.0",
     "luvit/http@2.1.1",
     "luvit/http-codec@2.0.0",
@@ -41,7 +41,7 @@ return {
     "luvit/process@2.0.0",
     "luvit/querystring@2.0.0",
     "luvit/readline@2.0.0",
-    "luvit/repl@2.0.0",
+    "luvit/repl@2.1.2",
     "luvit/require@2.2.0",
     "luvit/resource@2.0.0",
     "luvit/stream@2.0.0",
@@ -49,7 +49,7 @@ return {
     "luvit/timer@2.0.0",
     "luvit/tls@2.1.1",
     "luvit/utils@2.0.0",
-    "luvit/url@2.0.0",
+    "luvit/url@2.1.2",
     "luvit/ustring@2.0.0"
   },
   files = {
