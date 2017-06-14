@@ -106,7 +106,6 @@ function strip(str)
   return string.gsub(str, '\027%[[^m]*m', '')
 end
 
-
 function loadColors(index)
   if index == nil then index = defaultTheme end
 
@@ -236,10 +235,14 @@ function dump(value, recurse, nocolor)
   local function process(localValue)
     local typ = type(localValue)
     if typ == 'string' then
-      if string.match(localValue, "'") and not string.match(localValue, '"') then
-        write(dquote .. string.gsub(localValue, '[%c\\\128-\255]', stringEscape) .. dquote2)
+      if string.find(localValue, "'") and not string.find(localValue, '"') then
+        write(dquote)
+        write(string.gsub(localValue, '[%c\\\128-\255]', stringEscape))
+        write(dquote2)
       else
-        write(quote .. string.gsub(localValue, "[%c\\'\128-\255]", stringEscape) .. quote2)
+        write(quote)
+        write(string.gsub(localValue, "[%c\\'\128-\255]", stringEscape))
+        write(quote2)
       end
     elseif typ == 'table' and not seen[localValue] then
       if not recurse then seen[localValue] = true end
@@ -258,12 +261,14 @@ function dump(value, recurse, nocolor)
           nextIndex = k + 1
           process(v)
         else
-          if type(k) == "string" and string.find(k,"^[%a_][%a%d_]*$") then
-            write(colorize("property", k) .. equals)
+          if type(k) == "string" and string.find(k, "^[%a_][%a%d_]*$") then
+            write(colorize("property", k))
+            write(equals)
           else
             write(obracket)
             process(k)
-            write(cbracket .. equals)
+            write(cbracket)
+            write(equals)
           end
           if type(v) == "table" then
             process(v)
@@ -288,7 +293,7 @@ function dump(value, recurse, nocolor)
   end
 
   process(value)
-  local s =  table.concat(output, "")
+  local s = table.concat(output)
   return nocolor and strip(s) or s
 end
 
@@ -300,22 +305,18 @@ function _G.print(...)
   for i = 1, n do
     arguments[i] = tostring(arguments[i])
   end
-  uv.write(stdout, table.concat(arguments, "\t") .. "\n")
+  uv.write(stdout, table.concat(arguments, "\t"))
+  uv.write(stdout, "\n")
 end
 
 function prettyPrint(...)
   local n = select('#', ...)
-  local arguments = { ... }
-
+  local arguments = {...}
   for i = 1, n do
     arguments[i] = dump(arguments[i])
   end
-
-  print(table.concat(arguments, "\t"))
-end
-
-function strip(str)
-  return string.gsub(str, '\027%[[^m]*m', '')
+  uv.write(stdout, table.concat(arguments, "\t"))
+  uv.write(stdout, "\n")
 end
 
 if uv.guess_handle(0) == 'tty' then
@@ -331,7 +332,7 @@ if uv.guess_handle(1) == 'tty' then
   if width == 0 then width = 80 end
   -- auto-detect when 16 color mode should be used
   local term = getenv("TERM")
-  if term and (term == 'xterm' or term:match'-256color$') then
+  if term and (term == 'xterm' or term:find'-256color$') then
     defaultTheme = 256
   else
     defaultTheme = 16
