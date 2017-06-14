@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/pretty-print"
-  version = "2.0.0"
+  version = "2.0.1"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
   description = "A lua value pretty printer and colorizer for terminals."
   tags = {"colors", "tty"}

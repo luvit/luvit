@@ -37,7 +37,7 @@ return {
     "luvit/los@2.0.0",
     "luvit/net@2.0.0",
     "luvit/path@2.0.0",
-    "luvit/pretty-print@2.0.0",
+    "luvit/pretty-print@2.0.1",
     "luvit/process@2.0.0",
     "luvit/querystring@2.0.0",
     "luvit/readline@2.0.0",
