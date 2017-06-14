@@ -1,5 +1,6 @@
 # Changes in 2.14.2
 
+ - print: Miscellaneous fixes and optimizations (#992) [SinisterRectus]
  - tls: add servername to TLS options [Ryan Phillips]
 
 # Changes in 2.14.1
