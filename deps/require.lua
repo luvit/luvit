@@ -190,6 +190,12 @@ local function moduleRequire(base, name)
       base = pathJoin(base, "..")
     end
   end
+  -- Look in bundle first to avoid conflicts when developing luvi apps.
+  if not base:match("^bundle:/*") then
+    local mod, path, key
+    mod, path, key = moduleRequire("bundle:", name)
+    if mod then return mod, path, key end
+  end
 end
 
 
