@@ -78,7 +78,7 @@ local function connect(options, callback)
   callback = callback or function() end
   options = extend({}, DEFAULT_OPTIONS, options or {})
   port = options.port
-  hostname = options.host or options.servername
+  hostname = options.hostname or options.servername
   if not options.servername then
     options.servername = hostname
   end
