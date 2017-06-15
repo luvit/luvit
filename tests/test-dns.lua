@@ -106,6 +106,7 @@ require('tap')(function (test)
     end))
   end)
   test("resolveTxtTCP", function (expect)
+    if require('os').getenv('TRAVIS') then return end
     dns.setTimeout(2000)
     dns.setServers( { { ['host'] = '8.8.8.8', ['port'] = 53, ['tcp'] = true } } )
     dns.resolveTxt('lit.luvit.io', expect(function(err, answers)
