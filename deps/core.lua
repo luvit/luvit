@@ -22,7 +22,7 @@ module.
 ]]
 --[[lit-meta
   name = "luvit/core"
-  version = "2.0.0"
+  version = "2.0.1"
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/core.lua"
   description = "Core object model for luvit using simple prototypes and inheritance."
