@@ -82,7 +82,10 @@ Timer.now = uv.now
 
 local function sleep(delay, thread)
   thread = thread or coroutine.running()
-  uv.new_timer():start(delay, 0, function ()
+  local timer = uv.new_timer()
+  uv.timer_start(timer, delay, 0, function ()
+    uv.timer_stop(timer)
+    uv.close(timer)
     return assert(coroutine.resume(thread))
   end)
   return coroutine.yield()
