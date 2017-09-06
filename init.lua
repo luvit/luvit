@@ -61,9 +61,18 @@ return function (main, ...)
     require('pretty-print').stderr:write("Uncaught exception:\n" .. err .. "\n")
   end
 
-  -- When the loop exits, close all unclosed uv handles.
+  -- When the loop exits, close all unclosed uv handles (flushing any streams found).
   uv.walk(function (handle)
-    if handle and not handle:is_closing() then handle:close() end
+    if handle then
+      local function close()
+        if not handle:is_closing() then handle:close() end
+      end
+      if handle.shutdown then
+        handle:shutdown(close)
+      else
+        close()
+      end
+    end
   end)
   uv.run()
 
