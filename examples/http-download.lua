@@ -3,7 +3,7 @@ local http = require('http')
 
 local req
 req = http.request('https://luvit.io/logo-white.svg', function(res)
-  p("on_connect", {status_code = res.status_code, headers = res.headers})
+  p("on_connect", {statusCode = res.statusCode, headers = res.headers})
   res:on('data', function (chunk)
     p("on_data", #chunk)
   end)
