@@ -124,6 +124,31 @@ local function exit(self, code)
   process.stderr:_end()
 end
 
+-- Returns the resident set size of the current process in bytes
+local function memoryUsage(self)
+  return uv.resident_set_memory()
+end
+
+local MICROS_PER_SEC = 1000000
+
+-- Returns the user and system CPU time usage of the current process in microseconds
+-- (as a table of the format {user=value, system=value})
+-- The result of a previous call to process:cpuUsage() can optionally be passed as 
+-- an argument to get a diff reading
+local function cpuUsage(self, prevValue)
+  local rusage, err = uv.getrusage()
+  if not rusage then
+    return nil, err
+  end
+  local user = MICROS_PER_SEC * rusage.utime.sec + rusage.utime.usec
+  local system = MICROS_PER_SEC * rusage.stime.sec + rusage.stime.usec
+  if prevValue then
+    user = user - prevValue.user
+    system = system - prevValue.system
+  end
+  return {user=user, system=system}
+end
+
 local UvStreamWritable = Writable:extend()
 function UvStreamWritable:initialize(handle)
   Writable.initialize(self)
@@ -173,6 +198,8 @@ local function globalProcess()
   process.pid = uv.getpid()
   process.on = on
   process.exit = exit
+  process.memoryUsage = memoryUsage
+  process.cpuUsage = cpuUsage
   process.removeListener = removeListener
   process.stdin = UvStreamReadable:new(pp.stdin)
   process.stdout = UvStreamWritable:new(pp.stdout)
