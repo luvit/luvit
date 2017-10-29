@@ -124,9 +124,16 @@ local function exit(self, code)
   process.stderr:_end()
 end
 
--- Returns the resident set size of the current process in bytes
+-- Returns the memory usage of the current process in bytes
+-- in the form of a table with the structure:
+--  { rss = value, heapUsed = value }
+-- where rss is the resident set size for the current process,
+-- and heapUsed is the memory used by the Lua VM
 local function memoryUsage(self)
-  return uv.resident_set_memory()
+  return {
+    rss = uv.resident_set_memory(),
+    heapUsed = collectgarbage("count")*1024
+  }
 end
 
 local MICROS_PER_SEC = 1000000
