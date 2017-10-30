@@ -165,5 +165,45 @@ require('tap')(function(test)
     child:on('data', onData)
     child:on('close', expect(function(exitCode) assert(exitCode == 0) end))
   end)
+
+  test('cpu usage', function(expect)
+    local start = process:cpuUsage()
+    local RUN_FOR_MS = 500
+    local SLOP_FACTOR = 2
+    local MICROSECONDS_PER_MILLISECOND = 1000
+
+    -- Run a busy loop
+    local now = uv.now()
+    while (uv.now() - now < RUN_FOR_MS) do uv.update_time() end
+
+    local diff = process:cpuUsage(start)
+    p(diff)
+
+    assert(diff.user >= 0)
+    assert(diff.user <= SLOP_FACTOR * RUN_FOR_MS * MICROSECONDS_PER_MILLISECOND)
+
+    assert(diff.system >= 0)
+    assert(diff.system <= SLOP_FACTOR * RUN_FOR_MS * MICROSECONDS_PER_MILLISECOND)
+  end)
+
+  test('cpu usage diff', function(expect)
+    -- cpuUsage diffs should always be >= 0
+    for i=1,10 do
+      local usage = process:cpuUsage()
+      local diffUsage = process:cpuUsage(usage)
+      assert(diffUsage.user >= 0)
+      assert(diffUsage.system >= 0)
+    end
+  end)
+
+  test('memory usage', function(expect)
+    local memory = process:memoryUsage()
+    assert(type(memory) == "table")
+    assert(type(memory.rss) == "number")
+    assert(memory.rss >= 0)
+    assert(type(memory.heapUsed) == "number")
+    assert(memory.heapUsed >= 0)
+    p(memory)
+  end)
 end)
 
