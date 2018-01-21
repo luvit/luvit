@@ -204,7 +204,7 @@ local function decoder()
     -- Parse the header lines
     while true do
       local key, value
-      _, offset, key, value = find(chunk, "^([^:\r\n]+): *([^\r\n]+)\r?\n", offset + 1)
+      _, offset, key, value = find(chunk, "^([^:\r\n]+): *([^\r\n]*)\r?\n", offset + 1)
       if not offset then break end
       local lowerKey = lower(key)
 
