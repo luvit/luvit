@@ -731,12 +731,17 @@ function Readable:unpipe(dest)
   --[[
   // try to find the right one.
   --]]
-  local i = state.pipes.indexOf(dest)
-  if i == -1 then
+  local i
+  for j, pipe in ipairs(state.pipes) do
+    if pipe == dest then
+      i = j
+    end
+  end
+  if i == nil then
     return self
   end
 
-  state.pipes.splice(i, 1)
+  table.remove(state.pipes, i)
   state.pipesCount = state.pipesCount - 1
   if state.pipesCount == 1 then
     state.pipes = state.pipes[1]
