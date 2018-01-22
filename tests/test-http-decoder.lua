@@ -74,6 +74,22 @@ require('tap')(function (test)
     }, output))
   end)
 
+  test("http client parser with an empty value", function ()
+    local output = testDecoder(decoder, {
+      "HTTP/1.0 200 OK\r\n",
+      "X-Empty-Value:\r\n",
+      "User-Agent: Luvit-Test\r\n\r\n"
+    })
+    p(output)
+    assert(deepEqual({
+      { code = 200, reason = "OK", version = 1.0, keepAlive = false,
+        {"X-Empty-Value", ""},
+        {"User-Agent", "Luvit-Test"}
+      },
+      ""
+    }, output))
+  end)
+
 
   test("http 1.0 Keep-Alive", function ()
     local output = testDecoder(decoder, {
