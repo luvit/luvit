@@ -39,7 +39,7 @@ require('tap')(function (test)
   local kpub = openssl.pkey.read(RSA_PUBLIC_KEY)
   local sha256 = openssl.digest.get("sha256")
 
-  assert(kpub:export({pem = true}) == RSA_PUBLIC_KEY)
+  assert(kpub:export('pem') == RSA_PUBLIC_KEY)
 
   test("test digests", function()
     local hash = 'da0fd2505f0fc498649d6cf9abc7513be179b3295bb1838091723b457febe96a'
