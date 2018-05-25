@@ -251,7 +251,6 @@ function Socket:listen(queueSize)
   queueSize = queueSize or 128
   function onListen()
     local client = uv.new_tcp()
-    uv.tcp_keepalive(self._handle, true, 60)
     uv.tcp_keepalive(client, true, 60)
     uv.accept(self._handle, client)
     self:emit('connection', Socket:new({ handle = client }))
