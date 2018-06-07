@@ -199,7 +199,7 @@ function Socket:connect(...)
     self._handle = uv.new_tcp()
   end
 
-  uv.getaddrinfo(options.host, options.port, { socktype = "stream" }, function(err, res)
+  local _, derr = uv.getaddrinfo(options.host, options.port, { socktype = "stream" }, function(err, res)
     timer.active(self)
     if err then
       return self:destroy(err)
@@ -215,6 +215,9 @@ function Socket:connect(...)
       if callback then callback() end
     end)
   end)
+  if derr ~= nil then
+    return self:destroy(derr)
+  end
 
   return self
 end
