@@ -205,7 +205,7 @@ function Socket:connect(...)
       return self:destroy(err)
     end
     if self.destroyed then return end
-    uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
+    local _, terr = uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
       if err then
         return self:destroy(err)
       end
@@ -214,6 +214,9 @@ function Socket:connect(...)
       self:emit('connect')
       if callback then callback() end
     end)
+    if terr ~= nil then
+      self:destroy(terr)
+    end
   end)
 
   return self
