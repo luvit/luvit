@@ -135,8 +135,11 @@ return function (stdin, stdout, greeting)
     local scope
     if base then
       local f = loadstring("return " .. base)
+      if not f then return {} end
       setfenv(f, global)
-      scope = f()
+      local ok
+      ok, scope = pcall(f)
+      if not ok then return {} end
     else
       base = ''
       sep = ''
