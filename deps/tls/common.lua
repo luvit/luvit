@@ -153,8 +153,8 @@ function TLSSocket:_init()
   self.ssl = self.ctx.context:ssl(self.inp, self.out, self.server)
 
   if (not self.server) then
-    if self.options.servername then
-      self.ssl:set('hostname',self.options.servername)
+    if self.options.hostname then
+      self.ssl:set('hostname',self.options.hostname)
     end
     if self.ctx.session then
       self.ssl:session(self.ctx.session)
@@ -307,7 +307,7 @@ function TLSSocket:flush(callback)
 end
 
 function TLSSocket:_write(data, callback)
-  local ret, i, err
+  local ret, err
   if not self.ssl or self.destroyed or self._shutdown or not self._connected then
     return
   end

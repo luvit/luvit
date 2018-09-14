@@ -78,10 +78,7 @@ local function connect(options, callback)
   callback = callback or function() end
   options = extend({}, DEFAULT_OPTIONS, options or {})
   port = options.port
-  hostname = options.host or options.servername
-  if not options.servername then
-    options.servername = hostname
-  end
+  hostname = options.host or options.hostname
 
   sock = _common_tls.TLSSocket:new(nil, options)
   sock:connect(port, hostname, callback)
