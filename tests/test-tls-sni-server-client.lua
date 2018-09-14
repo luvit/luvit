@@ -39,19 +39,19 @@ require('tap')(function (test)
       key = fixture.loadPEM('agent1-key'),
       cert = fixture.loadPEM('agent1-cert'),
       ca = fixture.loadPEM('ca1-cert'),
-      servername = 'a.example.com'
+      hostname = 'a.example.com'
     },{
       port = fixture.commonPort,
       key = fixture.loadPEM('agent2-key'),
       cert = fixture.loadPEM('agent2-cert'),
       ca = fixture.loadPEM('ca2-cert'),
-      servername = 'b.test.com'
+      hostname = 'b.test.com'
     },{
       port = fixture.commonPort,
       key = fixture.loadPEM('agent3-key'),
       cert = fixture.loadPEM('agent3-cert'),
       ca = fixture.loadPEM('ca1-cert'),
-      servername = 'c.wrong.com'
+      hostname = 'c.wrong.com'
     }
   }
 
@@ -69,13 +69,16 @@ require('tap')(function (test)
       local client
       options.host = '127.0.0.1'
       client = tls.connect(options)
-      clientResults[options.servername] = false
+      clientResults[options.hostname] = false
       client:on('secureConnection', function()
-        clientResults[options.servername] = client.authorized
+        clientResults[options.hostname] = client.authorized
       end)
       client:on("_socketEnd", function ()
         client:destroy()
         callback()
+      end)
+      client:on('error', function(...)
+        assert(nil, ...)
       end)
     end
 
