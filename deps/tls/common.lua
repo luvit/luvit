@@ -28,7 +28,7 @@ local utils = require('utils')
 local createCredentials
 local DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
                         'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
-
+local DEFAULT_SECUREPROTOCOL = 'TLSv1_2'
 -------------------------------------------------------------------------------
 
 local getSecureOptions = function(protocol, flags)
@@ -63,7 +63,7 @@ function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnau
   if context then
     self.context = context
   else
-    self.context = openssl.ssl.ctx_new(secureProtocol or 'TLSv1',
+    self.context = openssl.ssl.ctx_new(secureProtocol or DEFAULT_SECUREPROTOCOL,
       defaultCiphers or DEFAULT_CIPHERS)
     self.context:mode(true, 'release_buffers')
     self.context:options(getSecureOptions(secureProtocol, flags))
