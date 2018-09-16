@@ -151,7 +151,8 @@ local function theTest(options)
     ca = serverCA,
     crl = serverCRL,
     requestCert = options.requestCert,
-    rejectUnauthorized = options.rejectUnauthorized
+    rejectUnauthorized = options.rejectUnauthorized,
+    secureProtocol = 'TLSv1'
   }
 
   option = optionsIterator(options.clients)

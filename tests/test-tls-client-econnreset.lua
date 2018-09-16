@@ -38,7 +38,7 @@ require('tap')(function (test)
 
     timer.setTimeout(200,function ()
       local c
-      c = tls.connect({port = fixture.commonPort, host = '127.0.0.1'})
+      c = tls.connect({port = fixture.commonPort, host = '127.0.0.1',secureProtocol='TLSv1'})
       c:on('error', function(err)
         print("got connection error")
         p(err)
