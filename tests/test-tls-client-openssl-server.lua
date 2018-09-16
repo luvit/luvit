@@ -36,7 +36,7 @@ require('tap')(function(test)
     port = 32312
     key = path.join(module.dir, 'fixtures', 'keys', 'agent1-key.pem')
     cert = path.join(module.dir, 'fixtures', 'keys', 'agent1-cert.pem')
-    args = { 's_server', '-accept', port, '-key', key, '-cert', cert }
+    args = { 's_server', '-tls1_1', '-accept', port, '-key', key, '-cert', cert }
 
     child = childprocess.spawn('openssl', args)
     child.stdout:once('data', function(data)
@@ -68,7 +68,7 @@ require('tap')(function(test)
         port = port,
         host = '127.0.0.1',
         rejectUnauthorized = false,
-        secureProtocol = 'TLSv1'
+        secureProtocol = 'TLSv1_1'
       }
 
       count = 0

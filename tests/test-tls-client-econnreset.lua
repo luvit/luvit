@@ -7,7 +7,7 @@ require('tap')(function (test)
   local timer = require('timer')
 
   local args = {
-    's_server',
+    's_server', '-tls1_1',
     '-accept', fixture.commonPort,
     '-key', 'tests/fixtures/keys/agent1-key.pem',
     '-cert', 'tests/fixtures/keys/agent1-cert.pem',
@@ -38,7 +38,7 @@ require('tap')(function (test)
 
     timer.setTimeout(200,function ()
       local c
-      c = tls.connect({port = fixture.commonPort, host = '127.0.0.1',secureProtocol='TLSv1'})
+      c = tls.connect({port = fixture.commonPort, host = '127.0.0.1', secureProtocol='TLSv1_1'})
       c:on('error', function(err)
         print("got connection error")
         p(err)
