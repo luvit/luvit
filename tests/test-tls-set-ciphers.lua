@@ -58,8 +58,7 @@ require('tap')(function(test)
       local args, child, onExit, onStdout
 
       args = {
-        's_client',
-        '-tls1',
+        's_client', '-tls1_2',
         '-cipher', 'NULL-MD5',
         '-connect', '127.0.0.1:' .. port
       }

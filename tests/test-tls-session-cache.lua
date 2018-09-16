@@ -42,8 +42,7 @@ require('tap')(function (test)
 
     function clientConnect(callback)
       local client = childprocess.spawn('openssl', {
-        's_client',
-        '-tls1',
+        's_client', '-tls1_2',
         '-connect', 'localhost:' .. fixture.commonPort,
         '-key', fixture.filenamePEM('agent1-key'),
         '-cert', fixture.filenamePEM('agent1-cert'),

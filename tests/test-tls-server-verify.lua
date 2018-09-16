@@ -49,7 +49,7 @@ local function optionsIterator(options)
 end
 
 local function runClient(options, port, callback)
-  local args = { 's_client', '-tls1', '-connect', '127.0.0.1:' .. port }
+  local args = { 's_client', '-tls1_2', '-connect', '127.0.0.1:' .. port }
   print('  connecting with ' .. options.name)
 
   if options.name == 'agent1' then
@@ -151,8 +151,7 @@ local function theTest(options)
     ca = serverCA,
     crl = serverCRL,
     requestCert = options.requestCert,
-    rejectUnauthorized = options.rejectUnauthorized,
-    secureProtocol = 'TLSv1'
+    rejectUnauthorized = options.rejectUnauthorized
   }
 
   option = optionsIterator(options.clients)
