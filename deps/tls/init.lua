@@ -73,12 +73,16 @@ local DEFAULT_OPTIONS = {
 }
 
 local function connect(options, callback)
-  local hostname, port, sock
+  local hostname, port, sock, colon
 
   callback = callback or function() end
   options = extend({}, DEFAULT_OPTIONS, options or {})
   port = options.port
   hostname = options.host or options.hostname
+  colon = hostname:find(':')
+  if colon then
+    hostname = hostname:sub(1, colon-1 )
+  end
 
   sock = _common_tls.TLSSocket:new(nil, options)
   sock:connect(port, hostname, callback)
