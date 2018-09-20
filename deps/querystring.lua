@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/querystring"
-  version = "2.0.0"
+  version = "2.0.1"
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/querystring.lua"
   description = "Node-style query-string codec for luvit"
