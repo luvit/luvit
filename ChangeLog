@@ -1,3 +1,20 @@
+# Changes in 2.15.0
+
+ - examples: Fix http-download.lua statusCode (#1010) [eZethNesthrown]
+ - http: Fix http-codec not reading full header when header has no value (#1021) [Ryan Liptak]
+ - http: Fix parse HTTP status lines (#1039) [George Zhao]
+ - https: Fix bug EAI_NONAME in tls.connect (#1039) [George Zhao]
+ - init: Flush stream on exit (#1007) [Tim Caswell]
+ - net: Fix ignored connect errors (#1031) [Ernest Climent]
+ - net: Fix ignored getaddrinfo errors (#1032) [Ernest Climent]
+ - net: Remove keepalive on listening socket (#1028) [George Zhao]
+ - process: Add process:cpuUsage() and process:memoryUsage() (#1014) [Ryan Liptak]
+ - querystring: Fix bug in update urlencoding (#1040) [George Zhao]
+ - repl: Add simple error handling to REPL autocomplete (#1038) [aiverson]
+ - stream: Fix Stream.Readable.unpipe when piped to multiple streams (#1020) [Ryan Liptak]
+ - timer: Fix timer sleep (#1001) [SinisterRectus]
+ - tls: Update default TLS from TLSv1 to TLSv1.2 (#1041) [George Zhao]
+
 # Changes in 2.14.2
 
  - print: Miscellaneous fixes and optimizations (#992) [SinisterRectus]
