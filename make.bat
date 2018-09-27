@@ -8,6 +8,12 @@ IF NOT EXIST lit.exe CALL make.bat lit
 ECHO "Building luvit"
 lit.exe make
 if %errorlevel% neq 0 goto error
+IF NOT EXIST lit CALL mklink /H lit lit.exe
+if %errorlevel% neq 0 goto error
+IF NOT EXIST luvi CALL mklink /H luvi luvi.exe
+if %errorlevel% neq 0 goto error
+IF NOT EXIST luvit CALL mklink /H luvit luvit.exe
+if %errorlevel% neq 0 goto error
 GOTO :end
 
 :lit
