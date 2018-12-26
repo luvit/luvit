@@ -50,7 +50,10 @@ return function (main, ...)
 
     -- Start the event loop
     uv.run()
-  end, debug.traceback)
+  end, function(err)
+    require('hooks'):emit('process.uncaughtException',err)
+    return debug.traceback(err)
+  end)
 
   if success then
     -- Allow actions to run at process exit.
