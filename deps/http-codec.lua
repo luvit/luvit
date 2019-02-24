@@ -251,7 +251,11 @@ local function decoder()
     local len, term
     len, term = match(chunk, "^(%x+)(..)")
     if not len then return end
-    assert(term == "\r\n")
+    if term ~= "\r\n" then
+      if #chunk < 34 then return end
+      -- But protect against evil clients by refusing chunk-sizes longer than 32 hex digits.
+      error("chunk-size field too large")
+    end
     local length = tonumber(len, 16)
     if #chunk < length + 4 + #len then return end
     if length == 0 then
