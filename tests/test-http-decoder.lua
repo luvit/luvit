@@ -226,7 +226,8 @@ require('tap')(function (test)
       "PUT /my-file.txt HTTP/1.1\r",
       "\nTransfer-Encoding: chunke",
       "d\r\n\r\n4\r\nWiki\r\n5\r\n",
-      "pedia\r\ne\r\n in\r\n\r\nch",
+      "pedia\r\n12\r",
+      "\n in broken ch",
       "unks.\r\n0\r\n\r\n"
     })
     p(output)
@@ -236,7 +237,7 @@ require('tap')(function (test)
       },
       "Wiki",
       "pedia",
-      " in\r\n\r\nchunks.",
+      " in broken chunks.",
       ""
     }, output))
   end)
