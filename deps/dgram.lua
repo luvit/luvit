@@ -50,7 +50,7 @@ local function stop_listening(self)
 end
 
 local Socket = Emitter:extend()
-function Socket:initialize(type, callback)
+function Socket:initialize(callback)
   self._handle = uv.new_udp()
   if callback then
     self:on('message', callback)
