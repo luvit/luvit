@@ -123,11 +123,13 @@ local function spawn(command, args, options)
   end
 
   function onExit(code, signal)
-    em.exitCode = code
-    em.signal = signal
-    em:emit('exit', code, signal)
-    maybeClose()
-    em:close()
+    if em then
+      em.exitCode = code
+      em.signal = signal
+      em:emit('exit', code, signal)
+      maybeClose()
+      em:close()
+    end
   end
 
   handle, pid = uv.spawn(command, {
@@ -139,6 +141,10 @@ local function spawn(command, args, options)
     uid = options.uid,
     gid = options.gid
   }, onExit)
+
+  if not handle then
+    return nil, pid -- pid contains the error message
+  end
 
   em = Process:new(stdin, stdout, stderr)
   em:setHandle(handle)
@@ -200,7 +206,11 @@ local function _exec(file, args, options, callback)
     if not options[k] then options[k] = v end
   end)
 
-  local child = spawn(file, args, options)
+  local child, err = spawn(file, args, options)
+
+  if err then
+    return nil, err
+  end
 
   local stdout, stderr = {}, {}
   local exited = false
