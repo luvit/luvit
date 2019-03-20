@@ -25,6 +25,7 @@ end
 
 local fs = require('fs')
 local path = require('luvi').path
+local lua_openssl_version = openssl.version(true)
 
 local message1 = 'This message '
 local message2 = 'will be signed'
@@ -39,7 +40,11 @@ require('tap')(function (test)
   local kpub = openssl.pkey.read(RSA_PUBLIC_KEY)
   local sha256 = openssl.digest.get("sha256")
 
-  assert(kpub:export({pem = true}) == RSA_PUBLIC_KEY)
+  if lua_openssl_version < 0x00703000 then
+    assert(kpub:export({pem = true}) == RSA_PUBLIC_KEY)
+  else
+    assert(kpub:export('pem') == RSA_PUBLIC_KEY)
+  end
 
   test("test digests", function()
     local hash = 'da0fd2505f0fc498649d6cf9abc7513be179b3295bb1838091723b457febe96a'
