@@ -23,7 +23,7 @@ local uv = require('uv')
 require('tap')(function (test)
 
   test("Real HTTP request", function (expect)
-    uv.getaddrinfo("google.com", "http", {
+    uv.getaddrinfo("github.com", "http", {
       socktype = "stream",
       family = "inet",
     }, expect(function (err, res)
@@ -39,7 +39,7 @@ require('tap')(function (test)
         local encode, decode = encoder(), decoder()
         local req = {
             method = "GET", path = "/",
-            {"Host", "google.com"},
+            {"Host", "github.com"},
             {"User-Agent", "luvit"},
             {"Accept", "*/*"},
         }
