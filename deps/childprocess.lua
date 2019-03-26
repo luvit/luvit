@@ -152,7 +152,13 @@ local function spawn(command, args, options)
       if em.stdout then em.stdout:emit('error', Error:new(pid)) end
       if em.stderr then em.stderr:emit('error', Error:new(pid)) end
       if em.stdin then em.stdin:emit('error', Error:new(pid)) end
+      if em.stdin then em.stdin:destroy() end
       maybeClose()
+    end)
+  else
+    em:on('exit', function()
+      if em.stdin then em.stdin:destroy() end
+      em:close()
     end)
   end
 
