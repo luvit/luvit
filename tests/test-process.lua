@@ -103,9 +103,12 @@ require('tap')(function(test)
     local iterate, found
 
     function iterate()
-      for k, v in pairs(process.env) do
+      for k, v in process.env.iterate() do
         p(k, v)
-        if k == key and v == value then found = true end
+        if k == key and v == value then
+          found = true
+          break
+        end
       end
     end
 
