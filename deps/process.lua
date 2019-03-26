@@ -69,6 +69,7 @@ function lenv.iterate()
 end
 
 setmetatable(lenv, {
+  __pairs = lenv.iterate,
   __index = function(table, key)
     return env.get(key)
   end,
