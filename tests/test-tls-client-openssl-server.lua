@@ -43,6 +43,16 @@ require('tap')(function(test)
       p(data)
       timer.setTimeout(100, begin)
     end)
+    child:on('error', function(err)
+      p('server error:', err)
+      child:destroy()
+    end)
+    child.stderr:on('data', function(data)
+      print('server stderr: ' .. data)
+      if data:find('error') then
+        child:emit('error','internal error')
+      end
+    end)
 
     function begin()
       p('begin')
@@ -56,6 +66,7 @@ require('tap')(function(test)
       count = count + 1
       if count == maxCount then
         timer.clearInterval(interval)
+        interval = nil
       end
     end
 
@@ -85,6 +96,14 @@ require('tap')(function(test)
 
       client = tls.connect(options)
       client:on('data', onData)
+      client:on('close', function()
+        print('got close signal')
+        timer.setTimeout(100, function()
+          if interval then interval:close() end
+          client:destroy()
+          child:kill()
+        end)
+      end)
     end
   end)
 end)
