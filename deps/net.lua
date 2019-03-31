@@ -135,11 +135,11 @@ function Socket:_read(n)
 end
 
 function Socket:shutdown(callback)
-  if self.destroyed == true then
+  if self.destroyed == true and callback then
     return callback()
   end
 
-  if uv.is_closing(self._handle) then
+  if uv.is_closing(self._handle) and callback then
     return callback()
   end
 
