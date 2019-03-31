@@ -68,7 +68,7 @@ require('tap')(function(test)
         port = port,
         host = '127.0.0.1',
         rejectUnauthorized = false,
-        secureProtocol = 'TLSv1'
+        secureProtocol = tls.DEFAULT_SECUREPROTOCOL
       }
 
       count = 0
