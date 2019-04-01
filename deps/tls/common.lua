@@ -43,7 +43,8 @@ local isTLSv1_3 = function()
   return V > 0x10100000
 end
 
-DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' ..     --TLS 1.2
+DEFAULT_CIPHERS = 'TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:' .. --TLS 1.3
+                  'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' ..     --TLS 1.2
                   'RC4:HIGH:!MD5:!aNULL:!EDH'                         --TLS 1.0
 
 if isTLSv1_3() then
