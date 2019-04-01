@@ -96,6 +96,10 @@ local function createServer(options, secureCallback)
 end
 
 return {
+  DEFAULT_SECUREPROTOCOL = _common_tls.DEFAULT_SECUREPROTOCOL,
+  isLibreSSL = _common_tls.isLibreSSL,
+  isTLSv1_3 = _common_tls.isTLSv1_3,
+
   TLSSocket = _common_tls.TLSSocket,
   createCredentials = _common_tls.createCredentials,
   connect = connect,
