@@ -26,7 +26,7 @@ require('tap')(function (test)
   test("tls request timeout", function()
     local server
     server = tls.createServer(options, function(socket,err)
-      assert(not err,err)
+      if err~='ECONNRESET' then assert(not err,err) end
       socket:on('timeout', function(err)
         hadTimeout = true
         socket:destroy()
