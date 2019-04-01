@@ -28,7 +28,7 @@ require('tap')(function (test)
   test("tls peer certificate", function()
     local server
     server = tls.createServer(options, function(cleartext,err)
-      assert(not err,err)
+      if err~='EPIPE' then assert(not err,err) end
       cleartext:write('world')
       cleartext:destroy()
     end)

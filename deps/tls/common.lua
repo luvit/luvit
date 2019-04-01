@@ -26,9 +26,60 @@ local uv = require('uv')
 local utils = require('utils')
 
 local createCredentials
-local DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' .. -- TLS 1.2
-                        'RC4:HIGH:!MD5:!aNULL:!EDH'                     -- TLS 1.0
-local DEFAULT_SECUREPROTOCOL = 'TLSv1_2'
+local DEFAULT_CIPHERS
+local DEFAULT_SECUREPROTOCOL
+
+local isLibreSSL = function()
+  local _, _, V = openssl.version()
+  return V:find('^LibreSSL')
+end
+
+local isTLSv1_3 = function()
+  if isLibreSSL() then
+    return false
+  end
+
+  local _, _, V = openssl.version(true)
+  return V > 0x10100000
+end
+
+DEFAULT_CIPHERS = 'TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:' .. --TLS 1.3
+                  'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' ..     --TLS 1.2
+                  'RC4:HIGH:!MD5:!aNULL:!EDH'                         --TLS 1.0
+
+if isTLSv1_3() then
+--[[
+TLS_method(), TLS_server_method(), TLS_client_method() These are the
+general-purpose version-flexible SSL/TLS methods. The actual protocol version
+used will be negotiated to the highest version mutually supported by the client
+and the server. The supported protocols are SSLv3, TLSv1, TLSv1.1 and TLSv1.2.
+Applications should use these methods, and avoid the version- specific methods
+described below.
+...
+TLSv1_2_method(), ...
+...
+
+Note that OpenSSL-1.1 is the version of OpenSSL; Fedora 25 and RHEL 7.3 and
+other distributions (still) have OpenSSL-1.0.
+
+TLS versions are orthogonal to the OpenSSL version.  TLS_method() is the new
+in OpenSSL-1.1 version flexible function intended to replace the
+TLSv1_2_method() function in OpenSSL-1.0 and the older (?), insecure
+TLSv23_method(). (OpenSSL-1.0 does not have TLS_method())
+--]]
+  DEFAULT_SECUREPROTOCOL = 'TLS'
+else
+--[[
+A TLS/SSL connection established with these methods may understand the SSLv3,
+TLSv1, TLSv1.1 and TLSv1.2 protocols.
+
+A client will send out TLSv1 client hello messages including extensions and
+will indicate that it also understands TLSv1.1, TLSv1.2 and permits a fallback
+to SSLv3. A server will support SSLv3, TLSv1, TLSv1.1 and TLSv1.2 protocols.
+This is the best choice when compatibility is a concern.
+--]]
+  DEFAULT_SECUREPROTOCOL = 'SSLv23'
+end
 -------------------------------------------------------------------------------
 
 local getSecureOptions = function(protocol, flags)
@@ -443,6 +494,10 @@ end
 return {
   DEFAULT_CIPHERS = DEFAULT_CIPHERS,
   DEFAULT_CA_STORE = DEFAULT_CA_STORE,
+  DEFAULT_SECUREPROTOCOL = DEFAULT_SECUREPROTOCOL,
+  isLibreSSL = isLibreSSL(),
+  isTLSv1_3 = isTLSv1_3(),
+
   Credential = Credential,
   createCredentials = createCredentials,
   TLSSocket = TLSSocket,
