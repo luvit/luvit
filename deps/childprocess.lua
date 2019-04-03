@@ -155,11 +155,6 @@ local function spawn(command, args, options)
       if em.stdin then em.stdin:destroy() end
       maybeClose()
     end)
-  else
-    em:on('exit', function()
-      if em.stdin then em.stdin:destroy() end
-      em:close()
-    end)
   end
 
   if stdout then stdout:resume() end
