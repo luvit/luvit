@@ -1,5 +1,5 @@
 @ECHO off
-@SET LIT_VERSION=3.8.1
+@SET GET_LIT_VERSION=3.8.1
 
 IF NOT "x%1" == "x" GOTO :%1
 
@@ -18,7 +18,7 @@ GOTO :end
 
 :lit
 ECHO "Building lit"
-PowerShell -NoProfile -ExecutionPolicy unrestricted -Command "[Net.ServicePointManager]::SecurityProtocol = 'Tls12'; iex ((new-object net.webclient).DownloadString('https://github.com/luvit/lit/raw/%LIT_VERSION%/get-lit.ps1'))"
+PowerShell -NoProfile -ExecutionPolicy unrestricted -Command "[Net.ServicePointManager]::SecurityProtocol = 'Tls12'; iex ((new-object net.webclient).DownloadString('https://github.com/luvit/lit/raw/%GET_LIT_VERSION%/get-lit.ps1'))"
 GOTO :end
 
 :test
