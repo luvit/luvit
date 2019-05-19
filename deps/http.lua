@@ -189,7 +189,6 @@ function ServerResponse:finish(chunk)
     self:emit('finish')
     if not self.keepAlive then
       self.socket:_end()
-      collectgarbage()
     end
   end
   if #last > 0 then
