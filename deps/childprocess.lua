@@ -137,7 +137,8 @@ local function spawn(command, args, options)
     env = envPairs,
     detached = options.detached,
     uid = options.uid,
-    gid = options.gid
+    gid = options.gid,
+    verbatim = options.verbatim,
   }, onExit)
 
   em = Process:new(stdin, stdout, stderr)
@@ -181,6 +182,8 @@ local function normalizeExecArgs(command, options, callback)
   if isWindows then
     file = 'cmd.exe'
     args = {'/s', '/c', '"'..command..'"'}
+    -- verbatim is necessary to avoid quotation marks getting escaped by Libuv
+    options.verbatim = true
   else
     file = '/bin/sh'
     args = {'-c', command}
