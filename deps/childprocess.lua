@@ -126,6 +126,7 @@ local function spawn(command, args, options)
     em.exitCode = code
     em.signal = signal
     em:emit('exit', code, signal)
+    if stdin then stdin:destroy(maybeClose) end
     maybeClose()
     em:close()
   end
