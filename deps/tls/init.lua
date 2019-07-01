@@ -40,15 +40,11 @@ function Server:init(options, connectionListener)
   options = options or {}
   options.server = true
 
-  local sharedCreds = _common_tls.createCredentials(options)
+  options.secureContext = options.secureContext
+                          or _common_tls.createCredentials(options)
   net.Server.init(self, options, function(raw_socket)
     local socket
-    socket = _common_tls.TLSSocket:new(raw_socket, {
-      secureContext = sharedCreds,
-      isServer = true,
-      requestCert = options.requestCert,
-      rejectUnauthorized = options.rejectUnauthorized,
-    })
+    socket = _common_tls.TLSSocket:new(raw_socket, options)
     socket:on('secureConnection', function()
       connectionListener(socket)
     end)
@@ -77,6 +73,7 @@ local function connect(options, callback)
 
   callback = callback or function() end
   options = extend({}, DEFAULT_OPTIONS, options or {})
+  options.server = false
   port = options.port
   hostname = options.host or options.hostname
   colon = hostname:find(':')
