@@ -109,7 +109,8 @@ end
 -------------------------------------------------------------------------------
 
 local Credential = Object:extend()
-function Credential:initialize(secureProtocol, defaultCiphers, flags, rejectUnauthorized, context)
+function Credential:initialize(secureProtocol,defaultCiphers, flags,
+                               rejectUnauthorized, context, isServer)
   self.rejectUnauthorized = rejectUnauthorized
   if context then
     self.context = context
@@ -161,7 +162,7 @@ function TLSSocket:initialize(socket, options)
 
   self.options = options
   self.ctx = options.secureContext
-  self.server = options.isServer
+  self.server = options.server
   self.requestCert = options.requestCert
   self.rejectUnauthorized = options.rejectUnauthorized
 
@@ -213,6 +214,10 @@ function TLSSocket:_init()
   end
 end
 
+function TLSSocket:version()
+  return self.ssl:get('version')
+end
+
 function TLSSocket:getPeerCertificate()
   return self.ssl:peer()
 end
@@ -223,7 +228,6 @@ function TLSSocket:_verifyClient()
     self:emit('secureConnection', self)
   else
     local verifyError, verifyResults
-    self.ctx.session = self.ssl:session()
     verifyError, verifyResults = self.ssl:getpeerverification()
     if verifyError then
       self.authorized = true
@@ -258,6 +262,7 @@ function TLSSocket:_verifyServer()
     end
   end
   if not self.destroyed then
+    self.ctx.session = self.ssl:session()
     self:emit('secureConnection', self)
   end
 end
@@ -275,7 +280,9 @@ function TLSSocket:destroy(err)
     timer.active(self)
     if self._shutdown then
       local _, shutdown_err = self.ssl:shutdown()
-      if shutdown_err == "want_read" or shutdown_err == "want_write" or shutdown_err == "syscall" then
+      if (shutdown_err == "want_read" or shutdown_err == "want_write"
+          or shutdown_err == "syscall")
+      then
         local r = self.out:pending()
         if r > 0 then
           timer.active(self._shutdownTimer)
@@ -359,7 +366,8 @@ end
 
 function TLSSocket:_write(data, callback)
   local ret, err
-  if not self.ssl or self.destroyed or self._shutdown or not self._connected then
+  if (not self.ssl or self.destroyed or self._shutdown or not self._connected)
+  then
     return
   end
   if data then
@@ -455,7 +463,7 @@ function createCredentials(options, context)
   options = options or {}
 
   ctx = Credential:new(options.secureProtocol, options.ciphers,
-    options.secureOptions, options.rejectUnauthorized, context)
+    options.secureOptions, options.rejectUnauthorized, context, options.server)
   if context then
     return ctx
   end
