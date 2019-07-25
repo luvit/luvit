@@ -1,6 +1,6 @@
 return {
   name = "luvit/tls",
-  version = "2.2.0",
+  version = "2.3.0",
   dependencies = {
     "luvit/core@2.0.0",
     "luvit/net@2.0.0",

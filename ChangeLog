@@ -1,3 +1,16 @@
+# Changes in 2.16.0
+
+- require: Match only past last . in file extensions (#1047) [Nameless]
+- Add uncaughtException handler (#1048) [Python1320]
+- http-codec: Fix http-codec failing occasionally during chunked decoding [Ryan Liptak]
+- process: update process.env to use portable iterate [George Zhao]
+- tls: Update to work with OpenSSL 1.1.x [George Zhao]
+- net: fix bug in Socket:shutdown [George Zhao]
+- http: only close socket when ServerResponse not need to keepAlive [George Zhao]
+- http: make luvit not collectgarbage manually (#1071) [George Zhao]
+- childprocess: Fix exec on Windows (#1077) [Ryan Liptak]
+- tls: update ssl to support session reuse for TLSV1.3 (#1079) [George Zhao]
+
 # Changes in 2.15.0
 
  - examples: Fix http-download.lua statusCode (#1010) [eZethNesthrown]
