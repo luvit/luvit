@@ -154,6 +154,95 @@ function ustring.uindex2index(ustr, uindex, initrawindex, inituindex)
   end
 end
 
+--[[
+RFC 3629
+Char. number range  |        UTF-8 octet sequence
+   (hexadecimal)    |              (binary)
+--------------------+---------------------------------------------
+0000 0000-0000 007F | 0xxxxxxx
+0000 0080-0000 07FF | 110xxxxx 10xxxxxx
+0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+]]
+
+local function bin(str)
+  return tonumber(str, 2)
+end
+
+local codec = {
+  {0x00000000, 0x0000007F, bin('00000000'), bin('01111111')},
+  {0x00000080, 0x000007FF, bin('11000000'), bin('00011111')},
+  {0x00000800, 0x0000FFFF, bin('11100000'), bin('00001111')},
+  {0x00010000, 0x0010FFFF, bin('11110000'), bin('00000111')},
+}
+
+local mask = {bin('10000000'), bin('00111111')}
+
+local function range(n)
+  for i, v in ipairs(codec) do
+    if v[1] <= n and n <= v[2] then
+      return i
+    end
+  end
+  error('value out of range: ' .. n)
+end
+
+local function utf8char(n)
+  local i = range(n)
+  if i == 1 then
+    return str_char(n)
+  else
+    local buf = {}
+    for b = i, 2, -1 do
+      local byte = band(n, mask[2])
+      byte = bor(mask[1], byte)
+      buf[b] = str_char(byte)
+      n = rshift(n, 6)
+    end
+    n = bor(codec[i][3], n)
+    buf[1] = str_char(n)
+    return table.concat(buf)
+  end
+end
+
+function ustring.char(...)
+  local ustr = {}
+  for i = 1, select('#', ...) do
+    ustr[i] = utf8char(select(i, ...))
+  end
+  return setmetatable(ustr, _meta)
+end
+
+local function utf8codepoint(str)
+  local n = #str
+  if n == 1 then
+    return str_byte(str)
+  else
+    local byte = str_byte(str)
+    local ret = band(byte, codec[n][4])
+    for i = 2, n do
+      ret = lshift(ret, 6)
+      byte = str_byte(str, i, i)
+      byte = band(byte, mask[2])
+      ret = bor(ret, byte)
+    end
+    return ret
+  end
+end
+
+function ustring.codepoint(ustr, i, j)
+  i = i or 1
+  j = j or i
+  local ret = {}
+  local len = #ustr
+  if i < 0 then i = len + i + 1 end
+  if j < 0 then j = len + j + 1 end
+  for ii = i, math.min(j, len) do
+    ret[#ret + 1] = utf8codepoint(ustr[ii])
+  end
+  return unpack(ret)
+end
+
 ustring.len = _G.rawlen or function(ustr) return #ustr end
 
 function ustring.gsub(ustr, pattern, repl, n)
