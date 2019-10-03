@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/ustring"
-  version = "2.0.2"
+  version = "2.1.0"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/ustring.lua"
   description = "A light-weight UTF-8 module in pure lua(jit)."
   tags = {"ustring", "utf8", "utf-8", "unicode"}
