@@ -160,7 +160,6 @@ function ServerResponse:flushHeaders()
   head.code = statusCode
   local h = self.encode(head)
   self.socket:write(h)
-
 end
 
 function ServerResponse:write(chunk, callback)
@@ -346,12 +345,18 @@ function ClientRequest:initialize(options, callback)
   self.encode = codec.encoder()
   self.decode = codec.decoder()
 
+  if callback then
+    self:once('response', callback)
+  end
+
   local buffer = ''
   local res
 
   local function flush()
-    res:push()
-    res = nil
+    if res then
+      res:push()
+      res = nil
+    end
   end
 
   local socket = options.socket or net.createConnection(self.port, self.host)
@@ -363,11 +368,6 @@ function ClientRequest:initialize(options, callback)
     self.connected = true
     self:emit('socket', socket)
 
-    local function onEnd()
-      -- Just in case the stream ended and we still had an open response,
-      -- end it.
-      if res then flush() end
-    end
     local function onData(chunk)
       -- Run the chunk through the decoder by concatenating and looping
       buffer = buffer .. chunk
@@ -375,39 +375,30 @@ function ClientRequest:initialize(options, callback)
         local R, event, extra = pcall(self.decode,buffer)
         if R==true then
           -- nil extra means the decoder needs more data, we're done here.
-          if not extra then break end
+          if not extra then return end
           -- Store the leftover data.
           buffer = extra
           if type(event) == "table" then
-            if self.method ~= 'CONNECT' or res == nil then
-              -- If there was an old response that never closed, end it.
-              if res then flush() end
-              -- Create a new response object
+            if not res then
+              flush()
               res = IncomingMessage:new(event, socket)
-              -- If the request upgrades the protocol then detatch the listeners so http codec is no longer used
-              local is_upgraded
-              if res.headers.upgrade then
-                is_upgraded = true
-                socket:removeListener("data", onData)
-                socket:removeListener("end", onEnd)
+            end
+            if self.method == 'CONNECT' or res.headers.upgrade then
+              local evt = self.method == 'CONNECT' and 'connect' or 'upgrade'
+              if self:listenerCount(evt) > 0 then
+                socket:removeListener('data', onData)
+                socket:removeListener('end', flush)
                 socket:read(0)
                 if #buffer > 0 then
                   socket:pause()
                   socket:unshift(buffer)
                 end
-              end
-              -- Call the user callback to handle the response
-              if callback then
-                callback(res)
-              end
-              self:emit('response', res)
-              if is_upgraded then
-                break
+                return self:emit(evt, res, socket, event)
+              elseif self.method == 'CONNECT' or res.statusCode == 101 then
+                return self:destroy()
               end
             end
-            if self.method == 'CONNECT' then
-              self:emit('connect', res, socket, event)
-            end
+            self:emit('response', res)
           elseif res and type(event) == "string" then
             if #event == 0 then
               -- Empty string in http-decoder means end of body
@@ -423,18 +414,16 @@ function ClientRequest:initialize(options, callback)
             end
           end
         else
-          self:emit('error', event)
-          break
+          return self:emit('error', event)
         end
       end
     end
     socket:on('data', onData)
-    socket:on('end', onEnd)
+    socket:on('end', flush)
 
     if self.ended then
-      self:_done(self.ended.data, self.ended.cb)
+      return self:_done(self.ended.data, self.ended.cb)
     end
-
   end)
 end
 
