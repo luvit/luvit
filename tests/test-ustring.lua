@@ -73,7 +73,7 @@ require('tap')(function(test)
     assert(tostring(ustring.format(ustring.new "格式%s测试：,%i","文本",4685)) == "格式文本测试：,4685")
 
     assert(tostring(ustring.new("abcde参杂fghijk"):upper()) == "ABCDE参杂FGHIJK")
-    assert(tostring(ustring.new("ABCDEFGHIJK"):lower()) == "abcdefghijk")
+    assert(tostring(ustring.new("ABCDE参杂FGHIJK"):lower()) == "abcde参杂fghijk")
 
     assert(tostring(ustring.rep(ustring.new"💙💛💙💜",4)) == "💙💛💙💜💙💛💙💜💙💛💙💜💙💛💙💜")
 
