@@ -285,10 +285,12 @@ end
 function Emitter:removeAllListeners(name)
   local handlers = rawget(self, "handlers")
   if not handlers then return end
-  local handlers_for_type = rawget(handlers, name)
-  if handlers_for_type then
-    for i = #handlers_for_type, 1, -1 do
-        handlers_for_type[i] = false
+  if name then
+    local handlers_for_type = rawget(handlers, name)
+    if handlers_for_type then
+      for i = #handlers_for_type, 1, -1 do
+          handlers_for_type[i] = false
+      end
     end
   else
     rawset(self, "handlers", {})
