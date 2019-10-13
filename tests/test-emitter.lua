@@ -72,12 +72,32 @@ require('tap')(function (test)
 
   test("remove all listeners", function(expect)
     local em = require('core').Emitter:new()
+
     em:on('data', function() end)
     em:removeAllListeners()
+
     em:on('data', expect(function() end))
     em:emit('data', 'Go Fish')
-    assert(#em:listeners('data') == 1)
+
+    em:on('event', function() end)
+    em:on('event', function() end)
+
+    assert(em:listenerCount('data') == 1)
+    assert(em:listenerCount('event') == 2)
+
+    em:removeAllListeners('data')
+
+    assert(em:listenerCount('data') == 0)
+    assert(em:listenerCount('event') == 2)
+
+    em:removeAllListeners('unused_listener')
+
+    assert(em:listenerCount('data') == 0)
+    assert(em:listenerCount('event') == 2)
+
     em:removeAllListeners()
-    assert(#em:listeners('data') == 0)
+
+    assert(em:listenerCount('data') == 0)
+    assert(em:listenerCount('event') == 0)
   end)
 end)
