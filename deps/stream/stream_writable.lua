@@ -412,7 +412,7 @@ function clearBuffer(stream, state)
     // TODO(isaacs) clean this up
     --]]
     state.pendingcb = state.pendingcb + 1
-    doWrite(stream, state, true, state.length, state.buffer, '', function(err)
+    doWrite(stream, state, true, state.length, state.buffer, function(err)
       for i = 1,table.getn(cbs) do
         state.pendingcb = state.pendingcb - 1
         cbs[i](err)
