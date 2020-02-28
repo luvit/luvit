@@ -297,6 +297,26 @@ function dump(value, recurse, nocolor)
   return nocolor and strip(s) or s
 end
 
+local function console_write(fs, s)
+  s = s .. '\n'
+  if uv.guess_handle(uv.fileno(fs))=='tty' then
+    repeat
+      local n, e = uv.try_write(fs, s)
+      if n then
+        s = s:sub(n+1)
+        n = 0
+      else
+        if e:match('^EAGAIN') then
+          n = 0
+        else
+          assert(n, e)
+        end
+      end
+    until n==#s
+  else
+    uv.write(fs, s)
+  end
+end
 -- Print replacement that goes through libuv.  This is useful on windows
 -- to use libuv's code to translate ansi escape codes to windows API calls.
 function _G.print(...)
@@ -305,8 +325,7 @@ function _G.print(...)
   for i = 1, n do
     arguments[i] = tostring(arguments[i])
   end
-  uv.write(stdout, table.concat(arguments, "\t"))
-  uv.write(stdout, "\n")
+  console_write(stdout, table.concat(arguments, "\t"))
 end
 
 function prettyPrint(...)
@@ -315,8 +334,7 @@ function prettyPrint(...)
   for i = 1, n do
     arguments[i] = dump(arguments[i])
   end
-  uv.write(stdout, table.concat(arguments, "\t"))
-  uv.write(stdout, "\n")
+  console_write(stdout, table.concat(arguments, "\t"))
 end
 
 if uv.guess_handle(0) == 'tty' then
