@@ -1,3 +1,12 @@
+# Changes in 2.17.0
+
+- luvi: bump to v2.10.1
+- core: fix Emitter:removeAllListeners (#1088) [Timothy Van Wonterghem]
+- stream: remove extra argument to doWrite call in stream_writable (#1093) [David Newman]
+- fix abort when redirecting stdout/stderr to file (#1095) [Ryan Liptak]
+- process: fix process.stdin abort when stdin is redirected from a file (#1096) [Ryan Liptak]
+- pretty-print: use try_write for tty stderr/stdout (#1097) [George Zhao]
+
 # Changes in 2.16.0
 
 - require: Match only past last . in file extensions (#1047) [Nameless]
