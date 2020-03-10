@@ -6,6 +6,7 @@
 - fix abort when redirecting stdout/stderr to file (#1095) [Ryan Liptak]
 - process: fix process.stdin abort when stdin is redirected from a file (#1096) [Ryan Liptak]
 - pretty-print: use try_write for tty stderr/stdout (#1097) [George Zhao]
+- lit: bump to v3.8.1
 
 # Changes in 2.16.0
 
