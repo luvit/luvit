@@ -1,6 +1,6 @@
 return {
   name = "luvit/stream",
-  version = "2.0.1",
+  version = "2.0.2",
   dependencies = {
     "luvit/core@2.0.0",
     "luvit/utils@2.0.0",
