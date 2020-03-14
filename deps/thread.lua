@@ -75,14 +75,9 @@ local function self()
 end
 
 --- luvit threadpool
-local Worker = Object:extend()
-
-function Worker:queue(...)
-    uv.queue_work(self.handler, self.dumped, self.bundlePaths, ...)
-end
-
 local function work(thread_func, notify_entry)
-  local worker = Worker:new()
+  local worker = {}
+
   worker.dumped = type(thread_func)=='function'
     and string.dump(thread_func) or thread_func
   worker.bundlePaths = table.concat(bundlePaths, ";")
@@ -91,10 +86,12 @@ local function work(thread_func, notify_entry)
     if not _G._uv_works then
       _G._uv_works = {}
     end
+    local _uv_works = _G._uv_works
 
-    --try to find cached function entry
-    local fn
-    if not _G._uv_works[dumped] then
+    --cache find
+    local fn = _uv_works[dumped]
+
+    if not fn then
       fn = loadstring(dumped)
 
       -- Convert paths back to table
@@ -113,16 +110,17 @@ local function work(thread_func, notify_entry)
       getfenv(fn).require = mainRequire
 
       -- cache it
-      _G._uv_works[dumped] = fn
-    else
-      fn = _G._uv_works[dumped]
+      _uv_works[dumped] = fn
     end
-    -- Run function
 
+    -- Run function
     return fn(...)
   end
 
   worker.handler = uv.new_work(thread_entry,notify_entry)
+  worker.queue = function(self, ...)
+    uv.queue_work(self.handler, self.dumped, self.bundlePaths, ...)
+  end
   return worker
 end
 
