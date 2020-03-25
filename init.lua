@@ -51,7 +51,10 @@ return function (main, ...)
     -- Start the event loop
     uv.run()
   end, function(err)
-    require('hooks'):emit('process.uncaughtException',err)
+    -- During a stack overflow error, this can fail due to exhausting the remaining stack.
+    -- We can't recover from that failure, but wrapping it in a pcall allows us to still
+    -- return the stack overflow error even if the 'process.uncaughtException' fails to emit
+    pcall(function() require('hooks'):emit('process.uncaughtException',err) end)
     return debug.traceback(err)
   end)
 
