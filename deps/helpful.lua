@@ -64,7 +64,7 @@ function string.luvitGlobalExtend()
   getmetatable("").__mod = function(self, values) return self:format(unpack(values)) end
 end
 
-local colorize = require('utils').colorize
+local colorize = require('pretty-print').colorize
 
 return function (prefix, mod)
   mod = mod or require(prefix)
