@@ -1,7 +1,5 @@
 language: c
 
-sudo: false
-
 addons:
   apt:
     packages:
@@ -13,13 +11,19 @@ os:
 
 before_script:
   - ulimit -c unlimited -S
+  - if [[ ${PLATFORM} == linux ]]; then source .travis/setenv_lua.sh; fi
+  - if [[ ${PLATFORM} == linux ]]; then luarocks install luacov-coveralls --server=https://luarocks.org/dev; fi
+  - if [[ ${PLATFORM} == linux ]]; then export LUA_PATH=`luarocks path --lr-path`; fi
+    
+
 
 script:
   - RESULT=0
   - make
-  - make test || RESULT=$?
+  - if [[ ${PLATFORM} == linux ]]; then make cover || RESULT=$?; else  make test || RESULT=$?; fi
   - for i in $(find ./ -maxdepth 1 -name 'core*' -print); do gdb $(pwd) core* -ex "thread apply all bt" -ex "set pagination 0" -batch; done
   - if [[ ${RESULT} != 0 ]]; then exit $RESULT ; fi
+  - if [[ ${PLATFORM} == linux ]]; then luacov-coveralls; fi
 
 notifications:
   email: true
@@ -27,4 +31,6 @@ notifications:
 
 env:
   global:
-    secure: pQr0Jc5N3CIWyGn8JmH/2C1AbKTmTJvJfQgVJMuhZjFzU3wHG5U2Opjgbs2kGeijvevCI2UDhw1l0M28kqvxM0tmi3JSLHKPbbV0aaqJpATUbVa6BSCnsFvl7ZKn3oLlPPS/VdHPXM10KrZGMCWGy2zLWn84n14rMwKflAYFrQE=
+    - LUAROCKS=3.3.1
+    - LUA=luajit2.1  # current head of 2.1 branch
+    - secure: pQr0Jc5N3CIWyGn8JmH/2C1AbKTmTJvJfQgVJMuhZjFzU3wHG5U2Opjgbs2kGeijvevCI2UDhw1l0M28kqvxM0tmi3JSLHKPbbV0aaqJpATUbVa6BSCnsFvl7ZKn3oLlPPS/VdHPXM10KrZGMCWGy2zLWn84n14rMwKflAYFrQE=
