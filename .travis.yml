@@ -11,11 +11,10 @@ os:
 
 before_script:
   - ulimit -c unlimited -S
+  - source .travis/platform.sh
   - if [[ ${PLATFORM} == linux ]]; then source .travis/setenv_lua.sh; fi
   - if [[ ${PLATFORM} == linux ]]; then luarocks install luacov-coveralls --server=https://luarocks.org/dev; fi
   - if [[ ${PLATFORM} == linux ]]; then export LUA_PATH=`luarocks path --lr-path`; fi
-    
-
 
 script:
   - RESULT=0
