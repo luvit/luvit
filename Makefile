@@ -11,6 +11,9 @@ PHONY?=test lint size trim lit
 test: lit luvit
 	./luvi . -- tests/run.lua
 
+cover: lit luvit
+	./luvi . -- -l luacov tests/run.lua
+
 clean:
 	git clean -dx -f
 

@@ -38,6 +38,7 @@ return require('./init')(function (...)
     -v, --version       Print the version.
     -e code_chunk       Evaluate code chunk and print result.
     -i, --interactive   Enter interactive repl after executing script.
+    -l libname          Require library.
     -n, --no-color      Disable colors.
     -c, --16-colors     Use simple ANSI colors
     -C, --256-colors    Use 256-mode ANSI colors
@@ -61,6 +62,7 @@ return require('./init')(function (...)
     v = "version",
     e = "eval",
     i = "interactive",
+    l = "require",
     n = "no-color",
     c = "16-colors",
     C = "256-colors",
@@ -88,8 +90,9 @@ return require('./init')(function (...)
     end,
   }
 
-  for i = 1, #args do
-    local arg = args[i]
+  local i, arg = 1
+  repeat
+    arg = args[i]
     if script then
       extra[#extra + 1] = arg
     elseif combo then
@@ -103,12 +106,18 @@ return require('./init')(function (...)
         arg = string.sub(arg, 2)
         flag = shorts[arg] or arg
       end
-      local fn = flags[flag] or usage
-      fn()
+      if flag=='require' then
+        i=i+1
+        require(args[i])
+      else
+        local fn = flags[flag] or usage
+        fn()
+      end
     else
       script = arg
     end
-  end
+    i = i + 1
+  until i > #args
 
   if combo then error("Missing flag value") end
 
