@@ -256,7 +256,9 @@ function Emitter:emit(name, ...)
 end
 
 -- Remove a listener so that it no longer catches events.
+-- Returns the number of listeners removed, or nil if none were removed
 function Emitter:removeListener(name, callback)
+  local num_removed = 0
   local handlers = rawget(self, "handlers")
   if not handlers then return end
   local handlers_for_type = rawget(handlers, name)
@@ -271,13 +273,16 @@ function Emitter:removeListener(name, callback)
       end
       if h then
         handlers_for_type[i] = false
+        num_removed = num_removed + 1
       end
     end
   else
     for i = #handlers_for_type, 1, -1 do
       handlers_for_type[i] = false
+      num_removed = num_removed + 1
     end
   end
+  return num_removed > 0 and num_removed or nil
 end
 
 -- Remove all listeners
