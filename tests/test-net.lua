@@ -119,4 +119,41 @@ require('tap')(function (test)
     server = net.createServer(onClient)
     server:listen(port, host, expect(onListen))
   end)
+
+  test("socket buffer_size", function(expect)
+    local port = 10084
+    local host = '127.0.0.1'
+    local timeout = 1
+    local onClient, onListen, server
+
+    function onListen()
+      local client, onConnect, onTimeout
+
+      function onConnect()
+        local _1M = 1024*1024
+        assert(client:getRecvBufferSize() > 0)
+        assert(client:setRecvBufferSize(_1M))
+        assert(client:getRecvBufferSize()==_1M)
+
+        assert(client:getSendBufferSize() > 0)
+        assert(client:setSendBufferSize(_1M))
+        assert(client:getSendBufferSize()==_1M)
+      end
+
+      function onTimeout()
+        client:destroy()
+        server:close()
+      end
+
+      client = net.createConnection(port, host, onConnect)
+      client:setTimeout(timeout, expect(onTimeout))
+    end
+
+    function onClient(client)
+      client:pipe(client)
+    end
+
+    server = net.createServer(onClient)
+    server:listen(port, host, expect(onListen))
+  end)
 end)
