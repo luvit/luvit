@@ -72,6 +72,7 @@ require('tap')(function (test)
 
   test("remove all listeners", function(expect)
     local em = require('core').Emitter:new()
+    assert(#em:listeners('data') == 0)
 
     em:on('data', function() end)
     em:removeAllListeners()
@@ -84,6 +85,8 @@ require('tap')(function (test)
 
     assert(em:listenerCount('data') == 1)
     assert(em:listenerCount('event') == 2)
+    assert(em:listenerCount('data')  == #em:listeners('data'))
+    assert(em:listenerCount('event') == #em:listeners('event'))
 
     em:removeAllListeners('data')
 
@@ -99,5 +102,7 @@ require('tap')(function (test)
 
     assert(em:listenerCount('data') == 0)
     assert(em:listenerCount('event') == 0)
+    assert(em:listenerCount('data')  == #em:listeners('data'))
+    assert(em:listenerCount('event') == #em:listeners('event'))
   end)
 end)
