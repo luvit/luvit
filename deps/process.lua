@@ -87,6 +87,7 @@ local function kill(pid, signal)
 end
 
 local signalWraps = {}
+local signalListeners = {}
 
 local function on(self, _type, listener)
   if _type == "error" or _type == "uncaughtException" or _type == "exit" then
@@ -98,17 +99,29 @@ local function on(self, _type, listener)
       uv.unref(signal)
       uv.signal_start(signal, _type, function() self:emit(_type) end)
     end
+    signalListeners[_type] = (signalListeners[_type] or 0) + 1
     Emitter.on(self, _type, listener)
   end
 end
 
 local function removeListener(self, _type, listener)
-  local signal = signalWraps[_type]
-  if not signal then return end
-  signal:stop()
-  uv.close(signal)
-  signalWraps[_type] = nil
-  Emitter.removeListener(self, _type, listener)
+  if _type == "error" or _type == "uncaughtException" or _type == "exit" then
+    return Emitter.removeListener(self, _type, listener)
+  else
+    local signal = signalWraps[_type]
+    if not signal then return end
+    local num_removed = Emitter.removeListener(self, _type, listener)
+    if not num_removed then return end
+    signalListeners[_type] = signalListeners[_type] - num_removed
+    -- close the signal if there are no more listeners left
+    if signalListeners[_type] == 0 then
+      signal:stop()
+      uv.close(signal)
+      signalWraps[_type] = nil
+      signalListeners[_type] = nil
+    end
+    return num_removed
+  end
 end
 
 local function exit(self, code)
