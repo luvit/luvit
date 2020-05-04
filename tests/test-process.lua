@@ -16,17 +16,32 @@ require('tap')(function(test)
   end)
 
   test('signal usr1,usr2,hup', function(expect)
-    local onHUP, onUSR1, onUSR2
+    -- Note: Luvit unrefs the global process' signals, so we need to make sure to keep the loop alive long enough
+    -- for the signals to actually be handled. This is what the timer is doing in this test.
+    local onHUP, onUSR1, onUSR2, iCount
     if los.type() == 'win32' then return end
-    function onHUP() process:removeListener('sighup', onHUP) end
-    function onUSR1() process:removeListener('sigusr1', onUSR1) end
-    function onUSR2() process:removeListener('sigusr2', onUSR2) end
+    iCount = 0
+    function onHUP() iCount=iCount+1 process:removeListener('sighup', onHUP) end
+    function onUSR1() iCount=iCount+1 process:removeListener('sigusr1', onUSR1) end
+    function onUSR2() iCount=iCount+1 process:removeListener('sigusr2', onUSR2) end
     process:on('sighup', expect(onHUP))
     process:on('sigusr1', expect(onUSR1))
     process:on('sigusr2', expect(onUSR2))
     process.kill(process.pid, 'sighup')
     process.kill(process.pid, 'sigusr1')
     process.kill(process.pid, 'sigusr2')
+    local function setTimeout(timeout, callback)
+      local timer = uv.new_timer()
+      timer:start(timeout, 0, function ()
+        timer:stop()
+        timer:close()
+        callback()
+      end)
+      return timer
+    end
+    setTimeout(10, function()
+      assert(iCount==3)
+    end)
   end)
 
   test('environment subprocess', function(expect)
@@ -229,4 +244,3 @@ require('tap')(function(test)
     p(memory)
   end)
 end)
-
