@@ -2,6 +2,7 @@ local spawn = require('childprocess').spawn
 local los = require('los')
 local net = require('net')
 local uv = require('uv')
+local timer = require('timer')
 
 require('tap')(function(test)
 
@@ -21,12 +22,12 @@ require('tap')(function(test)
     local onHUP, onUSR1, onUSR2, iCount
     if los.type() == 'win32' then return end
     iCount = 0
-    function onHUP() iCount=iCount+1 process:removeListener('sighup', onHUP) end
-    function onUSR1() iCount=iCount+1 process:removeListener('sigusr1', onUSR1) end
-    function onUSR2() iCount=iCount+1 process:removeListener('sigusr2', onUSR2) end
-    process:on('sighup', expect(onHUP))
-    process:on('sigusr1', expect(onUSR1))
-    process:on('sigusr2', expect(onUSR2))
+    onHUP = function() iCount=iCount+1 process:removeListener('sighup', onHUP) end
+    onUSR1 = function() iCount=iCount+1 process:removeListener('sigusr1', onUSR1) end
+    onUSR2 = function() iCount=iCount+1 process:removeListener('sigusr2', onUSR2) end
+    process:on('sighup', onHUP)
+    process:on('sigusr1', onUSR1)
+    process:on('sigusr2', onUSR2)
     process.kill(process.pid, 'sighup')
     process.kill(process.pid, 'sigusr1')
     process.kill(process.pid, 'sigusr2')
@@ -42,6 +43,25 @@ require('tap')(function(test)
     setTimeout(10, function()
       assert(iCount==3)
     end)
+  end)
+
+  test('signal listener removal', function(expect)
+    if los.type() == 'win32' then return end
+    local listener1, listener2
+    local timeout = timer.setTimeout(10, function ()
+      error("timeout, signal expected but not received")
+    end)
+    listener1 = function()
+      error("listener1 should not be called")
+    end
+    listener2 = expect(function()
+      assert(process:removeListener('sigusr1', listener2))
+      timer.clearTimeout(timeout)
+    end)
+    process:on('sigusr1', listener1)
+    process:on('sigusr1', listener2)
+    assert(process:removeListener('sigusr1', listener1))
+    process.kill(process.pid, 'sigusr1')
   end)
 
   test('environment subprocess', function(expect)
