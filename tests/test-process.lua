@@ -16,6 +16,8 @@ require('tap')(function(test)
   end)
 
   test('signal usr1,usr2,hup', function(expect)
+    -- Note: Luvit unrefs the global process' signals, so we need to make sure to keep the loop alive long enough
+    -- for the signals to actually be handled. This is what the timer is doing in this test.
     local onHUP, onUSR1, onUSR2, iCount
     if los.type() == 'win32' then return end
     iCount = 0
@@ -242,4 +244,3 @@ require('tap')(function(test)
     p(memory)
   end)
 end)
-
