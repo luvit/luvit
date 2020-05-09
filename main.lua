@@ -91,8 +91,8 @@ return require('./init')(function (...)
   }
 
   local i, arg = 1
-  repeat
-    arg = args[i]
+  arg = args[i]
+  while arg do
     if script then
       extra[#extra + 1] = arg
     elseif combo then
@@ -117,7 +117,8 @@ return require('./init')(function (...)
       script = arg
     end
     i = i + 1
-  until i > #args
+    arg = args[i]
+  end
 
   if combo then error("Missing flag value") end
 
