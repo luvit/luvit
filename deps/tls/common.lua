@@ -40,7 +40,7 @@ local isTLSv1_3 = function()
   end
 
   local _, _, V = openssl.version(true)
-  return V > 0x10100000
+  return V >= 0x10101000
 end
 
 DEFAULT_CIPHERS = 'TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:' .. --TLS 1.3
