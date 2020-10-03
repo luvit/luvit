@@ -20,7 +20,7 @@ limitations under the License.
   version = "2.0.1"
   dependencies = {
     "luvit/core@2.0.0",
-    "luvit/utils@2.0.0",
+    "luvit/utils@2.1.0",
   }
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/timer.lua"
@@ -31,6 +31,7 @@ limitations under the License.
 local uv = require('uv')
 local Object = require('core').Object
 local bind = require('utils').bind
+local assertResume = require('utils').assertResume
 
 -------------------------------------------------------------------------------
 
@@ -86,7 +87,7 @@ local function sleep(delay, thread)
   uv.timer_start(timer, delay, 0, function ()
     uv.timer_stop(timer)
     uv.close(timer)
-    return assert(coroutine.resume(thread))
+    return assertResume(thread)
   end)
   return coroutine.yield()
 end
