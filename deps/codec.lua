@@ -18,6 +18,9 @@ limitations under the License.
 --[[lit-meta
   name = "luvit/codec"
   version = "2.0.0"
+  dependencies = {
+    "luvit/utils@2.1.0",
+  }
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/codec.lua"
   description = "Utilities for working with luvit streams and codecs."
@@ -25,6 +28,7 @@ limitations under the License.
 ]]
 
 local uv = require('uv')
+local assertResume = require('utils').assertResume
 
 local function wrapEmitter(emitter)
   local read, write
@@ -45,7 +49,7 @@ local function wrapEmitter(emitter)
       if not waiting then return end
       local thread = waiting
       waiting = nil
-      assert(coroutine.resume(thread))
+      assertResume(thread)
     end
 
     function write(data)
@@ -70,7 +74,7 @@ local function wrapEmitter(emitter)
       if waiting then
         local thread = waiting
         waiting = nil
-        assert(coroutine.resume(thread, data))
+        assertResume(thread, data)
         return true
       end
       queue[#queue + 1] = data
@@ -82,7 +86,7 @@ local function wrapEmitter(emitter)
       if waiting then
         local thread = waiting
         waiting = nil
-        assert(coroutine.resume(thread))
+        assertResume(thread)
       end
     end
 
@@ -131,7 +135,7 @@ local function wrapStream(socket)
     if waiting then
       local thread = waiting
       waiting = nil
-      assert(coroutine.resume(thread, unpack(data)))
+      assertResume(thread, unpack(data))
     else
       queue[#queue + 1] = data
       if not paused then
@@ -187,7 +191,7 @@ local function chain(...)
           if boxes[j] then
             local data = boxes[j]
             boxes[j] = nil
-            assert(coroutine.resume(threads[j]))
+            assertResume(threads[j])
             return unpack(data)
           else
             waiting[i] = true
@@ -202,14 +206,14 @@ local function chain(...)
           local j = i + 1
           if waiting[j] then
             waiting[j] = false
-            assert(coroutine.resume(threads[j], ...))
+            assertResume(threads[j], ...)
           else
             boxes[i] = {...}
             coroutine.yield()
           end
         end
       end
-      assert(coroutine.resume(threads[i], r, w))
+      assertResume(threads[i], r, w)
     end
   end
 end
