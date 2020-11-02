@@ -232,6 +232,12 @@ function _meta.__eq(ustr1,ustr2)
     for i = 1,len1 do
         if ustr1[i] ~= ustr2[i] then return false end
     end
+
+    if len1 == 0 and len2 == 0 then
+        if getmetatable(ustr1) ~= getmetatable(ustr2) then
+            return false
+        end
+    end
     return true
 end
 
