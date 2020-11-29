@@ -162,12 +162,14 @@ end
 local function decoder()
 
   -- This decoder is somewhat stateful with 5 different parsing states.
-  local decodeHead, decodeEmpty, decodeRaw, decodeChunked, decodeCounted
+  local decodeHeadMode, decodeEmptyMode, decodeRawMode,
+        decodeChunkedMode, decodeCountedMode = 1, 2, 3, 4, 5
+
   local mode -- state variable that points to various decoders
   local bytesLeft -- For counted decoder
 
   -- This state is for decoding the status line and headers.
-  function decodeHead(chunk)
+  local function decodeHead(chunk)
     if not chunk then return end
 
     local _, length = find(chunk, "\r?\n\r?\n", 1)
@@ -221,14 +223,14 @@ local function decoder()
 
     if head.keepAlive and (not (chunkedEncoding or (contentLength and contentLength > 0)))
        or (head.method == "GET" or head.method == "HEAD") then
-      mode = decodeEmpty
+      mode = decodeEmptyMode
     elseif chunkedEncoding then
-      mode = decodeChunked
+      mode = decodeChunkedMode
     elseif contentLength then
       bytesLeft = contentLength
-      mode = decodeCounted
+      mode = decodeCountedMode
     elseif not head.keepAlive then
-      mode = decodeRaw
+      mode = decodeRawMode
     end
 
     return head, sub(chunk, length + 1)
@@ -236,18 +238,18 @@ local function decoder()
   end
 
   -- This is used for inserting a single empty string into the output string for known empty bodies
-  function decodeEmpty(chunk)
-    mode = decodeHead
+  local function decodeEmpty(chunk)
+    mode = decodeHeadMode
     return "", chunk or ""
   end
 
-  function decodeRaw(chunk)
+  local function decodeRaw(chunk)
     if not chunk then return "", "" end
     if #chunk == 0 then return end
     return chunk, ""
   end
 
-  function decodeChunked(chunk)
+  local function decodeChunked(chunk)
     local len, term
     len, term = match(chunk, "^(%x+)(..)")
     if not len then return end
@@ -260,16 +262,16 @@ local function decoder()
     local length = tonumber(len, 16)
     if #chunk < length + 4 + #len then return end
     if length == 0 then
-      mode = decodeHead
+      mode = decodeHeadMode
     end
     chunk = sub(chunk, #len + 3)
     assert(sub(chunk, length + 1, length + 2) == "\r\n")
     return sub(chunk, 1, length), sub(chunk, length + 3)
   end
 
-  function decodeCounted(chunk)
+  local function decodeCounted(chunk)
     if bytesLeft == 0 then
-      mode = decodeEmpty
+      mode = decodeEmptyMode
       return mode(chunk)
     end
     local length = #chunk
@@ -277,7 +279,7 @@ local function decoder()
     if length == 0 then return end
 
     if length >= bytesLeft then
-      mode = decodeEmpty
+      mode = decodeEmptyMode
     end
 
     -- If the entire chunk fits, pass it all through
@@ -290,9 +292,19 @@ local function decoder()
   end
 
   -- Switch between states by changing which decoder mode points to
-  mode = decodeHead
+  mode = decodeHeadMode
   return function (chunk)
-    return mode(chunk)
+    if mode == decodeHeadMode then
+      return decodeHead(chunk)
+    elseif mode == decodeEmptyMode then
+      return decodeEmpty(chunk)
+    elseif mode == decodeRawMode then
+      return decodeRaw(chunk)
+    elseif mode == decodeChunkedMode then
+      return decodeChunked(chunk)
+    elseif mode == decodeCountedMode then
+      return decodeCounted(chunk)
+    end
   end
 
 end
