@@ -14,7 +14,7 @@ See the main project webpage for more details. <https://luvit.io/>
 
 ## Need Help?
 
-Ask questions here through issues, on irc [#luvit@freenode](irc://chat.freenode.net/luvit) or the [mailing list](https://groups.google.com/forum/#!forum/luvit).
+Ask questions here through issues, on [Discord](https://discord.gg/luvit) or the [mailing list](https://groups.google.com/forum/#!forum/luvit).
 
 ## Binary Modules
 
