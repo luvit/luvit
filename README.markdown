@@ -1,6 +1,6 @@
 # Luvit 2.0 - Node.JS for the Lua Inventor
 
-[![Linux Build Status](https://travis-ci.org/luvit/luvit.svg?branch=master)](https://travis-ci.org/luvit/luvit)
+[![Linux Build Status](https://github.com/luvit/luvit/actions/workflows/ci.yml/badge.svg)](https://github.com/luvit/luvit/actions/workflows/ci.yml)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/72ccr146fm51k7up/branch/master?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvit/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/luvit/luvit/badge.svg?branch=master)](https://coveralls.io/github/luvit/luvit?branch=master)
 [![#luvit on Freenode](https://raster.shields.io/badge/Freenode-%23luvit-undefined.png)](https://webchat.freenode.net/?channels=luvit)
