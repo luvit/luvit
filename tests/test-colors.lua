@@ -23,7 +23,7 @@ local strip = utils.strip
 require('tap')(function (test)
 
   test("Recursive values", function ()
-    local data = {a="value"}
+    local data = { a = 'value' }
     data.data = data
     local out = dump(data)
     local stripped = strip(out)
