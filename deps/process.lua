@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/process"
-  version = "2.1.2"
+  version = "2.1.3"
   dependencies = {
     "luvit/hooks@2.0.0",
     "luvit/timer@2.0.0",
