@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/http"
-  version = "2.1.4"
+  version = "2.1.5"
   dependencies = {
     "luvit/net@2.0.0",
     "luvit/url@2.0.0",
