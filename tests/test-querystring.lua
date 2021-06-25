@@ -28,11 +28,13 @@ require('tap')(function(test)
   test('stringify', function(expect)
     for num, test in ipairs(tests) do
       local input = test[3]
-      local output = test[2]
       local str = qs.stringify(input, test[4], test[5])
-      if not deepEqual(output, str) then
-        p("Expected", output)
-        p("But got", str)
+      -- instead of comparing strings, parse the stringified string and compare tables since
+      -- the order of the keys in the stringified string is not deterministic
+      local reparsed = qs.parse(str, test[4], test[5])
+      if not deepEqual(input, reparsed) then
+        p("Expected", input)
+        p("But got", reparsed, "from stringified", str)
         error("Test #" .. num .. " failed")
       end
     end
