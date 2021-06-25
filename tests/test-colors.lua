@@ -28,7 +28,10 @@ require('tap')(function (test)
     local out = dump(data)
     local stripped = strip(out)
     print("recursive", out, dump(stripped))
-    assert(string.match(stripped, "{ a = 'value', data = table: 0x%x+ }"))
+    -- iteration order is not consistent, so we need to check either ordering
+    local matches = string.match(stripped, "{ a = 'value', data = table: 0x%x+ }") ~= nil
+    matches = matches or string.match(stripped, "{ data = table: 0x%x+, a = 'value' }") ~= nil
+    assert(matches)
   end)
 
   test("string escapes", function ()
