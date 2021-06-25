@@ -45,8 +45,8 @@ return function (main, ...)
 
   local args = {...}
   local success, err = xpcall(function ()
-    -- Call the main app
-    main(unpack(args))
+    -- Call the main app inside a coroutine
+    coroutine.wrap(main)(unpack(args))
 
     -- Start the event loop
     uv.run()
