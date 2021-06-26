@@ -82,8 +82,12 @@ require('tap')(function (test)
     end))
   end)
   test("resolveTxt", function (expect)
+    -- for some reason this test was failing on linux using the system resolver, so
+    -- use the defined default servers instead (the servers will change on the
+    -- next test anyway so this only affects this test)
+    dns.setDefaultServers()
     dns.resolveTxt('google.com', expect(function(err, answers)
-      assert(not err)
+      assert(not err, err)
       p(answers)
       assert(#answers > 0)
     end))
