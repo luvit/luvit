@@ -1,3 +1,25 @@
+# Changes in 2.18.0
+
+- luvi: bump to v2.12.0 [Tim Caswell]
+- lit: update to 3.8.5 [Tim Caswell]
+- luvit: add the changelog [Tim Caswell]
+- Wrap main in a coroutine [@truemedian]
+
+# Changes in 2.17.1
+
+- http: ignore upgrade header when no upgrade listener is present [Timothy Van Wonterghem]
+- Mitigate bogus errors being returned on stack overflows [Ryan Liptak]
+- Make console/tty write safe [George Zhao]
+- Add Socket:{getSend,getRecv,setSend\,setRecv}BufferSize() [George Zhao]
+- simplify the logic of Emitter:listeners [George Zhao]
+- core: Make Emitter:removeListener return the number of removed handlers [Ryan Liptak]
+- process: Fix signals being closed before all their listeners are removed [Ryan Liptak]
+- Fix luvit argument handling [George Zhao]
+- tls: Fix for OpenSSL 1.1.0 [Ryan Liptak]
+- Add utils.assertResume [SinisterRectus]
+- Localize p in stream_readable.lua [Astie Teddy]
+
+
 # Changes in 2.17.0
 
 - luvi: bump to v2.10.1
