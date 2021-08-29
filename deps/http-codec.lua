@@ -111,7 +111,7 @@ local function encoder()
       assert(path and #path > 0, "expected non-empty path")
       head = { item.method .. ' ' .. item.path .. ' HTTP/' .. version .. '\r\n' }
     else
-      local reason = item.reason or STATUS_CODES[item.code]
+      local reason = item.reason or STATUS_CODES[item.code] or "Unknown reason"
       head = { 'HTTP/' .. version .. ' ' .. item.code .. ' ' .. reason .. '\r\n' }
     end
     for i = 1, #item do
