@@ -46,7 +46,10 @@ return function (main, ...)
   local args = {...}
   local success, err = xpcall(function ()
     -- Call the main app inside a coroutine
-    coroutine.wrap(main)(unpack(args))
+    local utils = require('utils')
+
+    local thread = coroutine.create(main)
+    utils.assertResume(thread, unpack(args))
 
     -- Start the event loop
     uv.run()
