@@ -1,3 +1,8 @@
+# Changes in 2.18.1
+
+- tls: update certs database [Tim Caswell]
+- luvit: fix main thread tracebacks [@truemedian]
+
 # Changes in 2.18.0
 
 - luvi: bump to v2.12.0 [Tim Caswell]
