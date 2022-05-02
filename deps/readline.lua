@@ -84,6 +84,13 @@ function History.new()
 end
 
 local Editor = {}
+function Editor:getCursorOffset()
+  local position = self.position
+  local columns = self.columns
+  local rows = math.floor((position + 1) / columns)
+  local cols = position - (columns * math.floor(position / columns))
+  return rows, cols
+end
 function Editor:refreshLine()
   local line = self.line
   if self.cover then
@@ -95,35 +102,60 @@ function Editor:refreshLine()
     position = (#self.cover * (position - 1)) + 1
   end
 
+  local curRow, curCol = self:getCursorOffset()
+  local columns = self.columns
+  local prevRow = self.prevRow
   -- Cursor to left edge
   local command = "\x1b[0G"
   -- Write the prompt and the data before cursor in buffer content.
-               .. self.prompt .. tostring(line:sub(1,self.position - 1))
-  -- Save the position,erase to right and write data left.
-               .. "\x1b7\x1b[0K" .. tostring(line:sub(self.position,-1))
+               .. self.prompt .. tostring(line:sub(1, position - 1))
+  -- Force a new line to make sure cursor is always on screen
+               .. (curCol == columns - 1 and '\n' or '')
+  -- Save the position, erase to right and write data left.
+               .. "\x1b7\x1b[0J" .. tostring(line:sub(position, -1))
   -- Move cursor to original position.
                .. "\x1b8"
+  -- Cursor up to the original row start
+  if curRow > 0 and prevRow == curRow then -- at the same line
+    command = "\x1b[" .. curRow .. "A" .. command
+  elseif prevRow > curRow then -- up previous line
+    command = "\x1b[" .. curRow + 1 .. "A" .. command
+  elseif prevRow < curRow and prevRow > 0 then -- down next line
+    command = "\x1b[" .. curRow - 1 .. "A" .. command
+  end
+
+  self.prevRow = curRow
   self.stdout:write(command)
 end
 function Editor:insertAbove(line)
+  local rows = self:getCursorOffset()
+  -- Cursor up to initial row if necessary
+  local command = (rows > 0 and '\x1b[' .. rows .. 'A' or '')
   -- Cursor to left edge
-  local command = "\x1b[0G"
+               .. "\x1b[0G"
   -- Erase to right
                .. "\x1b[0K"
+  -- TODO: Handle line spanning multiple rows
 
+  self.prevRow = 0 -- no need to move cursor up in next refreshLine
   self.stdout:write(command .. line .. "\n", function()
     self:refreshLine()
   end)
 end
 function Editor:insert(character)
-  local display = self.cover and string.rep(self.cover, #character) or character
   local line = self.line
+  local display = self.cover and string.rep(self.cover, #character) or character
   local position = self.position
   character = ustring.new(character)
   if #line == position - 1 then
     self.line = line .. character
     self.position = position + #character
-    self.stdout:write(display)
+    local _, col = self:getCursorOffset()
+    if col == self.columns - 1 then
+      self:refreshLine()
+    else
+      self.stdout:write(display)
+    end
   else
     -- Insert the letter in the middle of the line
     self.line = sub(line, 1, position - 1) .. ustring.new(character) .. sub(line, position)
@@ -160,6 +192,10 @@ function Editor:getHistory(delta)
     self.line = line
     self.historyIndex = index
     self.position = #line + 1
+    local diff = self.prevRow - self:getCursorOffset() - 1
+    if self.prevRow > 1 and diff > 0 then
+      self.stdout:write("\x1b[" .. diff .. 'A')
+    end
     self:refreshLine()
   end
 end
@@ -210,11 +246,18 @@ function Editor:deleteEnd()
 end
 function Editor:moveHome()
   self.position = 1
+  if self.prevRow > 1 then
+    self.stdout:write("\x1b[" .. self.prevRow - 1 .. 'A')
+  end
   self:refreshLine()
 end
 
 function Editor:moveEnd()
   self.position = #self.line + 1
+  local diff = self:getCursorOffset() - self.prevRow - 1
+  if self.prevRow > 0 and diff > 0 then
+    self.stdout:write("\x1b[" .. diff .. 'B')
+  end
   self:refreshLine()
 end
 local function findLeft(line, position, wordPattern)
@@ -236,16 +279,28 @@ function Editor:deleteWord()
   local line = self.line
   self.position = findLeft(line, position, self.wordPattern)
   self.line = sub(line, 1, self.position - 1) .. sub(line, position)
+  local diff = self.prevRow - self:getCursorOffset() - 1
+  if self.prevRow > 1 and diff > 0 then
+    self.stdout:write("\x1b[" .. diff .. 'A')
+  end
   self:refreshLine()
 end
 
 function Editor:jumpLeft()
   self.position = findLeft(self.line, self.position, self.wordPattern)
+  local diff = self.prevRow - self:getCursorOffset()
+  if self.prevRow > 1 and diff > 1 then
+    self.stdout:write("\x1b[" .. diff - 1 .. "A")
+  end
   self:refreshLine()
 end
 function Editor:jumpRight()
   local _, e = find(self.line, self.wordPattern, self.position)
   self.position = e and e + 1 or #self.line + 1
+  local diff = self:getCursorOffset() - self.prevRow
+  if self.prevRow > 0 and diff > 1 then
+    self.stdout:write("\x1b[" .. diff - 1 .. 'B')
+  end
   self:refreshLine()
 end
 function Editor:clearScreen()
@@ -472,12 +527,19 @@ function Editor:readLine(prompt, callback)
   function finish(...)
     self.stdin:read_stop()
     self.stdin:set_mode(0)
+    -- Move cursor to a new row if necessary
+    local rows = math.floor(#self.line / self.columns)
+    local curRow = self:getCursorOffset()
+    if rows > 0 and curRow < rows then
+      self.stdout:write("\x1b[" .. rows - curRow .. 'B')
+    end
     self.stdout:write('\n')
     return callback(...)
   end
 
   self.line = emptyline
   self.position = 1
+  self.prevRow = 0
   self.stdout:write(self.prompt)
   self.history:add(tostring(self.line))
   self.historyIndex = #self.history

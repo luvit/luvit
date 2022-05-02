@@ -67,7 +67,7 @@ local function join(thread)
 end
 
 local function equals(thread1,thread2)
-    return uv.thread_equals(thread1,thread2)
+    return uv.thread_equal(thread1,thread2)
 end
 
 local function self()
