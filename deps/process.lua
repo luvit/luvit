@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/process"
-  version = "2.1.3"
+  version = "2.1.4"
   dependencies = {
     "luvit/hooks@2.0.0",
     "luvit/timer@2.0.0",
@@ -217,7 +217,7 @@ local function globalProcess()
   process.env = lenv
   process.cwd = cwd
   process.kill = kill
-  process.pid = uv.getpid()
+  process.pid = uv.os_getpid()
   process.on = on
   process.exit = exit
   process.memoryUsage = memoryUsage
