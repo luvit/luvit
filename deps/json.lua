@@ -673,7 +673,7 @@ function json.use_lpeg ()
     local npos
     local t, nt = {}, 0
     repeat
-      obj, cont, npos = pegmatch (ArrayContent, str, pos, nullval, state)
+      obj, cont, npos = pegmatch (ArrayContent, tostring(str), pos, nullval, state)
       if not npos then break end
       pos = npos
       nt = nt + 1
@@ -687,7 +687,7 @@ function json.use_lpeg ()
     local npos
     local t = {}
     repeat
-      key, obj, cont, npos = pegmatch (ObjectContent, str, pos, nullval, state)
+      key, obj, cont, npos = pegmatch (ObjectContent, tostring(str), pos, nullval, state)
       if not npos then break end
       pos = npos
       t[key] = obj
@@ -707,7 +707,7 @@ function json.use_lpeg ()
   function json.decode (str, pos, nullval, ...)
     local state = {}
     state.objectmeta, state.arraymeta = optionalmetatables(...)
-    local obj, retpos = pegmatch (DecodeValue, str, pos, nullval, state)
+    local obj, retpos = pegmatch (DecodeValue, tostring(str), pos, nullval, state)
     if state.msg then
       return nil, state.pos, state.msg
     else
