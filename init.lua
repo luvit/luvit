@@ -52,7 +52,7 @@ return function (main, ...)
 	end
 	if not delim or delim == '' then
 		for c in string.gmatch(str, '.') do
-			insert(ret, c)
+			table.insert(ret, c)
 		end
 		return ret
 	end
