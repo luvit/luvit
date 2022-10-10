@@ -10,6 +10,8 @@ local parseTests = {
   ["https://GabrielNicolasAvellaneda:s3cr3t@github.com:443/GabrielNicolasAvellaneda/luvit"] = {href = 'https://GabrielNicolasAvellaneda:s3cr3t@github.com:443/GabrielNicolasAvellaneda/luvit', protocol = 'https', auth = 'GabrielNicolasAvellaneda:s3cr3t', host = 'github.com:443', hostname = 'github.com', port = '443', path = '/GabrielNicolasAvellaneda/luvit', pathname = '/GabrielNicolasAvellaneda/luvit'},
   ["creationix.com/"] = {href = 'creationix.com/', path = 'creationix.com/', pathname = 'creationix.com/'},
   ["https://www.google.com.br/test#q=luvit"] = {href = 'https://www.google.com.br/test#q=luvit', protocol = 'https', host = 'www.google.com.br', hostname = 'www.google.com.br', path = '/test', pathname = '/test', hash = '#q=luvit'},
+  ["/dir/@file"] = {href = '/dir/@file', path = '/dir/@file', pathname = '/dir/@file'},
+  ["http://user:passwd@host:81/"] = {href = 'http://user:passwd@host:81/', protocol = 'http', auth = 'user:passwd', host = 'host:81', hostname = 'host', port = '81', path = '/', pathname = '/'},
 }
 local parseTestsWithQueryString = {
   ["/somepath?test=bar&ponies=foo"] = { pathname = '/somepath', query = {test = 'bar', ponies = 'foo'},href='/somepath?test=bar&ponies=foo',path='/somepath?test=bar&ponies=foo',search='?test=bar&ponies=foo'},
