@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/url"
-  version = "2.1.2"
+  version = "2.1.3"
   dependencies = {
     "luvit/querystring@2.0.0",
   }
@@ -65,24 +65,23 @@ local function parse(url, parseQueryString)
   if type(url) == "table" then return url end
   assert(type(url) == "string", "url must be a string")
 
-  local href = url
   local chunk, protocol = url:match("^(([a-z0-9+]+)://)")
-  url = url:sub((chunk and #chunk or 0) + 1)
+  if chunk then url = url:sub(#chunk + 1) end
 
   local auth
-  chunk, auth = url:match('(([%w%p]+:?[%w%p]+)@)')
-  url = url:sub((chunk and #chunk or 0) + 1)
-
   local host
   local hostname
   local port
   if protocol then
+    chunk, auth = url:match('(([%w%p]+:?[%w%p]+)@)')
+    if chunk then url = url:sub(#chunk + 1) end
+
     host = url:match("^([%a%.%d-]+:?%d*)")
     if host then
       hostname = host:match("^([^:/]+)")
       port = host:match(":(%d+)$")
+      url = url:sub(#host + 1)
     end
-  url = url:sub((host and #host or 0) + 1)
   end
 
   local path
