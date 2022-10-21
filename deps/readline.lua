@@ -483,7 +483,9 @@ function Editor:readLine(prompt, callback)
   self.historyIndex = #self.history
 
   self.stdin:set_mode(1)
-  self.stdin:read_start(onKey)
+  self.stdin:read_start(function (...)
+    return coroutine.wrap(onKey)(...)
+  end)
 
 end
 Editor.__index = Editor
