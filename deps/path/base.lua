@@ -169,7 +169,7 @@ end
 function Path:resolve(...)
   local paths = {...}
   local resolvedpath = ""
-  local resolveddrive = nil
+  local resolveddrive
   local isabsolute = false
   for i=#paths, 1, -1 do
     local path = paths[i]
