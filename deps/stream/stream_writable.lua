@@ -248,7 +248,7 @@ function Writable:uncork()
         state.corked == 0 and
         not state.finished and
         not state.bufferProcessing and
-        table.getn(state.buffer) ~= 0 then
+        #state.buffer ~= 0 then
       clearBuffer(self, state)
     end
   end
@@ -356,7 +356,7 @@ function onwrite(stream, er)
     if not finished and
         state.corked == 0 and
         not state.bufferProcessing and
-        table.getn(state.buffer) ~= 0 then
+        #state.buffer ~= 0 then
       clearBuffer(stream, state)
     end
 
@@ -398,12 +398,12 @@ end
 function clearBuffer(stream, state)
   state.bufferProcessing = true
 
-  if stream._writev and table.getn(state.buffer) > 1 then
+  if stream._writev and #state.buffer > 1 then
     --[[
     // Fast case, write everything using _writev()
     --]]
     local cbs = {}
-    for c = 1,table.getn(state.buffer) do
+    for c = 1, #state.buffer do
       table.insert(cbs, state.buffer[c].callback)
     end
 
@@ -413,7 +413,7 @@ function clearBuffer(stream, state)
     --]]
     state.pendingcb = state.pendingcb + 1
     doWrite(stream, state, true, state.length, state.buffer, function(err)
-      for i = 1,table.getn(cbs) do
+      for i = 1, #cbs do
         state.pendingcb = state.pendingcb - 1
         cbs[i](err)
       end
@@ -428,7 +428,7 @@ function clearBuffer(stream, state)
     // Slow case, write chunks one-by-one
     --]]
     local c = 1
-    while c <= table.getn(state.buffer) do
+    while c <= #state.buffer do
       local entry = state.buffer[c]
       local chunk = entry.chunk
       local cb = entry.callback
@@ -454,7 +454,7 @@ function clearBuffer(stream, state)
       c = c + 1
     end
 
-    if c <= table.getn(state.buffer) then
+    if c <= #state.buffer then
       -- node.js: state.buffer = state.buffer.slice(c)
       for i=1,c-1 do
         table.remove(state.buffer, 1)
@@ -503,7 +503,7 @@ end
 
 
 function needFinish(stream, state)
-  return state.ending and state.length == 0 and table.getn(state.buffer) == 0 and
+  return state.ending and state.length == 0 and #state.buffer == 0 and
   not state.finished and not state.writing
 end
 

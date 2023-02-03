@@ -200,11 +200,11 @@ return function (stdin, stdout, greeting)
     -- Namespace builtin libs to make the repl easier to play with
     -- Requires with filenames with a - in them will be camelcased
     -- e.g. pretty-print -> prettyPrint
-    table.foreach(_builtinLibs, function(_, lib)
+    for _, lib in pairs(_builtinLibs) do
       local requireName = lib:gsub('-.', function (char) return char:sub(2):upper() end)
       local req = string.format('%s = require("%s")', requireName, lib)
       evaluateLine(req)
-    end)
+    end
   end
 
   return {
