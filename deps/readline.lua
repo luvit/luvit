@@ -409,7 +409,7 @@ local keyHandlers =
 
 function Editor:onKey(key)
   local char = string.byte(key, 1)
-  local consumedKeys = nil
+  local consumedKeys
 
   for _, keyHandler in ipairs(keyHandlers) do
     local handledKeys = keyHandler[1]

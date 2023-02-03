@@ -24,9 +24,9 @@ return require('./init')(function (...)
   local utils = require('utils')
   local package = require('./package.lua')
 
-  local startRepl = nil
-  local combo = nil
-  local script = nil
+  local startRepl
+  local combo
+  local script
   local extra = {}
 
   local function usage()

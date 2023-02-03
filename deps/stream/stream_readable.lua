@@ -420,7 +420,7 @@ function Readable:read(n)
 end
 
 function chunkInvalid(state, chunk)
-  local er = nil
+  local er
   if type(chunk) ~= 'string' and
     chunk and
     not state.objectMode then

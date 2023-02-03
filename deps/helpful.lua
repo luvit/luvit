@@ -72,7 +72,7 @@ return function (prefix, mod)
     __index = function (table, wanted)
       if type(wanted) ~= "string" then return end
       local closest = math.huge
-      local name = nil
+      local name
       for key in pairs(table) do
         local distance = string.levenshtein(key, wanted)
         if distance < closest then
