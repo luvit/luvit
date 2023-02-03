@@ -113,7 +113,7 @@ function len(buf)
   if type(buf) == 'string' then
     return string.len(buf)
   elseif type(buf) == 'table' then
-    return table.getn(buf)
+    return #buf
   else
     return -1
   end

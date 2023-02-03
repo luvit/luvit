@@ -201,9 +201,9 @@ local function _exec(file, args, options, callback)
     maxBuffer = 4 * 1024,
     signal = 'SIGTERM'
   }
-  table.foreach(opts, function(k, v)
+  for k, v in pairs(opts) do
     if not options[k] then options[k] = v end
-  end)
+  end
 
   local child = spawn(file, args, options)
 
