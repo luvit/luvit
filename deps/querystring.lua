@@ -25,81 +25,88 @@ limitations under the License.
   tags = {"luvit", "url", "codec"}
 ]]
 
-local find = string.find
-local gsub = string.gsub
-local char = string.char
-local byte = string.byte
-local format = string.format
-local match = string.match
-local gmatch = string.gmatch
+
+local function hexToChar(hex)
+  return string.char(tonumber(hex, 16))
+end
+
+local function charToHex(character)
+  return string.format('%%%02X', string.byte(character))
+end
+
 
 local function urldecode(str)
-  str = gsub(str, '+', ' ')
-  str = gsub(str, '%%(%x%x)', function(h)
-    return char(tonumber(h, 16))
-  end)
+  if str then
+    str = string.gsub(str, '+', ' ')
+    str = string.gsub(str, '%%(%x%x)', hexToChar)
+  end
   return str
 end
 
 local function urlencode(str)
   if str then
-    str = gsub(str, '[^a-zA-Z0-9*%-%._]', function(c)
-      return format('%%%02X', byte(c))
-    end)
+    str = string.gsub(str, '[^a-zA-Z0-9*%-%._]', charToHex)
   end
   return str
 end
 
-local function stringifyPrimitive(v)
-  return tostring(v)
-end
 
-local function stringify(params, sep, eq)
-  if not sep then sep = '&' end
-  if not eq then eq = '=' end
-  if type(params) == "table" then
-    local fields = {}
-    for key,value in pairs(params) do
-      local keyString = urlencode(stringifyPrimitive(key)) .. eq
-      if type(value) == "table" then
-        for _, v in ipairs(value) do
-          table.insert(fields, keyString .. urlencode(stringifyPrimitive(v)))
-        end
-      else
-        table.insert(fields, keyString .. urlencode(stringifyPrimitive(value)))
-      end
-    end
-    return table.concat(fields, sep)
+local function stringify(tbl, sep, eq)
+  sep = sep or '&'
+  eq = eq or '='
+
+  if type(tbl) ~= 'table' then
+    return ''
   end
-  return ''
+
+  local fields = {}
+  for key, value in pairs(tbl) do
+    local keyString = urlencode(tostring(key)) .. eq
+
+    if type(value) == 'table' then
+      for _, subValue in ipairs(value) do
+        table.insert(fields, keyString .. urlencode(tostring(subValue)))
+      end
+    else
+      table.insert(fields, keyString .. urlencode(tostring(value)))
+    end
+  end
+
+  return table.concat(fields, sep)
 end
 
--- parse querystring into table. urldecode tokens
 local function parse(str, sep, eq)
-  if not sep then sep = '&' end
-  if not eq then eq = '=' end
-  local vars = {}
-  for pair in gmatch(tostring(str), '[^' .. sep .. ']+') do
-    if not find(pair, eq) then
-      vars[urldecode(pair)] = ''
+  sep = sep or '&'
+  eq = eq or '='
+
+  local keyValuePat = '([^' .. eq .. ']*)' .. eq .. '(.*)'
+
+  local parsed = {}
+  for pair in string.gmatch(tostring(str), '[^' .. sep .. ']+') do
+    if not string.find(pair, eq) then
+      parsed[urldecode(pair)] = ''
     else
-      local key, value = match(pair, '([^' .. eq .. ']*)' .. eq .. '(.*)')
+      local key, value = string.match(pair, keyValuePat)
+
       if key then
         key = urldecode(key)
         value = urldecode(value)
-        local type = type(vars[key])
-        if type=='nil' then
-          vars[key] = value
-        elseif type=='table' then
-          table.insert(vars[key], value)
+
+        local existingValue = parsed[key]
+        if existingValue == nil then
+          parsed[key] = value
+        elseif type(existingValue) == 'table' then
+          table.insert(existingValue, value)
         else
-          vars[key] = {vars[key],value}
+          parsed[key] = {existingValue, value}
         end
       end
     end
   end
-  return vars
+
+  return parsed
 end
+
 
 return {
   urldecode = urldecode,
