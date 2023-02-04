@@ -40,6 +40,7 @@ local remove = table.remove
 local insert = table.insert
 local concat = table.concat
 local tostring = tostring
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 
 local History = {}
 function History:add(line)

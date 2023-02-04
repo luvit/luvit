@@ -115,7 +115,7 @@ local function encoder()
       head = { 'HTTP/' .. version .. ' ' .. item.code .. ' ' .. reason .. '\r\n' }
     end
     for i = 1, #item do
-      local key, value = unpack(item[i])
+      local key, value = item[i][1], item[i][2]
       local lowerKey = lower(key)
       if lowerKey == "transfer-encoding" then
         chunkedEncoding = lower(value) == "chunked"

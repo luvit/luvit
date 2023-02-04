@@ -51,9 +51,11 @@ local function start(thread_func, ...)
     -- Inject the global process table
     _G.process = mainRequire('process').globalProcess()
 
-    -- Run function with require injected
-    local fn = loadstring(dumped)
-    getfenv(fn).require = mainRequire
+    -- Inject require
+    _G.require = mainRequire
+
+    -- Run function
+    local fn = load(dumped)
     fn(...)
 
     -- Start new event loop for thread.
@@ -95,7 +97,7 @@ local function work(thread_func, notify_entry)
     --try to find cached function entry
     local fn
     if not _G._uv_works[dumped] then
-      fn = loadstring(dumped)
+      fn = load(dumped)
 
       -- Convert paths back to table
       local paths = {}
@@ -110,7 +112,7 @@ local function work(thread_func, notify_entry)
       _G.process = _G.process or mainRequire('process').globalProcess()
 
       -- require injected
-      getfenv(fn).require = mainRequire
+      _G.require = mainRequire
 
       -- cache it
       _G._uv_works[dumped] = fn

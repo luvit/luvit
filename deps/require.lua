@@ -114,7 +114,7 @@ local function statFile(path)
     statCache[path] = stat
     return stat
   end
-  return nil, err or "Problem statting: " .. path
+  return nil, err or ("Problem statting: " .. path)
 end
 
 
@@ -298,15 +298,14 @@ function Module:require(name)
     else
       path = "@" .. path
     end
-    local fn = assert(loadstring(data, path))
-    local global = {
+    local global = setmetatable({
       module = module,
       exports = module.exports,
       require = function (...)
         return module:require(...)
       end
-    }
-    setfenv(fn, setmetatable(global, { __index = _G }))
+    }, { __index = _G })
+    local fn = assert(load(data, path, nil, global))
     local ret = fn()
 
     -- Allow returning the exports as well

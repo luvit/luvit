@@ -28,6 +28,7 @@ limitations under the License.
   tags = {"luvit", "bind", "adapter"}
 ]]
 
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 local Error = require('core').Error
 local utils = {}
 local pp = require('pretty-print')

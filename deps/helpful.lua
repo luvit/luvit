@@ -25,6 +25,8 @@ limitations under the License.
   tags = {"levenshtein", "string"}
 ]]
 
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
+
 function string.levenshtein(str1, str2)
 
   -- cost is 0 for equal strings

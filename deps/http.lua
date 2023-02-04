@@ -113,7 +113,7 @@ function ServerResponse:flushHeaders()
   local head = {}
   local sent_date, sent_connection, sent_transfer_encoding, sent_content_length
   for i = 1, #headers do
-    local key, value = unpack(headers[i])
+    local key, value = headers[i][1], headers[i][2]
     local klower = key:lower()
     head[#head + 1] = {tostring(key), tostring(value)}
     if klower == "connection" then
@@ -314,7 +314,7 @@ function ClientRequest:initialize(options, callback)
   local host_found, connection_found, user_agent
   for i = 1, #headers do
     self[#self + 1] = headers[i]
-    local key, value = unpack(headers[i])
+    local key, value = headers[i][1], headers[i][2]
     local klower = key:lower()
     if klower == 'host' then host_found = value end
     if klower == 'connection' then connection_found = value end
