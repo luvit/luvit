@@ -24,6 +24,7 @@ local timer = require('timer')
 local resource = require('resource')
 local uv = require('uv')
 local utils = require('utils')
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 
 local createCredentials
 local DEFAULT_CIPHERS

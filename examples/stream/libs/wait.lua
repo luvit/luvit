@@ -2,6 +2,7 @@
 local coroutine = require('coroutine')
 local debug = require 'debug'
 local fiber = {}
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 
 function fiber.new(block) return function (callback)
   local paused

@@ -29,6 +29,7 @@ limitations under the License.
 
 local uv = require('uv')
 local assertResume = require('utils').assertResume
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 
 local function wrapEmitter(emitter)
   local read, write

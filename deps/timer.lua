@@ -32,6 +32,7 @@ local uv = require('uv')
 local Object = require('core').Object
 local bind = require('utils').bind
 local assertResume = require('utils').assertResume
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 
 -------------------------------------------------------------------------------
 

@@ -34,7 +34,7 @@ local headerMeta = {
     end
     name = name:lower()
     for i = 1, #list do
-      local key, value = unpack(list[i])
+      local key, value = list[i][1], list[i][2]
       if key:lower() == name then return value end
     end
   end,

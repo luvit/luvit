@@ -16,6 +16,7 @@ limitations under the License.
 
 --]]
 local uv = require('uv')
+local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 
 return function (main, ...)
   -- Inject the global process table
