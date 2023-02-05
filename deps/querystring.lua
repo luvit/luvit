@@ -52,12 +52,12 @@ end
 
 
 local function stringify(tbl, sep, eq)
-  sep = sep or '&'
-  eq = eq or '='
-
   if type(tbl) ~= 'table' then
     return ''
   end
+
+  sep = sep or '&'
+  eq = eq or '='
 
   local fields = {}
   for key, value in pairs(tbl) do
