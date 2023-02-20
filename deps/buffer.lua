@@ -34,7 +34,7 @@ local Object = core.Object
 local instanceof = core.instanceof
 
 ffi.cdef[[
-  void *malloc (size_t __size);
+  void *calloc (size_t nmemb, size_t __size);
   void free (void *__ptr);
 ]]
 
@@ -49,11 +49,11 @@ local C = ffi.os == "Windows" and ffi.load("msvcrt") or ffi.C
 function Buffer:initialize(length)
   if type(length) == "number" then
     self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(length)), C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(1, length)), C.free)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(1, self.length)), C.free)
     ffi.copy(self.ctype, string, self.length)
   else
     error("Input must be a string or number")
