@@ -49,11 +49,11 @@ local C = ffi.os == "Windows" and ffi.load("msvcrt") or ffi.C
 function Buffer:initialize(length)
   if type(length) == "number" then
     self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(1, length)), C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(length, 1)), C.free)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(1, self.length)), C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(self.length, 1)), C.free)
     ffi.copy(self.ctype, string, self.length)
   else
     error("Input must be a string or number")
