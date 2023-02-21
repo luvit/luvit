@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/buffer"
-  version = "2.1.0"
+  version = "2.1.1"
   dependencies = {
     "luvit/core@2.0.0"
   }
@@ -35,6 +35,7 @@ local instanceof = core.instanceof
 
 ffi.cdef[[
   void *malloc (size_t __size);
+  void *calloc (size_t nmemb, size_t __size);
   void free (void *__ptr);
 ]]
 
@@ -49,7 +50,7 @@ local C = ffi.os == "Windows" and ffi.load("msvcrt") or ffi.C
 function Buffer:initialize(length)
   if type(length) == "number" then
     self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(length)), C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(length, 1)), C.free)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
