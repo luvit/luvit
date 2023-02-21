@@ -34,6 +34,7 @@ local Object = core.Object
 local instanceof = core.instanceof
 
 ffi.cdef[[
+  void *malloc (size_t __size);
   void *calloc (size_t nmemb, size_t __size);
   void free (void *__ptr);
 ]]
@@ -53,7 +54,7 @@ function Buffer:initialize(length)
   elseif type(length) == "string" then
     local string = length
     self.length = #string
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(self.length, 1)), C.free)
+    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
     ffi.copy(self.ctype, string, self.length)
   else
     error("Input must be a string or number")
