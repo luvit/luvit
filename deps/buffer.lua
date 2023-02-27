@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/buffer"
-  version = "2.1.1"
+  version = "2.1.2"
   dependencies = {
     "luvit/core@2.0.0"
   }
@@ -200,6 +200,7 @@ Buffer.writeInt32BE = Buffer.writeUInt32BE
 
 function Buffer:toString(i, j)
   local offset = i and i - 1 or 0
+  if (offset < 0 or offset > self.length) or (j and j > self.length) then error("Range out of bounds") end
   return ffi.string(self.ctype + offset, (j or self.length) - offset)
 end
 
