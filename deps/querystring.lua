@@ -25,27 +25,37 @@ limitations under the License.
   tags = {"luvit", "url", "codec"}
 ]]
 
+local format = string.format
+local byte = string.byte
+local char = string.char
+local gsub = string.gsub
+local gmatch = string.gmatch
+local find = string.find
+local match = string.match
+local insert = table.insert
+local concat = table.concat
+
 
 local function hexToChar(hex)
-  return string.char(tonumber(hex, 16))
+  return char(tonumber(hex, 16))
 end
 
 local function charToHex(character)
-  return string.format('%%%02X', string.byte(character))
+  return format('%%%02X', byte(character))
 end
 
 
 local function urldecode(str)
   if str then
-    str = string.gsub(str, '+', ' ')
-    str = string.gsub(str, '%%(%x%x)', hexToChar)
+    str = gsub(str, '+', ' ')
+    str = gsub(str, '%%(%x%x)', hexToChar)
   end
   return str
 end
 
 local function urlencode(str)
   if str then
-    str = string.gsub(str, '[^a-zA-Z0-9*%-%._]', charToHex)
+    str = gsub(str, '[^a-zA-Z0-9*%-%._]', charToHex)
   end
   return str
 end
@@ -65,14 +75,14 @@ local function stringify(tbl, sep, eq)
 
     if type(value) == 'table' then
       for _, subValue in ipairs(value) do
-        table.insert(fields, keyString .. urlencode(tostring(subValue)))
+        insert(fields, keyString .. urlencode(tostring(subValue)))
       end
     else
-      table.insert(fields, keyString .. urlencode(tostring(value)))
+      insert(fields, keyString .. urlencode(tostring(value)))
     end
   end
 
-  return table.concat(fields, sep)
+  return concat(fields, sep)
 end
 
 local function parse(str, sep, eq)
@@ -82,11 +92,11 @@ local function parse(str, sep, eq)
   local keyValuePat = '([^' .. eq .. ']*)' .. eq .. '(.*)'
 
   local parsed = {}
-  for pair in string.gmatch(tostring(str), '[^' .. sep .. ']+') do
-    if not string.find(pair, eq) then
+  for pair in gmatch(tostring(str), '[^' .. sep .. ']+') do
+    if not find(pair, eq) then
       parsed[urldecode(pair)] = ''
     else
-      local key, value = string.match(pair, keyValuePat)
+      local key, value = match(pair, keyValuePat)
 
       if key then
         key = urldecode(key)
@@ -96,7 +106,7 @@ local function parse(str, sep, eq)
         if existingValue == nil then
           parsed[key] = value
         elseif type(existingValue) == 'table' then
-          table.insert(existingValue, value)
+          insert(existingValue, value)
         else
           parsed[key] = {existingValue, value}
         end
