@@ -47,8 +47,7 @@ end
 
 local function urldecode(str)
   if str then
-    str = gsub(str, '+', ' ')
-    str = gsub(str, '%%(%x%x)', hexToChar)
+    str = gsub(gsub(str, '+', ' '), '%%(%x%x)', hexToChar)
   end
   return str
 end
