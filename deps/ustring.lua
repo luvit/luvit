@@ -230,7 +230,7 @@ function _meta.__eq(ustr1,ustr2)
 end
 
 function _meta.__tostring(self)
-    return tostring(table.concat(self))
+    return table.concat(self)
 end
 
 function _meta.__concat(ustr1,ustr2)
