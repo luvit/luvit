@@ -46,17 +46,11 @@ end
 
 
 local function urldecode(str)
-  if str then
-    str = gsub(gsub(str, '+', ' '), '%%(%x%x)', hexToChar)
-  end
-  return str
+  return str and gsub(gsub(str, '+', ' '), '%%(%x%x)', hexToChar)
 end
 
 local function urlencode(str)
-  if str then
-    str = gsub(str, '[^a-zA-Z0-9*%-%._]', charToHex)
-  end
-  return str
+  return str and gsub(str, '[^a-zA-Z0-9*%-%._]', charToHex)
 end
 
 
