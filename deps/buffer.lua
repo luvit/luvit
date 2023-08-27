@@ -71,6 +71,10 @@ function Buffer.meta:__ipairs()
   end
 end
 
+function Buffer.meta:__len()
+  return self.length
+end
+
 function Buffer.meta:__tostring()
   return ffi.string(self.ctype, self.length)
 end
