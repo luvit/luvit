@@ -39,7 +39,7 @@ local unpack = unpack or table.unpack ---@diagnostic disable-line: deprecated
 local Timer = Object:extend()
 
 function Timer:initialize()
-  self._handle= uv.new_timer()
+  self._handle = uv.new_timer()
   self._active = false
 end
 
