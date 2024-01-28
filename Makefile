@@ -38,10 +38,10 @@ uninstall:
 tools/certdata.txt:
 	curl https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt -o tools/certdata.txt
 
-tools/certs.pem: tools/certdata.txt tools/convert_mozilla_certdata.go
-	cd tools && go run convert_mozilla_certdata.go > certs.pem
+tools/cacert.pem:
+	cd tools && ./update-certs.sh
 
-tools/certs.dat: tools/certs.pem tools/convert.lua
+tools/certs.dat: tools/cacert.pem tools/convert.lua
 	luvit tools/convert
 
 update-certs:	tools/certs.dat
