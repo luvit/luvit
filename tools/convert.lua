@@ -1,7 +1,7 @@
 -- local request = require('coro-http').request
 local x509 = require('openssl').x509
 
-local pem = module:load("certs.pem")
+local pem = module:load("cacert.pem")
 local out = {}
 for cert in pem:gmatch("%-%-%-%-%-BEGIN CERTIFICATE%-%-%-%-%-[^-]+%-%-%-%-%-END CERTIFICATE%-%-%-%-%-") do
   p(cert)
