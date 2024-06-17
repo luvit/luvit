@@ -37,7 +37,7 @@ return function (main, ...)
 
   -- EPIPE ignore
   do
-    if jit.os ~= 'Windows' then
+    if require("los").type() ~= 'win32' then
       local sig = uv.new_signal()
       uv.signal_start(sig, 'sigpipe')
       uv.unref(sig)
