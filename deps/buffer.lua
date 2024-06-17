@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/buffer"
-  version = "2.1.2"
+  version = "2.1.3"
   dependencies = {
     "luvit/core@2.0.0"
   }

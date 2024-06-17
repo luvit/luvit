@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/los"
-  version = "2.0.0"
+  version = "2.0.1"
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/los.lua"
   description = "Tiny helper to get os name in luvit."
