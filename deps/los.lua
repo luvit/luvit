@@ -25,19 +25,70 @@ limitations under the License.
   tags = {"os"}
 ]]
 
-local jit = require('jit')
+local uv = require('uv')
 
-local map = {
-  ['Windows'] = 'win32',
-  ['Linux'] = 'linux',
-  ['OSX'] = 'darwin',
-  ['BSD'] = 'bsd',
-  ['POSIX'] = 'posix',
-  ['Other'] = 'other'
+local function get_os_name()
+  -- shortcuts for luajit if available
+  local has_jit, jit = pcall(require, 'jit')
+  if has_jit and jit and jit.os then
+    return jit.os
+  end
+
+  local has_ffi, ffi = pcall(require, 'ffi')
+  if has_ffi and ffi and ffi.os then
+    return ffi.os
+  end
+
+  -- Handles windows
+  if os and os.getenv then
+    if os.getenv('OS') then
+      return os.getenv('OS')
+    end
+  end
+
+  -- use libuv provided uname if possible, but it's not always available
+  if uv.os_uname then
+    local info = uv.os_uname().sysname
+    if info then
+      return info.sysname
+    end
+  end
+
+  -- Handles most other posix platforms
+  if io and io.popen then
+    local uname_child = io.popen('uname -s')
+    if uname_child then
+      local os_name = uname_child:read('*l')
+      uname_child:close()
+      return os_name
+    end
+  end
+
+  return 'other'
+end
+
+local os_patterns = {
+  ['windows'] = 'win32',
+  ['linux'] = 'linux',
+  ['mac'] = 'darwin',
+  ['darwin'] = 'darwin',
+  ['^mingw'] = 'win32',
+  ['^msys'] = 'win32',
+  ['^cygwin'] = 'win32',
+  ['bsd$'] = 'bsd',
+  ['posix'] = 'posix',
 }
 
+local os_name = string.lower(get_os_name())
+for pattern, name in pairs(os_patterns) do
+  if os_name:match(pattern) then
+    os_name = name
+    break
+  end
+end
+
 local function type()
-  return map[jit.os]
+  return os_name
 end
 
 return { type = type }

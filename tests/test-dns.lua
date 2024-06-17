@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 
 local dns = require('dns')
-local jit = require('jit')
+local los = require('los')
 local path = require('luvi').path
 
 -- Appveyor is failing builds randomly... need to re-enable
@@ -118,9 +118,7 @@ require('tap')(function (test)
     end))
   end)
   test("load resolver", function ()
-    if jit.os == 'Windows' then
-      return
-    end
+    if los.type() == 'win32' then return end
     local servers = dns.loadResolver({ file = path.join(module.dir, 'fixtures', 'resolve.conf.a')})
     assert(#servers == 3)
     assert(servers[1].host == '192.168.0.1')
@@ -129,7 +127,7 @@ require('tap')(function (test)
     dns.setDefaultServers()
   end)
   test("load resolver (resolv.conf search)", function ()
-    if jit.os == 'Windows' then return end
+    if los.type() == 'win32' then return end
     local servers = dns.loadResolver({ file = path.join(module.dir, 'fixtures', 'resolve.conf.b')})
     assert(#servers == 2)
     assert(servers[1].host == '127.0.0.1')
