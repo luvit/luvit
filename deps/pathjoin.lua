@@ -9,12 +9,7 @@
 
 local getPrefix, splitPath, joinParts
 
-local isWindows
-if _G.jit then
-  isWindows = _G.jit.os == "Windows"
-else
-  isWindows = not not package.path:match("\\")
-end
+local isWindows = require("los").type() == "win32"
 
 if isWindows then
   -- Windows aware path utilities
