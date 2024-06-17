@@ -36,9 +36,6 @@ limitations under the License.
   tags = {"luvit", "dns"}
 ]]
 
-if not pcall(require, 'ffi') then
-  error("The 'dns' module requires FFI support, which is not available on this platform.")
-end
 
 local dgram = require('dgram')
 local fs = require('fs')
@@ -46,7 +43,8 @@ local net = require('net')
 local timer = require('timer')
 local Error = require('core').Error
 local adapt = require('utils').adapt
-local ffi = require('ffi')
+local los = require('los')
+local has_ffi, ffi = pcall(require, 'ffi')
 
 local bit = require('bit')
 local crypto = require('tls/lcrypto')
@@ -67,7 +65,11 @@ local ipapi
 
 if _G._luvit_dns_load then
   ipapi = _G._luvit_dns_load
-elseif ffi.os=='Windows' then
+elseif los.type() == 'win32' then
+  if not has_ffi then
+    error("The 'dns' module requires FFI support on Windows, which is not available on this platform.")
+  end
+
   ffi.cdef[[
     typedef uint32_t DWORD; //Integer
     typedef uint32_t ULONG; //Alias
@@ -824,6 +826,8 @@ local function setDefaultServers()
 end
 
 local function loadResolverWin(options)
+  assert(ffi, 'ffi not available on this platform')
+
   local servers = {}
 
   local pOutBufLen = ffi.new("ULONG[1]")
@@ -905,7 +909,7 @@ local function loadResolverUnix(options)
 end
 
 local function loadResolver(options)
-  if ffi.os=='Windows' then
+  if los.type() == 'win32' then
     return loadResolverWin(options)
   else
     return loadResolverUnix(options)
