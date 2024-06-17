@@ -135,7 +135,7 @@ return require('./init')(function (...)
     local c = utils.color
     local greeting = "Welcome to the " .. c("err") .. "L" .. c("quotes") .. "uv" .. c("table") .. "it" .. c() .. " repl!"
     local historyFile
-    if require('ffi').os == "Windows" then
+    if require('los').type() == "win32" then
       historyFile = pathJoin(env.get("APPDATA"), "luvit_history")
     else
       historyFile = pathJoin(env.get("HOME"), ".luvit_history")
