@@ -27,6 +27,10 @@ limitations under the License.
   tags = {"luvit", "buffer"}
 ]]
 
+if not pcall(require, 'ffi') then
+  error("The 'buffer' module requires FFI support, which is not available on this platform.")
+end
+
 local core = require('core')
 local ffi = require('ffi')
 

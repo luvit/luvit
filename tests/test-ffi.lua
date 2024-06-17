@@ -16,6 +16,10 @@ limitations under the License.
 
 --]]
 
+if not pcall(require, 'ffi') then
+  return
+end
+
 local ffi = require('ffi')
 local timer = require('timer')
 local los = require('los')

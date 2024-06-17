@@ -36,6 +36,10 @@ limitations under the License.
   tags = {"luvit", "dns"}
 ]]
 
+if not pcall(require, 'ffi') then
+  error("The 'dns' module requires FFI support, which is not available on this platform.")
+end
+
 local dgram = require('dgram')
 local fs = require('fs')
 local net = require('net')
