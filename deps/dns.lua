@@ -20,7 +20,7 @@ limitations under the License.
 -- https://github.com/openresty/lua-resty-dns/blob/master/lib/resty/dns/resolver.lua
 --[[lit-meta
   name = "luvit/dns"
-  version = "2.0.4"
+  version = "2.0.5"
   dependencies = {
     "luvit/dgram@2.0.0",
     "luvit/fs@2.0.0",
@@ -35,7 +35,6 @@ limitations under the License.
   description = "Node-style dns module for luvit"
   tags = {"luvit", "dns"}
 ]]
-
 
 local dgram = require('dgram')
 local fs = require('fs')
