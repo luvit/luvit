@@ -17,7 +17,7 @@ limitations under the License.
 --]]
 --[[lit-meta
   name = "luvit/pretty-print"
-  version = "2.1.1"
+  version = "2.1.2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/pretty-print.lua"
   description = "A lua value pretty printer and colorizer for terminals."
   tags = {"colors", "tty"}
@@ -152,13 +152,8 @@ function loadColors(index)
   controls[92] = colorize('escape', '\\\\', 'string')
   controls[34] = colorize('escape', '\\"', 'string')
   controls[39] = colorize('escape', "\\'", 'string')
-  for i = 128, 255 do
-    local c
-    if i < 100 then
-      c = "0" .. tostring(i)
-    else
-      c = tostring(i)
-    end
+  for i = 127, 255 do
+    local c = tostring(i)
     controls[i] = colorize('escape', '\\' .. c, 'string')
   end
 
