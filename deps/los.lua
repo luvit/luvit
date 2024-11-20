@@ -48,7 +48,7 @@ local function get_os_name()
 
   -- use libuv provided uname if possible, but it's not always available
   if uv.os_uname then
-    local info = uv.os_uname().sysname
+    local info = uv.os_uname()
     if info then
       return info.sysname
     end
