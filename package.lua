@@ -58,5 +58,6 @@ return {
     "!tests",
     "!bench",
     "!lit-*",
+    "!tools"
   }
 }
