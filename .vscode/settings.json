@@ -1,0 +1,6 @@
+{
+  "Lua.workspace.library": [
+    "${addons}/luvit/module/library"
+  ],
+  "Lua.workspace.checkThirdParty": false
+}

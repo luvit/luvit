@@ -29,6 +29,7 @@ limitations under the License.
 
 local bit = require('bit')
 local core = require('core')
+local los = require('los')
 
 local char = string.char
 local band = bit.band
@@ -36,18 +37,18 @@ local unpack = unpack or table.unpack
 local Object = core.Object
 local instanceof = core.instanceof
 
-local isWindows = require('los').type() == 'win32'
-local hasFfi, ffi = pcall(require, 'ffi')
+local is_windows = los.type() == 'win32'
+local has_ffi, ffi = pcall(require, 'ffi')
 
 local C
-if hasFfi then
+if has_ffi then
   ffi.cdef[[
     void *malloc (size_t __size);
     void *calloc (size_t nmemb, size_t __size);
     void free (void *__ptr);
   ]]
   -- avoid bugs when linked with static runtime libraries, eg. /MT link flags
-  C = isWindows and ffi.load("msvcrt") or ffi.C
+  C = is_windows and ffi.load("msvcrt") or ffi.C
 end
 
 local buffer = {}
@@ -55,18 +56,10 @@ local buffer = {}
 local Buffer = Object:extend()
 buffer.Buffer = Buffer
 
-local function castChar(val)
-  if val >= 0 and val <= 0xff then
-    return val
-  else
-    return band(val, 0xff)
-  end
-end
-
 function Buffer:initialize(length)
   local content
   if type(length) == "number" then
-    assert(length > -1, 'Buffer length cannot be less than 0')
+    assert(length > -1, "Buffer length cannot be less than 0")
     self.length = length
   elseif type(length) == "string" then
     content = length
@@ -75,7 +68,7 @@ function Buffer:initialize(length)
     error("Input must be a string or number")
   end
 
-  if hasFfi then
+  if has_ffi then
     if content then
       self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
       ffi.copy(self.ctype, content, self.length)
@@ -86,7 +79,7 @@ function Buffer:initialize(length)
     local raw = {}
     if content then
       for i = 1, self.length do
-        raw[i - 1] = castChar(content:sub(i, i):byte())
+        raw[i - 1] = content:sub(i, i):byte()
       end
     else
       for i = 0, self.length - 1 do
@@ -130,11 +123,7 @@ end
 function Buffer.meta:__newindex(key, value)
   if type(key) == "number" then
     if key < 1 or key > self.length then error("Index out of bounds") end
-    if hasFfi then
-      self.ctype[key - 1] =  value
-    else
-      self.ctype[key - 1] = castChar(value)
-    end
+      self.ctype[key - 1] = has_ffi and value or band(value, 0xff)
     return
   end
   rawset(self, key, value)
@@ -248,7 +237,7 @@ function Buffer:toString(i, j)
   if (i < 0 or i > self.length) or (j and j > self.length) or (i > j) then
     error("Range out of bounds")
   end
-  if not hasFfi then
+  if not has_ffi then
     if self.length <= 0 then
       return ''
     end
