@@ -33,7 +33,6 @@ local los = require('los')
 
 local char = string.char
 local band = bit.band
-local unpack = unpack or table.unpack
 local Object = core.Object
 local instanceof = core.instanceof
 
@@ -241,7 +240,11 @@ function Buffer:toString(i, j)
     if self.length <= 0 then
       return ''
     end
-    return char(unpack(self.ctype, i, j - 1))
+    local buf = {}
+    for c = i, j - 1 do
+      buf[#buf+1] = char(self.ctype[c])
+    end
+    return table.concat(buf)
   end
   return ffi.string(self.ctype + i, (j or self.length) - i)
 end
