@@ -27,41 +27,65 @@ limitations under the License.
   tags = {"luvit", "buffer"}
 ]]
 
-if not pcall(require, 'ffi') then
-  error("The 'buffer' module requires FFI support, which is not available on this platform.")
-end
-
+local bit = require('bit')
 local core = require('core')
-local ffi = require('ffi')
+local los = require('los')
 
+local char = string.char
+local band = bit.band
 local Object = core.Object
 local instanceof = core.instanceof
 
-ffi.cdef[[
-  void *malloc (size_t __size);
-  void *calloc (size_t nmemb, size_t __size);
-  void free (void *__ptr);
-]]
+local is_windows = los.type() == 'win32'
+local has_ffi, ffi = pcall(require, 'ffi')
+
+local C
+if has_ffi then
+  ffi.cdef[[
+    void *malloc (size_t __size);
+    void *calloc (size_t nmemb, size_t __size);
+    void free (void *__ptr);
+  ]]
+  -- avoid bugs when linked with static runtime libraries, eg. /MT link flags
+  C = is_windows and ffi.load("msvcrt") or ffi.C
+end
 
 local buffer = {}
 
 local Buffer = Object:extend()
 buffer.Buffer = Buffer
 
---avoid bugs when link with static run times lib, eg. /MT link flags
-local C = ffi.os == "Windows" and ffi.load("msvcrt") or ffi.C
-
 function Buffer:initialize(length)
+  local content
   if type(length) == "number" then
+    assert(length >= 0, "Buffer length cannot be less than 0")
     self.length = length
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(length, 1)), C.free)
   elseif type(length) == "string" then
-    local string = length
-    self.length = #string
-    self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
-    ffi.copy(self.ctype, string, self.length)
+    content = length
+    self.length = #content
   else
     error("Input must be a string or number")
+  end
+
+  if has_ffi then
+    if content then
+      self.ctype = ffi.gc(ffi.cast("unsigned char*", C.malloc(self.length)), C.free)
+      ffi.copy(self.ctype, content, self.length)
+    else
+      self.ctype = ffi.gc(ffi.cast("unsigned char*", C.calloc(self.length, 1)), C.free)
+    end
+  else
+    local raw = {}
+    if content then
+      for i = 1, self.length do
+        raw[i - 1] = content:sub(i, i):byte()
+      end
+    else
+      for i = 0, self.length - 1 do
+        raw[i] = 0
+      end
+    end
+    self.ctype = raw
   end
 end
 
@@ -80,7 +104,7 @@ function Buffer.meta:__len()
 end
 
 function Buffer.meta:__tostring()
-  return ffi.string(self.ctype, self.length)
+  return self:toString()
 end
 
 function Buffer.meta:__concat(other)
@@ -98,7 +122,7 @@ end
 function Buffer.meta:__newindex(key, value)
   if type(key) == "number" then
     if key < 1 or key > self.length then error("Index out of bounds") end
-    self.ctype[key - 1] = value
+      self.ctype[key - 1] = band(value, 0xff)
     return
   end
   rawset(self, key, value)
@@ -207,9 +231,20 @@ Buffer.writeInt32LE = Buffer.writeUInt32LE
 Buffer.writeInt32BE = Buffer.writeUInt32BE
 
 function Buffer:toString(i, j)
-  local offset = i and i - 1 or 0
-  if (offset < 0 or offset > self.length) or (j and j > self.length) then error("Range out of bounds") end
-  return ffi.string(self.ctype + offset, (j or self.length) - offset)
+  i = i and i - 1 or 0
+  j = j or self.length
+  assert(i >= 0 and i <= self.length and j <= self.length and i <= j, "Range out of bounds")
+  if not has_ffi then
+    if self.length <= 0 then
+      return ''
+    end
+    local buf = {}
+    for c = i, j - 1 do
+      buf[#buf+1] = char(self.ctype[c])
+    end
+    return table.concat(buf)
+  end
+  return ffi.string(self.ctype + i, (j or self.length) - i)
 end
 
 function Buffer.isBuffer(b)
