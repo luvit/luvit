@@ -58,7 +58,7 @@ buffer.Buffer = Buffer
 function Buffer:initialize(length)
   local content
   if type(length) == "number" then
-    assert(length > -1, "Buffer length cannot be less than 0")
+    assert(length >= 0, "Buffer length cannot be less than 0")
     self.length = length
   elseif type(length) == "string" then
     content = length
@@ -122,7 +122,7 @@ end
 function Buffer.meta:__newindex(key, value)
   if type(key) == "number" then
     if key < 1 or key > self.length then error("Index out of bounds") end
-      self.ctype[key - 1] = has_ffi and value or band(value, 0xff)
+      self.ctype[key - 1] = band(value, 0xff)
     return
   end
   rawset(self, key, value)
@@ -233,9 +233,7 @@ Buffer.writeInt32BE = Buffer.writeUInt32BE
 function Buffer:toString(i, j)
   i = i and i - 1 or 0
   j = j or self.length
-  if (i < 0 or i > self.length) or (j and j > self.length) or (i > j) then
-    error("Range out of bounds")
-  end
+  assert(i >= 0 and i <= self.length and j <= self.length and i <= j, "Range out of bounds")
   if not has_ffi then
     if self.length <= 0 then
       return ''
