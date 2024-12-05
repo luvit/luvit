@@ -1,0 +1,36 @@
+name: "Coverage analysis"
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  luacov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Luvit
+        run: make luvit
+      - name: Setup Lua & Luarocks
+        env:
+          LUA_VER: lua-5.1.5
+          LUAROCKS_VER: luarocks-3.11.1
+        run: |
+          curl https://www.lua.org/ftp/$LUA_VER.tar.gz | tar xz
+          cd $LUA_VER
+          make linux && make install INSTALL_TOP=../install
+          cd ..
+          curl -L https://luarocks.github.io/luarocks/releases/$LUAROCKS_VER.tar.gz | tar xz
+          cd $LUAROCKS_VER
+          ./configure --with-lua=$GITHUB_WORKSPACE/$LUA_VER/install --prefix="./install"
+          make && make install
+          ln ./install/bin/luarocks $GITHUB_WORKSPACE/luarocks
+      - name: Install luacov & luacov-coveralls
+        run: |
+          $GITHUB_WORKSPACE/luarocks install luacov
+          $GITHUB_WORKSPACE/luarocks install luacov-coveralls
+      - name: Run coverage
+        run: |
+          export LUA_PATH=`$GITHUB_WORKSPACE/luarocks path --lr-path`
+          export LUA_CPATH=`$GITHUB_WORKSPACE/luarocks path --lr-cpath`
+          export PATH="$($GITHUB_WORKSPACE/luarocks path --lr-bin):$PATH"
+          make cover
+          luacov-coveralls -c tests/.luacov -t "${{secrets.GITHUB_TOKEN}}"
