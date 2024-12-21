@@ -1,0 +1,22 @@
+name: "Coverage analysis"
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  luacov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Luvit
+        run: make luvit
+      - name: Setup Lua & Luarocks
+        run: |
+          sudo apt install luarocks
+      - name: Install luacov & luacov-coveralls
+        run: |
+          sudo luarocks install luacov
+          sudo luarocks install luacov-coveralls
+      - name: Run coverage
+        run: |
+          make cover
+          luacov-coveralls -c tests/.luacov -t "${{secrets.GITHUB_TOKEN}}"
