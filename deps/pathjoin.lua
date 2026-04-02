@@ -1,7 +1,10 @@
 --[[lit-meta
   name = "luvit/pathjoin"
   description = "The path utilities that used to be part of luvi"
-  version = "2.0.0"
+  version = "2.0.1"
+  dependencies = {
+    "luvit/los@2.0.2"
+  }
   tags = {"path"}
   license = "MIT"
   author = { name = "Tim Caswell" }
