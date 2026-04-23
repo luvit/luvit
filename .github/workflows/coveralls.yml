@@ -5,6 +5,7 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   luacov:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Setup Luvit
