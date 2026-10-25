@@ -133,11 +133,19 @@ require('tap')(function (test)
         local _1M = 1024*1024
         assert(client:getRecvBufferSize() > 0)
         assert(client:setRecvBufferSize(_1M))
-        assert(client:getRecvBufferSize()==_1M)
+        if jit.os == 'Linux' then
+            assert(client:getRecvBufferSize()==_1M*2)
+        else
+            assert(client:getRecvBufferSize()==_1M)
+        end
 
         assert(client:getSendBufferSize() > 0)
         assert(client:setSendBufferSize(_1M))
-        assert(client:getSendBufferSize()==_1M)
+        if jit.os == 'Linux' then
+            assert(client:getSendBufferSize()==_1M*2)
+        else
+            assert(client:getSendBufferSize()==_1M)
+        end
       end
 
       function onTimeout()
