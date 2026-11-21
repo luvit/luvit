@@ -81,7 +81,7 @@ local function connect(options, callback)
     hostname = hostname:sub(1, colon-1 )
   end
 
-  sock = _common_tls.TLSSocket:new(nil, options)
+  sock = _common_tls.TLSSocket:new(options.socket, options)
   sock:connect(port, hostname, callback)
   return sock
 end
