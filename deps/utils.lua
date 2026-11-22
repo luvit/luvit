@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/utils"
-  version = "2.1.0"
+  version = "2.1.1"
   dependencies = {
     "luvit/pretty-print@2.0.0",
   }

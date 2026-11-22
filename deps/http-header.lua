@@ -18,7 +18,7 @@ limitations under the License.
 
 --[[lit-meta
   name = "luvit/http-header"
-  version = "1.0.0"
+  version = "1.0.1"
   license = "Apache 2"
   homepage = "https://github.com/luvit/luvit/blob/master/deps/http-header.lua"
   description = "Utilities for dealing with HTTP headers in Luvit"
