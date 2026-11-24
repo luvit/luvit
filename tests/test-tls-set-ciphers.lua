@@ -39,28 +39,32 @@ require('tap')(function(test)
 
     port = 32000
 
+    -- Permit this legacy cipher only for the loopback test peers.
+    local cipherList = 'NULL-MD5:@SECLEVEL=0'
     options = {
       cert = fs.readFileSync(loadPEM('agent1-cert.pem')),
       key = fs.readFileSync(loadPEM('agent1-key.pem')),
       port = port,
       rejectUnauthorized = false,
-      ciphers = 'NULL-MD5'
+      ciphers = cipherList
     }
 
     reply = 'I AM THE WALRUS\n'
     response = ''
 
-    function onConnection(conn)
+    function onConnection(conn, err)
+      assert(not err, tostring(err))
       conn:write(reply, function() conn:destroy() end)
     end
 
     function onListen()
-      local args, child, onExit, onStdout
+      local args, child, onClose, onStdout
 
       args = {
         's_client',
-        '-tls1',
-        '-cipher', 'NULL-MD5',
+        '-quiet',
+        '-tls1_2',
+        '-cipher', cipherList,
         '-connect', '127.0.0.1:' .. port
       }
 
@@ -68,14 +72,14 @@ require('tap')(function(test)
         response = response .. data
       end
 
-      function onExit()
+      function onClose()
         p(response)
-        assert(response:find(reply) ~= -1)
+        assert(response:find(reply, 1, true))
         server:close()
       end
 
       child = childprocess.spawn('openssl', args)
-      child:on('exit', onExit)
+      child:on('close', onClose)
       child.stdout:on('data', onStdout)
     end
 
