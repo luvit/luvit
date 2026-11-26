@@ -159,9 +159,9 @@ local function spawn(command, args, options)
     end)
   end
 
+  -- The parent writes to child stdin and reads from stdout and stderr.
   if stdout then stdout:resume() end
   if stderr then stderr:resume() end
-  if stdin then stdin:resume() end
 
   return em
 end

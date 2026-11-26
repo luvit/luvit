@@ -61,7 +61,7 @@ function Socket:initialize(options)
 
   self._connecting = false
   self._reading = false
-  self._destroyed = false
+  self.destroyed = false
 
   self:on('finish', utils.bind(self._onSocketFinish, self))
   self:on('_socketEnd', utils.bind(self._onSocketEnd, self))
@@ -100,21 +100,42 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
+local function isClosing(socket)
+  return socket.destroyed or (socket._handle and uv.is_closing(socket._handle))
+end
+
+function Socket:write(data, callback)
+  if not self.destroyed and isClosing(self) then self:destroy() end
+  return Duplex.write(self, data, callback)
+end
+
 function Socket:_write(data, callback)
-  if not self._handle then return end
-  uv.write(self._handle, data, function(err)
+  local function onWrite(err)
     if err then
-      self:destroy(err)
+      self:destroy()
       return callback(err)
     end
     callback()
-  end)
+  end
+
+  local err
+  if not self._handle or isClosing(self) then
+    err = 'socket is closed'
+  else
+    local req
+    req, err = uv.write(self._handle, data, onWrite)
+    if req then return end
+  end
+  -- Match asynchronous completion and let Writable finish dequeuing this write.
+  process.nextTick(function() onWrite(err) end)
 end
 
 function Socket:_read(n)
+  if not self._handle or isClosing(self) then return end
   local onRead
 
   function onRead(err, data)
+    if isClosing(self) then return end
     timer.active(self)
     if err then
       return self:destroy(err)
@@ -129,18 +150,16 @@ function Socket:_read(n)
   if self._connecting then
     self:once('connect', utils.bind(self._read, self, n))
   elseif not self._reading then
+    local ok, err = uv.read_start(self._handle, onRead)
+    if not ok then return self:destroy(err) end
     self._reading = true
-    uv.read_start(self._handle, onRead)
   end
 end
 
 function Socket:shutdown(callback)
-  if self.destroyed == true and callback then
-    return callback()
-  end
-
-  if uv.is_closing(self._handle) and callback then
-    return callback()
+  if not self._handle or isClosing(self) then
+    if callback then callback() end
+    return
   end
 
   uv.shutdown(self._handle, callback)
@@ -174,17 +193,19 @@ end
 
 function Socket:pause()
   Duplex.pause(self)
-  if not self._handle then return end
+  if not self._handle or isClosing(self) then return end
   self._reading = false
   uv.read_stop(self._handle)
 end
 
 function Socket:resume()
+  if isClosing(self) then return end
   Duplex.resume(self)
   self:_read(0)
 end
 
 function Socket:connect(...)
+  if isClosing(self) then return self end
   local args = {...}
   local options = {}
   local callback
@@ -222,11 +243,12 @@ function Socket:connect(...)
     if err then
       return self:destroy(err)
     end
-    if self.destroyed then return end
+    if isClosing(self) then return end
     local _, terr = uv.tcp_connect(self._handle, res[1].addr, res[1].port, function(err)
       if err then
         return self:destroy(err)
       end
+      if isClosing(self) then return end
       timer.active(self)
       self._connecting = false
       self:emit('connect')
@@ -245,7 +267,7 @@ end
 
 function Socket:destroy(exception, callback)
   callback = callback or function() end
-  if self.destroyed == true or self._handle == nil then
+  if self.destroyed then
     return callback()
   end
 
@@ -254,7 +276,12 @@ function Socket:destroy(exception, callback)
   self.readable = false
   self.writable = false
 
-  if uv.is_closing(self._handle) then
+  self._reading = false
+  self:_abortBufferedWrites(exception or 'socket is closed')
+
+  if not self._handle then
+    callback()
+  elseif uv.is_closing(self._handle) then
     timer.setImmediate(callback)
   else
     uv.close(self._handle, function()

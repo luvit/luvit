@@ -130,14 +130,19 @@ require('tap')(function (test)
       local client, onConnect, onTimeout
 
       function onConnect()
-        local _1M = 1024*1024
-        assert(client:getRecvBufferSize() > 0)
-        assert(client:setRecvBufferSize(_1M))
-        assert(client:getRecvBufferSize()==_1M)
+        -- Kernels can cap or double the requested buffer size.
+        local small, large = 16 * 1024, 32 * 1024
+        assert(client:setRecvBufferSize(small))
+        local recv = client:getRecvBufferSize()
+        assert(recv > 0)
+        assert(client:setRecvBufferSize(large))
+        assert(client:getRecvBufferSize() > recv)
 
-        assert(client:getSendBufferSize() > 0)
-        assert(client:setSendBufferSize(_1M))
-        assert(client:getSendBufferSize()==_1M)
+        assert(client:setSendBufferSize(small))
+        local send = client:getSendBufferSize()
+        assert(send > 0)
+        assert(client:setSendBufferSize(large))
+        assert(client:getSendBufferSize() > send)
       end
 
       function onTimeout()

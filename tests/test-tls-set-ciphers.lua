@@ -16,70 +16,42 @@ limitations under the License.
 
 --]]
 
-local childprocess = require('childprocess')
 local fs = require('fs')
-local los = require('los')
 local path = require('luvi').path
-local table = require('table')
-local timer = require('timer')
 local tls = require('tls')
-
-if los.type() == 'win32' then
-  return
-end
-
-local function loadPEM(rootName)
-  return path.join(module.dir, 'fixtures', 'keys', rootName)
-end
 
 require('tap')(function(test)
   test('set null cipher', function(expect)
-    local options, reply, response, server
-    local port, onConnection, onListen
-
-    port = 32000
-
-    options = {
-      cert = fs.readFileSync(loadPEM('agent1-cert.pem')),
-      key = fs.readFileSync(loadPEM('agent1-key.pem')),
-      port = port,
-      rejectUnauthorized = false,
-      ciphers = 'NULL-MD5'
-    }
-
-    reply = 'I AM THE WALRUS\n'
-    response = ''
-
-    function onConnection(conn)
+    -- TLS 1.3 has a separate cipher list. Exercise the legacy suite on
+    -- loopback using the same TLS implementation on every platform.
+    local cipher = 'NULL-MD5:@SECLEVEL=0'
+    local noTls13 = 0x20000000 -- SSL_OP_NO_TLSv1_3
+    local keys = path.join(module.dir, 'fixtures', 'keys')
+    local reply = 'I AM THE WALRUS\n'
+    local server = tls.createServer({
+      cert = fs.readFileSync(path.join(keys, 'agent1-cert.pem')),
+      key = fs.readFileSync(path.join(keys, 'agent1-key.pem')),
+      ciphers = cipher,
+      secureOptions = noTls13
+    }, expect(function(conn, err)
+      assert(not err, tostring(err))
+      assert(conn.ssl:current_cipher().name == 'NULL-MD5')
       conn:write(reply, function() conn:destroy() end)
-    end
+    end))
 
-    function onListen()
-      local args, child, onExit, onStdout
-
-      args = {
-        's_client',
-        '-tls1',
-        '-cipher', 'NULL-MD5',
-        '-connect', '127.0.0.1:' .. port
-      }
-
-      function onStdout(data)
-        response = response .. data
-      end
-
-      function onExit()
-        p(response)
-        assert(response:find(reply) ~= -1)
+    server:listen(0, '127.0.0.1', expect(function()
+      local client = tls.connect({
+        host = '127.0.0.1',
+        port = server:address().port,
+        ciphers = cipher,
+        rejectUnauthorized = false
+      })
+      local response = ''
+      client:on('data', function(chunk) response = response .. chunk end)
+      client:on('end', expect(function()
+        assert(response == reply)
         server:close()
-      end
-
-      child = childprocess.spawn('openssl', args)
-      child:on('exit', onExit)
-      child.stdout:on('data', onStdout)
-    end
-
-    server = tls.createServer(options, expect(onConnection))
-    server:listen(port, '127.0.0.1', expect(onListen))
+      end))
+    end))
   end)
 end)

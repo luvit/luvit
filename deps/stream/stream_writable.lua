@@ -232,6 +232,23 @@ function Writable:write(chunk, cb)
   return ret
 end
 
+-- A destroyed stream rejects future writes, including writes while corked.
+-- Leave the active request to onwrite and settle only the queued requests.
+function Writable:_abortBufferedWrites(err)
+  local state = self._writableState
+  state.ended = true
+  local buffered = state.buffer
+  if #buffered == 0 then return end
+  state.buffer = {}
+  state.length = state.writelen
+  process.nextTick(function()
+    for _, entry in ipairs(buffered) do
+      state.pendingcb = state.pendingcb - 1
+      entry.callback(err)
+    end
+  end)
+end
+
 function Writable:cork()
   local state = self._writableState
 

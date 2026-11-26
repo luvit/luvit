@@ -163,7 +163,9 @@ local function theTest(options)
     runClient(opt, port, function() testIter() end)
   end
 
-  server = tls.createServer(serverOptions, function(c)
+  server = tls.createServer(serverOptions, function(c, err)
+    -- A rejected handshake has no connection to send the auth marker on.
+    if err then return end
     if c.authorized == true then
       print('- authed connection: ' .. tostring(c:getPeerCertificate():subject()))
       c:write('\n_authed\n')
